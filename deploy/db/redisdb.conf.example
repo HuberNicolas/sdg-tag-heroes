@@ -1,0 +1,5 @@
+# Require a password to connect to Redis
+requirepass PASSWORD
+
+# Configure a user with specific permissions
+user USER on >PASSWORD ~* +@all

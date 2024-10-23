@@ -1,0 +1,242 @@
+services:
+  portainer:
+    build:
+      context: .
+      dockerfile: deploy/portainer.Dockerfile
+    container_name: portainer
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    ports:
+      - "1000:9000"
+    env_file:
+      - ./env/portainer.env
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.0
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/api.Dockerfile
+    container_name: api
+    environment:
+      DOCKER_SERVICE: "api"
+      IN_DOCKER: true
+      POETRY_HTTP_TIMEOUT: "300"
+    volumes:
+      - ./api:/api
+      - ./schemas:/schemas
+      - ./models:/models
+      - ./data/docker/logs:/logs
+    ports:
+      - "1002:8001"
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.2
+
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/backend.Dockerfile
+    container_name: backend
+    environment:
+      DOCKER_SERVICE: "backend"
+      IN_DOCKER: true
+      POETRY_HTTP_TIMEOUT: "300"
+    volumes:
+      - ./backend:/backend
+    ports:
+      - "1003:8002"
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.3
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: deploy/pipeline.Dockerfile
+    container_name: pipeline
+    environment:
+      DOCKER_SERVICE: "pipeline"
+      IN_DOCKER: true
+      POETRY_HTTP_TIMEOUT: "300"
+    volumes:
+      - ./pipeline:/pipeline
+      - ./db:/db
+      - ./env:/env
+      - ./utils:/utils
+    ports:
+      - "1004:8000"
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.4
+
+  prefect:
+    build:
+      context: .
+      dockerfile: deploy/prefect.Dockerfile
+    container_name: prefect-server
+    entrypoint: [ "/bin/bash", "/entrypoint.sh" ]
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./data/docker/prefect:/data
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.5
+
+  mariadb:
+    container_name: mariadb-database
+    build:
+      context: .
+      dockerfile: deploy/db/mariadb.Dockerfile
+    restart: always
+    ports:
+      - "2001:3306"
+    volumes:
+      - ./data/docker/db/mariadb/mysql-data/:/var/lib/mysql
+      - ./data/db/igcl_dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    env_file:
+      - ./env/mariadb.env
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.6
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    build:
+      context: .
+      dockerfile: deploy/db/phpmyadmin.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "2011:80"
+    depends_on:
+      - mariadb
+    env_file:
+      - ./env/phpmyadmin.env
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.7
+
+  mongodb:
+    container_name: mongodb-database
+    build:
+      context: .
+      dockerfile: deploy/db/mongodb.Dockerfile
+    restart: always
+    ports:
+      - "2002:27017"
+    volumes:
+      - ./data/docker/db/mongodb/mongodb-data:/data/db
+    env_file:
+      - ./env/mongodb.env
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.8
+
+  mongo-express:
+    container_name: mongo-express
+    build:
+      context: .
+      dockerfile: deploy/db/mongoexpress.Dockerfile
+    restart: always
+    ports:
+      - "2022:8081"
+    depends_on:
+      - mongodb
+    env_file:
+      - ./env/mongo-express.env
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.9
+
+  qdrantdb:
+    build:
+      context: .
+      dockerfile: deploy/db/qdrantdb.Dockerfile
+    restart: always
+    container_name: qdrant-database
+    environment:
+      - QDRANT_LOG_LEVEL=debug
+    ports:
+      - "2003:6333"
+    volumes:
+      - ./data/docker/db/qdrantdb/storage:/qdrant/storage
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.10
+
+  couchdb:
+    build:
+      context: .
+      dockerfile: deploy/db/couchdb.Dockerfile
+    restart: always
+    container_name: couchdb-database
+    ports:
+      - "2004:5984"
+    env_file:
+      - ./env/couchdb.env
+    volumes:
+      - ./data/docker/db/couchdb:/opt/couchdb/data
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.11
+
+  redisdb:
+    build:
+      context: .
+      dockerfile: deploy/db/redisdb.Dockerfile
+    restart: always
+    container_name: redisdb-database
+    ports:
+      - "2005:6379"
+    env_file:
+      - ./env/redisdb.env
+    volumes:
+      - ./data/docker/db/redisdb:/data
+      - ./deploy/db/redisdb.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ] # Instruct Redis to use the custom config
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.12
+
+  redis-insight:
+    build:
+      context: .
+      dockerfile: deploy/db/redisinsight.Dockerfile
+    restart: always
+    container_name: redi-sinsight
+    ports:
+      - "2055:5540"
+    depends_on:
+      - redisdb
+    command: [ "redis-stack-server" ]
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.13
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/frontend.Dockerfile
+    container_name: frontend
+    ports:
+      - "3030:3000"
+    volumes:
+      - ./frontend:/app # Mount the local frontend folder into /app inside the container
+      - /app/node_modules # Ensure node_modules inside the container is separate
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.1.0.14
+
+networks:
+  sdg-tag-heroes-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.1.0.0/24
+
+volumes:
+  portainer_data:
