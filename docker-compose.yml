@@ -15,7 +15,7 @@ services:
     profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.0
+        ipv4_address: 10.5.0.15
 
   api:
     build:
@@ -36,7 +36,7 @@ services:
     profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.2
+        ipv4_address: 10.5.0.2
 
   backend:
     build:
@@ -54,7 +54,7 @@ services:
     profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.3
+        ipv4_address: 10.5.0.3
 
   pipeline:
     build:
@@ -75,7 +75,7 @@ services:
     profiles: [ pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.4
+        ipv4_address: 10.5.0.4
 
   prefect:
     build:
@@ -90,7 +90,7 @@ services:
     profiles: [ pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.5
+        ipv4_address: 10.5.0.5
 
   mariadb:
     container_name: mariadb-database
@@ -108,7 +108,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.6
+        ipv4_address: 10.5.0.6
 
   phpmyadmin:
     container_name: phpmyadmin
@@ -125,7 +125,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.7
+        ipv4_address: 10.5.0.7
 
   mongodb:
     container_name: mongodb-database
@@ -142,7 +142,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.8
+        ipv4_address: 10.5.0.8
 
   mongo-express:
     container_name: mongo-express
@@ -159,7 +159,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.9
+        ipv4_address: 10.5.0.9
 
   qdrantdb:
     build:
@@ -176,7 +176,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.10
+        ipv4_address: 10.5.0.10
 
   couchdb:
     build:
@@ -193,7 +193,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.11
+        ipv4_address: 10.5.0.11
 
   redisdb:
     build:
@@ -212,7 +212,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.12
+        ipv4_address: 10.5.0.12
 
   redis-insight:
     build:
@@ -228,7 +228,7 @@ services:
     profiles: [ prod, pipeline ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.13
+        ipv4_address: 10.5.0.13
 
   frontend:
     build:
@@ -243,14 +243,15 @@ services:
     profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
-        ipv4_address: 10.1.0.14
+        ipv4_address: 10.5.0.14
 
 networks:
   sdg-tag-heroes-net:
     driver: bridge
     ipam:
       config:
-        - subnet: 10.1.0.0/24
+        - subnet: 10.5.0.0/24
+          gateway: 10.5.0.1
 
 volumes:
   portainer_data:
