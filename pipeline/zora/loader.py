@@ -33,79 +33,52 @@ from utils.logger import logger
 logging = logger(loader_settings.LOADER_LOG_NAME)
 
 class QdrantUploader:
-
     def __init__(self, qdrantdb_client):
         self.qclient = qdrantdb_client
-        print(self.qclient)
+        logging.info(f"Initialized QdrantUploader with client: {self.qclient}")
 
     def fetch_goal_predictions(self, publications, session):
         """Fetch SDG predictions for a list of publications."""
         goal_predictions = {}
         for pub in publications:
-            # Fetch SDG predictions from the database for the current publication
-            sdg_pred = (
+            sdg_preds = (
                 session.query(SDGPrediction)
                 .filter_by(publication_id=pub.publication_id)
-                .first()
+                .all()
             )
-
-            if sdg_pred:
-                # Collect predictions for SDG 1 to 17
-                predictions = [
-                    sdg_pred.sdg1,
-                    sdg_pred.sdg2,
-                    sdg_pred.sdg3,
-                    sdg_pred.sdg4,
-                    sdg_pred.sdg5,
-                    sdg_pred.sdg6,
-                    sdg_pred.sdg7,
-                    sdg_pred.sdg8,
-                    sdg_pred.sdg9,
-                    sdg_pred.sdg10,
-                    sdg_pred.sdg11,
-                    sdg_pred.sdg12,
-                    sdg_pred.sdg13,
-                    sdg_pred.sdg14,
-                    sdg_pred.sdg15,
-                    sdg_pred.sdg16,
-                    sdg_pred.sdg17,
-                ]
-                goal_predictions[pub.publication_id] = predictions
-                logging.info(
-                    f"SDG predictions for publication ID {pub.publication_id}: {predictions}"
-                )
+            if sdg_preds:
+                for sdg_pred in sdg_preds:
+                    model_name = sdg_pred.prediction_model.lower()
+                    predictions = [
+                        sdg_pred.sdg1, sdg_pred.sdg2, sdg_pred.sdg3, sdg_pred.sdg4,
+                        sdg_pred.sdg5, sdg_pred.sdg6, sdg_pred.sdg7, sdg_pred.sdg8,
+                        sdg_pred.sdg9, sdg_pred.sdg10, sdg_pred.sdg11, sdg_pred.sdg12,
+                        sdg_pred.sdg13, sdg_pred.sdg14, sdg_pred.sdg15, sdg_pred.sdg16,
+                        sdg_pred.sdg17,
+                    ]
+                    if pub.publication_id not in goal_predictions:
+                        goal_predictions[pub.publication_id] = {}
+                    goal_predictions[pub.publication_id][f"goal_{model_name}"] = predictions
+                logging.info(f"SDG predictions for publication ID {pub.publication_id}: {goal_predictions[pub.publication_id]}")
             else:
-                # Handle case where no predictions are found (e.g., all zeros or None)
-                goal_predictions[pub.publication_id] = [
-                    0.0
-                ] * sdg_settings.SDGOAL_NUMBER
-                logging.warning(
-                    f"No SDG predictions found for publication ID {pub.publication_id}. Defaulting to zeros."
-                )
+                goal_predictions[pub.publication_id] = {"goal_default": [0.0] * sdg_settings.SDGOAL_NUMBER}
+                logging.warning(f"No SDG predictions found for publication ID {pub.publication_id}. Defaulting to zeros.")
 
         return goal_predictions
 
     def upload_batch(self, publications, embeddings, goal_predictions, session):
         """Upload a batch of embeddings and predictions to Qdrant."""
-        logging.info(
-            f"Uploading a batch of {len(publications)} publications to Qdrant..."
-        )
+        logging.info(f"Uploading a batch of {len(publications)} publications to Qdrant...")
         try:
             points = []
             for pub, emb in zip(publications, embeddings):
-                # Get the goal predictions for the current publication
-                goals = goal_predictions.get(
-                    pub.publication_id, [0.0] * sdg_settings.SDGOAL_NUMBER
-                )
+                vectors = {"content": emb.tolist()}
+                vectors.update(goal_predictions.get(pub.publication_id, {"goal_default": [0.0] * sdg_settings.SDGOAL_NUMBER}))
 
-                # Create the point structure for each publication
                 points.append(
                     PointStruct(
                         id=int(pub.oai_identifier_num),
-                        vector={
-                            "content": emb.tolist(),
-                            "goal": goals,  # Add SDG goal predictions as the goal vector
-                        },
+                        vector=vectors,
                         payload={
                             "sql_id": pub.publication_id,
                             "oai_identifier": pub.oai_identifier,
@@ -115,81 +88,66 @@ class QdrantUploader:
                         },
                     )
                 )
-            self.qclient.upload_points(collection_name=loader_settings.PUBLICATIONS_COLLECTION_NAME, points=points)
-            logging.info(
-                f"Successfully uploaded {len(publications)} publications to Qdrant."
-            )
 
-            # Mark these publications as embedded
+            # Upload points to Qdrant
+            self.qclient.upload_points(collection_name=loader_settings.PUBLICATIONS_COLLECTION_NAME, points=points)
+            logging.info(f"Successfully uploaded {len(publications)} publications to Qdrant.")
+
+            # Mark publications as embedded in the database
             for pub in publications:
                 pub.embedded = True
                 session.commit()
 
-            logging.info("Marked publications as embedded in the database.")
-
         except Exception as e:
             logging.error(f"Failed to upload batch to Qdrant: {e}")
+            raise
 
     def init_collection(self, collection_name=loader_settings.PUBLICATIONS_COLLECTION_NAME):
-        logging.info(
-            f"Creating or recreating collection {collection_name} in Qdrant..."
-        )
+        """Initialize the Qdrant collection if it doesn't exist."""
+        logging.info(f"Creating or recreating collection {collection_name} in Qdrant...")
         try:
-            if self.qclient.collection_exists(collection_name=collection_name):
-                logging.info(f"Collection {collection_name} already exists.")
-            else:
+            if not self.qclient.collection_exists(collection_name=collection_name):
                 self.qclient.create_collection(
                     collection_name=collection_name,
                     vectors_config={
-                        "content": VectorParams(
-                            size=embeddings_settings.VECTOR_SIZE, distance=Distance.DOT
-                        ),
-                        "goal": VectorParams(
-                            size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT
-                        ),
+                        "content": VectorParams(size=embeddings_settings.VECTOR_SIZE, distance=Distance.DOT),
+                        "goal_zora": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT),
+                        "goal_dvdblk": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT),
                     },
                 )
-                logging.info(
-                    f"Collection {collection_name} successfully created/recreated."
-                )
+                logging.info(f"Collection {collection_name} successfully created.")
+            else:
+                logging.info(f"Collection {collection_name} already exists.")
         except Exception as e:
             logging.error(f"Failed to create collection {collection_name}: {e}")
+            raise
 
     def process_and_upload(self, embedding_generator, session, batch_size):
+        """Process unembedded publications and upload them to Qdrant."""
         logging.info("Starting the embedding generation and upload process...")
+
         while True:
             try:
                 # Fetch unprocessed publications
                 publications = (
                     session.query(Publication)
-                    .join(
-                        SDGPrediction
-                    )  # Join SDGPrediction to access the `predicted` field
-                    .filter(
-                        Publication.embedded == False
-                    )  # Only fetch unembedded publications
-                    .filter(
-                        SDGPrediction.predicted == True
-                    )  # Only fetch publications with predictions completed
+                    .join(SDGPrediction)
+                    .filter(Publication.embedded == False)
+                    .filter(SDGPrediction.predicted == True)
                     .limit(batch_size)
                     .all()
                 )
+
                 if not publications:
-                    logging.info(
-                        "No new publications to embed. Waiting for more data..."
-                    )
+                    logging.info("No new publications to embed. Waiting for more data...")
                     break
+
                 # Generate embeddings for the publications
-                logging.info(
-                    f"Generating embeddings for {len(publications)} publications..."
-                )
+                logging.info(f"Generating embeddings for {len(publications)} publications...")
                 embeddings = embedding_generator.encode_publications(publications)
-                logging.info(f"Embeddings generated for publications.")
 
                 # Fetch SDG predictions from the database
-                logging.info(
-                    f"Fetching SDG predictions for {len(publications)} publications..."
-                )
+                logging.info(f"Fetching SDG predictions for {len(publications)} publications...")
                 goal_predictions = self.fetch_goal_predictions(publications, session)
 
                 # Upload the batch of embeddings and predictions
@@ -197,6 +155,7 @@ class QdrantUploader:
 
             except Exception as e:
                 logging.error(f"Error during processing and uploading: {e}")
+                break
 
 def main(db, batch_size):
     logging.info("Starting main Qdrant loader...")
@@ -215,10 +174,9 @@ def main(db, batch_size):
             logging.info("Using SQLite engine.")
 
         # Initialize embedding generator and Qdrant uploader
+        # Make sure that in settings the correct cuda device is selected!
         embedding_generator = PublicationEmbeddingGenerator(engine, batch_size)
-
         uploader = QdrantUploader(qdrantdb_client)
-
         # Create collection in Qdrant
         uploader.init_collection()
 
@@ -234,24 +192,11 @@ def main(db, batch_size):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run the Qdrant loader with SQLite or MariaDB."
-    )
-    parser.add_argument(
-        "--db",
-        choices=["sqlite", "mariadb"],
-        default="sqlite",
-        help="Specify the database to use: sqlite or mariadb (default: sqlite).",
-    )
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=loader_settings.DEFAULT_BATCH_SIZE,
-        help=f"Specify the batch size for embedding generation and uploading (default: {loader_settings.DEFAULT_BATCH_SIZE}).",
-    )
+    parser = argparse.ArgumentParser(description="Run the Qdrant loader with SQLite or MariaDB.")
+    parser.add_argument("--db", choices=["sqlite", "mariadb"], default="sqlite", help="Specify the database to use: sqlite or mariadb (default: sqlite).")
+    parser.add_argument("--batch_size", type=int, default=loader_settings.DEFAULT_BATCH_SIZE, help=f"Specify the batch size for embedding generation and uploading (default: {loader_settings.DEFAULT_BATCH_SIZE}).")
 
     args = parser.parse_args()
-
     main(args.db, args.batch_size)
 
 def loader_main(db, batch_size):
