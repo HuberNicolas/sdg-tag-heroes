@@ -219,7 +219,7 @@ services:
       context: .
       dockerfile: deploy/db/redisinsight.Dockerfile
     restart: always
-    container_name: redi-sinsight
+    container_name: redis-insight
     ports:
       - "2055:5540"
     depends_on:
