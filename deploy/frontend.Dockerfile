@@ -10,6 +10,9 @@ RUN apk --no-cache add openssh g++ make python3 git
 # Install pnpm globally
 RUN npm install -g pnpm
 
+# Copy over package.json
+COPY frontend/package.json /app/
+
 # Install all dependencies (dev and prod) using pnpm
 RUN pnpm install
 
