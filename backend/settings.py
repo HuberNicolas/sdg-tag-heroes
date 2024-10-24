@@ -39,7 +39,7 @@ authentication_router_settings = AuthenticationRouterSettings()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = BackendSettings.DJANGO_DEBUG_MODE
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["10.5.0.3"]
 
 
 # Application definition
