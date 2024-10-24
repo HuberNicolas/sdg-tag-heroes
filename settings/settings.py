@@ -70,6 +70,7 @@ class PredictionSettings(BaseSettings):
 
     DEFAULT_BATCH_SIZE: ClassVar[int] = 16
     DEFAULT_MARIADB_BATCH_SIZE: ClassVar[int] = 500
+    DEFAULT_DVDBLK_BATCH_SIZE: ClassVar[int] = 16
 
 
 class CollectorSettings(BaseSettings):
