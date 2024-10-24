@@ -35,7 +35,7 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Your API Title",
+        title="SDG Tag Heroes",
         version="1.0.0",
         description="API Documentation with JWT Authentication",
         routes=app.routes,
