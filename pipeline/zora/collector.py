@@ -501,6 +501,9 @@ def main(db, reset, recreate_organizational_structure):
 
         session_maker = sessionmaker(bind=mariadb_engine)
         logging.info("Using MariaDB database.")
+        Base.metadata.create_all(
+                mariadb_engine
+            )  # Ensure tables are created if they don't exist
         if reset == "true":
             reset_database(session_maker())
             logging.info("Reset MariaDB database.")
