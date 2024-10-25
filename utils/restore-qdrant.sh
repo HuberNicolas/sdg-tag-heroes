@@ -21,7 +21,7 @@ fi
 upload_response=$(wget --method=POST \
      --header="Content-Type: multipart/form-data" \
      --body-file="$backup_path" \
-     "http://sdg-tag-heroes.ifi.uzh.ch/db/qdrant:6333/collections/{collection_name}/snapshots/upload?priority=snapshot")
+     "http://sdg-tag-heroes.ifi.uzh.ch/db/qdrant:6333/collections/{collection_name}/snapshots/upload")
 
 # Check if the upload was successful
 echo "$upload_response" | grep -q '"result":true'
