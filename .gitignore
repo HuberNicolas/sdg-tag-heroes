@@ -68,3 +68,7 @@ secrets/
 *.venv
 # env/
 venv/
+
+
+# Snapshots
+.snapshot
