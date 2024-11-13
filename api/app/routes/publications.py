@@ -32,6 +32,7 @@ from models.sdg_user_label import SDGUserLabel
 
 from schemas.publication import PublicationSchema, FacultySchemaFull, FacultySchemaBase, InstituteSchemaFull, InstituteSchemaBase, DivisionSchemaFull, DivisionSchemaBase, \
     AuthorSchemaBase, AuthorSchemaFull, DimRedSchemaFull, DimRedSchemaBase, SDGPredictionSchemaBase, SDGPredictionSchemaFull
+from services.gpt_explainer import SDGExplainer
 
 from settings.settings import PublicationsRouterSettings
 publications_router_settings = PublicationsRouterSettings()
@@ -182,3 +183,49 @@ async def get_publication(publication_id: int, db: Session = Depends(get_db), to
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the publication",
         )
+
+
+@router.get("/{publication_id}/explain/goal/{sdg_id}", response_model=dict,
+            description="Explain the relevance of a publication to a specific SDG")
+async def explain_publication_sdg_relevance(publication_id: int, sdg_id: int, db: Session = Depends(get_db),
+                                            token: str = Depends(oauth2_scheme)) -> dict:
+    user = verify_token(token)  # Ensure user is authenticated
+    publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+    if not publication:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    # Here you would integrate with your SDG explanation service
+    explanation = SDGExplainer().explain(publication, goal=str(sdg_id))
+
+    return {"publication_id": publication_id, "sdg_id": sdg_id, "explanation": explanation}
+
+
+@router.get("/{publication_id}/explain/target/{target_id}", response_model=dict,
+            description="Explain the relevance of a publication to a specific SDG target")
+async def explain_publication_sdg_target(publication_id: int, target_id: str, db: Session = Depends(get_db),
+                                         token: str = Depends(oauth2_scheme)) -> dict:
+    user = verify_token(token)  # Ensure user is authenticated
+    publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+    if not publication:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    target_explanation = SDGExplainer().explain(publication,
+                                                target=target_id)
+
+    return {"publication_id": publication_id, "target_id": target_id, "explanation": target_explanation}
+
+@router.get("/{publication_id}/keywords", response_model=dict, description="Extract keywords from a publication")
+async def extract_keywords(publication_id: int, db: Session = Depends(get_db),
+                           token: str = Depends(oauth2_scheme)) -> dict:
+    user = verify_token(token)  # Ensure user is authenticated
+    publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+    if not publication:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    keywords = SDGExplainer().extract_keywords(publication.title,
+                                               publication.description)
+
+    return {"publication_id": publication_id, "keywords": keywords}
+
+
+

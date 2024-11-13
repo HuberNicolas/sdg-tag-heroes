@@ -33,6 +33,8 @@ COPY ./schemas /schemas
 COPY ./env /env
 COPY ./utils /utils
 COPY ./settings /settings
+COPY ./services /services
+COPY ./prompts /prompts
 COPY deploy/entrypoint.api.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

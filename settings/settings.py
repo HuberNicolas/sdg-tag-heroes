@@ -147,3 +147,11 @@ class BackendSettings(BaseSettings):
     DJANGO_DEBUG_MODE: ClassVar[bool] = True
     LANGUAGE_CODE: str = "en-us"
     USE_I18N: ClassVar[bool] = True
+
+
+class ExplainerSettings(BaseSettings):
+    PROMPT_PATH: ClassVar[str] = "/prompts"
+
+    # smaller model (cheapest as of 06.2024) to keep the cost down
+    GPT_MODEL: ClassVar[str] = "gpt-3.5-turbo-0125"
+    GPT_TEMPERATURE: ClassVar[float] = 0.2
