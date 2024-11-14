@@ -1,6 +1,6 @@
-import { useRuntimeConfig } from 'nuxt/app';
+import { useRuntimeConfig } from "nuxt/app";
 
-export default class AuthService {
+export default class UseAuth {
 
   private config = useRuntimeConfig();
 
@@ -18,7 +18,7 @@ export default class AuthService {
       localStorage.setItem('refresh_token', response.refresh);
 
     } catch (error) {
-      throw new Error('Login failed');
+      throw new Error('Login failed: ', error);
     }
   }
 
@@ -30,17 +30,15 @@ export default class AuthService {
         throw new Error('No token available');
       }
 
-      const response = await $fetch(`${this.config.public.apiUrl}auth/protected`, {
+      // contains user profile data (email, role, etc.)
+      return await $fetch(`${this.config.public.apiUrl}auth/protected`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-
-      // contains user profile data (email, role, etc.)
-      return response;
     } catch (error) {
-      throw new Error('Failed to fetch profile');
+      throw new Error('Failed to fetch profile: ', error);
     }
   }
 

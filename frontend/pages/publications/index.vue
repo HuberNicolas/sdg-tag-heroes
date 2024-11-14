@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import PublicationService from '@/services/PublicationService';
+import UsePublication from '~/composables/usePublication';
 
 const publications = ref<any[]>([]);
 const loading = ref<boolean>(false);
@@ -65,13 +65,12 @@ const hasMorePages = ref<boolean>(false);
 // List of selected includes (checkbox selections)
 const selectedIncludes = ref<string[]>([]);
 
-// Change how fetchPublications is called
 const fetchPublications = async (page = 1) => {
   loading.value = true;
   error.value = null;
 
   try {
-    const publicationService = new PublicationService();
+    const publicationService = new UsePublication();
     const response = await publicationService.getPublications([...selectedIncludes.value], page);
 
     if (page === 1) {

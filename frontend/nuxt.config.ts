@@ -10,38 +10,51 @@ export default defineNuxtConfig({
     "@nuxt/eslint",
     "@nuxt/content",
     "nuxt-svgo",
-    "@nuxt/image",
+    "@nuxt/image"
   ],
+  imports: {
+    // https://nuxt.com/docs/guide/directory-structure/composables
+    dirs: [
+      // Scan top-level modules
+      //'composables',
+      // ... or scan modules nested one level deep with a specific name and file extension
+      //'composables/*/index.{ts,js,mjs,mts}',
+      // ... or scan all modules within given directory
+      'composables/**'
+    ]
+  },
   vite: {
     server: {
-        watch: {
-           usePolling: true,
-        },
-        hmr: {
-            clientPort: 3030 // Host's port
-        }
+      // https://github.com/vitejs/vite/issues/15784
+      watch: {
+        usePolling: true,
+      },
+      hmr: {
+        clientPort: 3030 // Host's port
+      }
     }
   },
   content: {
-        watch: {
-            ws: {
-                protocol: 'ws',
-                hostname: 'localhost'
-            }
-        }
+    // https://content.nuxt.com/get-started/configuration#watch
+    watch: {
+      ws: {
+        port: 4000,
+        showURL: true
+      }
+    }
   },
   runtimeConfig: {
     public: {
       backendURL: process.env.BACKEND_URL, // Django, handles authentication and generates jwt
-      apiUrl: process.env.API_URL, // FastAPI, verifies jwt
-    },
+      apiUrl: process.env.API_URL // FastAPI, verifies jwt
+    }
   },
   // add the middleware globally by adding
   router: {
-    middleware: ['auth']
+    middleware: ["auth"]
   },
   ui: {
-    icons: ["mdi", "simple-icons"],
+    icons: ["mdi", "simple-icons"]
   },
   // clear local storage after changing this
   colorMode: {
@@ -53,25 +66,25 @@ export default defineNuxtConfig({
     classPrefix: "",
     classSuffix: "-mode",
     storage: "localStorage", // or 'sessionStorage' or 'cookie'
-    storageKey: "nuxt-color-mode",
+    storageKey: "nuxt-color-mode"
   },
   fonts: {
     families: [
       {
         name: "JetBrains Mono",
         provider: "google",
-        fallbacks: ["Times New Roman"],
+        fallbacks: ["Times New Roman"]
       },
       {
         name: "Press Start 2P",
         provider: "google",
-        fallbacks: ["Times New Roman"],
-      },
+        fallbacks: ["Times New Roman"]
+      }
     ],
     defaults: {
       fallbacks: {
-        monospace: ["Tahoma"],
-      },
-    },
-  },
+        monospace: ["Tahoma"]
+      }
+    }
+  }
 });
