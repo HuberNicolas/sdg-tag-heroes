@@ -53,7 +53,7 @@ class LoggingSettings(BaseSettings):
     LOG_FORMAT: ClassVar[str] = "%(asctime)s - %(levelname)s - %(message)s"
 
 class PredictionSettings(BaseSettings):
-    ZORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_zora.log"
+    AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
 
     MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models")
