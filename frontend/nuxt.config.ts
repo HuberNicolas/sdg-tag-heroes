@@ -10,7 +10,8 @@ export default defineNuxtConfig({
     "@nuxt/eslint",
     "@nuxt/content",
     "nuxt-svgo",
-    "@nuxt/image"
+    "@nuxt/image",
+    '@pinia/nuxt'
   ],
   imports: {
     // https://nuxt.com/docs/guide/directory-structure/composables

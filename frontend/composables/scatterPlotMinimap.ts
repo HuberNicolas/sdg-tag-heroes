@@ -1,8 +1,10 @@
 import * as d3 from 'd3';
 import * as fc from 'd3fc';
+import {usePublicationStore} from "~/stores/publications";
 
 // Function to create the scatter plot and minimap
 export function createScatterPlotMinimap() {
+  const publicationStore = usePublicationStore();
   const random = d3.randomNormal(0, 0.2);
   const sqrt3 = Math.sqrt(3);
   const points0 = d3.range(300).map(() => [random() + sqrt3, random() + 1, 0]);
@@ -74,7 +76,7 @@ export function createScatterPlotMinimap() {
         // Check if the distance is within the detection border
         if (distanceToPointPixels <= detectionBorder) {
           // Trigger the click event for the closest point
-          console.log('Point clicked:', closest);
+          // console.log('Point clicked:', closest);
         }
       }
     });
@@ -153,6 +155,7 @@ export function createScatterPlotMinimap() {
       } else {
         x.domain(xExtent(data));
         y.domain(yExtent(data));
+        publicationStore.clearSelectedPoints(); // Clear selection in the store
         updateMinimap(null, null); // Clear the minimap selection
         render();
       }
@@ -162,14 +165,17 @@ export function createScatterPlotMinimap() {
       updateMinimap(e.xDomain, e.yDomain);
       render();
     }
-    // Log only the data points that are visible in the current x and y domain
-    const visibleData = data.filter(d =>
+    // Filter data points within the brush extent
+    const brushedPoints = data.filter(d =>
       x.domain()[0] <= d[0] && d[0] <= x.domain()[1] &&
       y.domain()[0] <= d[1] && d[1] <= y.domain()[1]
     );
+
     d3.select('#scatter-plot-visible-points')
-      .html(`Number of Points: ${visibleData.length}`);
-    console.log('Visible Data Points:', visibleData);
+      .html(`Number of Points: ${brushedPoints.length}`);
+    //console.log('Visible Data Points:', brushedPoints);
+
+    publicationStore.setSelectedPoints(brushedPoints); // Update the store with selected points
   });
 
   const multi = fc
