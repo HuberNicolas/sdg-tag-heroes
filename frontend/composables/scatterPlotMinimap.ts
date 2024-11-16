@@ -113,22 +113,33 @@ export function createScatterPlotMinimap() {
 
           if (closest) {
             if (distanceToPointPixels <= detectionBorder) {
+              // Get the scatter plot element's position relative to the page
+              const scatterPlotElement = d3.select('#scatter-plot').node();
+              const scatterPlotRect = scatterPlotElement.getBoundingClientRect();
+
               tooltip
                 .style('opacity', 1)
                 .html(`Score: ${closest.score}`)
-                .style('left', `${pointX + 0}px`)
-                .style('top', `${pointY + 0}px`)
+                .style('left', `${scatterPlotRect.left + pointX}px`)
+                .style('top', `${scatterPlotRect.top + pointY}px`);
+
+              // Update the coordinates and score in the bottom control div
+              d3.select('#scatter-plot-selected-point')
+                .html(`Coordinates: (${closest[0].toFixed(2)}, ${closest[1].toFixed(2)})<br>Score: ${closest.score}`);
             }
 
             else {
               tooltip.style('opacity', 0);
+              d3.select('#scatter-plot-selected-point').html('');
             }
           } else {
             tooltip.style('opacity', 0);
+            d3.select('#scatter-plot-selected-point').html('');
           }
         })
         .on('mouseout', () => {
           tooltip.style('opacity', 0);
+          d3.select('#scatter-plot-selected-point').html('');
         });
     });
 
@@ -156,6 +167,8 @@ export function createScatterPlotMinimap() {
       x.domain()[0] <= d[0] && d[0] <= x.domain()[1] &&
       y.domain()[0] <= d[1] && d[1] <= y.domain()[1]
     );
+    d3.select('#scatter-plot-visible-points')
+      .html(`Number of Points: ${visibleData.length}`);
     console.log('Visible Data Points:', visibleData);
   });
 
