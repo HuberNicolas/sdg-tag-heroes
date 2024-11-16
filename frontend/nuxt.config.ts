@@ -15,11 +15,7 @@ export default defineNuxtConfig({
   imports: {
     // https://nuxt.com/docs/guide/directory-structure/composables
     dirs: [
-      // Scan top-level modules
-      //'composables',
-      // ... or scan modules nested one level deep with a specific name and file extension
-      //'composables/*/index.{ts,js,mjs,mts}',
-      // ... or scan all modules within given directory
+      // scan all modules within given directory
       'composables/**'
     ]
   },
@@ -36,12 +32,7 @@ export default defineNuxtConfig({
   },
   content: {
     // https://content.nuxt.com/get-started/configuration#watch
-    watch: {
-      ws: {
-        port: 4000,
-        showURL: true
-      }
-    }
+    watch: false
   },
   runtimeConfig: {
     public: {
