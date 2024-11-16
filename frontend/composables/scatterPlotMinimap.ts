@@ -13,6 +13,12 @@ export function createScatterPlotMinimap() {
     score: Math.floor(Math.random() * 100)
   }));
 
+  // Create a quadtree for efficient point lookup
+  const quadtree = d3.quadtree()
+    .x(d => d[0])
+    .y(d => d[1])
+    .addAll(data);
+
   const yExtent = fc
     .extentLinear()
     .accessors([d => d[1]])
@@ -27,6 +33,19 @@ export function createScatterPlotMinimap() {
   const y = d3.scaleLinear().domain(yExtent(data));
   const color = d3.scaleOrdinal(d3.schemeCategory10);
 
+  // Create a tooltip div and append it to the body
+  const tooltip = d3.select('body')
+    .append('div')
+    .attr('class', 'tooltip')
+    .style('position', 'absolute')
+    .style('background-color', 'white')
+    .style('border', '1px solid #ddd')
+    .style('padding', '5px')
+    .style('border-radius', '4px')
+    .style('pointer-events', 'none')
+    .style('opacity', 0);
+
+  // Update pointSeries to handle mouse events for showing tooltip
   const pointSeries = fc
     .seriesSvgPoint()
     .crossValue(d => d[0])
@@ -34,7 +53,33 @@ export function createScatterPlotMinimap() {
     .size(15)
     .decorate(selection => {
       selection.enter()
-        .style('fill', d => color(d[2]))
+        .style('fill', d => color(d[2]));
+
+      // Add mouse event listeners to the entire plot area
+      d3.select('#scatter-plot')
+        .on('mousemove', function (event) {
+          const [mouseX, mouseY] = d3.pointer(event);
+
+          // Invert the mouse position to get data coordinates
+          const xValue = x.invert(mouseX);
+          const yValue = y.invert(mouseY);
+
+          // Find the closest point using the quadtree
+          const closest = quadtree.find(xValue, yValue);
+
+          if (closest) {
+            tooltip
+              .style('opacity', 1)
+              .html(`Score: ${closest.score}`)
+              .style('left', `${event.pageX + 10}px`)
+              .style('top', `${event.pageY + 10}px`);
+          } else {
+            tooltip.style('opacity', 0);
+          }
+        })
+        .on('mouseout', () => {
+          tooltip.style('opacity', 0);
+        });
     });
 
   let idleTimeout;
@@ -91,12 +136,12 @@ export function createScatterPlotMinimap() {
 
   const minimapPointSeries = fc
     .seriesSvgPoint()
-    .crossValue(d => d[0]) // Use original x-value
-    .mainValue(d => d[1])  // Use original y-value
+    .crossValue(d => d[0])
+    .mainValue(d => d[1])
     .size(5)
     .decorate(selection => {
       selection.enter()
-        .style('fill', d => color(d[2]))
+        .style('fill', d => color(d[2]));
     });
 
   const minimap = fc.chartCartesian(minimapX, minimapY).svgPlotArea(minimapPointSeries);
@@ -124,7 +169,6 @@ export function createScatterPlotMinimap() {
       .attr('opacity', 0.3);
   }
 
-
   function updateMinimap(xDomain, yDomain) {
     const rect = d3.select('#scatter-plot-minimap').select('rect.brush-rect');
 
@@ -139,7 +183,6 @@ export function createScatterPlotMinimap() {
         .attr('height', minimapY(yDomain[0]) - minimapY(yDomain[1]));
     }
   }
-
 
   render();
   renderMinimap();
