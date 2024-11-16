@@ -51,6 +51,34 @@ export function createScatterPlotMinimap() {
 
   const detectionBorder = 25;
 
+  // Add click event to the main container to simulate click on points
+  d3.select('#scatter-plot')
+    .on('click', function (event) {
+      const [mouseX, mouseY] = d3.pointer(event, this);
+
+      // Convert the mouse position to data coordinates
+      const xValue = x.invert(mouseX);
+      const yValue = y.invert(mouseY);
+      
+      // Use the quadtree to find the closest point to the mouse click
+      const closest = quadtree.find(xValue, yValue);
+
+      if (closest) {
+        // Convert the closest data point to screen coordinates
+        const pointX = x(closest[0]);
+        const pointY = y(closest[1]);
+
+        // Calculate the distance in pixels between the mouse click and the closest point
+        const distanceToPointPixels = distance(mouseX, mouseY, pointX, pointY);
+
+        // Check if the distance is within the detection border
+        if (distanceToPointPixels <= detectionBorder) {
+          // Trigger the click event for the closest point
+          console.log('Point clicked:', closest);
+        }
+      }
+    });
+
   // Update pointSeries to handle mouse events for showing tooltip
   const pointSeries = fc
     .seriesSvgPoint()
