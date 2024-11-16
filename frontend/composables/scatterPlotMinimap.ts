@@ -5,9 +5,9 @@ import * as fc from 'd3fc';
 export function createScatterPlotMinimap() {
   const random = d3.randomNormal(0, 0.2);
   const sqrt3 = Math.sqrt(3);
-  const points0 = d3.range(30).map(() => [random() + sqrt3, random() + 1, 0]);
-  const points1 = d3.range(30).map(() => [random() - sqrt3, random() + 1, 1]);
-  const points2 = d3.range(30).map(() => [random(), random() - 1, 2]);
+  const points0 = d3.range(300).map(() => [random() + sqrt3, random() + 1, 0]);
+  const points1 = d3.range(300).map(() => [random() - sqrt3, random() + 1, 1]);
+  const points2 = d3.range(300).map(() => [random(), random() - 1, 2]);
   const data = d3.merge([points0, points1, points2]).map(d => ({
     ...d,
     score: Math.floor(Math.random() * 100)
@@ -45,6 +45,12 @@ export function createScatterPlotMinimap() {
     .style('pointer-events', 'none')
     .style('opacity', 0);
 
+  function distance(x1, y1, x2, y2) {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+  }
+
+  const detectionBorder = 25;
+
   // Update pointSeries to handle mouse events for showing tooltip
   const pointSeries = fc
     .seriesSvgPoint()
@@ -67,12 +73,28 @@ export function createScatterPlotMinimap() {
           // Find the closest point using the quadtree
           const closest = quadtree.find(xValue, yValue);
 
+          // Convert the closest data point to screen coordinates for distance calculation
+          const pointX = x(closest[0]);
+          const pointY = y(closest[1]);
+
+          //const distanceToPoint = distance(xValue, yValue, closest[0], closest[1]);
+          const distanceToPointPixels = distance(mouseX, mouseY, pointX, pointY);
+
+          //console.table([[mouseX, mouseY], [xValue, yValue], [closest[0], closest[1]], [pointX, pointY], ])
+          //console.log(distanceToPoint, distanceToPointPixels);
+
           if (closest) {
-            tooltip
-              .style('opacity', 1)
-              .html(`Score: ${closest.score}`)
-              .style('left', `${event.pageX + 10}px`)
-              .style('top', `${event.pageY + 10}px`);
+            if (distanceToPointPixels <= detectionBorder) {
+              tooltip
+                .style('opacity', 1)
+                .html(`Score: ${closest.score}`)
+                .style('left', `${pointX + 0}px`)
+                .style('top', `${pointY + 0}px`)
+            }
+
+            else {
+              tooltip.style('opacity', 0);
+            }
           } else {
             tooltip.style('opacity', 0);
           }
