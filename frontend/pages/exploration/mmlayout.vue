@@ -13,6 +13,10 @@ import BoxplotContainer from "~/components/BoxplotContainer.vue";
 export default defineComponent({
   components: { BoxplotContainer, MinimapContainer }
 });
+
+definePageMeta({
+  layout: 'exploration'
+})
 </script>
 
 
