@@ -236,26 +236,58 @@ async def get_publications_by_sdg_values(
             query = query.options(joinedload(Publication.institute))
         if 'division' in includes or not includes:
             query = query.options(joinedload(Publication.division))
-        if 'sdg_predictions' in includes or not includes:
-            query = query.options(joinedload(Publication.sdg_predictions))
+        # Always hydrate the selected `sdg_predictions`
+        query = query.options(joinedload(Publication.sdg_predictions))
         if 'dim_red' in includes or not includes:
             query = query.options(joinedload(Publication.dim_red))
 
         # Fetch publications
         publications = query.all()
-        print(publications)
 
-        # Hydrate or simplify related data and convert to Pydantic models
+        # Convert each publication to a Pydantic model, simplifying related data if necessary
         hydrated_publications = []
-        # Conditionally replace full schema with base schema if keyword is not present:
         for publication in publications:
-            # Convert the hydrated publication to a Pydantic model
-            hydrated_publications.append(PublicationSchema.from_orm(publication))
+            # Create a copy of the publication's data in a way that does not modify the original ORM object
+            publication_data = PublicationSchema.from_orm(publication)
+
+            # Select only the relevant SDGPrediction based on model or strategy
+            if publication_data.sdg_predictions:
+                if model:
+                    # Filter by the specified model
+                    publication_data.sdg_predictions = [
+                        prediction for prediction in publication_data.sdg_predictions if
+                        prediction.prediction_model == model
+                    ]
+                elif value_strategy in ["highest", "lowest"]:
+                    # Sort and select the first prediction based on strategy
+                    sdg_attr = f"sdg{sdg}"
+                    publication_data.sdg_predictions = sorted(
+                        publication_data.sdg_predictions,
+                        key=lambda p: getattr(p, sdg_attr),
+                        reverse=(value_strategy == "highest")
+                    )[:1]  # Take only the top prediction
+
+            # Conditionally simplify related data
+            if 'authors' not in includes and publication_data.authors:
+                publication_data.authors = [AuthorSchemaBase.from_orm(author) for author in publication.authors]
+            if 'faculty' not in includes and publication_data.faculty:
+                publication_data.faculty = FacultySchemaBase.from_orm(publication.faculty)
+            if 'institute' not in includes and publication_data.institute:
+                publication_data.institute = InstituteSchemaBase.from_orm(publication.institute)
+            if 'division' not in includes and publication_data.division:
+                publication_data.division = DivisionSchemaBase.from_orm(publication.division)
+            if 'dim_red' not in includes and publication_data.dim_red:
+                publication_data.dim_red = DimRedSchemaBase.from_orm(publication.dim_red)
+
+            # Add the hydrated publication data to the result list
+            hydrated_publications.append(publication_data)
 
         # Add to result
         result[f"sdg{sdg}"] = hydrated_publications
 
     return result
+
+
 
 @router.get("/{publication_id}", response_model=PublicationSchema, description="Get single publication by ID")
 async def get_publication(publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> PublicationSchema:
