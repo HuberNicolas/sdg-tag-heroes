@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.encoders import jsonable_encoder
@@ -155,11 +155,107 @@ async def get_publications(include: Optional[str] = Query(None), db: Session = D
         if 'division' not in includes and publication.division:
             publication.division = DivisionSchemaBase.from_orm(publication.division)
         if 'sdg_predictions' not in includes and publication.sdg_predictions:
-            print(publication.sdg_predictions)
             publication.sdg_predictions = [SDGPredictionSchemaBase.from_orm(prediction) for prediction in publication.sdg_predictions]
         if 'dim_red' not in includes and publication.dim_red:
             publication.dim_red = DimRedSchemaBase.from_orm(publication.dim_red)
     return publications
+
+@router.get(
+    "/by-sdg-values",
+    response_model=Dict[str, List[PublicationSchema]],
+    description=(
+        "Retrieve publications filtered by SDG values within a specified range. "
+        "You can specify a fixed model or choose a strategy ('highest' or 'lowest') "
+        "to select the SDG value when multiple models are available."
+    ),
+)
+async def get_publications_by_sdg_values(
+    sdg_range: Tuple[float, float] = Query(..., description="Range for SDG values, e.g., (0.98, 0.99)"),
+    limit: int = Query(10, description="Limit for the number of publications per SDG group"),
+    sdgs: Optional[List[int]] = Query(None, description="List of specific SDGs to filter, e.g., [1, 3, 12]"),
+    include: Optional[str] = Query(None, description="Comma-separated list of related entities to include, e.g., 'authors,faculty'"),
+    model: Optional[str] = Query(None, description="Fixed model name to filter by, e.g., 'model_A'"),
+    value_strategy: Optional[str] = Query(
+        None,
+        description="Strategy to select SDG value when multiple models are available: 'highest' or 'lowest'"
+    ),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> Dict[str, List[PublicationSchema]]:
+    # Verify the token before proceeding
+    user = verify_token(token)  # Raises HTTPException if the token is invalid or expired
+
+    # Unpack the range
+    min_value, max_value = sdg_range
+
+    # Default to all 17 SDGs if none are specified
+    sdg_list = sdgs if sdgs else range(1, 18)
+
+    # Parse the include parameter for related entity hydration
+    includes = include.split(",") if include else []
+
+    # Result dictionary to store publications for each SDG
+    result = {}
+
+    for sdg in sdg_list:
+        # Construct the base query for the SDG
+        query = db.query(Publication).join(SDGPrediction)
+
+        if value_strategy:
+            # Advanced strategy to select 'highest' or 'lowest' SDG value
+            if value_strategy == "highest":
+                query = query.filter(
+                    getattr(SDGPrediction, f"sdg{sdg}") == db.query(SDGPrediction)
+                    .filter(SDGPrediction.publication_id == Publication.publication_id)
+                    .order_by(getattr(SDGPrediction, f"sdg{sdg}").desc())
+                    .limit(1)
+                    .subquery().c[f"sdg{sdg}"]
+                )
+            elif value_strategy == "lowest":
+                query = query.filter(
+                    getattr(SDGPrediction, f"sdg{sdg}") == db.query(SDGPrediction)
+                    .filter(SDGPrediction.publication_id == Publication.publication_id)
+                    .order_by(getattr(SDGPrediction, f"sdg{sdg}").asc())
+                    .limit(1)
+                    .subquery().c[f"sdg{sdg}"]
+                )
+        elif model:
+            # Default behavior: filter by a specified model
+            query = query.filter(SDGPrediction.prediction_model == model)
+
+        # Further filter by SDG value range
+        query = query.filter(getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value))
+        query = query.order_by(Publication.created_at).limit(limit)
+
+        # Apply joinedload options for related entities based on 'include' parameter
+        if 'authors' in includes:
+            query = query.options(joinedload(Publication.authors))
+        if 'faculty' in includes or not includes:
+            query = query.options(joinedload(Publication.faculty))
+        if 'institute' in includes or not includes:
+            query = query.options(joinedload(Publication.institute))
+        if 'division' in includes or not includes:
+            query = query.options(joinedload(Publication.division))
+        if 'sdg_predictions' in includes or not includes:
+            query = query.options(joinedload(Publication.sdg_predictions))
+        if 'dim_red' in includes or not includes:
+            query = query.options(joinedload(Publication.dim_red))
+
+        # Fetch publications
+        publications = query.all()
+        print(publications)
+
+        # Hydrate or simplify related data and convert to Pydantic models
+        hydrated_publications = []
+        # Conditionally replace full schema with base schema if keyword is not present:
+        for publication in publications:
+            # Convert the hydrated publication to a Pydantic model
+            hydrated_publications.append(PublicationSchema.from_orm(publication))
+
+        # Add to result
+        result[f"sdg{sdg}"] = hydrated_publications
+
+    return result
 
 @router.get("/{publication_id}", response_model=PublicationSchema, description="Get single publication by ID")
 async def get_publication(publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> PublicationSchema:
@@ -226,6 +322,4 @@ async def extract_keywords(publication_id: int, db: Session = Depends(get_db),
                                                publication.description)
 
     return {"publication_id": publication_id, "keywords": keywords}
-
-
 
