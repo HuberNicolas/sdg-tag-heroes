@@ -193,15 +193,25 @@ async def get_publications_by_sdg_values(
     result = {}
 
     for sdg in sdg_list:
-        # Construct the base query for the SDG
-        query = db.query(Publication).join(SDGPrediction)
+        # Construct the base query for the SDG, joining with SDGPrediction
+        query = db.query(Publication).join(SDGPrediction).options(
+            joinedload(Publication.sdg_predictions)  # Load all SDG predictions for filtering in Python
+        )
 
-        # Default behavior: filter by a specified model
-        query = query.filter(SDGPrediction.prediction_model == model)
+        # Filter the SDGPrediction objects
+        sdg_attr = f"sdg{sdg}"
+        if model:
+            # If a model is specified, filter by model and SDG value range
+            query = query.filter(
+                SDGPrediction.prediction_model == model,
+                getattr(SDGPrediction, sdg_attr).between(min_value, max_value)
+            )
+        else:
+            # No model specified: Select all SDG predictions and handle filtering in Python
+            query = query.filter(getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value))
 
-        # Further filter by SDG value range
-        query = query.filter(getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value))
-        query = query.order_by(Publication.created_at).limit(limit)
+        # Order the query by the SDG value in descending order
+        query = query.order_by(getattr(SDGPrediction, sdg_attr).desc()).limit(limit)
 
         # Apply joinedload options for related entities based on 'include' parameter
         if 'authors' in includes:
@@ -212,8 +222,6 @@ async def get_publications_by_sdg_values(
             query = query.options(joinedload(Publication.institute))
         if 'division' in includes or not includes:
             query = query.options(joinedload(Publication.division))
-        # Always hydrate the selected `sdg_predictions`
-        query = query.options(joinedload(Publication.sdg_predictions))
         if 'dim_red' in includes or not includes:
             query = query.options(joinedload(Publication.dim_red))
 
@@ -223,33 +231,46 @@ async def get_publications_by_sdg_values(
         # Convert each publication to a Pydantic model, simplifying related data if necessary
         hydrated_publications = []
         for publication in publications:
-            # Create a copy of the publication's data in a way that does not modify the original ORM object
-            publication_data = PublicationSchema.from_orm(publication)
-
-            # Select only the relevant SDGPrediction based on model or strategy
-            if publication_data.sdg_predictions:
-                # Filter by the specified model
-                publication_data.sdg_predictions = [
-                    prediction for prediction in publication_data.sdg_predictions if
-                    prediction.prediction_model == model
+            if model:
+                # If a model is specified, filter SDG predictions by the model
+                publication.sdg_predictions = [
+                    prediction for prediction in publication.sdg_predictions if prediction.prediction_model == model
                 ]
+            else:
+                # No model specified: Select the highest SDG value prediction within the range
+                sdg_attr = f"sdg{sdg}"
+                publication.sdg_predictions = [
+                    max(
+                        (p for p in publication.sdg_predictions if
+                         getattr(p, sdg_attr) >= min_value and getattr(p, sdg_attr) <= max_value),
+                        key=lambda p: getattr(p, sdg_attr),
+                        default=None
+                    )
+                ]
+                # Remove None values if no prediction matched the criteria
+                publication.sdg_predictions = [p for p in publication.sdg_predictions if p is not None]
 
-            # Conditionally simplify related data
-            if 'authors' not in includes and publication_data.authors:
-                publication_data.authors = [AuthorSchemaBase.from_orm(author) for author in publication.authors]
-            if 'faculty' not in includes and publication_data.faculty:
-                publication_data.faculty = FacultySchemaBase.from_orm(publication.faculty)
-            if 'institute' not in includes and publication_data.institute:
-                publication_data.institute = InstituteSchemaBase.from_orm(publication.institute)
-            if 'division' not in includes and publication_data.division:
-                publication_data.division = DivisionSchemaBase.from_orm(publication.division)
-            if 'dim_red' not in includes and publication_data.dim_red:
-                publication_data.dim_red = DimRedSchemaBase.from_orm(publication.dim_red)
+            # Only include the publication if there is at least one valid SDG prediction
+            if publication.sdg_predictions:
+                # Create a Pydantic model from the hydrated publication
+                publication_data = PublicationSchema.from_orm(publication)
 
-            # Add the hydrated publication data to the result list
-            hydrated_publications.append(publication_data)
+                # Conditionally simplify related data
+                if 'authors' not in includes and publication_data.authors:
+                    publication_data.authors = [AuthorSchemaBase.from_orm(author) for author in publication.authors]
+                if 'faculty' not in includes and publication_data.faculty:
+                    publication_data.faculty = FacultySchemaBase.from_orm(publication.faculty)
+                if 'institute' not in includes and publication_data.institute:
+                    publication_data.institute = InstituteSchemaBase.from_orm(publication.institute)
+                if 'division' not in includes and publication_data.division:
+                    publication_data.division = DivisionSchemaBase.from_orm(publication.division)
+                if 'dim_red' not in includes and publication_data.dim_red:
+                    publication_data.dim_red = DimRedSchemaBase.from_orm(publication.dim_red)
 
-        # Add to result
+                # Add the hydrated publication data to the result list
+                hydrated_publications.append(publication_data)
+
+            # Add to result
         result[f"sdg{sdg}"] = hydrated_publications
 
     return result
