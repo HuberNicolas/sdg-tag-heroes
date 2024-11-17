@@ -99,6 +99,9 @@ class ReducerSettings(BaseSettings):
 class PublicationsRouterSettings(BaseSettings):
     PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
 
+class SDGsRouterSettings(BaseSettings):
+    SDGS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdgs.log"
+
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
 

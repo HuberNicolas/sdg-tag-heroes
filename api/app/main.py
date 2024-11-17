@@ -7,6 +7,7 @@ from fastapi.openapi.utils import get_openapi
 from api.app.routes import publications
 from api.app.routes import authors
 from api.app.routes import authentication
+from api.app.routes import sdgs
 
 from fastapi_pagination import add_pagination
 
@@ -19,6 +20,7 @@ add_pagination(app)  # important! add pagination to your app
 app.include_router(publications.router)
 app.include_router(authors.router)
 app.include_router(authentication.router)
+app.include_router(sdgs.router)
 
 # CORS (development only)
 app.add_middleware(
