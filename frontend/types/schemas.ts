@@ -99,3 +99,11 @@ export interface PublicationSchema {
   created_at: string;
   updated_at: string;
 }
+
+export interface SDGGoal {
+  id: number;
+  index: number;
+  name: string;
+  color: string;
+  icon?: string; // Optional icon field
+}
