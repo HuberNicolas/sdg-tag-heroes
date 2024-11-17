@@ -165,8 +165,7 @@ async def get_publications(include: Optional[str] = Query(None), db: Session = D
     response_model=Dict[str, List[PublicationSchema]],
     description=(
         "Retrieve publications filtered by SDG values within a specified range. "
-        "You can specify a fixed model or choose a strategy ('highest' or 'lowest') "
-        "to select the SDG value when multiple models are available."
+        "You can specify a fixed model when multiple models are available."
     ),
 )
 async def get_publications_by_sdg_values(
@@ -175,10 +174,6 @@ async def get_publications_by_sdg_values(
     sdgs: Optional[List[int]] = Query(None, description="List of specific SDGs to filter, e.g., [1, 3, 12]"),
     include: Optional[str] = Query(None, description="Comma-separated list of related entities to include, e.g., 'authors,faculty'"),
     model: Optional[str] = Query(None, description="Fixed model name to filter by, e.g., 'model_A'"),
-    value_strategy: Optional[str] = Query(
-        None,
-        description="Strategy to select SDG value when multiple models are available: 'highest' or 'lowest'"
-    ),
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
 ) -> Dict[str, List[PublicationSchema]]:
@@ -201,27 +196,8 @@ async def get_publications_by_sdg_values(
         # Construct the base query for the SDG
         query = db.query(Publication).join(SDGPrediction)
 
-        if value_strategy:
-            # Advanced strategy to select 'highest' or 'lowest' SDG value
-            if value_strategy == "highest":
-                query = query.filter(
-                    getattr(SDGPrediction, f"sdg{sdg}") == db.query(SDGPrediction)
-                    .filter(SDGPrediction.publication_id == Publication.publication_id)
-                    .order_by(getattr(SDGPrediction, f"sdg{sdg}").desc())
-                    .limit(1)
-                    .subquery().c[f"sdg{sdg}"]
-                )
-            elif value_strategy == "lowest":
-                query = query.filter(
-                    getattr(SDGPrediction, f"sdg{sdg}") == db.query(SDGPrediction)
-                    .filter(SDGPrediction.publication_id == Publication.publication_id)
-                    .order_by(getattr(SDGPrediction, f"sdg{sdg}").asc())
-                    .limit(1)
-                    .subquery().c[f"sdg{sdg}"]
-                )
-        elif model:
-            # Default behavior: filter by a specified model
-            query = query.filter(SDGPrediction.prediction_model == model)
+        # Default behavior: filter by a specified model
+        query = query.filter(SDGPrediction.prediction_model == model)
 
         # Further filter by SDG value range
         query = query.filter(getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value))
@@ -252,20 +228,11 @@ async def get_publications_by_sdg_values(
 
             # Select only the relevant SDGPrediction based on model or strategy
             if publication_data.sdg_predictions:
-                if model:
-                    # Filter by the specified model
-                    publication_data.sdg_predictions = [
-                        prediction for prediction in publication_data.sdg_predictions if
-                        prediction.prediction_model == model
-                    ]
-                elif value_strategy in ["highest", "lowest"]:
-                    # Sort and select the first prediction based on strategy
-                    sdg_attr = f"sdg{sdg}"
-                    publication_data.sdg_predictions = sorted(
-                        publication_data.sdg_predictions,
-                        key=lambda p: getattr(p, sdg_attr),
-                        reverse=(value_strategy == "highest")
-                    )[:1]  # Take only the top prediction
+                # Filter by the specified model
+                publication_data.sdg_predictions = [
+                    prediction for prediction in publication_data.sdg_predictions if
+                    prediction.prediction_model == model
+                ]
 
             # Conditionally simplify related data
             if 'authors' not in includes and publication_data.authors:
