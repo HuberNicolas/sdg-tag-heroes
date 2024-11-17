@@ -1,4 +1,5 @@
-from typing import List, Optional, Dict, Tuple
+from collections import defaultdict
+from typing import List, Optional, Dict, Tuple, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.encoders import jsonable_encoder
@@ -162,7 +163,8 @@ async def get_publications(include: Optional[str] = Query(None), db: Session = D
 
 @router.get(
     "/by-sdg-values",
-    response_model=Dict[str, List[PublicationSchema]],
+    # response_model=Dict[str, List[PublicationSchema]],
+    response_model=Dict[str, Any],  # Adjusted to return both statistics and publication data
     description=(
         "Retrieve publications filtered by SDG values within a specified range. "
         "You can specify a fixed model when multiple models are available."
@@ -176,7 +178,7 @@ async def get_publications_by_sdg_values(
     model: Optional[str] = Query(None, description="Fixed model name to filter by, e.g., 'model_A'"),
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> Dict[str, List[PublicationSchema]]:
+) -> Dict[str, Any]: # -> Dict[str, List[PublicationSchema]]:
     # Verify the token before proceeding
     user = verify_token(token)  # Raises HTTPException if the token is invalid or expired
 
@@ -188,9 +190,17 @@ async def get_publications_by_sdg_values(
 
     # Parse the include parameter for related entity hydration
     includes = include.split(",") if include else []
+    hydration_status = {entity: entity in includes for entity in ['authors', 'faculty', 'institute', 'division', 'dim_red', 'sdg_predictions']}
 
-    # Result dictionary to store publications for each SDG
-    result = {}
+    # Result dictionary to store publications and statistics
+    result = {
+        "statistics": {
+            "general_range": {"min_value": min_value, "max_value": max_value},
+            "hydration_status": hydration_status,
+            "sdg_statistics": {}
+        },
+        "publications": {}
+    }
 
     for sdg in sdg_list:
         # Construct the base query for the SDG, joining with SDGPrediction
@@ -207,10 +217,10 @@ async def get_publications_by_sdg_values(
                 getattr(SDGPrediction, sdg_attr).between(min_value, max_value)
             )
         else:
-            # No model specified: Select all SDG predictions and handle filtering in Python
-            query = query.filter(getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value))
+            # No model specified: Filter by SDG value range
+            query = query.filter(getattr(SDGPrediction, sdg_attr).between(min_value, max_value))
 
-        # Order the query by the SDG value in descending order
+        # Order the query by the SDG value in descending order and limit the results
         query = query.order_by(getattr(SDGPrediction, sdg_attr).desc()).limit(limit)
 
         # Apply joinedload options for related entities based on 'include' parameter
@@ -228,6 +238,12 @@ async def get_publications_by_sdg_values(
         # Fetch publications
         publications = query.all()
 
+        # Collect statistics
+        retrieved_count = len(publications)
+        min_pred = float('inf')
+        max_pred = float('-inf')
+        model_counts = defaultdict(int)
+
         # Convert each publication to a Pydantic model, simplifying related data if necessary
         hydrated_publications = []
         for publication in publications:
@@ -238,7 +254,6 @@ async def get_publications_by_sdg_values(
                 ]
             else:
                 # No model specified: Select the highest SDG value prediction within the range
-                sdg_attr = f"sdg{sdg}"
                 publication.sdg_predictions = [
                     max(
                         (p for p in publication.sdg_predictions if
@@ -252,6 +267,13 @@ async def get_publications_by_sdg_values(
 
             # Only include the publication if there is at least one valid SDG prediction
             if publication.sdg_predictions:
+                # Update statistics
+                for prediction in publication.sdg_predictions:
+                    pred_value = getattr(prediction, sdg_attr)
+                    min_pred = min(min_pred, pred_value)
+                    max_pred = max(max_pred, pred_value)
+                    model_counts[prediction.prediction_model] += 1
+
                 # Create a Pydantic model from the hydrated publication
                 publication_data = PublicationSchema.from_orm(publication)
 
@@ -270,8 +292,17 @@ async def get_publications_by_sdg_values(
                 # Add the hydrated publication data to the result list
                 hydrated_publications.append(publication_data)
 
-            # Add to result
-        result[f"sdg{sdg}"] = hydrated_publications
+        # Prepare SDG-specific statistics
+        result["statistics"]["sdg_statistics"][f"sdg{sdg}"] = {
+            "limit": limit,
+            "retrieved_count": retrieved_count,
+            "min_pred": min_pred if min_pred != float('inf') else None,
+            "max_pred": max_pred if max_pred != float('-inf') else None,
+            "pubs_per_model": dict(model_counts)
+        }
+
+        # Add to result
+        result["publications"][f"sdg{sdg}"] = hydrated_publications
 
     return result
 
