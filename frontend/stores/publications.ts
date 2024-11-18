@@ -7,11 +7,23 @@ export const usePublicationStore = defineStore('publications', {
     count: 0, // Initial state for count
     selectedPoints: [], // Array to hold selected data points
     publications: [] as PublicationSchema[], // Array to hold loaded publications
+    statistics: {},
     loading: false, // State to indicate loading status
     error: null as string | null // State to hold any error messages
   }),
 
+  getters: {
+    // Getters are exactly the equivalent of computed values for the state of a Store.
+
+    getPublications: (state) => {
+      return state.publications;
+    }
+  },
+
+
   actions: {
+    // Actions are the equivalent of methods in components.
+
     // Action to increment the count
     increment() {
       this.count++;
@@ -37,8 +49,11 @@ export const usePublicationStore = defineStore('publications', {
       this.loading = true;
       this.error = null;
       try {
-        const publications = await fetchPublicationsFn();
-        this.publications = publications;
+        const response = await fetchPublicationsFn();
+        console.log(response);
+        console.log(response.publications, response.statistics);
+        this.publications = response.publications;
+        this.statistics = response.statistics;
       } catch (err: any) {
         this.error = err.message || 'Failed to load publications';
         console.error('Error loading publications:', err);
