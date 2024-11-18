@@ -99,14 +99,19 @@ class DivisionSchemaBase(BaseModel):
 
 class DimRedSchemaFull(BaseModel):
     dim_red_id: int
-    umap_x_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
-    umap_y_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
+    reduction_technique: str
+    reduction_details: str
+    reduction_shorthand: str
+
+    x_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
+    y_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
+    z_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
     created_at: datetime
     updated_at: datetime
 
-    # Validator to round all float values for SDGs
-    @validator('umap_x_coord', 'umap_y_coord', pre=True)
-    def round_sdg_values(cls, v):
+    # Validator to round all float values for dimreds
+    @validator('x_coord', 'y_coord', 'z_coord', pre=True)
+    def round_dimred_values(cls, v):
         if isinstance(v, float):
             return round(v, 4)
         return v
@@ -116,6 +121,11 @@ class DimRedSchemaFull(BaseModel):
 
 class DimRedSchemaBase(BaseModel):
     dim_red_id: int
+    reduction_shorthand: str
+
+    x_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
+    y_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
+    z_coord: condecimal(max_digits=6, decimal_places=4) = Field(0.0)
 
     class Config:
         from_attributes = True

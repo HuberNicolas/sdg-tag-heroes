@@ -68,6 +68,10 @@ export interface DivisionSchemaFull extends DivisionSchemaBase {
 
 export interface DimRedSchemaBase {
   dim_red_id: number;
+  reduction_shorthand: string;
+  x_coord: number;
+  y_coord: number;
+  z_coord: number;
 }
 
 export interface DimRedSchemaFull extends DimRedSchemaBase {

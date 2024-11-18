@@ -82,6 +82,7 @@ export default class UsePublication {
       if (include.length > 0) {
         params.append('include', include.join(','));
       }
+      params.append('include', 'dim_red');
 
       // Append the model if specified
       if (model) {

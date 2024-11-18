@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from settings.settings import TimeZoneSettings
@@ -16,8 +16,14 @@ class DimRed(Base):
     publication_id = Column(
         Integer, ForeignKey("publications.publication_id")
     )  # Foreign key to Publication
-    umap_x_coord = Column(Float(precision=4), default=0.0, nullable=True, unique=False)
-    umap_y_coord = Column(Float(precision=4), default=0.0, nullable=True, unique=False)
+
+    reduction_technique = Column(String(255))
+    reduction_details = Column(Text)
+    reduction_shorthand = Column(String(255))
+
+    x_coord = Column(Float(precision=4), default=0.0, nullable=True, unique=False)
+    y_coord = Column(Float(precision=4), default=0.0, nullable=True, unique=False)
+    z_coord = Column(Float(precision=4), default=0.0, nullable=True, unique=False)
 
     publication = relationship("Publication", back_populates="dim_red")
     created_at = Column(
@@ -36,7 +42,10 @@ class DimRed(Base):
         return (
             f"<DimRed(dim_red_id={self.dim_red_id}, "
             f"publication_id={self.publication_id}, "
-            f"umap_x_coord={self.umap_x_coord}, "
-            f"umap_y_coord={self.umap_y_coord}, "
+            f"reduction_technique={self.reduction_technique}, "
+            f"reduction_shorthand={self.reduction_shorthand}, "
+            f"x_coord={self.x_coord}, "
+            f"y_coord={self.y_coord}, "
+            f"z_coord={self.z_coord}, "
             f"created_at={self.created_at}, updated_at={self.updated_at})>"
         )
