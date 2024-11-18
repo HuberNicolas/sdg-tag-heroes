@@ -54,6 +54,8 @@
     <!-- Minimap and Boxplot Components with Publications Data Passed as Props -->
     <MinimapContainer :publications="publicationStore.publications"></MinimapContainer>
     <BoxplotContainer :publications="publicationStore.publications"></BoxplotContainer>
+
+    <PublicationTable></PublicationTable>
   </div>
 </template>
 
@@ -62,6 +64,7 @@ import { ref, onMounted, watch } from 'vue';
 import { debounce } from 'lodash-es';
 import MinimapContainer from '~/components/MinimapContainer.vue';
 import BoxplotContainer from '~/components/BoxplotContainer.vue';
+import PublicationTable from "~/components/PublicationTable.vue";
 import { usePublicationStore } from "~/stores/publications";
 import {useSDGStore} from "~/stores/sdgs";
 import PublicationService from '@/composables/usePublication';
