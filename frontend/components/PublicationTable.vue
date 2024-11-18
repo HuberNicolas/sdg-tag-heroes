@@ -8,7 +8,7 @@ const { publications } = storeToRefs(publicationStore);
 
 // Watch the publications for changes (for debugging purposes)
 watch(publications, () => {
-  console.log(publications.value); // Check the structure of publications
+  // console.log(publications.value); // Check the structure of publications
 });
 
 // Extract and flatten the list of publications from the nested structure
@@ -17,7 +17,6 @@ const allPublications = computed(() => {
   // Flatten all the SDG publication arrays into a single array
   return Object.values(pubData).flat();
 });
-console.log(allPublications);
 
 // Define columns for the UTable component
 const columns = [

@@ -51,9 +51,9 @@
     <!-- Error Message -->
     <div v-if="publicationStore.error" class="error">{{ publicationStore.error }}</div>
 
-    <!-- Minimap and Boxplot Components with Publications Data Passed as Props -->
-    <MinimapContainer :publications="publicationStore.publications"></MinimapContainer>
-    <BoxplotContainer :publications="publicationStore.publications"></BoxplotContainer>
+    <!-- Minimap and Boxplot Components -->
+    <MinimapContainer></MinimapContainer>
+    <BoxplotContainer></BoxplotContainer>
 
     <PublicationTable></PublicationTable>
   </div>
@@ -94,6 +94,9 @@ const sdgOptions = computed(() =>
 watchEffect(() => {
   if (sdgStore.sdgGoals.length > 0 && !selectedSDG.value) {
     selectedSDG.value = sdgOptions.value[0] || null;
+  }
+  if (selectedSDG.value) {
+    publicationStore.selectedSDG = selectedSDG.value.id;
   }
 });
 

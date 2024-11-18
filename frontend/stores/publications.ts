@@ -7,6 +7,7 @@ export const usePublicationStore = defineStore('publications', {
     count: 0, // Initial state for count
     selectedPoints: [], // Array to hold selected data points
     publications: [] as PublicationSchema[], // Array to hold loaded publications
+    selectedSDG: 0,
     statistics: {},
     loading: false, // State to indicate loading status
     error: null as string | null // State to hold any error messages
@@ -17,6 +18,12 @@ export const usePublicationStore = defineStore('publications', {
 
     getPublications: (state) => {
       return state.publications;
+    }
+  },
+
+  setters: {
+    setSelectedSDG: (state, selectedSDG: number) => {
+      state.selectedSDG = selectedSDG;
     }
   },
 
@@ -50,8 +57,6 @@ export const usePublicationStore = defineStore('publications', {
       this.error = null;
       try {
         const response = await fetchPublicationsFn();
-        console.log(response);
-        console.log(response.publications, response.statistics);
         this.publications = response.publications;
         this.statistics = response.statistics;
       } catch (err: any) {

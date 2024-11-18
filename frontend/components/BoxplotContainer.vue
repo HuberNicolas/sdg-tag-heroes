@@ -20,8 +20,8 @@ const store = usePublicationStore();
 // Transform the selected data into arrays for x, y, and score
 const boxplotData = computed(() => {
   const selectedPoints = store.selectedPoints;
-  const xValues = selectedPoints.map(point => point[0]);
-  const yValues = selectedPoints.map(point => point[1]);
+  const xValues = selectedPoints.map(point => point.x);
+  const yValues = selectedPoints.map(point => point.y);
   const scores = selectedPoints.map(point => point.score);
 
   return [xValues, yValues, scores];
