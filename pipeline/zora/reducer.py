@@ -20,6 +20,10 @@ from models.sdg_label_decision import SDGLabelDecision
 from models.sdg_user_label import SDGUserLabel
 from models.dim_red import DimRed
 from models.publication import Publication
+from models.user import User
+from models.admin import Admin
+from models.expert import Expert
+from models.labeler import Labeler
 
 
 from settings.settings import ReducerSettings, LoaderSettings, EmbeddingsSettings
@@ -184,10 +188,10 @@ def main(db, mariadb_batch_size):
         Base.metadata.create_all(engine)
 
         # Initialize UMAP processor
-        umap_processor = UmapProcessor(qdrantdb_client, mariadb_batch_size=mariadb_batch_size)
+        #umap_processor = UmapProcessor(qdrantdb_client, mariadb_batch_size=mariadb_batch_size)
 
         # Process and reduce un-UMAPed publications
-        umap_processor.process_and_reduce(session)
+        #umap_processor.process_and_reduce(session)
 
     except Exception as e:
         logging.error(f"Failed to start the UMAP-Qdrant loader: {e}")

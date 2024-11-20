@@ -49,7 +49,10 @@ def custom_openapi():
             "bearerFormat": "JWT",
         }
     }
-    openapi_schema["security"] = [{"BearerAuth": []}]
+    # Apply globally to all routes
+    for path in openapi_schema["paths"]:
+        for method in openapi_schema["paths"][path]:
+            openapi_schema["paths"][path][method]["security"] = [{"BearerAuth": []}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 

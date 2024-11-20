@@ -100,5 +100,68 @@ def verify_token(token: str):
 
 @router.get("/protected")
 async def protected_route(token: str = Depends(oauth2_scheme)):
+    """
+        Protected endpoint that requires JWT authentication.
+
+        Parameters:
+            token: The JWT provided in the Authorization header.
+
+        Returns:
+            Information about the authenticated user.
+        """
     user = verify_token(token)
     return {"email": user.email, "role": user.role}
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+@router.post("/login")
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    """
+    Login route for user authentication.
+
+    Parameters:
+        request: A JSON object containing 'email' and 'password'.
+        db: The database session.
+
+    Returns:
+        A JWT token upon successful authentication.
+    """
+
+    from models.user import User
+
+    # Query the user by email
+    user = db.query(User).filter(User.email == request.email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Verify the provided password against the stored hash
+    if not pwd_context.verify(request.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Generate access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = jwt.encode(
+        {
+            "sub": user.email,
+            "email": user.email,
+            "role": user.role.value,
+            "exp": datetime.now(tz=timezone.utc) + access_token_expires,
+        },
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+
+    logging.info(f"User {request.email} logged in successfully.")
+
+    return {"access_token": access_token, "token_type": "bearer"}

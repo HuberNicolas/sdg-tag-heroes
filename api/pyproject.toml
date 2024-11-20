@@ -25,6 +25,8 @@ passlib = "^1.7.4"
 python-multipart = "^0.0.12"
 fastapi-pagination = "^0.12.31"
 openai = "^1.54.4"
+alembic = "^1.14.0"
+instructor = "^1.6.4"
 
 
 [tool.poetry.group.dev.dependencies]
