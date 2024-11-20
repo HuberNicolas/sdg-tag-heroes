@@ -1,7 +1,9 @@
-from sqlalchemy import Column, ForeignKey, Integer
-from sqlalchemy.orm import relationship
+from datetime import datetime
+from sqlalchemy import Column, ForeignKey, Integer, DateTime
 from .user import User
 
+from settings.settings import TimeZoneSettings
+time_zone_settings = TimeZoneSettings()
 
 class Admin(User):
     """
@@ -9,6 +11,16 @@ class Admin(User):
     """
     __tablename__ = "admins"
 
-    id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    admin_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True)
 
-    # Add relationships or admin-specific fields if needed
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        nullable=False,
+    )

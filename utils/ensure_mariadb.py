@@ -25,6 +25,9 @@ from models.sdg_cluster import ClusterGroup, ClusterLevel, ClusterTopic
 from models.sdg_goal import SDGGoal
 from models.sdg_target import SDGTarget
 
+from models.annotation import Annotation
+from models.vote import Vote
+
 from db.mariadb_connector import engine as mariadb_engine  # MariaDB engine
 
 # Initialize SQLAlchemy engine and session

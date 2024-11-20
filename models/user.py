@@ -1,8 +1,13 @@
-from sqlalchemy import Column, String, Boolean, Enum, Integer
-from sqlalchemy.orm import declarative_base
+from datetime import datetime
+
+from sqlalchemy import Column, String, Boolean, Enum, Integer, DateTime
+from sqlalchemy.orm import declarative_base, relationship
 from passlib.context import CryptContext
 from enum import Enum as PyEnum
 from models.base import Base
+
+from settings.settings import TimeZoneSettings
+time_zone_settings = TimeZoneSettings()
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -22,12 +27,24 @@ class User(Base):
     """
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     is_staff = Column(Boolean, default=False)
     role = Column(Enum(UserRole), default=UserRole.USER)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        nullable=False,
+    )
 
     def verify_password(self, password: str) -> bool:
         """

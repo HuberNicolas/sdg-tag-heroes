@@ -182,4 +182,28 @@ class PublicationSchema(BaseModel):
         from_attributes = True
 
 
+class AnnotationSchemaFull(BaseModel):
+    annotation_id: int
+    user_label_id: int
+    content: Optional[str]
+    user_id: int
 
+    lastname: Optional[str]
+    surname: Optional[str]
+    orcid_id: Optional[str]
+    # Minimal information to avoid circular dependency
+    # publications: Optional[List[int]]  # Only include publication IDs
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AnnotationSchemaBase(BaseModel):
+    annotation_id: int
+    orcid_id: Optional[str]
+    # Minimal information to avoid circular dependency
+    # publications: Optional[List[int]]  # Only include publication IDs
+
+    class Config:
+        from_attributes = True

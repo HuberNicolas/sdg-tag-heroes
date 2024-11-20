@@ -11,12 +11,23 @@ from models.base import Base
 
 class SDGLabel(Base):
     __tablename__ = "sdg_labels"
-    publication_id = Column(
-        Integer, ForeignKey("publications.publication_id"), primary_key=True
-    )
-    publication = relationship("Publication", back_populates="sdg_labels")
 
-    # One-to-one relationship with SDGLabelHistory
+    sdg_label_id = Column(Integer, primary_key=True, autoincrement=True)
+
+    #
+    """
+        1 Publication has exactly 1 SDG Label
+        1 SDG Label belongs to exactly 1 Publication
+    """
+    publication_id = Column(Integer, ForeignKey("publications.publication_id"), primary_key=False)
+    publication = relationship("Publication", uselist=False, back_populates="sdg_labels")
+
+    #
+    """
+        1 SDG Label History has exactly 1 SDG Label
+        1 SDG Label has exactly 1 SDG Label History
+    """
+    sdg_label_history_id = Column(Integer, ForeignKey("sdg_labels.sdg_label_history_id"), primary_key=False)
     sdg_label_history = relationship("SDGLabelHistory", uselist=False, back_populates="sdg_label")
 
     # Columns for each SDG goal label
