@@ -1,13 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, sessionmaker
-
-from pydantic import BaseModel
-
-from typing import Optional
-from pydantic import BaseModel
-import jwt
-from jwt import ExpiredSignatureError, InvalidTokenError, DecodeError
 from datetime import timedelta, datetime, timezone
+
+import jwt
+from fastapi import APIRouter, Depends, HTTPException, status
+from jwt import ExpiredSignatureError, InvalidTokenError, DecodeError
+from pydantic import BaseModel
+from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
@@ -129,7 +126,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         A JWT token upon successful authentication.
     """
 
-    from models.user import User
+    from models.users.user import User
 
     # Query the user by email
     user = db.query(User).filter(User.email == request.email).first()
@@ -149,13 +146,16 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Deserialize roles from the user
+    user_roles = [role.value for role in user.roles]
+
     # Generate access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = jwt.encode(
         {
             "sub": user.email,
             "email": user.email,
-            "role": user.role.value,
+            "roles": user_roles,
             "exp": datetime.now(tz=timezone.utc) + access_token_expires,
         },
         SECRET_KEY,

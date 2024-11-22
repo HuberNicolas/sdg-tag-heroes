@@ -10,8 +10,8 @@ from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
 
-from models.sdg_target import SDGTarget
-from models.sdg_goal import SDGGoal
+from models.sdg.sdg_target import SDGTarget
+from models.sdg.sdg_goal import SDGGoal
 from schemas.sdg_goal import SDGGoalSchemaFull, SDGGoalSchemaBase
 
 from settings.settings import SDGsRouterSettings

@@ -13,22 +13,13 @@ from db.mariadb_connector import engine as mariadb_engine
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import select
+
 
 # Import models
 # Load all of them to prevent the circular error issues
-from models.publication import Publication
-from models.author import Author
-from models.faculty import Faculty
-from models.institute import Institute
-from models.division import Division
+from models.publications.publication import Publication
+from models.publications.author import Author
 from models.sdg_prediction import SDGPrediction
-from models.dim_red import DimRed
-from models.sdg_prediction import SDGPrediction
-from models.sdg_label import SDGLabel
-from models.sdg_label_history import SDGLabelHistory
-from models.sdg_label_decision import SDGLabelDecision
-from models.sdg_user_label import SDGUserLabel
 
 
 from schemas.publication import PublicationSchema, FacultySchemaFull, FacultySchemaBase, InstituteSchemaFull, InstituteSchemaBase, DivisionSchemaFull, DivisionSchemaBase, \
