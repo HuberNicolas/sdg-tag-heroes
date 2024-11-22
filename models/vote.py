@@ -1,42 +1,46 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum
-from sqlalchemy.orm import relationship
-from models.base import Base
+from sqlalchemy import Enum, ForeignKey, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
 from enum import Enum as PyEnum
+from models import Base
+from settings.settings import TimeZoneSettings
+
+time_zone_settings = TimeZoneSettings()
 
 
-class VoteRole(PyEnum):
-    POSITIVE = "up-vote"
-    NEGATIVE = "down-vote"
+class VoteType(PyEnum):
+    POSITIVE = "positive"
     NEUTRAL = "neutral"
+    NEGATIVE = "negative"
+
 
 class Vote(Base):
-    __tablename__ = 'user_votes'
-
-    vote_id = Column(Integer, primary_key=True, index=True)
-
-    #
     """
-        1 User can have N Votes
-        1 Vote is attached to exactly 1 User
+    Represents a vote on an SDGUserLabel by a User. The vote can be positive, neutral, or negative.
     """
-    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
-    user = relationship("User", back_populates="votes")
+    __tablename__ = "votes"
 
-    #
-    """
-        1 Annotation can have N Votes
-        1 Vote is attached to exactly 1 Annotation
-    """
-    annotation_id = Column(Integer, ForeignKey('annotations.annotation_id'), nullable=False)
-    annotation = relationship("Annotation", back_populates="votes")
+    vote_id: Mapped[int] = mapped_column(primary_key=True, index=True)
+
+    # Foreign key linking to the User who created the vote
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
+
+    # Foreign key linking to the SDGUserLabel being voted on
+    sdg_user_label_id: Mapped[int] = mapped_column(ForeignKey("sdg_user_labels.label_id"), nullable=False)
+
+    # Relationship to User
+    user: Mapped["User"] = relationship("User", back_populates="votes")
+
+    # Relationship to SDGUserLabel
+    sdg_user_label: Mapped["SDGUserLabel"] = relationship("SDGUserLabel", back_populates="votes")
+
+    vote_type: Mapped[VoteType] = mapped_column(Enum(VoteType), default=VoteType.NEUTRAL, nullable=False)
+
+    score : Mapped[float] = mapped_column(default=0, nullable=False)
 
 
-    vote_type = Column(Enum(VoteRole), default=VoteRole.NEUTRAL,nullable=True)
-    score = Column(Integer, nullable=False)
-
-
-    def __repr__(self):
-        return (
-            f"<Vote(id={self.vote_id}, annotation_id={self.annotation_id}, user_id={self.user_id}, "
-            f"vote_type={self.vote_type}, score={self.score})>"
-        )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        nullable=False,
+    )

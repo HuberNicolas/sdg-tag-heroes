@@ -1,36 +1,40 @@
+from sqlalchemy import ForeignKey, String, DateTime, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Integer, ForeignKey, Boolean
-from sqlalchemy.orm import relationship
+from models import Base
 from settings.settings import TimeZoneSettings
-from models.base import Base
 
 time_zone_settings = TimeZoneSettings()
 
+
 class SDGLabelHistory(Base):
+    """
+    Represents a historical record of SDG label evaluations.
+    """
     __tablename__ = "sdg_label_histories"
-    sdg_label_history_id = Column(Integer, primary_key=True, autoincrement=True)
 
-    #
-    """
-        1 SDG Label is attached to exactly 1 SDG Label History
-        1 SDG Label History is attached to exactly 1 SDG Label History
-    """
-    sdg_label_id = Column(Integer, ForeignKey("sdg_labels.sdg_label_id"))
-    sdg_label = relationship("SDGLabel", back_populates="sdg_label_history")
+    history_id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
-    active = Column(Boolean, default=True)
+    # One-to-Many relationship with SDGLabelDecision
+    decisions: Mapped[list["SDGLabelDecision"]] = relationship(
+        "SDGLabelDecision", back_populates="history", cascade="all, delete-orphan"
+    )
 
-    created_at = Column(
+    # One-to-One relationship with SDGLabelSummary
+    label_summary: Mapped["SDGLabelSummary"] = relationship(
+        "SDGLabelSummary", back_populates="history", uselist=False
+    )
+
+    active: Mapped[bool] = mapped_column(default=True, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
-
-    def __repr__(self):
-        return f"<SDGLabelHistory(sdg_label_history_id={self.sdg_label_history_id})>"

@@ -1,51 +1,61 @@
+from sqlalchemy import ForeignKey, DateTime, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, CheckConstraint, DateTime
-from sqlalchemy.orm import relationship
-from models.base import Base
-
+from models import Base
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
 
-
+from models.associations import sdg_label_decision_user_label_association
 class SDGUserLabel(Base):
+    """
+    Represents a user-defined label in the SDG system.
+    """
     __tablename__ = "sdg_user_labels"
-    sdg_user_label_id = Column(Integer, primary_key=True, autoincrement=True)
 
+    label_id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
-    #
-    """
-        1 SDG Label Decision can have N SDG User Labels
-        1 SDG User Label is attached to exactly 1 SDG Label Decision
-    """
-    sdg_label_decision_id = Column(Integer, ForeignKey("sdg_label_decisions.sdg_label_decision_id"), nullable=True)
-    sdg_label_decision = relationship("SDGLabelDecision", back_populates="sdg_user_labels")
+    # Foreign key linking to the User who authored the label
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
 
-    #
-    """
-        1 User can write N SDG User Labels
-        1 SDG User Label has exactly 1 User
-    """
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)  # The user who made the annotation
-    user = relationship("User", back_populates="sdg_user_labels")
+    # Relationship to User
+    user: Mapped["User"] = relationship("User", back_populates="sdg_user_labels")
 
-    sdg = Column(Integer, CheckConstraint('sdg BETWEEN 1 AND 17'), nullable=False)
-    comment = Column(Text, nullable=True)
+    # Relationship to Annotations
+    annotations: Mapped[list["Annotation"]] = relationship(
+        "Annotation", back_populates="sdg_user_label", cascade="all, delete-orphan"
+    )
 
-    created_at = Column(
+    # Relationship to Votes
+    votes: Mapped[list["Vote"]] = relationship(
+        "Vote", back_populates="sdg_user_label", cascade="all, delete-orphan"
+    )
+
+    # Many-to-Many relationship with SDGLabelDecision
+    label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
+        "SDGLabelDecision",
+        secondary=sdg_label_decision_user_label_association,
+        back_populates="user_labels"
+    )
+
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(String(1000), nullable=True)
+
+    labeled_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
-    updated_at = Column(
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
 
-    def __repr__(self):
-        return (
-            f"<SDGUserLabel(sdg_user_label_id={self.sdg_user_label_id},"
-            f"user_id={self.user_id}, sdg={self.sdg})>"
-        )
