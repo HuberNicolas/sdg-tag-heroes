@@ -57,6 +57,12 @@ class Publication(Base):
     dimensionality_reductions: Mapped[list["DimensionalityReduction"]] = relationship(
         "DimensionalityReduction", back_populates="publication", cascade="all, delete-orphan"
     )
+
+    clusters: Mapped[list["PublicationCluster"]] = relationship(
+        "PublicationCluster", back_populates="publication", cascade="all, delete-orphan"
+    )
+
+
     is_dim_reduced: Mapped[bool] = mapped_column(default=False)
 
     faculty_id: Mapped[int | None] = mapped_column(ForeignKey("faculties.faculty_id"), nullable=True)

@@ -13,6 +13,8 @@ from .sdg_label_history import SDGLabelHistory
 from .sdg_label_summary import SDGLabelSummary
 from .sdg_prediction import SDGPrediction
 
+from .associations import sdg_label_decision_user_label_association
+
 
 from .publications.author import Author
 from .publications.division import Division
@@ -21,20 +23,24 @@ from .publications.faculty import  Faculty
 from .publications.dimensionality_reduction import DimensionalityReduction
 from .publications.publication import Publication
 
-
 from .sdg.sdg_goal import SDGGoal
 from .sdg.sdg_target import SDGTarget
 
-from .associations import sdg_label_decision_user_label_association
+from .sdg.clusters.group import ClusterGroup
+from .sdg.clusters.level import ClusterLevel
+from .sdg.clusters.topic import ClusterTopic
+from .sdg.clusters.publication_cluster import PublicationCluster
 
 
 # Export all models for external use
 __all__ = [
     "Base",
+
     "User",
     "Admin",
     "Expert",
     "Labeler",
+
     "Annotation",
     "SDGUserLabel",
     "Vote",
@@ -42,6 +48,9 @@ __all__ = [
     "SDGLabelHistory",
     "SDGLabelSummary",
     "SDGPrediction",
+    "sdg_label_decision_user_label_association",
+
+
     "Author",
     "Division",
     "Institute",
@@ -52,5 +61,8 @@ __all__ = [
     "SDGGoal",
     "SDGTarget",
 
-    "sdg_label_decision_user_label_association",
+    "ClusterGroup",
+    "ClusterLevel",
+    "ClusterTopic",
+    "PublicationCluster",
 ]

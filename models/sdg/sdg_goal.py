@@ -1,7 +1,10 @@
-from sqlalchemy import String
+from datetime import datetime
+
+from sqlalchemy import String, DateTime
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
+from settings.settings import TimeZoneSettings
 
 
 class SDGGoal(Base):
@@ -15,6 +18,18 @@ class SDGGoal(Base):
 
     # Relationship with SDGTarget
     sdg_targets: Mapped[list["SDGTarget"]] = relationship("SDGTarget", back_populates="sdg_goal")
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(TimeZoneSettings.ZURICH_TZ),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(TimeZoneSettings.ZURICH_TZ),
+        onupdate=lambda: datetime.now(TimeZoneSettings.ZURICH_TZ),
+        nullable=False,
+    )
 
     def __repr__(self):
         return f"<SDGGoal(index={self.index}, name={self.name}, color={self.color})>"

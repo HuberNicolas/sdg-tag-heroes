@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, String, DateTime
+from sqlalchemy import ForeignKey, String, DateTime, Integer, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from models import Base
@@ -23,6 +23,24 @@ class SDGLabelSummary(Base):
     history_id: Mapped[int] = mapped_column(ForeignKey("sdg_label_histories.history_id"), unique=True, nullable=False)
     history: Mapped["SDGLabelHistory"] = relationship("SDGLabelHistory", back_populates="label_summary")
 
+    # Columns for each SDG goal label
+    sdg1: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg1 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg2: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg2 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg3: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg3 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg4: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg4 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg5: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg5 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg6: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg6 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg7: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg7 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg8: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg8 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg9: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg9 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg10: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg10 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg11: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg11 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg12: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg12 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg13: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg13 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg14: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg14 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg15: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg15 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg16: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg16 IN (-1, 0, 1)'), nullable=False, default=0)
+    sdg17: Mapped[int] = mapped_column(Integer, CheckConstraint('sdg17 IN (-1, 0, 1)'), nullable=False, default=0)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
