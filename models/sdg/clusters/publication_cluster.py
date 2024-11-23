@@ -12,8 +12,8 @@ class PublicationCluster(Base):
     publication_cluster_id = Column(Integer, autoincrement=True, primary_key=True)
 
     publication_id: Mapped[int] = mapped_column(ForeignKey("publications.publication_id"))
-    cluster_id: Mapped[str] = mapped_column(ForeignKey("cluster_topics.id"))
-    cluster_id_string: Mapped[str] = mapped_column(String, nullable=False)
+    cluster_id: Mapped[int] = mapped_column(ForeignKey("cluster_topics.topic_id"))
+    cluster_id_string: Mapped[str] = mapped_column(String(255), nullable=False)
     sdg: Mapped[int | None] = mapped_column(Integer, nullable=True)
     level: Mapped[int | None] = mapped_column(Integer, nullable=True)
     topic: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -10,9 +10,9 @@ time_zone_settings = TimeZoneSettings()
 class ClusterTopic(Base):
     __tablename__ = 'cluster_topics'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    topic_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     level_id: Mapped[int] = mapped_column(ForeignKey('cluster_levels.id'), nullable=False)
-    cluster_id: Mapped[str] = mapped_column(String(255), nullable=False)  # Unique identifier, e.g., 'cluster1_level1_topic1'
+    cluster_id_str: Mapped[str] = mapped_column(String(255), nullable=False)  # Unique identifier, e.g., 'cluster1_level1_topic1'
     size: Mapped[float] = mapped_column(Float, nullable=False)
     center_x: Mapped[float] = mapped_column(Float, nullable=False)  # X-coordinate for the cluster center
     center_y: Mapped[float] = mapped_column(Float, nullable=False)  # Y-coordinate for the cluster center
