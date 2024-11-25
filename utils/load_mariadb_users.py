@@ -2,6 +2,8 @@ import os
 import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+from models import Inventory
 from utils.env_loader import load_env
 from models.users.user import User, UserRole
 from models.users.labeler import Labeler
@@ -60,6 +62,9 @@ def create_initial_users(session: Session):
             user = User(email=user_email, roles=user_roles)
             user.set_password(user_password)
 
+            # Create an inventory for the user
+            inventory = Inventory(user=user)
+
             # Add user to role-specific tables
             if UserRole.ADMIN in user_roles:
                 admin = Admin(user=user)
@@ -73,6 +78,8 @@ def create_initial_users(session: Session):
                 expert_score = float(get_env_variable(f"USER_{i}_EXPERT_SCORE"))
                 expert = Expert(user=user, expert_score=expert_score)
                 session.add(expert)
+
+            session.add(inventory)
 
             # Commit the user to the database
             session.commit()
