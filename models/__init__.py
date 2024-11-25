@@ -4,6 +4,7 @@ from .users.user import User
 from .users.admin import Admin
 from .users.expert import Expert
 from .users.labeler import Labeler
+from .users.group import Group
 
 from .annotation import Annotation
 from .sdg_user_label import SDGUserLabel
@@ -14,6 +15,7 @@ from .sdg_label_summary import SDGLabelSummary
 from .sdg_prediction import SDGPrediction
 
 from .associations import sdg_label_decision_user_label_association
+from .associations import user_group_association
 
 
 from .publications.author import Author
@@ -40,6 +42,8 @@ __all__ = [
     "Admin",
     "Expert",
     "Labeler",
+    "Group",
+    "user_group_association",
 
     "Annotation",
     "SDGUserLabel",

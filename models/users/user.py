@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, InstrumentedAttr
 from passlib.context import CryptContext
 from enum import Enum as PyEnum
 
+from models.associations import user_group_association
 from models.base import Base
 
 from settings.settings import TimeZoneSettings
@@ -89,6 +90,12 @@ class User(Base):
     # One-to-Many relationship with SDGLabelDecision (as an Expert)
     sdg_label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
         "SDGLabelDecision", back_populates="expert"
+    )
+
+    groups: Mapped[list["Group"]] = relationship(
+        "Group",
+        secondary=user_group_association,
+        back_populates="members"
     )
 
 

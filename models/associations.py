@@ -8,3 +8,11 @@ sdg_label_decision_user_label_association = Table(
     Column("decision_id", ForeignKey("sdg_label_decisions.decision_id"), primary_key=True),
     Column("user_label_id", ForeignKey("sdg_user_labels.label_id"), primary_key=True),
 )
+
+# Association table for the many-to-many relationship between User and Group
+user_group_association = Table(
+    "user_group_association",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.user_id"), primary_key=True),
+    Column("group_id", ForeignKey("groups.group_id"), primary_key=True)
+)
