@@ -6,7 +6,6 @@ from models.base import Base
 
 time_zone_settings = TimeZoneSettings()
 
-
 class DimensionalityReduction(Base):
     __tablename__ = "dimensionality_reductions"
 
@@ -20,6 +19,10 @@ class DimensionalityReduction(Base):
     x_coord: Mapped[float] = mapped_column(Float(precision=4), default=0.0, nullable=True)
     y_coord: Mapped[float] = mapped_column(Float(precision=4), default=0.0, nullable=True)
     z_coord: Mapped[float] = mapped_column(Float(precision=4), default=0.0, nullable=True)
+
+    # New columns for SDG and level
+    sdg: Mapped[int] = mapped_column(Integer, nullable=False)
+    level: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Relationships
     publication: Mapped["Publication"] = relationship("Publication", back_populates="dimensionality_reductions")
@@ -45,5 +48,7 @@ class DimensionalityReduction(Base):
             f"x_coord={self.x_coord}, "
             f"y_coord={self.y_coord}, "
             f"z_coord={self.z_coord}, "
+            f"sdg={self.sdg}, "
+            f"level={self.level}, "
             f"created_at={self.created_at}, updated_at={self.updated_at})>"
         )

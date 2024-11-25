@@ -1,7 +1,7 @@
 import re
 from sqlalchemy.orm import sessionmaker
 from db.mariadb_connector import engine as mariadb_engine
-from models.sdg.clusters.publication_cluster import PublicationCluster  # Adjust import based on your project structure
+from models.sdg.clusters.publication_cluster import PublicationCluster
 from models.sdg.clusters.topic import ClusterTopic
 
 

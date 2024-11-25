@@ -1,5 +1,5 @@
 import os
-from typing import ClassVar, List
+from typing import ClassVar, List, Tuple
 
 import pytz
 from pydantic_settings import BaseSettings
@@ -93,6 +93,14 @@ class ReducerSettings(BaseSettings):
     UMAP_N_NEIGHBORS: ClassVar[int] = 15
     UMAP_MIN_DIST: ClassVar[float] = 0.1
     UMAP_N_COMPONENTS: ClassVar[int] = 2
+
+    # Arrays for UMAP parameter combinations
+    UMAP_N_NEIGHBORS_ARRAY: ClassVar[List[int]] = [15, 30]
+    UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.1]
+    UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
+
+    # Filter ranges
+    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.99), (0.99, 0.9), (0.9, 0.8)]  # SDG filter ranges
 
 
 
