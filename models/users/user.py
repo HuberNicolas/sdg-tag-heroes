@@ -92,10 +92,19 @@ class User(Base):
         "SDGLabelDecision", back_populates="expert"
     )
 
+    # Many-to-Many relationship with Group
     groups: Mapped[list["Group"]] = relationship(
         "Group",
         secondary=user_group_association,
         back_populates="members"
+    )
+
+    # One-to-One relationship with Inventory
+    inventory: Mapped["Inventory"] = relationship(
+        "Inventory",
+        back_populates="user",
+        uselist=False,  # Ensure one-to-one
+        cascade="all, delete-orphan"
     )
 
 

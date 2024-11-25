@@ -34,6 +34,11 @@ from .sdg.clusters.topic import ClusterTopic
 from .sdg.clusters.publication_cluster import PublicationCluster
 
 
+from .inventory import Inventory
+from .achievement import Achievement
+from .inventor_achievement_association import InventoryAchievementAssociation
+
+
 # Export all models for external use
 __all__ = [
     "Base",
@@ -69,4 +74,8 @@ __all__ = [
     "ClusterLevel",
     "ClusterTopic",
     "PublicationCluster",
+
+    "Inventory",
+    "Achievement",
+    "InventoryAchievementAssociation",
 ]

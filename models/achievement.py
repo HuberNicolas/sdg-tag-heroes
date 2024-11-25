@@ -5,22 +5,24 @@ from models.base import Base
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
-from models.associations import user_group_association
 
-class Group(Base):
-    """
-    Group model for associating users.
-    """
-    __tablename__ = "groups"
 
-    group_id: Mapped[int] = mapped_column(primary_key=True, index=True)
+class Achievement(Base):
+    """
+    Achievement model for badges or achievements.
+    An achievement can belong to multiple inventories (users).
+    """
+    __tablename__ = "achievements"
+
+    achievement_id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    # Many-to-Many relationship with User
-    members: Mapped[list["User"]] = relationship(
-        "User",
-        secondary=user_group_association,
-        back_populates="groups"
+    # Updated Many-to-Many relationship with Inventories through association model
+    inventory_achievements: Mapped[list["InventoryAchievementAssociation"]] = relationship(
+        "InventoryAchievementAssociation",
+        back_populates="achievement",
+        cascade="all, delete-orphan"
     )
 
     created_at: Mapped[datetime] = mapped_column(
