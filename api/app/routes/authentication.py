@@ -50,7 +50,7 @@ router = APIRouter(
 # Define the TokenData model to store extracted token claims
 class TokenData(BaseModel):
     email: str
-    role: str
+    roles: list[str]  # Expecting a list of roles
 
 
 # Function to verify JWT tokens and extract claims using PyJWT
@@ -59,19 +59,19 @@ def verify_token(token: str):
         # Decode the token using PyJWT
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("email")
-        role: str = payload.get("role")
+        roles: list = payload.get("roles")
 
 
         logging.info(f"Decoded payload: {payload}")
 
-        if email is None or role is None:
+        if email is None or roles is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token payload missing claims",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        return TokenData(email=email, role=role)
+        return TokenData(email=email, roles=roles)
 
     # Handle various exceptions from PyJWT
 
@@ -107,7 +107,7 @@ async def protected_route(token: str = Depends(oauth2_scheme)):
             Information about the authenticated user.
         """
     user = verify_token(token)
-    return {"email": user.email, "role": user.role}
+    return {"email": user.email, "roles": user.roles}
 
 class LoginRequest(BaseModel):
     email: str
