@@ -10,6 +10,7 @@ from api.app.routes import authentication
 from api.app.routes import sdgs
 from api.app.routes import votes
 from api.app.routes import annotations
+from api.app.routes import sdg_user_labels
 
 from fastapi_pagination import add_pagination
 
@@ -25,6 +26,7 @@ app.include_router(authentication.router)
 app.include_router(sdgs.router)
 app.include_router(votes.router)
 app.include_router(annotations.router)
+app.include_router(sdg_user_labels.router)
 
 # CORS (development only)
 app.add_middleware(

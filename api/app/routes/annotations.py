@@ -46,7 +46,78 @@ def get_db():
         yield db
     finally:
         db.close()
+@router.get(
+    "/{annotation_id}/votes/{vote_id}",
+    response_model=VoteSchemaFull,
+    description="Retrieve a specific vote associated with a specific annotation"
+)
+async def get_vote_for_annotation(
+    annotation_id: int,
+    vote_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> VoteSchemaFull:
+    """
+    Retrieve a specific vote associated with a specific annotation.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
 
+        annotation = db.query(Annotation).filter(Annotation.annotation_id == annotation_id).first()
+        if not annotation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Annotation with ID {annotation_id} not found",
+            )
+
+        vote = next((vote for vote in annotation.votes if vote.vote_id == vote_id), None)
+        if not vote:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Vote with ID {vote_id} not found for annotation ID {annotation_id}",
+            )
+
+        return VoteSchemaFull.model_validate(vote)
+
+    except Exception as e:
+        logging.error(f"Error fetching vote ID {vote_id} for annotation ID {annotation_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the vote for the annotation",
+        )
+
+
+@router.get(
+    "/{annotation_id}/votes",
+    response_model=List[VoteSchemaFull],
+    description="Retrieve all votes associated with a specific annotation"
+)
+async def get_votes_for_annotation(
+    annotation_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[VoteSchemaFull]:
+    """
+    Retrieve all votes associated with a specific annotation.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        annotation = db.query(Annotation).filter(Annotation.annotation_id == annotation_id).first()
+        if not annotation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Annotation with ID {annotation_id} not found",
+            )
+
+        return [VoteSchemaFull.model_validate(vote) for vote in annotation.votes]
+
+    except Exception as e:
+        logging.error(f"Error fetching votes for annotation ID {annotation_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching votes for the annotation",
+        )
 
 
 @router.get(

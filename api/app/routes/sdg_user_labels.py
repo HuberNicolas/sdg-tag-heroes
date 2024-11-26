@@ -13,6 +13,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
 from models import SDGUserLabel
 from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaCreate
+from schemas.vote import VoteSchemaFull
 from settings.settings import SDGUserLabelsSettings
 sdg_user_labels_router_settings = SDGUserLabelsSettings()
 
@@ -22,7 +23,7 @@ oauth2_scheme = security.oauth2_scheme
 
 # Setup Logging
 from utils.logger import logger
-logging = logger(sdg_user_labels_router_settings.SDG_USER_LABELS_LOGGING)
+logging = logger(sdg_user_labels_router_settings.SDGUSERLABELS_ROUTER_LOG_NAME)
 
 
 router = APIRouter(
@@ -47,34 +48,81 @@ def get_db():
     finally:
         db.close()
 
-
 @router.get(
-    "/sdg_user_labels/",
-    response_model=List[SDGUserLabelSchemaFull],
-    description="Retrieve all SDG user labels"
+    "/{sdg_user_label_id}/votes/{vote_id}",
+    response_model=VoteSchemaFull,
+    description="Retrieve a specific vote associated with a specific SDG user label"
 )
-async def get_all_sdg_user_labels(
+async def get_vote_for_sdg_user_label(
+    sdg_user_label_id: int,
+    vote_id: int,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> List[SDGUserLabelSchemaFull]:
+) -> VoteSchemaFull:
     """
-    Retrieve all SDG user labels in the system.
+    Retrieve a specific vote associated with a specific SDG user label.
     """
     try:
         user = verify_token(token)  # Ensure user is authenticated
 
-        user_labels = db.query(SDGUserLabel).all()
-        return [SDGUserLabelSchemaFull.model_validate(label) for label in user_labels]
+        sdg_user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == sdg_user_label_id).first()
+        if not sdg_user_label:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDG user label with ID {sdg_user_label_id} not found",
+            )
+
+        vote = next((vote for vote in sdg_user_label.votes if vote.vote_id == vote_id), None)
+        if not vote:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Vote with ID {vote_id} not found for SDG user label ID {sdg_user_label_id}",
+            )
+
+        return VoteSchemaFull.model_validate(vote)
 
     except Exception as e:
-        logging.error(f"Error fetching SDG user labels: {str(e)}")
+        logging.error(f"Error fetching vote ID {vote_id} for SDG user label ID {sdg_user_label_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching SDG user labels",
+            detail="An error occurred while fetching the vote for the SDG user label",
+        )
+
+
+@router.get(
+    "/{sdg_user_label_id}/votes",
+    response_model=List[VoteSchemaFull],
+    description="Retrieve all votes associated with a specific SDG user label"
+)
+async def get_votes_for_sdg_user_label(
+    sdg_user_label_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[VoteSchemaFull]:
+    """
+    Retrieve all votes associated with a specific SDG user label.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        sdg_user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == sdg_user_label_id).first()
+        if not sdg_user_label:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDG user label with ID {sdg_user_label_id} not found",
+            )
+
+        return [VoteSchemaFull.model_validate(vote) for vote in sdg_user_label.votes]
+
+    except Exception as e:
+        logging.error(f"Error fetching votes for SDG user label ID {sdg_user_label_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching votes for the SDG user label",
         )
 
 @router.get(
-    "/sdg_user_labels/{label_id}",
+    "/{label_id}",
     response_model=SDGUserLabelSchemaFull,
     description="Retrieve a specific SDG user label by ID"
 )
@@ -106,8 +154,34 @@ async def get_sdg_user_label(
             detail="An error occurred while fetching the SDG user label",
         )
 
+@router.get(
+    "/",
+    response_model=List[SDGUserLabelSchemaFull],
+    description="Retrieve all SDG user labels"
+)
+async def get_all_sdg_user_labels(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGUserLabelSchemaFull]:
+    """
+    Retrieve all SDG user labels in the system.
+    """
+    print("Hello")
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        user_labels = db.query(SDGUserLabel).all()
+        return [SDGUserLabelSchemaFull.model_validate(label) for label in user_labels]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDG user labels: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDG user labels",
+        )
+
 @router.post(
-    "/sdg_user_labels/",
+    "/",
     response_model=SDGUserLabelSchemaFull,
     description="Create a new SDG user label"
 )
