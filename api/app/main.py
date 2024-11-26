@@ -8,6 +8,8 @@ from api.app.routes import publications
 from api.app.routes import authors
 from api.app.routes import authentication
 from api.app.routes import sdgs
+from api.app.routes import votes
+from api.app.routes import annotations
 
 from fastapi_pagination import add_pagination
 
@@ -21,6 +23,8 @@ app.include_router(publications.router)
 app.include_router(authors.router)
 app.include_router(authentication.router)
 app.include_router(sdgs.router)
+app.include_router(votes.router)
+app.include_router(annotations.router)
 
 # CORS (development only)
 app.add_middleware(

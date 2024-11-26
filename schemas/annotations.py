@@ -3,11 +3,12 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class SDGUserLabelSchemaBase(BaseModel):
-    label_id: int
+class AnnotationSchemaBase(BaseModel):
+    annotation_id: int
     user_id: int
-    name: str
-    description: Optional[str]
+    sdg_user_label_id: int
+    labeler_score: float
+    comment: str
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation
@@ -15,10 +16,11 @@ class SDGUserLabelSchemaBase(BaseModel):
 
 
 
-class SDGUserLabelSchemaCreate(BaseModel):
+class AnnotationSchemaCreate(BaseModel):
     user_id: int
-    name: str
-    description: Optional[str]
+    sdg_user_label_id: int
+    labeler_score: float
+    comment: str
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation
@@ -26,8 +28,7 @@ class SDGUserLabelSchemaCreate(BaseModel):
 
 
 
-class SDGUserLabelSchemaFull(SDGUserLabelSchemaBase):
-    labeled_at: datetime
+class AnnotationSchemaFull(AnnotationSchemaBase):
     created_at: datetime
     updated_at: datetime
 

@@ -1,0 +1,143 @@
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session, sessionmaker
+
+from api.app.security import Security
+from api.app.routes.authentication import verify_token
+from db.mariadb_connector import engine as mariadb_engine
+
+
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
+
+from models import SDGUserLabel
+from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaCreate
+from settings.settings import SDGUserLabelsSettings
+sdg_user_labels_router_settings = SDGUserLabelsSettings()
+
+security = Security()
+# OAuth2 scheme for token authentication
+oauth2_scheme = security.oauth2_scheme
+
+# Setup Logging
+from utils.logger import logger
+logging = logger(sdg_user_labels_router_settings.SDG_USER_LABELS_LOGGING)
+
+
+router = APIRouter(
+    prefix="/sdg_user_labels",
+    tags=["sdg_user_labels"],
+    responses={
+        404: {"description": "Not found"},
+        403: {"description": "Forbidden"},
+        401: {"description": "Unauthorized"},
+    },
+)
+
+# Create a session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
+
+
+# Dependency for getting DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@router.get(
+    "/sdg_user_labels/",
+    response_model=List[SDGUserLabelSchemaFull],
+    description="Retrieve all SDG user labels"
+)
+async def get_all_sdg_user_labels(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGUserLabelSchemaFull]:
+    """
+    Retrieve all SDG user labels in the system.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        user_labels = db.query(SDGUserLabel).all()
+        return [SDGUserLabelSchemaFull.model_validate(label) for label in user_labels]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDG user labels: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDG user labels",
+        )
+
+@router.get(
+    "/sdg_user_labels/{label_id}",
+    response_model=SDGUserLabelSchemaFull,
+    description="Retrieve a specific SDG user label by ID"
+)
+async def get_sdg_user_label(
+    label_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGUserLabelSchemaFull:
+    """
+    Retrieve a specific SDG user label by its ID.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == label_id).first()
+
+        if not user_label:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDG user label with ID {label_id} not found",
+            )
+
+        return SDGUserLabelSchemaFull.model_validate(user_label)
+
+    except Exception as e:
+        logging.error(f"Error fetching SDG user label ID {label_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDG user label",
+        )
+
+@router.post(
+    "/sdg_user_labels/",
+    response_model=SDGUserLabelSchemaFull,
+    description="Create a new SDG user label"
+)
+async def create_sdg_user_label(
+    user_label_data: SDGUserLabelSchemaCreate,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGUserLabelSchemaFull:
+    """
+    Create a new SDG user label.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Create the new SDG user label
+        new_user_label = SDGUserLabel(
+            user_id=user_label_data.user_id,
+            name=user_label_data.name,
+            description=user_label_data.description,
+        )
+
+        db.add(new_user_label)
+        db.commit()
+        db.refresh(new_user_label)
+
+        return SDGUserLabelSchemaFull.model_validate(new_user_label)
+
+    except Exception as e:
+        logging.error(f"Error creating SDG user label: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while creating the SDG user label",
+        )

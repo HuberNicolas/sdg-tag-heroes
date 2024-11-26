@@ -113,18 +113,20 @@ class SDGsRouterSettings(BaseSettings):
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
 
+class SDGUserLabelsSettings(BaseSettings):
+    SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
+
+class VotesSettings(BaseSettings):
+    VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
+
+class AnnotationSettings(BaseSettings):
+    ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
+
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
     CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
     CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
     TOKEN_URL: ClassVar[str] = "auth/token"
-
-    # JWT
-    ACCESS_TOKEN_LIFETIME_MINUTES: int = 300 # Token validity duration
-    REFRESH_TOKEN_LIFETIME_MINUTES: int = 60 # How long refresh tokens last
-    ROTATE_REFRESH_TOKENS: ClassVar[bool] = False # Optional, for rotating refresh tokens
-    BLACKLIST_AFTER_ROTATION: ClassVar[bool] = True # Use token blacklist
-    AUTH_HEADER_TYPES: str = 'Bearer'
 
 class MariaDBSettings(BaseSettings):
     MARIADB_CHARSET: ClassVar[str] = "utf8mb4"

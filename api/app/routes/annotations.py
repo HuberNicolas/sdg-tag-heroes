@@ -1,14 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session, sessionmaker
-from db.mariadb_connector import engine as mariadb_engine
 from typing import List
-from models.annotation import Annotation
-from schemas.publication_annotation import PublicationAnnotationCreate, PublicationAnnotationUpdate, \
-    PublicationAnnotationSchema
-from api.app.routes.authentication import verify_token
 
-annotation_router = APIRouter(
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session, sessionmaker
+
+from api.app.security import Security
+from api.app.routes.authentication import verify_token
+from db.mariadb_connector import engine as mariadb_engine
+
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
+
+from models import Annotation
+from schemas.annotations import AnnotationSchemaFull, AnnotationSchemaCreate
+from schemas.vote import VoteSchemaFull, VoteSchemaCreate
+from settings.settings import AnnotationSettings
+annotations_router_settings = AnnotationSettings()
+
+security = Security()
+# OAuth2 scheme for token authentication
+oauth2_scheme = security.oauth2_scheme
+
+# Setup Logging
+from utils.logger import logger
+logging = logger(annotations_router_settings.ANNOTATIONS_ROUTER_LOG_NAME)
+
+
+router = APIRouter(
     prefix="/annotations",
     tags=["annotations"],
     responses={
@@ -31,95 +48,102 @@ def get_db():
         db.close()
 
 
-@annotation_router.post("/", response_model=PublicationAnnotationSchema, status_code=status.HTTP_201_CREATED)
-def create_annotation(
-        annotation: PublicationAnnotationCreate,
-        db: Session = Depends(get_db),
-        token: str = Depends(verify_token),
-):
+
+@router.get(
+    "/",
+    response_model=List[AnnotationSchemaFull],
+    description="Retrieve all annotations"
+)
+async def get_all_annotations(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[AnnotationSchemaFull]:
     """
-    Create a new publication annotation.
+    Retrieve all annotations in the system.
     """
-    new_annotation = Annotation(**annotation.dict())
-    db.add(new_annotation)
-    db.commit()
-    db.refresh(new_annotation)
-    return new_annotation
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        annotations = db.query(Annotation).all()
+        return [AnnotationSchemaFull.model_validate(annotation) for annotation in annotations]
+
+    except Exception as e:
+        logging.error(f"Error fetching annotations: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching annotations",
+        )
 
 
-@annotation_router.get("/{annotation_id}", response_model=PublicationAnnotationSchema)
-def get_annotation(
-        annotation_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(verify_token),
-):
+
+@router.get(
+    "/{annotation_id}",
+    response_model=AnnotationSchemaFull,
+    description="Retrieve a specific annotation by ID"
+)
+async def get_annotation(
+    annotation_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> AnnotationSchemaFull:
     """
-    Retrieve a publication annotation by ID.
+    Retrieve a specific annotation by its ID.
     """
-    annotation = db.query(Annotation).filter(PublicationAnnotation.id == annotation_id).first()
-    if not annotation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Annotation not found")
-    return annotation
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        annotation = db.query(Annotation).filter(Annotation.annotation_id == annotation_id).first()
+
+        if not annotation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Annotation with ID {annotation_id} not found",
+            )
+
+        return AnnotationSchemaFull.model_validate(annotation)
+
+    except Exception as e:
+        logging.error(f"Error fetching annotation ID {annotation_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the annotation",
+        )
 
 
-@annotation_router.patch("/{annotation_id}", response_model=PublicationAnnotationSchema)
-def update_annotation_patch(
-        annotation_id: int,
-        annotation_update: PublicationAnnotationUpdate,
-        db: Session = Depends(get_db),
-        token: str = Depends(verify_token),
-):
+
+@router.post(
+    "/annotations/",
+    response_model=AnnotationSchemaFull,
+    description="Create a new annotation"
+)
+async def create_annotation(
+    annotation_data: AnnotationSchemaCreate,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> AnnotationSchemaFull:
     """
-    Partially update a publication annotation using PATCH.
+    Create a new annotation.
     """
-    annotation = db.query(Annotation).filter(Annotation.id == annotation_id).first()
-    if not annotation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Annotation not found")
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
 
-    update_data = annotation_update.dict(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(annotation, key, value)
+        # Create the new annotation
+        new_annotation = Annotation(
+            user_id=annotation_data.user_id,
+            sdg_user_label_id=annotation_data.sdg_user_label_id,
+            labeler_score=annotation_data.labeler_score,
+            comment=annotation_data.comment,
+        )
 
-    db.commit()
-    db.refresh(annotation)
-    return annotation
+        db.add(new_annotation)
+        db.commit()
+        db.refresh(new_annotation)
 
+        return AnnotationSchemaFull.model_validate(new_annotation)
 
-@annotation_router.put("/{annotation_id}", response_model=PublicationAnnotationSchema)
-def update_annotation_put(
-        annotation_id: int,
-        annotation_update: PublicationAnnotationCreate,
-        db: Session = Depends(get_db),
-        token: str = Depends(verify_token),
-):
-    """
-    Fully update a publication annotation using PUT.
-    """
-    annotation = db.query(Annotation).filter(Annotation.id == annotation_id).first()
-    if not annotation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Annotation not found")
-
-    for key, value in annotation_update.dict().items():
-        setattr(annotation, key, value)
-
-    db.commit()
-    db.refresh(annotation)
-    return annotation
-
-
-@annotation_router.delete("/{annotation_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_annotation(
-        annotation_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(verify_token),
-):
-    """
-    Delete a publication annotation by ID.
-    """
-    annotation = db.query(Annotation).filter(Annotation.id == annotation_id).first()
-    if not annotation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Annotation not found")
-
-    db.delete(annotation)
-    db.commit()
-    return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={"detail": "Annotation deleted"})
+    except Exception as e:
+        logging.error(f"Error creating annotation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while creating the annotation",
+        )

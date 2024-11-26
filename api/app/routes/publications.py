@@ -14,7 +14,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import SDGPrediction
+from models import SDGPrediction, SDGLabelDecision
 from models.publications.author import Author
 # Import models
 from models.publications.publication import Publication
@@ -27,6 +27,7 @@ from schemas.sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecis
 from schemas.sdg_label_history import SDGLabelHistorySchemaFull
 from schemas.sdg_label_summary import SDGLabelSummarySchemaFull
 from schemas.sdg_prediction import SDGPredictionSchemaFull, SDGPredictionSchemaBase
+from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
 
 from services.gpt_explainer import SDGExplainer
 
@@ -62,6 +63,85 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@router.get(
+    "/sdg_label_decisions/{decision_id}/sdg_user_labels",
+    response_model=List[SDGUserLabelSchemaBase],
+    description="Retrieve all SDGUserLabel entries associated with a specific SDGLabelDecision"
+)
+async def get_sdg_user_labels(
+    decision_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGUserLabelSchemaBase]:
+    """
+    Retrieve all SDGUserLabel entries for a specific SDGLabelDecision.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the SDGLabelDecision
+        decision = db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == decision_id).first()
+
+        if not decision:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelDecision with ID {decision_id} not found",
+            )
+
+        # Return the list of SDGUserLabels associated with the decision
+        return [SDGUserLabelSchemaBase.model_validate(label) for label in decision.user_labels]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGUserLabels for decision ID {decision_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDGUserLabels for the decision",
+        )
+
+@router.get(
+    "/sdg_label_decisions/{decision_id}/sdg_user_labels/{label_id}",
+    response_model=SDGUserLabelSchemaFull,
+    description="Retrieve a specific SDGUserLabel entry associated with a specific SDGLabelDecision"
+)
+async def get_sdg_user_label(
+    decision_id: int,
+    label_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGUserLabelSchemaFull:
+    """
+    Retrieve a specific SDGUserLabel entry for a specific SDGLabelDecision.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the SDGLabelDecision
+        decision = db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == decision_id).first()
+
+        if not decision:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelDecision with ID {decision_id} not found",
+            )
+
+        # Check if the SDGUserLabel is associated with the decision
+        label = next((l for l in decision.user_labels if l.label_id == label_id), None)
+
+        if not label:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGUserLabel with ID {label_id} not associated with decision ID {decision_id}",
+            )
+
+        return SDGUserLabelSchemaFull.model_validate(label)
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGUserLabel ID {label_id} for decision ID {decision_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGUserLabel for the decision",
+        )
 
 
 @router.get(
