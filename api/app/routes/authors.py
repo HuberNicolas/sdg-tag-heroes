@@ -14,9 +14,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 
 # Import models
 from models.publications.author import Author
-
-
-from schemas.publication import AuthorSchemaFull, AuthorSchemaBase
+from schemas.publications.author import AuthorSchemaBase, AuthorSchemaFull
 
 from settings.settings import AuthorsRouterSettings
 authors_router_settings = AuthorsRouterSettings()

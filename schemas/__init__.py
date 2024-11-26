@@ -9,6 +9,10 @@ from .dimensionality_reduction import DimensionalityReductionSchemaBase, Dimensi
 
 from .sdg_prediction import SDGPredictionSchemaBase, SDGPredictionSchemaFull
 
+from .sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull
+from .sdg_label_history import SDGLabelHistorySchemaBase, SDGLabelHistorySchemaFull
+from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
+
 # Export all models for external use
 __all__ = [
     "AuthorSchemaBase",
@@ -29,4 +33,15 @@ __all__ = [
 
     "SDGPredictionSchemaBase",
     "SDGPredictionSchemaFull",
+
+
+    "SDGLabelSummarySchemaBase",
+    "SDGLabelSummarySchemaFull",
+
+    "SDGLabelHistorySchemaFull",
+    "SDGLabelHistorySchemaFull",
+
+    "SDGLabelDecisionSchemaBase",
+    "SDGLabelDecisionSchemaFull",
+
 ]

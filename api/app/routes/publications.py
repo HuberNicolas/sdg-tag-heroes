@@ -18,10 +18,14 @@ from models import SDGPrediction
 from models.publications.author import Author
 # Import models
 from models.publications.publication import Publication
+
+
 from schemas.dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
 from schemas.publications.author import AuthorSchemaBase, AuthorSchemaFull
-
 from schemas.publications.publication import PublicationSchemaBase, PublicationSchemaFull
+from schemas.sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
+from schemas.sdg_label_history import SDGLabelHistorySchemaFull
+from schemas.sdg_label_summary import SDGLabelSummarySchemaFull
 from schemas.sdg_prediction import SDGPredictionSchemaFull, SDGPredictionSchemaBase
 
 from services.gpt_explainer import SDGExplainer
@@ -58,6 +62,180 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.get(
+    "/{publication_id}/sdg_label_history",
+    response_model=SDGLabelHistorySchemaFull,
+    description="Retrieve the SDGLabelHistory associated with a specific publication"
+)
+async def get_sdg_label_history(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGLabelHistorySchemaFull:
+    """
+    Retrieve the SDGLabelHistory for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelHistory
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        history = publication.sdg_label_summary.history
+
+        if not history:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        return SDGLabelHistorySchemaFull.model_validate(history)
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelHistory for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelHistory for the publication",
+        )
+
+@router.get(
+    "/{publication_id}/sdg_label_summary",
+    response_model=SDGLabelSummarySchemaFull,
+    description="Retrieve the SDGLabelSummary associated with a specific publication"
+)
+async def get_sdg_label_summary(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGLabelSummarySchemaFull:
+    """
+    Retrieve the SDGLabelSummary for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelSummary
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelSummary found for publication ID {publication_id}",
+            )
+
+        return SDGLabelSummarySchemaFull.model_validate(publication.sdg_label_summary)
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelSummary for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelSummary for the publication",
+        )
+
+@router.get(
+    "/{publication_id}/sdg_label_history/decisions",
+    response_model=List[SDGLabelDecisionSchemaBase],
+    description="Retrieve all SDGLabelDecision entries associated with a publication's SDGLabelHistory"
+)
+async def get_sdg_label_decisions(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGLabelDecisionSchemaBase]:
+    """
+    Retrieve all SDGLabelDecision entries for a publication's SDGLabelHistory.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelHistory
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        history = publication.sdg_label_summary.history
+
+        if not history or not history.decisions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelDecision entries found for publication ID {publication_id}",
+            )
+
+        return [SDGLabelDecisionSchemaBase.model_validate(decision) for decision in history.decisions]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelDecisions for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelDecisions for the publication",
+        )
+
+
+@router.get(
+    "/{publication_id}/sdg_label_history/decisions/{decision_id}",
+    response_model=SDGLabelDecisionSchemaFull,
+    description="Retrieve a specific SDGLabelDecision entry associated with a publication's SDGLabelHistory"
+)
+async def get_sdg_label_decision(
+    publication_id: int,
+    decision_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGLabelDecisionSchemaFull:
+    """
+    Retrieve a specific SDGLabelDecision entry for a publication's SDGLabelHistory.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelHistory
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        history = publication.sdg_label_summary.history
+
+        if not history:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        decision = next((d for d in history.decisions if d.decision_id == decision_id), None)
+
+        if not decision:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelDecision with ID {decision_id} not found for publication ID {publication_id}",
+            )
+
+        return SDGLabelDecisionSchemaFull.model_validate(decision)
+
+    except Exception as e:
+        logging.error(
+            f"Error fetching SDGLabelDecision ID {decision_id} for publication ID {publication_id}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelDecision for the publication",
+        )
+
 
 @router.get(
     "/{publication_id}/sdg_predictions",
