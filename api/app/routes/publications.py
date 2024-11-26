@@ -18,6 +18,7 @@ from models import SDGPrediction
 from models.publications.author import Author
 # Import models
 from models.publications.publication import Publication
+from schemas.dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
 from schemas.publications.author import AuthorSchemaBase, AuthorSchemaFull
 
 from schemas.publications.publication import PublicationSchemaBase, PublicationSchemaFull
@@ -58,6 +59,95 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.get(
+    "/{publication_id}/dimensionality_reductions",
+    response_model=List[DimensionalityReductionSchemaBase],
+    description="Retrieve all dimensionality reductions associated with a specific publication"
+)
+async def get_dimensionality_reductions(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaBase]:
+    """
+    Retrieve all dimensionality reductions for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its dimensionality reductions
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Return the list of dimensionality reductions associated with the publication
+        return [
+            DimensionalityReductionSchemaBase.model_validate(dim_red)
+            for dim_red in publication.dimensionality_reductions
+        ]
+
+    except Exception as e:
+        logging.error(f"Error fetching dimensionality reductions for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching dimensionality reductions for the publication",
+        )
+
+@router.get(
+    "/{publication_id}/dimensionality_reductions/{dim_red_id}",
+    response_model=DimensionalityReductionSchemaFull,
+    description="Retrieve a specific dimensionality reduction associated with a specific publication"
+)
+async def get_dimensionality_reduction(
+    publication_id: int,
+    dim_red_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> DimensionalityReductionSchemaFull:
+    """
+    Retrieve a specific dimensionality reduction for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Check if the dimensionality reduction is associated with the publication
+        dim_reduction = next(
+            (dim_red for dim_red in publication.dimensionality_reductions if dim_red.dim_red_id == dim_red_id), None
+        )
+
+        if not dim_reduction:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Dimensionality reduction with ID {dim_red_id} not associated with publication ID {publication_id}",
+            )
+
+        # Return the detailed information of the specific dimensionality reduction
+        return DimensionalityReductionSchemaFull.model_validate(dim_reduction)
+
+    except Exception as e:
+        logging.error(
+            f"Error fetching dimensionality reduction ID {dim_red_id} for publication ID {publication_id}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the dimensionality reduction for the publication",
+        )
+
 
 @router.get(
     "/{publication_id}/authors/{author_id}",

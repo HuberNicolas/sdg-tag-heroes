@@ -5,6 +5,7 @@ from .publications.publication import PublicationSchemaBase, PublicationSchemaFu
 from .sdg.target import SDGTargetSchemaBase, SDGTargetSchemaFull
 from .sdg.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
 
+from .dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
 
 
 # Export all models for external use
@@ -21,4 +22,7 @@ __all__ = [
 
     "SDGGoalSchemaBase",
     "SDGGoalSchemaFull",
+
+    "DimensionalityReductionSchemaBase",
+    "DimensionalityReductionSchemaFull",
 ]
