@@ -120,31 +120,42 @@ async def get_votes_for_annotation(
         )
 
 
-@router.get(
+@router.post(
     "/",
-    response_model=List[AnnotationSchemaFull],
-    description="Retrieve all annotations"
+    response_model=AnnotationSchemaFull,
+    description="Create a new annotation"
 )
-async def get_all_annotations(
+async def create_annotation(
+    annotation_data: AnnotationSchemaCreate,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> List[AnnotationSchemaFull]:
+) -> AnnotationSchemaFull:
     """
-    Retrieve all annotations in the system.
+    Create a new annotation.
     """
     try:
         user = verify_token(token)  # Ensure user is authenticated
 
-        annotations = db.query(Annotation).all()
-        return [AnnotationSchemaFull.model_validate(annotation) for annotation in annotations]
-
-    except Exception as e:
-        logging.error(f"Error fetching annotations: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching annotations",
+        # Create the new annotation
+        new_annotation = Annotation(
+            user_id=annotation_data.user_id,
+            sdg_user_label_id=annotation_data.sdg_user_label_id,
+            labeler_score=annotation_data.labeler_score,
+            comment=annotation_data.comment,
         )
 
+        db.add(new_annotation)
+        db.commit()
+        db.refresh(new_annotation)
+
+        return AnnotationSchemaFull.model_validate(new_annotation)
+
+    except Exception as e:
+        logging.error(f"Error creating annotation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while creating the annotation",
+        )
 
 
 @router.get(
@@ -182,39 +193,30 @@ async def get_annotation(
 
 
 
-@router.post(
-    "/annotations/",
-    response_model=AnnotationSchemaFull,
-    description="Create a new annotation"
+@router.get(
+    "/",
+    response_model=List[AnnotationSchemaFull],
+    description="Retrieve all annotations"
 )
-async def create_annotation(
-    annotation_data: AnnotationSchemaCreate,
+async def get_all_annotations(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> AnnotationSchemaFull:
+) -> List[AnnotationSchemaFull]:
     """
-    Create a new annotation.
+    Retrieve all annotations in the system.
     """
     try:
         user = verify_token(token)  # Ensure user is authenticated
 
-        # Create the new annotation
-        new_annotation = Annotation(
-            user_id=annotation_data.user_id,
-            sdg_user_label_id=annotation_data.sdg_user_label_id,
-            labeler_score=annotation_data.labeler_score,
-            comment=annotation_data.comment,
-        )
-
-        db.add(new_annotation)
-        db.commit()
-        db.refresh(new_annotation)
-
-        return AnnotationSchemaFull.model_validate(new_annotation)
+        annotations = db.query(Annotation).all()
+        return [AnnotationSchemaFull.model_validate(annotation) for annotation in annotations]
 
     except Exception as e:
-        logging.error(f"Error creating annotation: {str(e)}")
+        logging.error(f"Error fetching annotations: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while creating the annotation",
+            detail="An error occurred while fetching annotations",
         )
+
+
+
