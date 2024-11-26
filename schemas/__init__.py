@@ -7,6 +7,7 @@ from .sdg.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
 
 from .dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
 
+from .sdg_prediction import SDGPredictionSchemaBase, SDGPredictionSchemaFull
 
 # Export all models for external use
 __all__ = [
@@ -25,4 +26,7 @@ __all__ = [
 
     "DimensionalityReductionSchemaBase",
     "DimensionalityReductionSchemaFull",
+
+    "SDGPredictionSchemaBase",
+    "SDGPredictionSchemaFull",
 ]

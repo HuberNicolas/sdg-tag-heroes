@@ -22,8 +22,7 @@ from schemas.dimensionality_reduction import DimensionalityReductionSchemaBase, 
 from schemas.publications.author import AuthorSchemaBase, AuthorSchemaFull
 
 from schemas.publications.publication import PublicationSchemaBase, PublicationSchemaFull
-
-
+from schemas.sdg_prediction import SDGPredictionSchemaFull, SDGPredictionSchemaBase
 
 from services.gpt_explainer import SDGExplainer
 
@@ -59,6 +58,94 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@router.get(
+    "/{publication_id}/sdg_predictions",
+    response_model=List[SDGPredictionSchemaBase],
+    description="Retrieve all SDG predictions associated with a specific publication"
+)
+async def get_sdg_predictions(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGPredictionSchemaBase]:
+    """
+    Retrieve all SDG predictions for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDG predictions
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Return the list of SDG predictions associated with the publication
+        return [
+            SDGPredictionSchemaBase.model_validate(prediction)
+            for prediction in publication.sdg_predictions
+        ]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDG predictions for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDG predictions for the publication",
+        )
+
+@router.get(
+    "/{publication_id}/sdg_predictions/{prediction_id}",
+    response_model=SDGPredictionSchemaFull,
+    description="Retrieve a specific SDG prediction associated with a specific publication"
+)
+async def get_sdg_prediction(
+    publication_id: int,
+    prediction_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGPredictionSchemaFull:
+    """
+    Retrieve a specific SDG prediction for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Check if the SDG prediction is associated with the publication
+        sdg_prediction = next(
+            (prediction for prediction in publication.sdg_predictions if prediction.prediction_id == prediction_id),
+            None,
+        )
+
+        if not sdg_prediction:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDG prediction with ID {prediction_id} not associated with publication ID {publication_id}",
+            )
+
+        # Return the detailed information of the specific SDG prediction
+        return SDGPredictionSchemaFull.model_validate(sdg_prediction)
+
+    except Exception as e:
+        logging.error(
+            f"Error fetching SDG prediction ID {prediction_id} for publication ID {publication_id}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDG prediction for the publication",
+        )
 
 
 @router.get(

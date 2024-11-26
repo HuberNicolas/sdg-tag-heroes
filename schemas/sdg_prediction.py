@@ -1,51 +1,39 @@
 from datetime import datetime
-
-from pydantic import BaseModel, condecimal, Field, validator
+from pydantic import BaseModel
 
 
 class SDGPredictionSchemaBase(BaseModel):
     prediction_id: int
     publication_id: int
     prediction_model: str
+    sdg1: float
+    sdg2: float
+    sdg3: float
+    sdg4: float
+    sdg5: float
+    sdg6: float
+    sdg7: float
+    sdg8: float
+    sdg9: float
+    sdg10: float
+    sdg11: float
+    sdg12: float
+    sdg13: float
+    sdg14: float
+    sdg15: float
+    sdg16: float
+    sdg17: float
+    predicted: bool
 
-    class Config:
-        from_attributes = True
-
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
 
 class SDGPredictionSchemaFull(SDGPredictionSchemaBase):
-    prediction_id: int
-    publication_id: int
-    prediction_model: str
-    sdg1: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg2: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg3: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg4: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg5: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg6: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg7: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg8: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg9: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg10: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg11: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg12: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg13: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg14: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg15: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg16: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    sdg17: condecimal(max_digits=5, decimal_places=4) = Field(0.0)
-    predicted: bool = Field(False)
-    last_predicted_goal: int = Field(0)
+    last_predicted_goal: int
     created_at: datetime
     updated_at: datetime
 
-    # Validator to round all float values for SDGs
-    @validator('sdg1', 'sdg2', 'sdg3', 'sdg4', 'sdg5', 'sdg6', 'sdg7', 'sdg8', 'sdg9',
-               'sdg10', 'sdg11', 'sdg12', 'sdg13', 'sdg14', 'sdg15', 'sdg16', 'sdg17', pre=True)
-    def round_sdg_values(cls, v):
-        if isinstance(v, float):
-            return round(v, 4)
-        return v
-
-    class Config:
-        from_attributes = True
-        orm_mode = True  # This allows Pydantic to work with SQLAlchemy models directly
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
