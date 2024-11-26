@@ -29,7 +29,7 @@ class Annotation(Base):
 
     # Relationship to Votes
     votes: Mapped[list["Vote"]] = relationship(
-        "Vote", back_populates="vote", cascade="all, delete-orphan"
+        "Vote", back_populates="annotation", cascade="all, delete-orphan"
     )
 
     labeler_score: Mapped[float] = mapped_column(nullable=False)

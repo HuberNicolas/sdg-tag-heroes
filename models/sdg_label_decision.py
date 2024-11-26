@@ -1,10 +1,18 @@
-from sqlalchemy import ForeignKey, Table, String, DateTime, Text, Column
+from sqlalchemy import ForeignKey, Table, String, DateTime, Text, Column, Integer, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from models import Base
 from settings.settings import TimeZoneSettings
+from enum import Enum as PyEnum
 
 time_zone_settings = TimeZoneSettings()
+
+
+class DecisionType(PyEnum):
+    CONSENSUS_MAJORITY = "Consensus Majority"
+    CONSENSUS_TECHNOCRATIC = "Consensus Technocratic"
+    EXPERT_DECISION = "Expert Decision"
+
 
 
 # Association table for many-to-many relationship between SDGLabelDecision and SDGUserLabel
@@ -17,6 +25,10 @@ class SDGLabelDecision(Base):
     __tablename__ = "sdg_label_decisions"
 
     decision_id: Mapped[int] = mapped_column(primary_key=True, index=True)
+
+    suggested_label: Mapped[int] = mapped_column(Integer, nullable=False)
+    decided_label: Mapped[int] = mapped_column(Integer, nullable=False)
+    decision_type: Mapped[DecisionType] = mapped_column(Enum(DecisionType), default=DecisionType.CONSENSUS_MAJORITY, nullable=False)
 
     # Many-to-Many relationship with SDGUserLabel
     user_labels: Mapped[list["SDGUserLabel"]] = relationship(
