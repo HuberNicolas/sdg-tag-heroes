@@ -1,9 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker, joinedload
 
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
@@ -13,15 +13,10 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 # Import models
-from models.publications.publication import Publication
 from models.publications.author import Author
 
 
-from schemas.publication import PublicationSchema, FacultySchemaFull, FacultySchemaBase, InstituteSchemaFull, InstituteSchemaBase, DivisionSchemaFull, DivisionSchemaBase, \
-    AuthorSchemaBase, AuthorSchemaFull, DimRedSchemaFull, DimRedSchemaBase, SDGPredictionSchemaBase, SDGPredictionSchemaFull
-
-
-from schemas.publication import AuthorSchemaFull
+from schemas.publication import AuthorSchemaFull, AuthorSchemaBase
 
 from settings.settings import AuthorsRouterSettings
 authors_router_settings = AuthorsRouterSettings()
@@ -58,25 +53,38 @@ def get_db():
 
 
 @router.get(
-    "/", response_model=List[AuthorSchemaFull], description="Get all authors"
+    "/", description="Get all authors (minimal or full detail)"
 )
-async def get_all_authors(db: Session = Depends(get_db)):
+async def get_all_authors(
+    minimal: Optional[bool] = Query(False, description="Set to true for minimal response"),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> Page:
+    """
+    Retrieve all authors. Responds with a minimal or full response based on the 'minimal' query parameter.
+    """
     try:
-        logging.info("Fetching all authors")
+        user = verify_token(token)  # Ensure user is authenticated
+        logging.info(f"Fetching all authors with minimal={minimal}")
 
-        # Perform a simple SELECT query to fetch all authors
-        authors = db.query(Author).all()
+        # Base query
+        query = db.query(Author)
 
-        if not authors:
-            logging.warning("No publications found")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="No authors found"
-            )
+        # Fetch paginated authors
+        authors = paginate(query.order_by(Author.author_id))
 
-        logging.info(f"Retrieved {len(authors)} authors")
+        # Adjust schema based on the 'minimal' flag
+        if minimal:
+            # Transform to minimal schema
+            authors.items = [AuthorSchemaBase.from_orm(author) for author in authors.items]
+            logging.info("Returning minimal response")
+        else:
+            # Transform to full schema
+            authors.items = [AuthorSchemaFull.from_orm(author) for author in authors.items]
+            logging.info("Returning full response")
 
-        # Use jsonable_encoder to ensure SQLAlchemy objects are converted into JSON-compatible data
-        return JSONResponse(content=jsonable_encoder(authors))
+        return authors
+
     except Exception as e:
         logging.error(f"Error fetching authors: {str(e)}")
         raise HTTPException(
@@ -84,40 +92,24 @@ async def get_all_authors(db: Session = Depends(get_db)):
             detail="An error occurred while fetching authors",
         )
 
-@router.get("/{author_id}", response_model=AuthorSchemaFull, description="Get single author by ID")
-async def get_author(author_id: int, db: Session = Depends(get_db)):
+@router.get(
+    "/{author_id}",
+    description="Get single author by ID (minimal or full detail)"
+)
+async def get_author(
+    author_id: int,
+    minimal: Optional[bool] = Query(False, description="Set to true for minimal response"),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    """
+    Retrieve a single author by ID. Responds with minimal or full details based on the 'minimal' query parameter.
+    """
     try:
-        logging.info(f"Fetching publication with ID: {author_id}")
+        user = verify_token(token)  # Ensure user is authenticated
+        logging.info(f"Fetching author with ID: {author_id}, minimal={minimal}")
 
-        # Perform a SELECT query to fetch the publication by ID
-        author = db.query(Author).filter(Author.author_id == author_id).first()
-
-        if not author:
-            logging.warning(f"No publication found with ID: {author_id}")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Author not found"
-            )
-
-        logging.info(f"Retrieved author with ID: {author_id}")
-
-        # Use jsonable_encoder to ensure SQLAlchemy objects are converted into JSON-compatible data
-        return JSONResponse(content=jsonable_encoder(author))
-    except Exception as e:
-        logging.error(f"Error fetching author with ID {author_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching the author",
-        )
-
-@router.get("/{author_id}/publications", response_model=Page[PublicationSchema], description="Get all publications from an author by ID")
-async def get_publications_for_author(author_id: int, include: Optional[str] = Query(None), db: Session = Depends(get_db), token: str = Depends(oauth2_scheme))  -> Page[PublicationSchema]:
-    # Verify the token before proceeding
-    user = verify_token(token)  # This will raise HTTPException if the token is invalid or expired
-
-    try:
-        logging.info(f"Fetching publications for author with ID: {author_id}")
-
-        # Query the author along with their publications using joinedload
+        # Query the database for the author
         author = db.query(Author).filter(Author.author_id == author_id).first()
 
         if not author:
@@ -126,37 +118,20 @@ async def get_publications_for_author(author_id: int, include: Optional[str] = Q
                 status_code=status.HTTP_404_NOT_FOUND, detail="Author not found"
             )
 
-        # Parse the include parameter (example: 'include=division,institute')
-        includes = include.split(",") if include else []
+        # Return minimal or full detail based on the 'minimal' flag
+        if minimal:
+            response = AuthorSchemaBase.from_orm(author)
+            logging.info(f"Returning minimal response for author ID: {author_id}")
+        else:
+            response = AuthorSchemaFull.from_orm(author)
+            logging.info(f"Returning full response for author ID: {author_id}")
 
-        # Paginate publications for the author
-        query = db.query(Publication).filter(Publication.authors.any(Author.author_id == author_id))
-
-        # Apply pagination
-        publications = paginate(query)
-
-        # Fetched everything, fully hydration
-
-        # Conditionally replace full schema with base schema if keyword is not present:
-        for publication in publications.items:
-            if 'authors' not in includes and publication.authors:
-                publication.authors = [AuthorSchemaBase.from_orm(author) for author in publication.authors]
-            if 'faculty' not in includes and publication.faculty:
-                publication.faculty = FacultySchemaBase.from_orm(publication.faculty)
-            if 'institute' not in includes and publication.institute:
-                publication.institute = InstituteSchemaBase.from_orm(publication.institute)
-            if 'division' not in includes and publication.division:
-                publication.division = DivisionSchemaBase.from_orm(publication.division)
-            if 'sdg_predictions' not in includes and publication.sdg_predictions:
-                publication.sdg_predictions = SDGPredictionSchemaBase.from_orm(publication.sdg_predictions)
-            if 'dim_red' not in includes and publication.dim_red:
-                publication.dim_red = DimRedSchemaBase.from_orm(publication.dim_red)
-        return publications
+        return response
 
     except Exception as e:
-        logging.error(f"Error fetching publications for author with ID {author_id}: {str(e)}")
+        logging.error(f"Error fetching author with ID {author_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching the publications",
+            detail="An error occurred while fetching the author",
         )
 

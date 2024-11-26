@@ -16,6 +16,7 @@ from models.base import Base
 
 time_zone_settings = TimeZoneSettings()
 
+# TODO: Move to association.py
 # Association table for the many-to-many relationship
 publication_authors = Table(
     "publication_authors",

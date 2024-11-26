@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, String, DateTime
+from sqlalchemy import ForeignKey, String, DateTime, Integer
 from models.base import Base
 from settings.settings import TimeZoneSettings
 
@@ -14,7 +14,7 @@ class SDGTarget(Base):
     index: Mapped[str] = mapped_column(String(10), nullable=False)
     text: Mapped[str] = mapped_column(String(255), nullable=False)
     color: Mapped[str] = mapped_column(String(7), nullable=False)
-    target_vector_index: Mapped[int] = mapped_column(nullable=False)  # Updated field name for clarity
+    target_vector_index: Mapped[int] = mapped_column(Integer, nullable=False)
     icon: Mapped[str | None] = mapped_column(LONGTEXT)  # Base64 encoded SVG as LONGTEXT
 
     # Foreign key relationship to SDGGoal
