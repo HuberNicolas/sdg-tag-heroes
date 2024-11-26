@@ -1,4 +1,4 @@
-from sqlalchemy import Enum, ForeignKey, DateTime
+from sqlalchemy import Enum, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -16,7 +16,7 @@ class VoteType(PyEnum):
 
 class Vote(Base):
     """
-    Represents a vote on an SDGUserLabel by a User. The vote can be positive, neutral, or negative.
+    Represents a vote on an SDGUserLabel or Annotation by a User. The vote can be positive, neutral, or negative.
     """
     __tablename__ = "votes"
 
@@ -26,13 +26,19 @@ class Vote(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
 
     # Foreign key linking to the SDGUserLabel being voted on
-    sdg_user_label_id: Mapped[int] = mapped_column(ForeignKey("sdg_user_labels.label_id"), nullable=False)
+    sdg_user_label_id: Mapped[int] = mapped_column(ForeignKey("sdg_user_labels.label_id"), nullable=True)
 
     # Relationship to User
     user: Mapped["User"] = relationship("User", back_populates="votes")
 
+    # Foreign key linking to the Annotation being voted on
+    annotation_id: Mapped[int] = mapped_column(ForeignKey("annotations.annotation_id"), nullable=True)
+
     # Relationship to SDGUserLabel
     sdg_user_label: Mapped["SDGUserLabel"] = relationship("SDGUserLabel", back_populates="votes")
+
+    # Relationship to Annotation
+    annotation: Mapped["Annotation"] = relationship("Annotation", back_populates="votes")
 
     vote_type: Mapped[VoteType] = mapped_column(Enum(VoteType), default=VoteType.NEUTRAL, nullable=False)
 
@@ -43,4 +49,12 @@ class Vote(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "(sdg_user_label_id IS NOT NULL AND annotation_id IS NULL) OR "
+            "(sdg_user_label_id IS NULL AND annotation_id IS NOT NULL)",
+            name="check_one_target_not_both"
+        ),
     )

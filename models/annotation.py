@@ -27,6 +27,10 @@ class Annotation(Base):
     # Relationship to SDGUserLabel
     sdg_user_label: Mapped["SDGUserLabel"] = relationship("SDGUserLabel", back_populates="annotations")
 
+    # Relationship to Votes
+    votes: Mapped[list["Vote"]] = relationship(
+        "Vote", back_populates="vote", cascade="all, delete-orphan"
+    )
 
     labeler_score: Mapped[float] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(Text(), nullable=False)
