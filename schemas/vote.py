@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from enum import Enum
 
 # TODO: Outsource
@@ -33,6 +33,15 @@ class VoteSchemaCreate(BaseModel):
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation
     }
+
+    @model_validator(mode="after")
+    def validate_vote_target(self):
+        """
+        Ensure that exactly one of `sdg_user_label_id` or `annotation_id` is provided.
+        """
+        if (self.sdg_user_label_id is None) == (self.annotation_id is None):
+            raise ValueError("Exactly one of `sdg_user_label_id` or `annotation_id` must be provided.")
+        return self
 
 
 class VoteSchemaFull(VoteSchemaBase):

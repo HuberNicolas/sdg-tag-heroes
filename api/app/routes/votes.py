@@ -51,33 +51,6 @@ def get_db():
         db.close()
 
 
-
-@router.get(
-    "/",
-    response_model=List[VoteSchemaFull],
-    description="Retrieve all votes"
-)
-async def get_all_votes(
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-) -> List[VoteSchemaFull]:
-    """
-    Retrieve all votes in the system.
-    """
-    try:
-        user = verify_token(token)  # Ensure user is authenticated
-
-        votes = db.query(Vote).all()
-        return [VoteSchemaFull.model_validate(vote) for vote in votes]
-
-    except Exception as e:
-        logging.error(f"Error fetching votes: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching votes",
-        )
-
-
 @router.get(
     "/{vote_id}",
     response_model=VoteSchemaFull,
@@ -155,4 +128,29 @@ async def create_vote(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while creating the vote",
+        )
+
+@router.get(
+    "/",
+    response_model=List[VoteSchemaFull],
+    description="Retrieve all votes"
+)
+async def get_all_votes(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[VoteSchemaFull]:
+    """
+    Retrieve all votes in the system.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        votes = db.query(Vote).all()
+        return [VoteSchemaFull.model_validate(vote) for vote in votes]
+
+    except Exception as e:
+        logging.error(f"Error fetching votes: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching votes",
         )

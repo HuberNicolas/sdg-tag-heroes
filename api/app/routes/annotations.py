@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.security import Security
@@ -10,7 +11,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import Annotation
+from models import Annotation, SDGUserLabel, Vote
 from schemas.annotations import AnnotationSchemaFull, AnnotationSchemaCreate
 from schemas.vote import VoteSchemaFull, VoteSchemaCreate
 from settings.settings import AnnotationSettings
@@ -119,43 +120,67 @@ async def get_votes_for_annotation(
             detail="An error occurred while fetching votes for the annotation",
         )
 
-
 @router.post(
     "/",
-    response_model=AnnotationSchemaFull,
-    description="Create a new annotation"
+    response_model=VoteSchemaFull,
+    description="Create a new vote"
 )
-async def create_annotation(
-    annotation_data: AnnotationSchemaCreate,
+async def create_vote(
+    vote_data: VoteSchemaCreate,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> AnnotationSchemaFull:
+) -> VoteSchemaFull:
     """
-    Create a new annotation.
+    Create a new vote.
     """
     try:
         user = verify_token(token)  # Ensure user is authenticated
 
-        # Create the new annotation
-        new_annotation = Annotation(
-            user_id=annotation_data.user_id,
-            sdg_user_label_id=annotation_data.sdg_user_label_id,
-            labeler_score=annotation_data.labeler_score,
-            comment=annotation_data.comment,
+        # Ensure that the validation logic in `VoteSchemaCreate` has been applied
+        new_vote = Vote(
+            user_id=vote_data.user_id,
+            sdg_user_label_id=vote_data.sdg_user_label_id,
+            annotation_id=vote_data.annotation_id,
+            vote_type=vote_data.vote_type,
+            score=vote_data.score,
         )
 
-        db.add(new_annotation)
+        # Check associations for existence
+        if vote_data.sdg_user_label_id:
+            sdg_user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == vote_data.sdg_user_label_id).first()
+            if not sdg_user_label:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"SDGUserLabel with ID {vote_data.sdg_user_label_id} not found.",
+                )
+        elif vote_data.annotation_id:
+            annotation = db.query(Annotation).filter(Annotation.annotation_id == vote_data.annotation_id).first()
+            if not annotation:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Annotation with ID {vote_data.annotation_id} not found.",
+                )
+
+        # Create the vote
+        db.add(new_vote)
         db.commit()
-        db.refresh(new_annotation)
+        db.refresh(new_vote)
 
-        return AnnotationSchemaFull.model_validate(new_annotation)
+        return VoteSchemaFull.model_validate(new_vote)
 
+    except ValidationError as ve:
+        logging.error(f"Validation error: {ve}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(ve),
+        )
     except Exception as e:
-        logging.error(f"Error creating annotation: {str(e)}")
+        logging.error(f"Error creating vote: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while creating the annotation",
+            detail="An error occurred while creating the vote",
         )
+
 
 
 @router.get(
