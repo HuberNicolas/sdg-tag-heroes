@@ -28,6 +28,7 @@ openai = "^1.54.4"
 alembic = "^1.14.0"
 instructor = "^1.6.4"
 faker = "^33.0.0"
+pandas = "^2.2.3"
 
 
 [tool.poetry.group.dev.dependencies]
