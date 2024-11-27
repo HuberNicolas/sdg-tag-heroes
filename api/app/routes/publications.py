@@ -601,8 +601,13 @@ async def get_publications_by_sdg_values(
     # Unpack the range
     min_value, max_value = sdg_range
 
-    # Default to all 17 SDGs if none are specified
-    sdg_list = sdgs if sdgs else range(1, 18)
+    print(f"Raw SDGs Query Param: {sdgs}")
+
+    # Check if `sdgs` is provided and not empty; otherwise, use the default range
+    if sdgs is not None and len(sdgs) > 0:
+        sdg_list = sdgs
+    else:
+        sdg_list = list(range(1, 18))
 
     # Result dictionary to store publications and statistics
     result = {
