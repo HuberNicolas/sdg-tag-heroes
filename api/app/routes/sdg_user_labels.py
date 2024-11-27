@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,7 +12,10 @@ from db.mariadb_connector import engine as mariadb_engine
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import SDGUserLabel
+from models import SDGUserLabel, SDGLabelDecision
+from models.publications.publication import Publication
+from models.sdg_label_history import SDGLabelHistory
+from models.sdg_label_summary import SDGLabelSummary
 from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaCreate
 from schemas.vote import VoteSchemaFull
 from settings.settings import SDGUserLabelsSettings
@@ -154,6 +158,90 @@ async def get_sdg_user_label(
             detail="An error occurred while fetching the SDG user label",
         )
 
+@router.post(
+    "/",
+    response_model=SDGUserLabelSchemaFull,
+    description="Create or link an SDG user label"
+)
+async def create_sdg_user_label(
+    user_label_data: SDGUserLabelSchemaCreate,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGUserLabelSchemaFull:
+    """
+    Create or link an SDG user label.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+        # Create or link an SDGLabelDecision
+        decision = None
+
+        # Link to an existing SDGLabelDecision
+        if user_label_data.decision_id:
+            print(user_label_data.decision_id)
+
+            decision = db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == user_label_data.decision_id).first()
+            print(decision)
+            if not decision:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"SDGLabelDecision with ID {user_label_data.decision_id} not found",
+                )
+        # Instantiate a new one
+        else:
+            print(user_label_data.publication_id)
+            # Ensure one of `publication_id` is provided
+            if not user_label_data.publication_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Either publication_id or history_id must be provided to create a new SDGLabelDecision",
+                )
+            else:
+
+                publication = db.query(Publication).filter(Publication.publication_id == user_label_data.publication_id).first()
+                print(publication)
+                sdg_label_summary = db.query(SDGLabelSummary).filter(SDGLabelSummary.publication_id == publication.publication_id).first()
+                print(sdg_label_summary)
+                history = db.query(SDGLabelHistory).filter(SDGLabelHistory.history_id == sdg_label_summary.history_id).first()
+                print(history)
+
+                # Create a new SDGLabelDecision
+                decision = SDGLabelDecision(
+                    suggested_label=user_label_data.suggested_label,
+                    history_id=history.history_id,
+                    decided_at=datetime.now(),
+                )
+                db.add(decision)
+                db.flush()  # Ensure the decision is persisted before associating it
+
+
+        # Create the new SDG user label
+        new_user_label = SDGUserLabel(
+            user_id=user_label_data.user_id,
+            proposed_label=user_label_data.proposed_label if user_label_data.proposed_label else None,
+            voted_label=user_label_data.voted_label,
+            description=user_label_data.description,
+        )
+        db.add(new_user_label)
+        db.flush()  # Persist the new_user_label to get its ID
+
+        # Associate the user label with the decision
+        decision.user_labels.append(new_user_label)
+
+        # Commit the transaction
+        db.commit()
+        db.refresh(new_user_label)
+
+        return SDGUserLabelSchemaFull.model_validate(new_user_label)
+
+    except Exception as e:
+        logging.error(f"Error creating or linking SDG user label: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while creating or linking the SDG user label",
+        )
+
+
 @router.get(
     "/",
     response_model=List[SDGUserLabelSchemaFull],
@@ -180,38 +268,3 @@ async def get_all_sdg_user_labels(
             detail="An error occurred while fetching SDG user labels",
         )
 
-@router.post(
-    "/",
-    response_model=SDGUserLabelSchemaFull,
-    description="Create a new SDG user label"
-)
-async def create_sdg_user_label(
-    user_label_data: SDGUserLabelSchemaCreate,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-) -> SDGUserLabelSchemaFull:
-    """
-    Create a new SDG user label.
-    """
-    try:
-        user = verify_token(token)  # Ensure user is authenticated
-
-        # Create the new SDG user label
-        new_user_label = SDGUserLabel(
-            user_id=user_label_data.user_id,
-            name=user_label_data.name,
-            description=user_label_data.description,
-        )
-
-        db.add(new_user_label)
-        db.commit()
-        db.refresh(new_user_label)
-
-        return SDGUserLabelSchemaFull.model_validate(new_user_label)
-
-    except Exception as e:
-        logging.error(f"Error creating SDG user label: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while creating the SDG user label",
-        )

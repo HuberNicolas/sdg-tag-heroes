@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, DateTime, String
+from sqlalchemy import ForeignKey, DateTime, String, Integer, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from models import Base
@@ -38,8 +38,10 @@ class SDGUserLabel(Base):
         back_populates="user_labels"
     )
 
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    proposed_label: Mapped[int] = mapped_column(Integer, nullable=True)
+    voted_label: Mapped[int] = mapped_column(Integer, nullable=False)
     description: Mapped[str] = mapped_column(String(1000), nullable=True)
+
 
     labeled_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -57,5 +59,10 @@ class SDGUserLabel(Base):
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint("proposed_label >= 0 AND proposed_label <= 17", name="check_proposed_label_range"),
+        CheckConstraint("voted_label >= 0 AND voted_label <= 17", name="check_voted_label_range"),
     )
 

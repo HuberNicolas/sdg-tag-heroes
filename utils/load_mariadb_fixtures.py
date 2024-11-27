@@ -82,7 +82,8 @@ def create_sdg_user_labels(session: Session, users: list[User], num_labels: int 
     for _ in range(num_labels):
         label = SDGUserLabel(
             user_id=choice(users).user_id,
-            name=faker.word(),
+            proposed_label=randint(0, 17),
+            voted_label=randint(0, 17),
             description=faker.sentence(),
             labeled_at=faker.date_time_this_year(),
             created_at=faker.date_time_this_year(),
@@ -168,7 +169,31 @@ def create_sdg_label_decisions(
         session.add(decision)
         decisions.append(decision)
     session.commit()
+    unfinished_decisions = []
+
+    for _ in range(num_decisions):
+        history = choice(histories)
+        expert = choice(experts)
+        decision = SDGLabelDecision(
+            history_id=history.history_id,
+            suggested_label=randint(1, 17),  # Random SDG goal between 1 and 17
+            decided_label=-1,
+            decision_type=choice(list(DecisionType)),  # Random decision type
+            comment=choice(list(["Not decided yet", None])),
+            created_at=faker.date_time_this_year(),
+            updated_at=faker.date_time_this_year(),
+        )
+        # Assign a random subset of unique user labels to the decision
+        num_labels = randint(1, 3)
+        unique_labels = faker.random_elements(user_labels, length=num_labels, unique=True)
+        decision.user_labels.extend(unique_labels)
+
+        session.add(decision)
+        unfinished_decisions.append(decision)
+    session.commit()
+
     logger.info(f"Created {num_decisions} SDGLabelDecisions.")
+    logger.info(f"Created {num_decisions} unfinished SDGLabelDecisions.")
     return decisions
 
 def create_votes_for_annotations(session: Session, annotations: list[Annotation], users: list[User], num_votes: int = 20):
