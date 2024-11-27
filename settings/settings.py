@@ -119,8 +119,11 @@ class SDGUserLabelsSettings(BaseSettings):
 class VotesSettings(BaseSettings):
     VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
 
-class AnnotationSettings(BaseSettings):
+class AnnotationsSettings(BaseSettings):
     ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
+
+class DimensionalityReductionsRouterSettings(BaseSettings):
+    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_dimensionality_reductions.log"
 
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"

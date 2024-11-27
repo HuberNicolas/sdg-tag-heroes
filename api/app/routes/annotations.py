@@ -14,8 +14,8 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 from models import Annotation, SDGUserLabel, Vote
 from schemas.annotations import AnnotationSchemaFull, AnnotationSchemaCreate
 from schemas.vote import VoteSchemaFull, VoteSchemaCreate
-from settings.settings import AnnotationSettings
-annotations_router_settings = AnnotationSettings()
+from settings.settings import AnnotationsSettings
+annotations_router_settings = AnnotationsSettings()
 
 security = Security()
 # OAuth2 scheme for token authentication
