@@ -9,7 +9,7 @@ from db.mongodb_connector import client
 # Define the database and collection names
 db_name = 'sdg_explanations'
 source_collection_name = 'explanations'
-target_collection_name = 'explanations_reduced'
+target_collection_name = 'explanations_scaled'
 
 # Create a new connection to the database
 db = client[db_name]
@@ -27,7 +27,7 @@ for document in tqdm(source_collection.find()):
     # Round each number in the nested lists of token_scores
     token_scores = document.get("token_scores", [])
     token_scores_reduced = [
-        [float(f"{num:.5f}") for num in sublist] for sublist in token_scores
+        [int(f"{round(10000*num)}") for num in sublist] for sublist in token_scores
     ]
 
     # Update the token_scores field in the copied document
@@ -35,7 +35,6 @@ for document in tqdm(source_collection.find()):
 
     # Calculate the size of the modified document
     reduced_size = len(BSON.encode(reduced_document))
-
     # Insert the modified document into the target collection
     target_collection.insert_one(reduced_document)
 
