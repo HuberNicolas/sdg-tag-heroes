@@ -51,6 +51,10 @@ docker exec -it mongodb-database mongodump --db sdg_database_clusters \
 # Backup sdg_explanations
 docker exec -it mongodb-database mongodump --db sdg_explanations \
   --username <username> --password <password> --authenticationDatabase admin --out /data/backup
+  
+# Backup reduced sdg_explanations collection
+docker exec -it mongodb-database mongodump --db sdg_explanations --collection <collection_name> \
+  --username <username> --password <password> --authenticationDatabase admin --out /data/backup
 ```
 
 - Replace `<username>` and `<password>` with your MongoDB credentials.
@@ -60,6 +64,9 @@ docker exec -it mongodb-database mongodump --db sdg_explanations \
 
 ```bash
 docker cp mongodb-database:/data/backup ./data/db/backup
+
+# Copy reduced sdg_explanations collection
+docker cp mongodb-database:/data/backup/sdg_explanations ./data/db/backup/sdg_explanations_reduced
 ```
 
 This command will copy the backup from the container to your local `./data/db/backup` directory.
@@ -84,6 +91,11 @@ docker exec -it mongodb-database mongorestore --db sdg_database_clusters \
 # Restore sdg_explanations
 docker exec -it mongodb-database mongorestore --db sdg_explanations \
   --username <username> --password <password> --authenticationDatabase admin /data/backup/sdg_explanations
+  
+# Restore reduced sdg_explanations collection
+docker exec -it mongodb-database mongorestore --db <database_name> --collection <collection_name> \
+  --username <username> --password <password> --authenticationDatabase admin /data/backup/<database_name>/<collection_name>.bson
+
 ```
 
 - Replace `<username>` and `<password>` with your MongoDB credentials.
