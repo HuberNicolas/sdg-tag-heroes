@@ -2,6 +2,8 @@ import time
 from typing import Literal
 import pandas as pd
 from sqlalchemy.orm import sessionmaker, relationship, joinedload
+from tqdm import tqdm
+
 from db.mariadb_connector import engine as mariadb_engine
 
 from datetime import datetime
@@ -29,6 +31,9 @@ from utils.env_loader import load_env, get_env_variable
 # Load the API environment variables
 load_env('api.env')
 
+#
+LIMIT = 100
+
 
 # Initialize session
 Session = sessionmaker(bind=mariadb_engine)
@@ -36,6 +41,19 @@ Session = sessionmaker(bind=mariadb_engine)
 
 sdg_columns = [f"sdg{i}" for i in range(1, 18)]  # SDG1 to SDG17
 
+
+# Constants for cost calculations
+COST_PER_MILLION_INPUT_TOKENS = 2.50  # $ per 1M input tokens
+COST_PER_MILLION_OUTPUT_TOKENS = 10.00  # $ per 1M output tokens
+TOKENS_PER_WORD_ESTIMATE = 100 / 75  # Approx. 100 tokens ~ 75 words
+
+# Function to estimate tokens from word count
+def estimate_tokens(word_count):
+    return int(word_count * TOKENS_PER_WORD_ESTIMATE)
+
+# Function to count words
+def count_words(text):
+    return len(text.split()) if text else 0
 
 
 def fetch_publications_by_sdg(session, sdg_number):
@@ -60,6 +78,7 @@ def fetch_publications_by_sdg(session, sdg_number):
         .options(
             joinedload(SDGLabelSummary.publication).joinedload(Publication.sdg_predictions)
         )
+        .limit(LIMIT)
         .all()
     )
 
@@ -79,7 +98,6 @@ def fetch_publications_by_sdg(session, sdg_number):
 
     return results
 
-no_samples = 1
 results = []
 
 # Initialize OpenAI client (ensure you've set up the API key in your environment)
@@ -88,12 +106,17 @@ client = OpenAI()
 
 def evaluate_abstract_sdg_relevance(abstract_text):
     """
-    Calls OpenAI API to evaluate SDG relevance and confidence for the given abstract
-    and enforces a structured JSON response format.
+    Calls OpenAI API to evaluate SDG relevance and confidence for the given abstract,
+    enforces a structured JSON response format, and includes word counts for input and output.
 
     :param abstract_text: Abstract to analyze
-    :return: Dictionary with 'sdg_relevance' and 'sdg_relevance_confidence'
+    :return: Dictionary with 'sdg_relevance', 'sdg_relevance_confidence',
+             and word counts for input and output.
     """
+
+    # Count words in the abstract text (input)
+    input_word_count = len(abstract_text.split())
+
     messages = [
         {
             "role": "system",
@@ -126,24 +149,41 @@ def evaluate_abstract_sdg_relevance(abstract_text):
     try:
         # Access and return the JSON response
         response_content = response.choices[0].message.content
-        return json.loads(response_content)
-    except (AttributeError, json.JSONDecodeError) as e:
+        output_word_count = len(response_content.split())  # Count words in the output
+
+        # Parse the JSON response
+        parsed_response = json.loads(response_content)
+
+        return {
+            "parsed_response": parsed_response,
+            "input_word_count": input_word_count,
+            "output_word_count": output_word_count,
+        }
+
+    except (KeyError, json.JSONDecodeError) as e:
         print("Error parsing the response:", e)
         print("Full response:", response)
-        return None
+        return {
+            "parsed_response": None,
+            "input_word_count": input_word_count,
+            "output_word_count": 0,
+        }
 
 
 def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
     """
-    Calls OpenAI API to evaluate the relevance and contribution of an abstract to a specific SDG
-    and enforces a structured JSON response format.
+    Calls OpenAI API to evaluate SDG relevance and confidence for the given abstract,
+    enforces a structured JSON response format, and includes word counts for input and output.
 
     :param abstract_text: Abstract to analyze
-    :param sdg_number: SDG number to evaluate (1–17)
-    :return: Dictionary with arguments and scores for relevance and contribution to the specified SDG
+    :return: Dictionary with 'sdg_relevance', 'sdg_relevance_confidence',
+             and word counts for input and output.
     """
     if not 1 <= sdg_number <= 17:
         raise ValueError("SDG number must be between 1 and 17")
+
+    # Count words in the abstract text (input)
+    input_word_count = len(abstract_text.split()) + 1 # + 1 for sdg_number
 
     messages = [
         {
@@ -186,11 +226,26 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
     try:
         # Access and return the JSON response
         response_content = response.choices[0].message.content
-        return json.loads(response_content)
-    except (AttributeError, json.JSONDecodeError) as e:
+
+
+        output_word_count = len(response_content.split())  # Count words in the output
+
+        # Parse the JSON response
+        parsed_response = json.loads(response_content)
+
+        return {
+            "parsed_response": parsed_response,
+            "input_word_count": input_word_count,
+            "output_word_count": output_word_count,
+        }
+    except (KeyError, json.JSONDecodeError) as e:
         print("Error parsing the response:", e)
         print("Full response:", response)
-        return None
+        return {
+            "parsed_response": None,
+            "input_word_count": input_word_count,
+            "output_word_count": 0,
+        }
 
 
 # Initialize an empty DataFrame to store the results
@@ -216,6 +271,14 @@ columns += [
     "contribution_score",
 ]
 
+# Add additional columns to track word and token counts, and costs
+columns += [
+    "abstract_word_count", "abstract_token_count",
+    "input_word_count", "input_token_count", "input_cost",
+    "output_word_count", "output_token_count", "output_cost",
+    "total_cost"
+]
+
 results_df = pd.DataFrame(columns=columns)
 
 with (Session() as session):
@@ -224,58 +287,68 @@ with (Session() as session):
         start = time.time()
         publications_data = fetch_publications_by_sdg(session, sdg)
         end = time.time()
-        for data in publications_data:
+        print(f"Took {end - start} seconds to fetch a total of {len(publications_data)} publications.")
+        for data in tqdm(publications_data, desc=f"Processing publications for SDG {sdg}", unit="publication"):
             publication = data["publication"]
-            # predictions = data["predictions"]
-            #print(f"Publication ID: {data['publication'].publication_id}, Title: {data['publication'].title}")
 
-            # TO BE ADDED TO DF
+            # Extract publication details
             publication_title = publication.title
             publication_sql_id = publication.publication_id
             publication_zora_id = publication.oai_identifier
             publication_abstract = publication.description
 
+            # Calculate word and token counts for the abstract
+            abstract_word_count = len(publication_abstract.split())
+            abstract_token_count = estimate_tokens(abstract_word_count)
+
+            # Predictions and analysis results
             predictions = data["predictions"][0]
             prediction_model = predictions.prediction_model
-            #print(predictions.sdg1)
-            # Extract prediction SDG values
             prediction_scores = {f"prediction_sdg{i}": getattr(predictions, f"sdg{i}", None) for i in range(1, 18)}
 
-
-            # Generate 17 predictions values
+            # Evaluate relevance and confidence for all 17 SDGs
             analysis_result = evaluate_abstract_sdg_relevance(publication.description)
             if analysis_result:
-                # ADD 17 sdg_relevance values
-                sdg_relevance = analysis_result.get("sdg_relevance", [None] * 17)
-                # ADD 17 sdg_confidence values
-                sdg_confidence = analysis_result.get("sdg_relevance_confidence", [None] * 17)
-                print("SDG Relevance:", sdg_relevance)
-                print("SDG Confidence:", sdg_confidence)
+                parsed_response = analysis_result.get("parsed_response", {})
+                sdg_relevance = parsed_response.get("sdg_relevance", [None] * 17)
+                sdg_confidence = parsed_response.get("sdg_relevance_confidence", [None] * 17)
+                relevance_output_word_count = count_words(json.dumps(analysis_result))
             else:
                 sdg_relevance = [None] * 17
                 sdg_confidence = [None] * 17
-                print("Failed to analyze the abstract.")
+                relevance_output_text = 0
 
-            # Evaluate the abstract for the specified SDG
+            # Evaluate the abstract for the specific SDG
             evaluation_result = evaluate_abstract_for_specific_sdg(publication.description, sdg)
-
-            # Display the result
             if evaluation_result:
-                arguments_for_relatedness = evaluation_result.get("arguments_for_relatedness", "")
-                arguments_against_relatedness = evaluation_result.get("arguments_against_relatedness", "")
-                relatedness_score = evaluation_result.get("relatedness_score", None)
+                parsed_response = evaluation_result.get("parsed_response", {})
+                arguments_for_relatedness = parsed_response.get("arguments_for_relatedness", "")
+                arguments_against_relatedness = parsed_response.get("arguments_against_relatedness", "")
+                relatedness_score = parsed_response.get("relatedness_score", None)
+                arguments_for_contribution = parsed_response.get("arguments_for_contribution", "")
+                arguments_against_contribution = parsed_response.get("arguments_against_contribution", "")
+                contribution_score = parsed_response.get("contribution_score", None)
 
-                arguments_for_contribution = evaluation_result.get("arguments_for_contribution", "")
-                arguments_against_contribution = evaluation_result.get("arguments_against_contribution", "")
-                contribution_score = evaluation_result.get("contribution_score", None)
+                specific_output_word_count = count_words(json.dumps(evaluation_result))
             else:
                 arguments_for_relatedness = ""
                 arguments_against_relatedness = ""
                 relatedness_score = None
-
                 arguments_for_contribution = ""
                 arguments_against_contribution = ""
                 contribution_score = None
+                specific_output_text = 0
+
+            # Total input and output word counts
+            input_word_count = abstract_word_count * 2  # Two prompts for the same abstract
+            output_word_count = relevance_output_word_count + specific_output_word_count
+
+            # Calculate costs based on token counts
+            input_token_count = estimate_tokens(input_word_count)
+            output_token_count = estimate_tokens(output_word_count)
+            input_cost = (input_token_count / 1_000_000) * COST_PER_MILLION_INPUT_TOKENS
+            output_cost = (output_token_count / 1_000_000) * COST_PER_MILLION_OUTPUT_TOKENS
+            total_cost = input_cost + output_cost
 
             # Append data to the DataFrame
             row_data = {
@@ -291,21 +364,38 @@ with (Session() as session):
                 "arguments_for_contribution": arguments_for_contribution,
                 "arguments_against_contribution": arguments_against_contribution,
                 "contribution_score": contribution_score,
+                "abstract_word_count": abstract_word_count,
+                "abstract_token_count": abstract_token_count,
+                "input_word_count": input_word_count,
+                "input_token_count": input_token_count,
+                "input_cost": input_cost,
+                "output_word_count": output_word_count,
+                "output_token_count": output_token_count,
+                "output_cost": output_cost,
+                "total_cost": total_cost,
             }
             row_data.update({f"sdg_relevance_{i + 1}": sdg_relevance[i] for i in range(17)})
             row_data.update({f"sdg_confidence_{i + 1}": sdg_confidence[i] for i in range(17)})
             row_data.update(prediction_scores)
 
-            results_df = pd.concat(
-                [results_df, pd.DataFrame([row_data])],
-                ignore_index=True
-            )
-            break
-        #break
+            # Convert row_data to DataFrame
+            new_row_df = pd.DataFrame([row_data])
 
+            # Validate columns match
+            if set(new_row_df.columns) != set(results_df.columns):
+                missing_in_row_data = set(results_df.columns) - set(new_row_df.columns)
+                missing_in_results_df = set(new_row_df.columns) - set(results_df.columns)
+                raise ValueError(
+                    f"Column mismatch detected.\nMissing in row_data: {missing_in_row_data}\nMissing in results_df: {missing_in_results_df}")
 
+            # Concatenate safely with ignore_index
+            results_df = pd.concat([results_df, new_row_df], ignore_index=True)
+
+            logging.info(f"Finished publication {publication_zora_id}.")
+            #break Only 1 per SDG
+        #break Only SDG 1
 
 # Save the DataFrame to a CSV file
-results_df.to_csv("sdg_evaluation_results.csv", index=False)
-print("Results saved to sdg_evaluation_results.csv")
+results_df.to_csv("sdg_evaluation_results_with_costs.csv", index=False)
+print("Results saved to sdg_evaluation_results_with_costs.csv")
 
