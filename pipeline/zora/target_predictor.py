@@ -7,47 +7,38 @@ import nltk
 import tensorflow as tf
 from nltk import tokenize
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, joinedload
 from tensorflow import convert_to_tensor
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tqdm import tqdm
 from transformers import BertTokenizer, TFBertMainLayer, TFBertModel
 
-from models.base import Base
-from models.author import Author
-from models.division import Division
-from models.faculty import Faculty
-from models.institute import Institute
+from models import SDGTargetPrediction
 from models.sdg_prediction import SDGPrediction
-from models.sdg_label import SDGLabel
-from models.sdg_label_history import SDGLabelHistory
-from models.sdg_label_decision import SDGLabelDecision
-from models.sdg_user_label import SDGUserLabel
-from models.dim_red import DimRed
-from models.publication import Publication
+from models.publications.publication import Publication
 
-from settings.settings import PredictionSettings
-predictor_settings = PredictionSettings()
+from settings.settings import TargetPredictionSettings
+target_predictor_settings = TargetPredictionSettings()
 
 #os.environ[PredictionSettings.CUDA_VISIBLE_DEVICES_KEY] = PredictionSettings.CUDA_VISIBLE_DEVICES_VALUE
 
 # Setup Logging
 from utils.logger import logger
-logging = logger(predictor_settings.AURORA_PREDICTOR_LOG_NAME)
+logging = logger(target_predictor_settings.AURORA_TARGET_PREDICTOR_LOG_NAME)
 
 # Download nltk tokenizer if not already downloaded
-nltk.download(predictor_settings.NLTK_TOKENIZER_PUNKT)
-nltk.download(predictor_settings.NLTK_TOKENIZER_PUNKT_TAB)
+nltk.download(target_predictor_settings.NLTK_TOKENIZER_PUNKT)
+nltk.download(target_predictor_settings.NLTK_TOKENIZER_PUNKT_TAB)
 
 # Initialize BERT tokenizer globally for reuse
-tokenizer = BertTokenizer.from_pretrained(PredictionSettings.BERT_PRETRAINED_MODEL_NAME)
+tokenizer = BertTokenizer.from_pretrained(TargetPredictionSettings.BERT_PRETRAINED_MODEL_NAME)
 
 # Constants
-MAX_LEN = PredictionSettings.MAX_SEQ_LENGTH
+MAX_LEN = TargetPredictionSettings.MAX_SEQ_LENGTH
 
 # Model Dir
-model_dir = os.path.abspath(os.path.expanduser(PredictionSettings.MODEL_DIR))
+model_dir = os.path.abspath(os.path.expanduser(TargetPredictionSettings.MODEL_DIR))
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 print(os.listdir(model_dir))
@@ -71,28 +62,39 @@ def predict_batch(model, inputs, masks):
     return model([inputs, masks], training=False)
 
 
-def update_sdg_field(prediction_entry, model_file, prediction, precision=8):
-    """Dynamically update the relevant SDG field for a prediction entry, rounding the value to a specified precision."""
-    # Extract the SDG number from the model file name using regex
-    sdg_number = re.search(r"\d+", model_file).group(0)
+def update_sdg_target_field(prediction_entry, model_file, prediction, precision=8):
+    """
+    Dynamically update the relevant SDG target field for a prediction entry,
+    rounding the value to a specified precision.
+    """
+    # Extract the SDG target identifier (e.g., '1_1', '2_a') from the model file name using regex
+    match = re.match(r"(\d+_[a-z0-9]+)", model_file)
+    if not match:
+        logging.error(f"Model file name {model_file} does not match expected format.")
+        return
 
-    # Construct the field name dynamically, e.g., 'sdg1', 'sdg2', etc.
-    field_name = f"sdg{sdg_number}"
+    sdg_target_identifier = match.group(1)  # e.g., '1_1', '2_a'
+    field_name = f"target{sdg_target_identifier}"  # Construct the field name, e.g., 'target1_1', 'target2_a'
 
-    # Convert TensorFlow EagerTensor to a NumPy value
-    prediction_value = prediction.numpy()[
-        0
-    ]  # Convert TensorFlow tensor to NumPy array and get the first value
+    # Convert TensorFlow EagerTensor to a NumPy value and get the first value
+    prediction_value = prediction.numpy()[0]
 
-    # Format the prediction to the specified precision using string formatting
+    # Format the prediction to the specified precision
     rounded_prediction = float(f"{prediction_value:.{precision}f}")
 
     # Dynamically set the value of the appropriate field using setattr
-    setattr(prediction_entry, field_name, rounded_prediction)
+    if hasattr(prediction_entry, field_name):
+        setattr(prediction_entry, field_name, rounded_prediction)
 
-    logging.info(
-        f"Updated {field_name} for publication {prediction_entry.publication_id} with value {rounded_prediction}, (original value was: {prediction_value})."
-    )
+        logging.info(
+            f"Updated {field_name} for publication {prediction_entry.publication_id} with value {rounded_prediction}, "
+            f"(original value was: {prediction_value})."
+        )
+    else:
+        logging.error(
+            f"Field {field_name} does not exist on SDGTargetPrediction. Skipping update for publication {prediction_entry.publication_id}."
+        )
+
 
 
 def tokenize_abstracts(abstracts):
@@ -212,8 +214,10 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     # Fetch all publications that are not fully predicted
     publications = (
         session.query(Publication)
-        #.join(SDGPrediction)
-        #.filter(~SDGPrediction.prediction_model.in_(["Aurora"]))
+        .outerjoin(SDGTargetPrediction, SDGTargetPrediction.publication_id == Publication.publication_id)
+        .filter(SDGTargetPrediction.target_prediction_id == None)  # Fetch publications with no predictions
+        .options(joinedload(Publication.sdg_target_predictions))  # Optimize fetching relationships if needed
+        .limit(20)
         .all()
     )
 
@@ -231,6 +235,9 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     # Sort model files in ascending order by SDG number
     model_files = sort_model_files(model_files)
 
+    logging.info(f"Total of {len(publications)} to be predicted.")
+    logging.info(f"Sorted model files: {model_files}")
+
     # Process each publication for every model.
     # For each model, predict across all publications
     for model_idx, model_file in enumerate(model_files, start=1):
@@ -239,12 +246,24 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
             f"Processing model: {model_file} (Model {model_idx} of {len(model_files)})"
         )
 
+        # Extract the SDG target identifier (e.g., '1_1', '2_a') from the model file name
+        match = re.match(r"(\d+_[a-z0-9]+)", model_file)
+        if not match:
+            logging.error(f"Model file name {model_file} does not match expected format. Skipping.")
+            continue  # Skip this model if the file name doesn't match the expected format
+
+        target_identifier = match.group(1)  # e.g., '1_1', '2_a'
+        logging.info(
+            f"Processing target: {target_identifier} for model {model_file} (Model {model_idx} of {len(model_files)})")
+
         # Flush progress bar
         print()
 
         # Add progress bars for prediction and uploading
-        prediction_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Predicting", unit="pub", position=0)
-        upload_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Uploading", unit="pub", position=1)
+        prediction_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Predicting",
+                               unit="pub", position=0)
+        upload_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Uploading", unit="pub",
+                           position=1)
 
         try:
             # Load the model
@@ -252,6 +271,9 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
         except Exception as e:
             logging.error(f"Error loading model {model_file}: {e}")
             continue  # Skip this model if there's an issue
+
+        # Sort publications by publication_id
+        publications = sorted(publications, key=lambda pub: pub.publication_id)
 
         # Generate predictions for all publications
         predictions = []
@@ -277,33 +299,32 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
             updated_entries = []
             for pub, prediction in zip(batch, batch_predictions):
                 prediction_entry = (
-                    session.query(SDGPrediction)
+                    session.query(SDGTargetPrediction)
                     .filter_by(publication_id=pub.publication_id)
                     .first()
                 )
-                print(prediction_entry)
 
                 # Check if the prediction entry exists first before adding
                 if not prediction_entry:
                     logging.info(
-                        f"Prediction entry does not exists for publication {pub.publication_id}. Creating new record.")
+                        f"Prediction entry does not exist for publication {pub.publication_id}. Creating new record."
+                    )
                     # If the entry does not exist, create a new one
-                    prediction_entry = SDGPrediction(
+                    prediction_entry = SDGTargetPrediction(
                         publication_id=pub.publication_id,
                         prediction_model="Aurora",
                     )
-                    #session.add(prediction_entry) # THIS CAUSES DUPLICAITON
+                    # session.add(prediction_entry) # THIS CAUSES DUPLICAITON
                 else:
                     logging.info(
-                        f"Prediction entry already exists for publication {pub.publication_id}. Updating existing record.")
+                        f"Prediction entry already exists for publication {pub.publication_id}. Updating existing record."
+                    )
 
-                print(prediction_entry)
+                # Dynamically update the relevant SDG target field
+                update_sdg_target_field(prediction_entry, model_file, prediction)
 
-                # Dynamically update the relevant SDG field
-                update_sdg_field(prediction_entry, model_file, prediction)
-
-                # Update last predicted goal
-                prediction_entry.last_predicted_goal = model_idx
+                # Update last predicted target
+                prediction_entry.last_predicted_target = target_identifier
 
                 # Update model
                 prediction_entry.prediction_model = "Aurora"
@@ -336,7 +357,18 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
 
     # Mark publications as fully predicted if all models were used
     try:
-        session.query(SDGPrediction).filter(SDGPrediction.last_predicted_goal == len(model_files)).update(
+        # Get the last model file name dynamically
+        last_model_file = model_files[-1] if model_files else None
+        last_target_identifier = "17.19"  # TODO: Check if not 17.9
+        if last_model_file:
+            # Extract the last target identifier from the model name
+            match = re.match(r"(\d+_[a-z0-9]+)", last_model_file)
+            if match:
+                last_target_identifier = match.group(1)  # e.g., '2_b'
+                # overwrite default 17.19
+
+        session.query(SDGTargetPrediction).filter(
+            SDGTargetPrediction.last_predicted_target == last_target_identifier).update(
             {"predicted": True}, synchronize_session=False
         )
         session.commit()
@@ -345,6 +377,8 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
         session.rollback()
 
     logging.info("All predictions complete.")
+
+
 
 
 
@@ -407,14 +441,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=predictor_settings.DEFAULT_BATCH_SIZE,
-        help=f"Specify the batch size for prediction (default: {predictor_settings.DEFAULT_BATCH_SIZE}).",
+        default=target_predictor_settings.DEFAULT_BATCH_SIZE,
+        help=f"Specify the batch size for prediction (default: {target_predictor_settings.DEFAULT_BATCH_SIZE}).",
     )
     parser.add_argument(
         "--mariadb_batch_size",
         type=int,
-        default=predictor_settings.DEFAULT_MARIADB_BATCH_SIZE,
-        help=f"Specify the batch size for uploading (default: {predictor_settings.DEFAULT_MARIADB_BATCH_SIZE}).",
+        default=target_predictor_settings.DEFAULT_MARIADB_BATCH_SIZE,
+        help=f"Specify the batch size for uploading (default: {target_predictor_settings.DEFAULT_MARIADB_BATCH_SIZE}).",
     )
     args = parser.parse_args()
     main(args.db, args.batch_size, args.mariadb_batch_size)

@@ -73,6 +73,10 @@ class PredictionSettings(BaseSettings):
     DEFAULT_DVDBLK_BATCH_SIZE: ClassVar[int] = 16
 
 
+class TargetPredictionSettings(PredictionSettings):
+    AURORA_TARGET_PREDICTOR_LOG_NAME: ClassVar[str] = "target_predictor_aurora.log"
+
+
 class CollectorSettings(BaseSettings):
     COLLECTOR_LOG_NAME: ClassVar[str] = "collector.log"
 
