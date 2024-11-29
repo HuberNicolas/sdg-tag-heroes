@@ -98,7 +98,8 @@ def evaluate_abstract_sdg_relevance(abstract_text):
         {
             "role": "system",
             "content": """
-            You are an expert in sustainability, tasked with analyzing scientific abstracts based on the UN's 17 Sustainable Development Goals (SDGs).
+            Act as a sustainability expert whose goal is to label and evaluate scientific abstracts based on the Sustainable Development Goals (SDGs).
+            Your language is clear, scientific, and professional. Prioritize minimal words with maximum information density.
             Always respond in the following JSON format:
             {"sdg_relevance": [float], "sdg_relevance_confidence": [float]}
             Each array must contain exactly 17 elements, where the index corresponds to the SDG number (e.g., index 0 is SDG 1, index 16 is SDG 17).
@@ -108,7 +109,9 @@ def evaluate_abstract_sdg_relevance(abstract_text):
         {
             "role": "user",
             "content": (
-                f"Analyze the following abstract and provide the relevance and confidence values for each SDG:\n\n{abstract_text}"
+                f"Analyze the following abstract and provide the relevance (i.e. a score for the relevance of the text for the respective SDG) and confidence (i.e. an assessment of how sure you are about each of the scores) values for each SDG:"
+                f"If you gave a high score and you are sure about it, give a confidence close to 1. If you gave a low score and you are sure that there is no relevance, give a score close to 1 as well. If you gave a high relevance score and unsure about it, give a low relevance confidence score. If you gave a low relevance score and are unsure about it, give a low relevance confidence score." 
+                f"\n\n{abstract_text}"
             ),
         },
     ]
@@ -147,6 +150,8 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
             "role": "system",
             "content": """
             You are an expert in sustainability tasked with evaluating scientific abstracts based on a specific Sustainable Development Goal (SDG).
+            To save tokens, do not always start with filling words like 'the text talks about' ... but get straight to the point, like 'there is evidence that...'
+            Your language is clear, scientific, and professional. Prioritize minimal words with maximum information density.
             Always respond in the following JSON format:
             {
               "arguments_for_relatedness": "string",
@@ -162,10 +167,12 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
         {
             "role": "user",
             "content": f"""
-            Analyze the following abstract for relevance and contribution to SDG {sdg_number}:
-
-            {abstract_text}
-            """,
+                Read the following abstract and analyze its relevance to SDG {sdg_number}. 
+                First, evaluate the relatedness of the given text to the SDG. In \"arguments_for_relatedness\", state why the text is related to SDG {sdg_number}. In \"arguments_against_relatedness\", state why the text is not related to SDG {sdg_number}. Finally, in \"relatedness_score\", provide a final evaluation if the text is related to SDG {sdg_number} (0 to 1). A score closer to 1 indicates high relatedness, while a score closer to 0 indicates low relatedness.
+                Second, evaluate the contribution of the text to SDG {sdg_number}. Be more discriminative in this evaluation and consider if the text directly contributes to the SDG. In \"arguments_for_contribution\", state why the text directly contributes to SDG {sdg_number}. In \"arguments_against_contribution\", state why the text does not directly contribute to SDG {sdg_number}. Finally, in \"contribution_score\", provide a numerical evaluation of the contribution (0 to 1). A score closer to 1 indicates direct contribution, while a score closer to 0 indicates no direct contribution.
+                Here is the abstract:
+                {abstract_text}
+            """
         },
     ]
 
