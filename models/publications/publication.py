@@ -55,6 +55,12 @@ class Publication(Base):
         "SDGPrediction", back_populates="publication", cascade="all, delete-orphan"
     )
 
+    sdg_target_predictions: Mapped[list["SDGTargetPrediction"]] = relationship(
+        "SDGTargetPrediction",
+        back_populates="publication",
+        cascade="all, delete-orphan",
+    )
+
     dimensionality_reductions: Mapped[list["DimensionalityReduction"]] = relationship(
         "DimensionalityReduction", back_populates="publication", cascade="all, delete-orphan"
     )
