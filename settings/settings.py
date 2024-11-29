@@ -56,7 +56,7 @@ class PredictionSettings(BaseSettings):
     AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
 
-    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models")
+    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models", "targets")
     AURORA_MODEL_GOAL_LINKS: ClassVar[str] = "aurora-model-goal-only-links.csv"
 
     CUDA_VISIBLE_DEVICES_KEY: ClassVar[str] = "CUDA_VISIBLE_DEVICES"

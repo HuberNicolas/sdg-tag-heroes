@@ -217,7 +217,6 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
         .outerjoin(SDGTargetPrediction, SDGTargetPrediction.publication_id == Publication.publication_id)
         .filter(SDGTargetPrediction.target_prediction_id == None)  # Fetch publications with no predictions
         .options(joinedload(Publication.sdg_target_predictions))  # Optimize fetching relationships if needed
-        .limit(20)
         .all()
     )
 
@@ -334,7 +333,6 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
 
             # Perform bulk update
             if updated_entries:
-                print(len(updated_entries), updated_entries)
                 session.bulk_save_objects(updated_entries)
                 try:
                     session.commit()
@@ -359,7 +357,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     try:
         # Get the last model file name dynamically
         last_model_file = model_files[-1] if model_files else None
-        last_target_identifier = "17.19"  # TODO: Check if not 17.9
+        last_target_identifier = "17_9"  # TODO: Check if not 17.9.h5 is last
         if last_model_file:
             # Extract the last target identifier from the model name
             match = re.match(r"(\d+_[a-z0-9]+)", last_model_file)
