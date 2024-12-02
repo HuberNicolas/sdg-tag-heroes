@@ -1,120 +1,99 @@
 <template>
   <div class="publications-container">
     <h1>Publications</h1>
-    <form @submit.prevent="onSubmitForm">
-      <label>
-        <input type="checkbox" v-model="selectedIncludes" value="authors" />
-        Include Authors
-      </label>
-      <label>
-        <input type="checkbox" v-model="selectedIncludes" value="sdg_predictions" />
-        Include SDG Predictions
-      </label>
-      <button type="submit">Fetch Publications</button>
-    </form>
+
     <!-- Error message -->
     <div v-if="error" class="error">{{ error }}</div>
+
     <!-- Loading state -->
     <div v-if="loading" class="loading">Loading publications...</div>
 
+    <!-- Publications list -->
     <div v-if="publications && publications.length">
       <ul>
-        <li v-for="publication in publications" :key="publication.id">
-          <h3>{{ publication.title }}</h3>
-          <p v-if="publication.authors"><strong>Authors:</strong> {{ getAuthors(publication.authors) }}</p>
-          <div v-if="publication.sdg_predictions" class="sdg-predictions">
-            <h4>SDG Predictions</h4>
-            <ul>
-              <li v-for="(value, key) in sdgPredictionKeys(publication.sdg_predictions)" :key="key">
-                <strong>{{ key }}:</strong> {{ value }}
-              </li>
-            </ul>
-          </div>
+
+        <li v-for="publication in publications" :key="publication.publication_id">
+          <NuxtLink :to="{ name: 'publications-id', params: { id: publication.publication_id } }">
+            <div>
+              <h3>{{ publication.title || "Untitled Publication" }}</h3>
+              <p v-if="publication.authors">
+                <strong>Authors:</strong> {{ getAuthors(publication.authors) }}
+              </p>
+              <p><strong>Created At:</strong> {{ new Date(publication.created_at).toLocaleDateString() }}</p>
+            </div>
+          </NuxtLink>
         </li>
+
       </ul>
     </div>
+
+    <!-- No publications found -->
     <div v-else-if="!loading && !publications.length">
       <p>No publications found.</p>
+    </div>
+
+    <!-- Pagination: Load More Button -->
+    <div v-if="hasMorePages && !loading">
+      <UButton @click="loadMore">Load More</UButton>
     </div>
   </div>
-
-  <!-- Pagination: Load More Button -->
-    <div v-if="hasMorePages && !loading">
-      <button @click="loadMore">Load More</button>
-    </div>
-
-    <div v-else-if="!loading && !publications.length">
-      <p>No publications found.</p>
-    </div>
-
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import UsePublication from '~/composables/usePublication';
+import { ref } from "vue";
+import { useRuntimeConfig } from "nuxt/app";
 
-const publications = ref<any[]>([]);
-const loading = ref<boolean>(false);
+// Config and state variables
+const config = useRuntimeConfig();
+const publications = ref([]);
+const currentPage = ref(1);
+const totalPages = ref(0);
+const hasMorePages = ref(false);
 const error = ref<string | null>(null);
+const loading = ref(false);
 
-// Pagination State
-const currentPage = ref<number>(1);
-const totalPages = ref<number>(0);
-const hasMorePages = ref<boolean>(false);
-
-// List of selected includes (checkbox selections)
-const selectedIncludes = ref<string[]>([]);
-
+// Fetch publications function
 const fetchPublications = async (page = 1) => {
-  loading.value = true;
-  error.value = null;
-
   try {
-    const publicationService = new UsePublication();
-    const response = await publicationService.getPublications([...selectedIncludes.value], page);
+    loading.value = true;
+    error.value = null;
+
+    const response = await $fetch(`${config.public.apiUrl}publications`, {
+      params: { page },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
 
     if (page === 1) {
-      publications.value = response.items; // Reset publications on form submit
+      publications.value = response.items; // Replace publications for new data
     } else {
-      publications.value = [...publications.value, ...response.items]; // Append results on "Load More"
+      publications.value = [...publications.value, ...response.items]; // Append new results
     }
 
     currentPage.value = response.page;
     totalPages.value = response.pages;
     hasMorePages.value = currentPage.value < totalPages.value;
   } catch (err: any) {
-    error.value = err.message || 'Failed to fetch publications';
+    error.value = err.message || "Failed to fetch publications";
   } finally {
     loading.value = false;
   }
 };
 
+// Initial fetch
+fetchPublications();
 
-onMounted(() => {
-  fetchPublications();
-});
-
+// Load more publications
 const loadMore = () => {
-  if (currentPage.value < totalPages.value) {
+  if (hasMorePages.value) {
     fetchPublications(currentPage.value + 1);
   }
 };
 
-const onSubmitForm = () => {
-  currentPage.value = 1; // Reset to the first page
-  fetchPublications();   // Fetch the publications with the selected filters
-};
-
-// Helper function to format authors
-const getAuthors = (authors: any[] | null) => {
-  return authors ? authors.map(author => author.name).join(', ') : 'Unknown';
-};
-
-// Helper function to filter SDG prediction keys and exclude metadata
-const sdgPredictionKeys = (sdg_predictions: any) => {
-  // Exclude metadata fields like 'publication_id', 'predicted', 'created_at', and 'updated_at'
-  const excludeKeys = ['publication_id', 'predicted', 'last_predicted_goal', 'created_at', 'updated_at'];
-  return Object.fromEntries(Object.entries(sdg_predictions).filter(([key]) => !excludeKeys.includes(key)));
+// Utility function to format authors
+const getAuthors = (authors) => {
+  return authors.map((author) => author.name || author.full_name).join(", ");
 };
 </script>
 
@@ -144,5 +123,21 @@ li {
   padding: 1rem;
   border: 1px solid #ccc;
   border-radius: 8px;
+}
+
+button {
+  display: block;
+  margin: 1rem auto;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
 </style>

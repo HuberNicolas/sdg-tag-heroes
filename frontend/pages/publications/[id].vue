@@ -1,161 +1,85 @@
 <template>
-  <div class="publication-container">
-    <h1>Publication</h1>
+  <div class="publication-details-page">
+    <h1>Publication Details</h1>
 
-    <div class="options">
-      <label>
-        <input type="checkbox" v-model="selectedIncludes" value="authors" />
-        Include Authors
-      </label>
-      <label>
-        <input type="checkbox" v-model="selectedIncludes" value="sdg_predictions" />
-        Include SDG Predictions
-      </label>
-    </div>
-
-    <!-- Loading indicator with spinner -->
-    <div v-if="loading" class="loading">
-      <span class="spinner"></span> Loading publication...
-    </div>
-
-    <!-- Error message -->
     <div v-if="error" class="error">{{ error }}</div>
+    <div v-if="loading" class="loading">Loading publication details...</div>
 
-    <!-- Publication Details -->
-    <div v-if="publication">
-      <h3>{{ publication.title || 'Untitled Publication' }}</h3>
-      <p><strong>ID:</strong> {{ publication.publication_id }}</p>
+    <div v-if="publication && !loading" class="publication-details">
+      <h2>{{ publication.title }}</h2>
       <p><strong>OAI Identifier:</strong> {{ publication.oai_identifier }}</p>
-      <p><strong>Description:</strong> {{ publication.description || 'No description available.' }}</p>
-      <p><strong>Publisher:</strong> {{ publication.publisher || 'Unknown' }}</p>
-      <p><strong>Date:</strong> {{ publication.date || 'N/A' }}</p>
-      <p><strong>Year:</strong> {{ publication.year || 'N/A' }}</p>
-      <p><strong>Source:</strong> {{ publication.source || 'N/A' }}</p>
-      <p><strong>Language:</strong> {{ publication.language || 'N/A' }}</p>
-      <p><strong>Format:</strong> {{ publication.format || 'N/A' }}</p>
+      <p><strong>OAI Identifier Num:</strong> {{ publication.oai_identifier_num }}</p>
+      <p><strong>Description:</strong> {{ publication.description || "No description available." }}</p>
 
-      <!-- Authors Section -->
-      <div v-if="publication.authors && publication.authors.length">
-        <h4>Authors</h4>
-        <ul>
-          <li v-for="author in publication.authors" :key="author.author_id">
-            {{ author.name }} {{ author.lastname }} {{ author.surname }} - ORCID: {{ author.orcid_id || 'N/A' }}
-          </li>
-        </ul>
-      </div>
+      <h3>Authors</h3>
+      <ul v-if="publication.authors && publication.authors.length > 0">
+        <li v-for="author in publication.authors" :key="author.author_id">
+          <p>
+            <strong>{{ formatAuthorName(author) }}</strong>
+            <span v-if="author.orcid_id"> - ORCID: {{ author.orcid_id }}</span>
+          </p>
+          <p>
+            <em>Created At:</em> {{ formatDate(author.created_at) }}<br />
+            <em>Updated At:</em> {{ formatDate(author.updated_at) }}
+          </p>
+        </li>
+      </ul>
+      <p v-else>No authors found.</p>
 
-      <!-- SDG Predictions Section -->
-      <div v-if="publication.sdg_predictions">
-        <h4>SDG Predictions</h4>
-        <p>Predicted: {{ publication.sdg_predictions.predicted ? 'Yes' : 'No' }}</p>
-        <p>Last Predicted Goal: {{ publication.sdg_predictions.last_predicted_goal }}</p>
-      </div>
+      <p><strong>Created At:</strong> {{ formatDate(publication.created_at) }}</p>
+      <p><strong>Updated At:</strong> {{ formatDate(publication.updated_at) }}</p>
 
-      <!-- Faculty, Institute, Division, and DimRed Sections -->
-      <div v-if="publication.faculty">
-        <h4>Faculty</h4>
-        <p>{{ publication.faculty.name || 'Faculty data unavailable' }}</p>
-      </div>
-      <div v-if="publication.institute">
-        <h4>Institute</h4>
-        <p>{{ publication.institute.name || 'Institute data unavailable' }}</p>
-      </div>
-      <div v-if="publication.division">
-        <h4>Division</h4>
-        <p>{{ publication.division.name || 'Division data unavailable' }}</p>
-      </div>
-      <div v-if="publication.dim_red">
-        <h4>Dimensional Reduction</h4>
-        <p>{{ publication.dim_red.description || 'Dimensional reduction data unavailable' }}</p>
-      </div>
-    </div>
-    <div v-else-if="!loading && !publication">
-      <p>No publication found.</p>
+      <UButton label="Back to Publications" @click="goBack" />
     </div>
   </div>
 </template>
 
+
 <script setup lang="ts">
-import { ref, onMounted, watchEffect } from 'vue';
-import { useRoute } from 'vue-router';
-import PublicationService from '@/composables/usePublication';
-import { PublicationSchema } from '@/types/schemas';
-import { debounce } from 'lodash-es';
+import { useRoute, useRouter } from "vue-router";
+import { ref, watch } from "vue";
+import { useRuntimeConfig } from "nuxt/app";
+import {formatDate} from "~/utils/formatDate";
 
-const publication = ref<PublicationSchema | null>(null);
-const loading = ref<boolean>(false);
-const error = ref<string | null>(null);
+const config = useRuntimeConfig();
 
-// List of selected includes (checkbox selections)
-const selectedIncludes = ref<string[]>([]);
+
+// Router
 const route = useRoute();
+const router = useRouter();
 
-// Fetch a single publication by ID, using selected includes
-const fetchPublication = async (id: number | string) => {
-  loading.value = true;
-  error.value = null;
-  publication.value = null;
+// Current publication ID
+const publicationId = ref<number>(Number(route.params.id));
 
-  try {
-    const publicationService = new PublicationService();
-    publication.value = await publicationService.getPublicationById([...selectedIncludes.value], Number(id));
-  } catch (err: any) {
-    error.value = err.message || 'Failed to fetch publication';
-  } finally {
-    loading.value = false;
+// Fetch publication details using useAsyncData
+const { data: publication, pending: loading, error, refresh } = useAsyncData(
+  `publication-${publicationId.value}`, // Unique key for the fetch
+  () =>
+    $fetch<PublicationSchemaFull>(`${config.public.apiUrl}publications/${publicationId.value}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    }),
+  { immediate: true } // Fetch data on component mount
+);
+
+// Watch for route changes to refresh data
+watch(
+  () => route.params.id,
+  (newId) => {
+    publicationId.value = Number(newId);
+    refresh(); // Refresh the fetch with new ID
   }
+);
+
+// Format author name
+const formatAuthorName = (author: AuthorSchemaFull): string => {
+  const { name, lastname, surname } = author;
+  return [name, lastname, surname].filter(Boolean).join(" ") || "Unknown Author";
 };
 
-// Debounce fetch function to avoid excessive API calls
-const debouncedFetch = debounce(() => {
-  fetchPublication(route.params.id);
-}, 300);
-
-// Watch for changes in selectedIncludes and route ID to refmetch data automatically
-watchEffect(() => {
-  debouncedFetch();
-});
-
-// Fetch the publication on initial load
-onMounted(() => {
-  fetchPublication(route.params.id);
-});
+// Go back to the publications list
+const goBack = () => {
+  router.push("/publications");
+};
 </script>
-
-<style scoped>
-.publication-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 20px;
-}
-
-.options {
-  margin-bottom: 10px;
-}
-
-.error {
-  color: red;
-}
-
-.loading {
-  color: blue;
-  display: flex;
-  align-items: center;
-}
-
-.spinner {
-  width: 1em;
-  height: 1em;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  margin-right: 5px;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-</style>
