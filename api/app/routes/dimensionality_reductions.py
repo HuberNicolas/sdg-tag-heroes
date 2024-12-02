@@ -56,7 +56,7 @@ def get_db():
     response_model=Dict[str, Any],  # Returns both statistics and dimensionality reduction data
     description=(
         "Retrieve dimensionality reductions of publications filtered by SDG values within a specified range. "
-        "You can specify a fixed model when multiple models are available."
+        "You can specify a fixed model, level, and reduction shorthand for additional filtering."
     ),
 )
 async def get_dimensionality_reductions_by_sdg_values(
@@ -64,12 +64,14 @@ async def get_dimensionality_reductions_by_sdg_values(
     limit: int = Query(10, description="Limit for the number of publications per SDG group"),
     sdgs: Optional[List[int]] = Query(None, description="List of specific SDGs to filter, e.g., [1, 3, 12]"),
     model: Optional[str] = Query(None, description="Fixed model name to filter by, e.g., 'Aurora'"),
+    level: Optional[List[int]] = Query(None, description="List of levels to filter, e.g., ?level=1&level=2"),
+    reduction_shorthand: Optional[str] = Query(None, description="Filter by reduction shorthand, e.g., 'UMAP-15-0.1-2'"),
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
 ) -> Dict[str, Any]:
     """
     Retrieve dimensionality reductions of publications filtered by SDG values within a specified range.
-    Always returns the dimensionality reductions for the publications matching the criteria.
+    Includes additional filters for levels and reduction shorthand.
     """
     # Verify the token before proceeding
     user = verify_token(token)  # Raises HTTPException if the token is invalid or expired
@@ -135,6 +137,10 @@ async def get_dimensionality_reductions_by_sdg_values(
             # Add dimensionality reductions associated with this publication and the current SDG
             for dim_red in publication.dimensionality_reductions:
                 if dim_red.sdg == sdg:  # Ensure the dimensionality reduction matches the current SDG
+                    if level and dim_red.level not in level:
+                        continue  # Skip if the level does not match
+                    if reduction_shorthand and dim_red.reduction_shorthand != reduction_shorthand:
+                        continue  # Skip if the shorthand does not match
                     dim_reductions.append(DimensionalityReductionSchemaFull.model_validate(dim_red))
 
         # Prepare SDG-specific statistics
@@ -150,6 +156,7 @@ async def get_dimensionality_reductions_by_sdg_values(
         result["dimensionality_reductions"][f"sdg{sdg}"] = dim_reductions
 
     return result
+
 
 
 
