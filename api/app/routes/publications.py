@@ -775,10 +775,72 @@ async def explain_publication_sdg_target(publication_id: int, target_id: str, db
     return {"publication_id": publication_id, "target_id": target_id, "explanation": target_explanation}
 
 @router.get("/{publication_id}/keywords", response_model=dict, description="Extract keywords from a publication")
-async def extract_keywords(publication_id: int, db: Session = Depends(get_db),
-                           token: str = Depends(oauth2_scheme)) -> dict:
+async def extract_keywords(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> dict:
+    """
+    Extract keywords from a specific publication using the GPT-based explainer.
+    """
+    # Verify the user's token
     user = verify_token(token)  # Ensure user is authenticated
+
+    # Fetch the publication by its ID
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    # Ensure the publication has content for keyword extraction
+    if not publication.title and not publication.description:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for keyword extraction")
+
+    # Combine title and description for the GPT explainer
+    title = publication.title or ""
+    abstract = publication.description or ""
+
+    try:
+        # Use the GPT-based keyword extractor
+        keywords = SDGExplainer().extract_keywords(title, abstract)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Keyword extraction failed: {str(e)}")
+
+    # Return the extracted keywords
+    return {"publication_id": publication_id, "keywords": keywords}
+
+
+
+@router.get("/{publication_id}/facts", response_model=dict, description="Generate a 'Did-You-Know' fact from a scientific abstract")
+async def create_did_you_know_fact(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> dict:
+    """
+    Generate a 'Did-You-Know' fact based on the given title and abstract.
+    """
+    user = verify_token(token)  # Ensure user is authenticated
+
+    # Fetch the publication by its ID
+    publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+    if not publication:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    # Ensure the publication has content for fact generation
+    if not publication.title and not publication.description:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="No content available for fact generation")
+
+    # Combine title and description for the GPT explainer
+    title = publication.title or ""
+    abstract = publication.description or ""
+
+    # Use the SDGExplainer to generate the fact
+    try:
+        fact = SDGExplainer().create_fact(title=title, abstract=abstract)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Fact generation failed: {str(e)}")
+
+    # Return the generated fact
+    return {"publication_id": publication_id, "fact": fact}
 

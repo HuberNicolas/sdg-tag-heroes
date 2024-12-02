@@ -1,6 +1,8 @@
 import json
+from typing import Literal
+from pydantic import BaseModel, Field
 from openai import OpenAI
-
+import instructor
 from settings.settings import ExplainerSettings
 from utils.env_loader import load_env, get_env_variable
 
@@ -8,143 +10,124 @@ from utils.env_loader import load_env, get_env_variable
 load_env('api.env')
 
 explainer_settings = ExplainerSettings()
-client = OpenAI(api_key=get_env_variable('OPENAI_API_KEY'))
+client = instructor.from_openai(OpenAI(api_key=get_env_variable('OPENAI_API_KEY')))
+MODEL = "gpt-4o-2024-08-06"
+#MODEL = "gpt-3.5-turbo"
 
 
 class PromptStrategy:
-    def generate_prompt(self, title, abstract):
-        raise NotImplementedError("Subclasses should implement this method.")
+    """Base class for prompt strategies."""
+
+    def generate_prompt(self, title: str, abstract: str):
+        raise NotImplementedError("Subclasses must implement this method.")
 
 
 class ExtractKeywordsStrategy(PromptStrategy):
-    def generate_prompt(self, title, abstract):
-        return f"""
-        Read the following abstract and extract exactly 4 keywords that best represent the main topics and themes discussed in the abstract.
-        Limit your output to return only 4 keywords.
+    """Extracts keywords from an abstract."""
 
-        Title: {title}
-        Abstract: {abstract}
-
-        Structure your answer as a JSON object following the previous example without any markdown notation.
-        """
+    def generate_prompt(self, title: str, abstract: str):
+        return {
+            "instruction": "Extract exactly 4 keywords that represent the main topics of the abstract.",
+            "title": title,
+            "abstract": abstract
+        }
 
 
 class TargetStrategy(PromptStrategy):
-    def __init__(self, target):
+    """Evaluates relevance to a specific UN SDG target."""
+
+    def __init__(self, target: str):
         self.target = target
 
-    def generate_prompt(self, title, abstract):
-        return f"""
-        Read the following abstract and reason about its relevance to the UN SDG Target {self.target}.
-        Explain why it is relevant to the target, and why it is not.
-
-        Title: {title}
-        Abstract: {abstract}
-
-        Structure your answer as a JSON object following the previous example without any markdown notation.
-        """
+    def generate_prompt(self, title: str, abstract: str):
+        return {
+            "instruction": f"Evaluate the abstract's relevance to UN SDG Target {self.target}. Provide reasoning for and against relevance.",
+            "title": title,
+            "abstract": abstract
+        }
 
 
 class GoalStrategy(PromptStrategy):
-    def __init__(self, goal):
+    """Evaluates relevance to a specific UN SDG goal."""
+
+    def __init__(self, goal: str):
         self.goal = goal
 
-    def generate_prompt(self, title, abstract):
-        return f"""
-        Read the following abstract and reason about its relevance to the UN SDG Goal {self.goal}.
-        Explain why it is relevant to the goal, and why it is not.
+    def generate_prompt(self, title: str, abstract: str):
+        return {
+            "instruction": f"Evaluate the abstract's relevance to UN SDG Goal {self.goal}. Provide reasoning for and against relevance.",
+            "title": title,
+            "abstract": abstract
+        }
 
-        Title: {title}
-        Abstract: {abstract}
+class FactStrategy(PromptStrategy):
+    """Generates a 'Did-You-Know' fact from an abstract."""
 
-        Structure your answer as a JSON object following the previous example without any markdown notation.
-        """
+    def generate_prompt(self, title: str, abstract: str):
+        return {
+            "instruction": (
+                "Create a single, catchy, and engaging sentence that summarizes this scientific abstract's key "
+                "finding or idea. It should be accessible to a general audience and highlight the study's most "
+                "interesting or surprising aspect."
+            ),
+            "title": title,
+            "abstract": abstract
+        }
+
+# Pydantic response models
+
+class SDGAnalysisResponse(BaseModel):
+    reasoning_for: str = Field(description="Reasoning for why the SDG prediction aligns with the abstract.")
+    reasoning_against: str = Field(description="Reasoning against why the SDG prediction aligns with the abstract.")
+    confidence_score: float = Field(description="Confidence score between 0.0 and 1.0.")
+
+class KeywordResponse(BaseModel):
+    keywords: list[str] = Field(description="The list of extracted keywords.")
+
+class FactResponse(BaseModel):
+    fact: str
 
 
 class SDGExplainer:
-    context = "You are an expert on sustainability research. You provide structured answers in JSON."
+    """Main SDG Explainer class using Instructor library and function calling."""
 
     def __init__(self):
-        prompt_base_path = explainer_settings.PROMPT_PATH
-        print(f"{prompt_base_path}/example_prompt.json")
-        with open(f"{prompt_base_path}/example_prompt.json") as f:
-            self.example_prompt = json.load(f)
+        self.context = "You are an expert in sustainability research providing structured JSON answers."
 
-        with open(f"{prompt_base_path}/example_answer.json") as f:
-            self.example_answer = json.load(f)
+    def _call_model(self, prompt_data: dict, response_model):
+        """Handles the API call with the Instructor client."""
+        response = client.beta.chat.completions.parse(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": self.context},
+                {"role": "user", "content": json.dumps(prompt_data)}
+            ],
+            response_format=response_model,
+        )
+        return response.choices[0].message.parsed
 
-    def make_prompt(self, title, abstract, strategy: PromptStrategy):
-        return strategy.generate_prompt(title, abstract)
+    def extract_keywords(self, title: str, abstract: str) -> list[str]:
+        """Extracts keywords using the ExtractKeywordsStrategy."""
+        strategy = ExtractKeywordsStrategy()
+        prompt_data = strategy.generate_prompt(title, abstract)
+        response = self._call_model(prompt_data, KeywordResponse)
+        return response.keywords
 
-    def explain(self, pub, goal: str = None, target: str = None):
+    def analyze_sdg(self, title: str, abstract: str, goal: str = None, target: str = None) -> SDGAnalysisResponse:
+        """Analyzes SDG relevance based on the provided goal or target."""
         if target:
             strategy = TargetStrategy(target)
         elif goal:
             strategy = GoalStrategy(goal)
         else:
-            raise RuntimeError("Either 'goal' or 'target' must be specified.")
+            raise ValueError("Either 'goal' or 'target' must be specified.")
 
-        prompt = self.make_prompt(pub.title, pub.description, strategy)
+        prompt_data = strategy.generate_prompt(title, abstract)
+        return self._call_model(prompt_data, SDGAnalysisResponse)
 
-        example_strategy = (
-            GoalStrategy(self.example_prompt['goal'])
-            if goal else TargetStrategy(self.example_prompt['target'])
-        )
-        example_prompt = self.make_prompt(
-            self.example_prompt['title'],
-            self.example_prompt['abstract'],
-            example_strategy,
-        )
-
-        example_answer = {
-            "title": self.example_answer['title'],
-        }
-
-        if target:
-            example_answer['target'] = self.example_answer['target']
-            example_answer['target_explanation'] = self.example_answer['target_explanation']
-        elif goal:
-            example_answer['goal'] = self.example_answer['goal']
-            example_answer['goal_explanation'] = self.example_answer['goal_explanation']
-
-        response = client.chat.completions.create(
-            model=explainer_settings.GPT_MODEL,
-            messages=[
-                {"role": "system", "content": self.context},
-                {"role": "user", "content": example_prompt},
-                {"role": "assistant", "content": json.dumps(example_answer)},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=explainer_settings.GPT_TEMPERATURE,
-        )
-
-        try:
-            # Accessing and parsing the content from the response correctly
-            content = response.choices[0].message.content
-            parsed = json.loads(content)
-        except json.JSONDecodeError:
-            parsed = {"error": "Failed to parse response."}
-
-        return parsed
-
-    def extract_keywords(self, title, abstract):
-        strategy = ExtractKeywordsStrategy()
-        prompt = self.make_prompt(title, abstract, strategy)
-
-        response = client.chat.completions.create(
-            model=explainer_settings.GPT_MODEL,
-            messages=[
-                {"role": "system", "content": self.context},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=explainer_settings.GPT_TEMPERATURE,
-        )
-
-        try:
-            # Accessing and parsing the content from the response correctly
-            content = response.choices[0].message.content
-            parsed = json.loads(content)
-        except json.JSONDecodeError:
-            parsed = {"error": "Failed to parse response."}
-        return parsed.get("keywords", [])
-
+    def create_fact(self, title: str, abstract: str) -> str:
+        """Generates a 'Did-You-Know' fact using the FactStrategy."""
+        strategy = FactStrategy()
+        prompt_data = strategy.generate_prompt(title, abstract)
+        response = self._call_model(prompt_data, FactResponse)
+        return response.fact
