@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
-import type { PublicationSchema } from '@/types/schemas'; // Import your PublicationSchema type
+import type { PublicationSchemaFull } from '@/types/publicationSchema'; // Import your PublicationSchema type
 
 // Define a Pinia store for managing publications
 export const usePublicationStore = defineStore('publications', {
   state: () => ({
     count: 0, // Initial state for count
     selectedPoints: [], // Array to hold selected data points
-    publications: [] as PublicationSchema[], // Array to hold loaded publications
+    publications: [] as PublicationSchemaFull[], // Array to hold loaded publications
     selectedSDG: 0,
     statistics: {},
     loading: false, // State to indicate loading status

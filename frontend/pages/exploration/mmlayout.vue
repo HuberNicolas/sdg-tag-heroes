@@ -67,8 +67,7 @@ import BoxplotContainer from '~/components/BoxplotContainer.vue';
 import PublicationTable from "~/components/PublicationTable.vue";
 import { usePublicationStore } from "~/stores/publications";
 import {useSDGStore} from "~/stores/sdgs";
-import PublicationService from '@/composables/usePublication';
-import UseSDGGoals from "@/composables/useSDGs";
+import UseSDGGoals from "~/composables/useSDGs";
 
 
 // Setup the store and service
