@@ -38,9 +38,11 @@
         <UButton label="Back to Worlds" @click="goBack" />
 
         <!-- Levels Section -->
+        <!-- Levels Section -->
         <div class="mt-10">
           <h2 class="text-xl font-bold mb-6">Achievement Levels</h2>
           <div class="flex justify-center gap-4">
+            <!-- Bronze Level -->
             <UCard
               class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
               :style="{ border: '4px solid #cd7f32' }"
@@ -48,8 +50,14 @@
               <template #header>
                 <h3 class="text-lg font-bold mb-2 text-[#cd7f32]">Bronze</h3>
               </template>
-              <p class="text-sm">Basic commitment to achieving this goal.</p>
+              <p v-if="levelData[1]">
+                {{ levelData[1].reductions?.[`sdg${route.params.id}`]?.level1?.length || 0 }}
+                items retrieved for Level 1.
+              </p>
+              <p v-else>No data found for Bronze level.</p>
             </UCard>
+
+            <!-- Silver Level -->
             <UCard
               class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
               :style="{ border: '4px solid #c0c0c0' }"
@@ -57,8 +65,14 @@
               <template #header>
                 <h3 class="text-lg font-bold mb-2 text-[#c0c0c0]">Silver</h3>
               </template>
-              <p class="text-sm">Moderate progress in meeting this goal.</p>
+              <p v-if="levelData[2]">
+                {{ levelData[2].reductions?.[`sdg${route.params.id}`]?.level2?.length || 0 }}
+                items retrieved for Level 2.
+              </p>
+              <p v-else>No data found for Silver level.</p>
             </UCard>
+
+            <!-- Gold Level -->
             <UCard
               class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
               :style="{ border: '4px solid #ffd700' }"
@@ -66,7 +80,11 @@
               <template #header>
                 <h3 class="text-lg font-bold mb-2 text-[#ffd700]">Gold</h3>
               </template>
-              <p class="text-sm">Exceptional achievement in fulfilling this goal.</p>
+              <p v-if="levelData[3]">
+                {{ levelData[3].reductions?.[`sdg${route.params.id}`]?.level3?.length || 0 }}
+                items retrieved for Level 3.
+              </p>
+              <p v-else>No data found for Gold level.</p>
             </UCard>
           </div>
         </div>
@@ -80,12 +98,13 @@
 import { useRoute, useAsyncData } from "#app";
 import { useRuntimeConfig } from "nuxt/app";
 import { SDGGoal } from "~/types/sdg/goals";
+import { DimensionalityReductionResponse } from "~/types/dimensionalityReduction";
 
 const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
 
-const { data, pending, error } = await useAsyncData<SDGGoal>(
+const { data: goalData, pending: goalPending, error: goalError } = await useAsyncData<SDGGoal>(
   `sdgGoal-${route.params.id}`,
   async () => {
     const response = await $fetch<SDGGoal>(
@@ -101,13 +120,61 @@ const { data, pending, error } = await useAsyncData<SDGGoal>(
   }
 );
 
-const goal = data?.value || null;
+const goal = goalData?.value || null;
 
-// Go back to the worlds overview
+const levels = [1, 2, 3]; // Bronze = 1, Silver = 2, Gold = 3
+const levelData = ref<Record<number, DimensionalityReductionResponse | null>>({
+  1: null,
+  2: null,
+  3: null,
+});
+
+const levelFetching = ref(false); // Separate pending state for level data
+const levelError = ref<Error | null>(null); // Separate error for level data
+
+const fetchLevels = async () => {
+  levelFetching.value = true;
+  levelError.value = null; // Reset error state before fetching
+  try {
+    const sdgId = route.params.id; // SDG ID from the route
+    const fetchPromises = levels.map((level) =>
+      $fetch<DimensionalityReductionResponse>(
+        `${config.public.apiUrl}dimensionality_reductions?sdg=${sdgId}&level=${level}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      )
+    );
+
+    // Fetch all levels concurrently
+    const results = await Promise.all(fetchPromises);
+
+    // Map results to levels
+    results.forEach((result, index) => {
+      levelData.value[levels[index]] = result;
+    });
+  } catch (err) {
+    levelError.value = err as Error;
+    console.error("Error fetching levels:", err);
+  } finally {
+    levelFetching.value = false;
+  }
+};
+
+// Fetch data on mount
+onMounted(() => {
+  fetchLevels();
+});
+
+// Navigate back
 const goBack = () => {
   router.push("/worlds");
 };
 </script>
+
 
 <style scoped>
 header {
