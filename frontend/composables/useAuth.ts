@@ -8,14 +8,13 @@ export default class UseAuth {
   // Login method using $fetch
   async login(credentials: { email: string, password: string }) {
     try {
-      const response = await $fetch(`${this.config.public.backendURL}token/`, {
+      const response = await $fetch(`${this.config.public.apiUrl}auth/login`, {
         method: 'POST',
         body: credentials
       });
 
       // Store tokens in localStorage
-      localStorage.setItem('access_token', response.access);
-      localStorage.setItem('refresh_token', response.refresh);
+      localStorage.setItem('access_token', response.access_token);
 
     } catch (error) {
       throw new Error('Login failed: ', error);
@@ -47,6 +46,5 @@ export default class UseAuth {
   // Logout method
   logout() {
     localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
   }
 }

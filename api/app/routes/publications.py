@@ -1,10 +1,10 @@
 from collections import defaultdict
-from typing import List, Optional, Dict, Tuple, Any
+from typing import List, Optional, Dict, Tuple, Any, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session, sessionmaker, joinedload
+from sqlalchemy.orm import Session, sessionmaker, joinedload, load_only
 
 from api.app.models.query import PublicationQuery
 from api.app.security import Security
@@ -12,27 +12,23 @@ from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
 
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import select
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
+from models import SDGPrediction, SDGLabelDecision
+from models.publications.author import Author
 # Import models
-# Load all of them to prevent the circular error issues
-from models.publication import Publication
-from models.author import Author
-from models.faculty import Faculty
-from models.institute import Institute
-from models.division import Division
-from models.sdg_prediction import SDGPrediction
-from models.dim_red import DimRed
-from models.sdg_prediction import SDGPrediction
-from models.sdg_label import SDGLabel
-from models.sdg_label_history import SDGLabelHistory
-from models.sdg_label_decision import SDGLabelDecision
-from models.sdg_user_label import SDGUserLabel
+from models.publications.publication import Publication
 
 
-from schemas.publication import PublicationSchema, FacultySchemaFull, FacultySchemaBase, InstituteSchemaFull, InstituteSchemaBase, DivisionSchemaFull, DivisionSchemaBase, \
-    AuthorSchemaBase, AuthorSchemaFull, DimRedSchemaFull, DimRedSchemaBase, SDGPredictionSchemaBase, SDGPredictionSchemaFull
+from schemas.dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
+from schemas.publications.author import AuthorSchemaBase, AuthorSchemaFull
+from schemas.publications.publication import PublicationSchemaBase, PublicationSchemaFull
+from schemas.sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
+from schemas.sdg_label_history import SDGLabelHistorySchemaFull
+from schemas.sdg_label_summary import SDGLabelSummarySchemaFull
+from schemas.sdg_prediction import SDGPredictionSchemaFull, SDGPredictionSchemaBase
+from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
+
 from services.gpt_explainer import SDGExplainer
 
 from settings.settings import PublicationsRouterSettings
@@ -68,103 +64,520 @@ def get_db():
     finally:
         db.close()
 
-
-@router.post(
-    "/", description="Post Publications", response_model=List[PublicationSchema]
+@router.get(
+    "/sdg_label_decisions/{decision_id}/sdg_user_labels",
+    response_model=List[SDGUserLabelSchemaBase],
+    description="Retrieve all SDGUserLabel entries associated with a specific SDGLabelDecision"
 )
-def post_publications(
-    query: PublicationQuery,
+async def get_sdg_user_labels(
+    decision_id: int,
     db: Session = Depends(get_db),
-):
-    logging.info("Fetching publications with filters: %s", query)
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGUserLabelSchemaBase]:
+    """
+    Retrieve all SDGUserLabel entries for a specific SDGLabelDecision.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
 
-    # Start with the base query
-    query_filter = db.query(Publication)
+        # Query the database for the SDGLabelDecision
+        decision = db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == decision_id).first()
 
-    # Apply filters
-    if query.title:
-        query_filter = query_filter.filter(Publication.title.ilike(f"%{query.title}%"))
+        if not decision:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelDecision with ID {decision_id} not found",
+            )
 
-    if query.author_name:
-        query_filter = query_filter.join(Publication.authors).filter(
-            Author.name.ilike(f"%{query.author_name}%")
-        )
+        # Return the list of SDGUserLabels associated with the decision
+        return [SDGUserLabelSchemaBase.model_validate(label) for label in decision.user_labels]
 
-    if query.year:
-        query_filter = query_filter.filter(Publication.year == query.year)
-
-    if query.faculty_id:
-        query_filter = query_filter.filter(Publication.faculty_id == query.faculty_id)
-
-    # Execute the query
-    publications = query_filter.all()
-
-    if not publications:
-        logging.warning("No publications found for the provided filters")
+    except Exception as e:
+        logging.error(f"Error fetching SDGUserLabels for decision ID {decision_id}: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No publications found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDGUserLabels for the decision",
         )
 
-    logging.info(f"Returning {len(publications)} publications")
+@router.get(
+    "/sdg_label_decisions/{decision_id}/sdg_user_labels/{label_id}",
+    response_model=SDGUserLabelSchemaFull,
+    description="Retrieve a specific SDGUserLabel entry associated with a specific SDGLabelDecision"
+)
+async def get_sdg_user_label(
+    decision_id: int,
+    label_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGUserLabelSchemaFull:
+    """
+    Retrieve a specific SDGUserLabel entry for a specific SDGLabelDecision.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
 
-    # Use jsonable_encoder to ensure SQLAlchemy objects are converted into JSON-compatible data
-    return JSONResponse(content=jsonable_encoder(publications))
+        # Query the database for the SDGLabelDecision
+        decision = db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == decision_id).first()
+
+        if not decision:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelDecision with ID {decision_id} not found",
+            )
+
+        # Check if the SDGUserLabel is associated with the decision
+        label = next((l for l in decision.user_labels if l.label_id == label_id), None)
+
+        if not label:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGUserLabel with ID {label_id} not associated with decision ID {decision_id}",
+            )
+
+        return SDGUserLabelSchemaFull.model_validate(label)
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGUserLabel ID {label_id} for decision ID {decision_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGUserLabel for the decision",
+        )
 
 
 @router.get(
-    "/", response_model=Page[PublicationSchema], description="Get all publications"
+    "/{publication_id}/sdg_label_history",
+    response_model=SDGLabelHistorySchemaFull,
+    description="Retrieve the SDGLabelHistory associated with a specific publication"
 )
-async def get_publications(include: Optional[str] = Query(None), db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> Page[PublicationSchema]:
-    # Verify the token before proceeding
-    user = verify_token(token)  # This will raise HTTPException if the token is invalid or expired
+async def get_sdg_label_history(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGLabelHistorySchemaFull:
+    """
+    Retrieve the SDGLabelHistory for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
 
-    logging.info("Fetching all publications")
+        # Query the database for the publication and its SDGLabelHistory
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
 
-    # Base query for fetching publications
-    query = db.query(Publication)
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
 
-    # Parse the include parameter (example: 'include=division,institute')
-    includes = include.split(",") if include else []
+        history = publication.sdg_label_summary.history
 
-    # Conditionally join related tables based on 'include' parameter
-    if 'authors' in includes:
-        query = query.options(joinedload(Publication.authors))
-    if 'faculty' in includes or not includes:
-        query = query.options(joinedload(Publication.faculty))
-    if 'institute' in includes or not includes:
-        query = query.options(joinedload(Publication.institute))
-    if 'division' in includes or not includes:
-        query = query.options(joinedload(Publication.division))
-    if 'sdg_predictions' in includes or not includes:
-        query = db.query(Publication).join(SDGPrediction).options(joinedload(Publication.sdg_predictions))
-    if 'dim_red' in includes or not includes:
-        query = query.options(joinedload(Publication.dim_red))
+        if not history:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
 
-    # Fetch paginated data
-    publications = paginate(query.order_by(Publication.created_at))
+        return SDGLabelHistorySchemaFull.model_validate(history)
 
-    # Fetched everything, fully hydration
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelHistory for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelHistory for the publication",
+        )
 
-    # Conditionally replace full schema with base schema if keyword is not present:
-    for publication in publications.items:
-        if 'authors' not in includes and publication.authors:
-            publication.authors = [AuthorSchemaBase.from_orm(author) for author in publication.authors]
-        if 'faculty' not in includes and publication.faculty:
-            publication.faculty = FacultySchemaBase.from_orm(publication.faculty)
-        if 'institute' not in includes and publication.institute:
-            publication.institute = InstituteSchemaBase.from_orm(publication.institute)
-        if 'division' not in includes and publication.division:
-            publication.division = DivisionSchemaBase.from_orm(publication.division)
-        if 'sdg_predictions' not in includes and publication.sdg_predictions:
-            publication.sdg_predictions = [SDGPredictionSchemaBase.from_orm(prediction) for prediction in publication.sdg_predictions]
-        if 'dim_red' not in includes and publication.dim_red:
-            publication.dim_red = DimRedSchemaBase.from_orm(publication.dim_red)
-    return publications
+@router.get(
+    "/{publication_id}/sdg_label_summary",
+    response_model=SDGLabelSummarySchemaFull,
+    description="Retrieve the SDGLabelSummary associated with a specific publication"
+)
+async def get_sdg_label_summary(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGLabelSummarySchemaFull:
+    """
+    Retrieve the SDGLabelSummary for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelSummary
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelSummary found for publication ID {publication_id}",
+            )
+
+        return SDGLabelSummarySchemaFull.model_validate(publication.sdg_label_summary)
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelSummary for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelSummary for the publication",
+        )
+
+@router.get(
+    "/{publication_id}/sdg_label_history/decisions",
+    response_model=List[SDGLabelDecisionSchemaBase],
+    description="Retrieve all SDGLabelDecision entries associated with a publication's SDGLabelHistory"
+)
+async def get_sdg_label_decisions(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGLabelDecisionSchemaBase]:
+    """
+    Retrieve all SDGLabelDecision entries for a publication's SDGLabelHistory.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelHistory
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        history = publication.sdg_label_summary.history
+
+        if not history or not history.decisions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelDecision entries found for publication ID {publication_id}",
+            )
+
+        return [SDGLabelDecisionSchemaBase.model_validate(decision) for decision in history.decisions]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelDecisions for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelDecisions for the publication",
+        )
+
+
+@router.get(
+    "/{publication_id}/sdg_label_history/decisions/{decision_id}",
+    response_model=SDGLabelDecisionSchemaFull,
+    description="Retrieve a specific SDGLabelDecision entry associated with a publication's SDGLabelHistory"
+)
+async def get_sdg_label_decision(
+    publication_id: int,
+    decision_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGLabelDecisionSchemaFull:
+    """
+    Retrieve a specific SDGLabelDecision entry for a publication's SDGLabelHistory.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelHistory
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        history = publication.sdg_label_summary.history
+
+        if not history:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+            )
+
+        decision = next((d for d in history.decisions if d.decision_id == decision_id), None)
+
+        if not decision:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelDecision with ID {decision_id} not found for publication ID {publication_id}",
+            )
+
+        return SDGLabelDecisionSchemaFull.model_validate(decision)
+
+    except Exception as e:
+        logging.error(
+            f"Error fetching SDGLabelDecision ID {decision_id} for publication ID {publication_id}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelDecision for the publication",
+        )
+
+
+@router.get(
+    "/{publication_id}/sdg_predictions",
+    response_model=List[SDGPredictionSchemaBase],
+    description="Retrieve all SDG predictions associated with a specific publication"
+)
+async def get_sdg_predictions(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGPredictionSchemaBase]:
+    """
+    Retrieve all SDG predictions for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDG predictions
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Return the list of SDG predictions associated with the publication
+        return [
+            SDGPredictionSchemaBase.model_validate(prediction)
+            for prediction in publication.sdg_predictions
+        ]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDG predictions for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDG predictions for the publication",
+        )
+
+@router.get(
+    "/{publication_id}/sdg_predictions/{prediction_id}",
+    response_model=SDGPredictionSchemaFull,
+    description="Retrieve a specific SDG prediction associated with a specific publication"
+)
+async def get_sdg_prediction(
+    publication_id: int,
+    prediction_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGPredictionSchemaFull:
+    """
+    Retrieve a specific SDG prediction for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Check if the SDG prediction is associated with the publication
+        sdg_prediction = next(
+            (prediction for prediction in publication.sdg_predictions if prediction.prediction_id == prediction_id),
+            None,
+        )
+
+        if not sdg_prediction:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDG prediction with ID {prediction_id} not associated with publication ID {publication_id}",
+            )
+
+        # Return the detailed information of the specific SDG prediction
+        return SDGPredictionSchemaFull.model_validate(sdg_prediction)
+
+    except Exception as e:
+        logging.error(
+            f"Error fetching SDG prediction ID {prediction_id} for publication ID {publication_id}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDG prediction for the publication",
+        )
+
+
+@router.get(
+    "/{publication_id}/dimensionality_reductions",
+    response_model=List[DimensionalityReductionSchemaBase],
+    description="Retrieve all dimensionality reductions associated with a specific publication"
+)
+async def get_dimensionality_reductions(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaBase]:
+    """
+    Retrieve all dimensionality reductions for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its dimensionality reductions
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Return the list of dimensionality reductions associated with the publication
+        return [
+            DimensionalityReductionSchemaBase.model_validate(dim_red)
+            for dim_red in publication.dimensionality_reductions
+        ]
+
+    except Exception as e:
+        logging.error(f"Error fetching dimensionality reductions for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching dimensionality reductions for the publication",
+        )
+
+@router.get(
+    "/{publication_id}/dimensionality_reductions/{dim_red_id}",
+    response_model=DimensionalityReductionSchemaFull,
+    description="Retrieve a specific dimensionality reduction associated with a specific publication"
+)
+async def get_dimensionality_reduction(
+    publication_id: int,
+    dim_red_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> DimensionalityReductionSchemaFull:
+    """
+    Retrieve a specific dimensionality reduction for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Check if the dimensionality reduction is associated with the publication
+        dim_reduction = next(
+            (dim_red for dim_red in publication.dimensionality_reductions if dim_red.dim_red_id == dim_red_id), None
+        )
+
+        if not dim_reduction:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Dimensionality reduction with ID {dim_red_id} not associated with publication ID {publication_id}",
+            )
+
+        # Return the detailed information of the specific dimensionality reduction
+        return DimensionalityReductionSchemaFull.model_validate(dim_reduction)
+
+    except Exception as e:
+        logging.error(
+            f"Error fetching dimensionality reduction ID {dim_red_id} for publication ID {publication_id}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the dimensionality reduction for the publication",
+        )
+
+
+@router.get(
+    "/{publication_id}/authors/{author_id}",
+    response_model=AuthorSchemaFull,
+    description="Retrieve a specific author associated with a specific publication"
+)
+async def get_publication_author(
+    publication_id: int,
+    author_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> AuthorSchemaFull:
+    """
+    Retrieve a specific author for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Check if the author is associated with the publication
+        author = next((author for author in publication.authors if author.author_id == author_id), None)
+
+        if not author:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Author with ID {author_id} not associated with publication ID {publication_id}",
+            )
+
+        # Return the detailed information of the specific author
+        return AuthorSchemaFull.model_validate(author)
+
+    except Exception as e:
+        logging.error(f"Error fetching author ID {author_id} for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the author for the publication",
+        )
+
+
+@router.get(
+    "/{publication_id}/authors",
+    response_model=List[AuthorSchemaBase],
+    description="Retrieve all authors associated with a specific publication"
+)
+async def get_publication_authors(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[AuthorSchemaBase]:
+    """
+    Retrieve all authors for a specific publication.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query the database for the publication and its authors
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Return the list of authors associated with the publication
+        return [AuthorSchemaBase.model_validate(author) for author in publication.authors]
+
+    except Exception as e:
+        logging.error(f"Error fetching authors for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching authors for the publication",
+        )
 
 @router.get(
     "/by-sdg-values",
-    # response_model=Dict[str, List[PublicationSchema]],
-    response_model=Dict[str, Any],  # Adjusted to return both statistics and publication data
+    response_model=Dict[str, Any],  # Returns both statistics and publication data
     description=(
         "Retrieve publications filtered by SDG values within a specified range. "
         "You can specify a fixed model when multiple models are available."
@@ -174,29 +587,32 @@ async def get_publications_by_sdg_values(
     sdg_range: Tuple[float, float] = Query(..., description="Range for SDG values, e.g., (0.98, 0.99)"),
     limit: int = Query(10, description="Limit for the number of publications per SDG group"),
     sdgs: Optional[List[int]] = Query(None, description="List of specific SDGs to filter, e.g., [1, 3, 12]"),
-    include: Optional[str] = Query(None, description="Comma-separated list of related entities to include, e.g., 'authors,faculty'"),
     model: Optional[str] = Query(None, description="Fixed model name to filter by, e.g., 'model_A'"),
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> Dict[str, Any]: # -> Dict[str, List[PublicationSchema]]:
+) -> Dict[str, Any]:
+    """
+    Retrieve publications filtered by SDG values within a specified range.
+    Always returns the full model with all related data included.
+    """
     # Verify the token before proceeding
     user = verify_token(token)  # Raises HTTPException if the token is invalid or expired
 
     # Unpack the range
     min_value, max_value = sdg_range
 
-    # Default to all 17 SDGs if none are specified
-    sdg_list = sdgs if sdgs else range(1, 18)
+    print(f"Raw SDGs Query Param: {sdgs}")
 
-    # Parse the include parameter for related entity hydration
-    includes = include.split(",") if include else []
-    hydration_status = {entity: entity in includes for entity in ['authors', 'faculty', 'institute', 'division', 'dim_red', 'sdg_predictions']}
+    # Check if `sdgs` is provided and not empty; otherwise, use the default range
+    if sdgs is not None and len(sdgs) > 0:
+        sdg_list = sdgs
+    else:
+        sdg_list = list(range(1, 18))
 
     # Result dictionary to store publications and statistics
     result = {
         "statistics": {
             "general_range": {"min_value": min_value, "max_value": max_value},
-            "hydration_status": hydration_status,
             "sdg_statistics": {}
         },
         "publications": {}
@@ -204,9 +620,7 @@ async def get_publications_by_sdg_values(
 
     for sdg in sdg_list:
         # Construct the base query for the SDG, joining with SDGPrediction
-        query = db.query(Publication).join(SDGPrediction).options(
-            joinedload(Publication.sdg_predictions)  # Load all SDG predictions for filtering in Python
-        )
+        query = db.query(Publication).join(SDGPrediction)
 
         # Filter the SDGPrediction objects
         sdg_attr = f"sdg{sdg}"
@@ -223,18 +637,6 @@ async def get_publications_by_sdg_values(
         # Order the query by the SDG value in descending order and limit the results
         query = query.order_by(getattr(SDGPrediction, sdg_attr).desc()).limit(limit)
 
-        # Apply joinedload options for related entities based on 'include' parameter
-        if 'authors' in includes:
-            query = query.options(joinedload(Publication.authors))
-        if 'faculty' in includes or not includes:
-            query = query.options(joinedload(Publication.faculty))
-        if 'institute' in includes or not includes:
-            query = query.options(joinedload(Publication.institute))
-        if 'division' in includes or not includes:
-            query = query.options(joinedload(Publication.division))
-        if 'dim_red' in includes or not includes:
-            query = query.options(joinedload(Publication.dim_red))
-
         # Fetch publications
         publications = query.all()
 
@@ -244,53 +646,19 @@ async def get_publications_by_sdg_values(
         max_pred = float('-inf')
         model_counts = defaultdict(int)
 
-        # Convert each publication to a Pydantic model, simplifying related data if necessary
-        hydrated_publications = []
+        # Convert each publication to the full Pydantic model and update statistics
+        full_publications = []
         for publication in publications:
-            if model:
-                # If a model is specified, filter SDG predictions by the model
-                publication.sdg_predictions = [
-                    prediction for prediction in publication.sdg_predictions if prediction.prediction_model == model
-                ]
-            else:
-                # No model specified: Select the highest SDG value prediction within the range
-                publication.sdg_predictions = [
-                    max(
-                        (p for p in publication.sdg_predictions if
-                         getattr(p, sdg_attr) >= min_value and getattr(p, sdg_attr) <= max_value),
-                        key=lambda p: getattr(p, sdg_attr),
-                        default=None
-                    )
-                ]
-                # Remove None values if no prediction matched the criteria
-                publication.sdg_predictions = [p for p in publication.sdg_predictions if p is not None]
+            for prediction in publication.sdg_predictions:
+                if model and prediction.prediction_model != model:
+                    continue
+                pred_value = getattr(prediction, sdg_attr)
+                min_pred = min(min_pred, pred_value)
+                max_pred = max(max_pred, pred_value)
+                model_counts[prediction.prediction_model] += 1
 
-            # Only include the publication if there is at least one valid SDG prediction
-            if publication.sdg_predictions:
-                # Update statistics
-                for prediction in publication.sdg_predictions:
-                    pred_value = getattr(prediction, sdg_attr)
-                    min_pred = min(min_pred, pred_value)
-                    max_pred = max(max_pred, pred_value)
-                    model_counts[prediction.prediction_model] += 1
-
-                # Create a Pydantic model from the hydrated publication
-                publication_data = PublicationSchema.from_orm(publication)
-
-                # Conditionally simplify related data
-                if 'authors' not in includes and publication_data.authors:
-                    publication_data.authors = [AuthorSchemaBase.from_orm(author) for author in publication.authors]
-                if 'faculty' not in includes and publication_data.faculty:
-                    publication_data.faculty = FacultySchemaBase.from_orm(publication.faculty)
-                if 'institute' not in includes and publication_data.institute:
-                    publication_data.institute = InstituteSchemaBase.from_orm(publication.institute)
-                if 'division' not in includes and publication_data.division:
-                    publication_data.division = DivisionSchemaBase.from_orm(publication.division)
-                if 'dim_red' not in includes and publication_data.dim_red:
-                    publication_data.dim_red = DimRedSchemaBase.from_orm(publication.dim_red)
-
-                # Add the hydrated publication data to the result list
-                hydrated_publications.append(publication_data)
+            # Add the full publication model
+            full_publications.append(PublicationSchemaFull.model_validate(publication))
 
         # Prepare SDG-specific statistics
         result["statistics"]["sdg_statistics"][f"sdg{sdg}"] = {
@@ -301,29 +669,74 @@ async def get_publications_by_sdg_values(
             "pubs_per_model": dict(model_counts)
         }
 
-        # Add to result
-        result["publications"][f"sdg{sdg}"] = hydrated_publications
+        # Add publications to result
+        result["publications"][f"sdg{sdg}"] = full_publications
 
     return result
 
 
-
-@router.get("/{publication_id}", response_model=PublicationSchema, description="Get single publication by ID")
-async def get_publication(publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> PublicationSchema:
-    # Verify the token before proceeding
-    user = verify_token(token)  # This will raise HTTPException if the token is invalid or expired
+@router.get(
+    "/",
+    response_model=Page[Union[PublicationSchemaFull]],
+    description="Get all publications"
+)
+async def get_publications(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> Page[PublicationSchemaFull]:
+    """
+    Retrieve all publications with optional minimal or full details based on the 'minimal' query parameter.
+    Supports pagination.
+    """
     try:
-        logging.info(f"Fetching publication with ID: {publication_id}")
-        # Perform a SELECT query to fetch the publication by ID
+        user = verify_token(token)  # Ensure user is authenticated
+        # Base query for fetching publications
+        query = db.query(Publication)
+
+        # Use FastAPI Pagination to fetch paginated data
+        paginated_query = sqlalchemy_paginate(query)
+
+        paginated_query.items = [PublicationSchemaFull.model_validate(pub) for pub in paginated_query.items]
+
+        return paginated_query
+
+    except Exception as e:
+        logging.error(f"Error fetching publications: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching publications",
+        )
+
+@router.get(
+    "/{publication_id}",
+    response_model=PublicationSchemaFull,
+    description="Get a single publication by ID"
+)
+async def get_publication(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> PublicationSchemaFull:
+    """
+    Retrieve a single publication by ID.
+    """
+    try:
+        user = verify_token(token)  # Ensure user is authenticated
+
+        # Query to fetch the publication by ID
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        # If not found, raise 404 error
         if not publication:
-            logging.warning(f"No publication found with ID: {publication_id}")
+            logging.warning(f"Publication with ID {publication_id} not found")
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found"
             )
-        logging.info(f"Retrieved publication with ID: {publication_id}")
-        # FastAPI will automatically serialize this to JSON using the response_model
-        return publication
+
+        # Validate and return the full schema
+        return PublicationSchemaFull.model_validate(publication)
+
     except Exception as e:
         logging.error(f"Error fetching publication with ID {publication_id}: {str(e)}")
         raise HTTPException(
@@ -368,9 +781,4 @@ async def extract_keywords(publication_id: int, db: Session = Depends(get_db),
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
-
-    keywords = SDGExplainer().extract_keywords(publication.title,
-                                               publication.description)
-
-    return {"publication_id": publication_id, "keywords": keywords}
 

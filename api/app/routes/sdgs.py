@@ -1,18 +1,16 @@
-from collections import defaultdict
-from typing import List, Optional, Dict, Tuple, Any, Union
-
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
 
-from models.sdg_target import SDGTarget
-from models.sdg_goal import SDGGoal
-from schemas.sdg_goal import SDGGoalSchemaFull, SDGGoalSchemaBase
+from models.sdg.sdg_goal import SDGGoal
+
+from schemas.sdg.goal import SDGGoalSchemaFull
+
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
 from settings.settings import SDGsRouterSettings
 sdgs_router_settings = SDGsRouterSettings()
@@ -48,59 +46,81 @@ def get_db():
     finally:
         db.close()
 
-# Endpoint to get a single SDG goal by its ID with optional inclusion of targets
-@router.get("/{sdg_id}", description="Get a single SDG goal by ID with optional inclusion of targets")
+
+@router.get(
+    "/{sdg_id}",
+    response_model=SDGGoalSchemaFull,
+    description="Get a single SDG goal by ID with optional inclusion of targets"
+)
 async def get_sdg(
     sdg_id: int,
     db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-    include_targets: Optional[bool] = Query(True, description="Whether to include SDG targets")
-) -> Union[SDGGoalSchemaBase, SDGGoalSchemaFull]:
-    # Verify the token before proceeding
-    user = verify_token(token)
-    logging.info(f"Fetching SDG goal with ID: {sdg_id}")
+    token: str = Depends(oauth2_scheme)
+) -> SDGGoalSchemaFull:
+    """
+    Retrieve a single SDG goal by its ID with optional inclusion of targets.
+    """
+    try:
+        # Authenticate user
+        user = verify_token(token)
+        logging.info(f"Fetching SDG goal with ID: {sdg_id}")
 
-    # Base query for fetching the SDG goal
-    if include_targets:
-        query = db.query(SDGGoal).options(joinedload(SDGGoal.sdg_targets))  # Include targets
-    else:
-        query = db.query(SDGGoal)  # Exclude targets
+        # Base query for fetching the SDG goal
+        query = db.query(SDGGoal)
+        query = query.options(joinedload(SDGGoal.sdg_targets))
 
-    sdg_goal = query.filter(SDGGoal.id == sdg_id).first()
+        # Fetch the goal by ID
+        sdg_goal = query.filter(SDGGoal.id == sdg_id).first()
 
-    if not sdg_goal:
-        logging.warning(f"No SDG goal found with ID: {sdg_id}")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="SDG goal not found")
+        if not sdg_goal:
+            logging.warning(f"No SDG goal found with ID: {sdg_id}")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="SDG goal not found")
 
-    logging.info(f"Returning SDG goal with ID: {sdg_id}")
+        logging.info(f"Returning SDG goal with ID: {sdg_id}")
+        return SDGGoalSchemaFull.model_validate(sdg_goal)
 
-    # Return the appropriate schema based on the include_targets flag
-    if include_targets:
-        return SDGGoalSchemaFull.from_orm(sdg_goal)
-    else:
-        return SDGGoalSchemaBase.from_orm(sdg_goal)
+    except Exception as e:
+        logging.error(f"Error fetching SDG goal with ID {sdg_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDG goal",
+        )
 
-# Endpoint to get all SDG goals with optional inclusion of targets
-@router.get("/", description="Get all SDG goals with optional inclusion of targets")
+@router.get(
+    "/",
+    response_model=Page[SDGGoalSchemaFull],
+    description="Get all SDG goals with optional inclusion of targets"
+)
 async def get_sdgs(
     db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-    include_targets: Optional[bool] = Query(True, description="Whether to include SDG targets")
-) -> Union[List[SDGGoalSchemaBase], List[SDGGoalSchemaFull]]:
-    # Verify the token before proceeding
-    user = verify_token(token)
-    logging.info("Fetching all SDG goals")
+    token: str = Depends(oauth2_scheme)
+):
+    """
+    Retrieve all SDG goals with optional inclusion of targets.
+    Supports pagination.
+    """
+    try:
+        # Authenticate user
+        user = verify_token(token)
+        logging.info("Fetching all SDG goals")
 
-    # Base query for SDG goals
-    if include_targets:
-        query = db.query(SDGGoal).options(joinedload(SDGGoal.sdg_targets))  # Include targets
-        sdg_goals = query.order_by(SDGGoal.index).all()
-        return [SDGGoalSchemaFull.from_orm(goal) for goal in sdg_goals]
-    else:
-        query = db.query(SDGGoal)  # Exclude targets
-        sdg_goals = query.order_by(SDGGoal.index).all()
-        return [SDGGoalSchemaBase.from_orm(goal) for goal in sdg_goals]
+        # Base query for SDG goals
+        query = db.query(SDGGoal)
 
+        # Use FastAPI Pagination to fetch paginated data
+        paginated_query = sqlalchemy_paginate(query)
+
+        # Map the paginated items to Pydantic models
+        paginated_query.items = [SDGGoalSchemaFull.model_validate(goal) for goal in paginated_query.items]
+
+        return paginated_query
+
+    except Exception as e:
+        logging.error(f"Error fetching SDG goals: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDG goals",
+        )
 
 
 

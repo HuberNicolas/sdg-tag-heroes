@@ -1,5 +1,5 @@
 import os
-from typing import ClassVar, List
+from typing import ClassVar, List, Tuple
 
 import pytz
 from pydantic_settings import BaseSettings
@@ -56,7 +56,7 @@ class PredictionSettings(BaseSettings):
     AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
 
-    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models")
+    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models", "targets")
     AURORA_MODEL_GOAL_LINKS: ClassVar[str] = "aurora-model-goal-only-links.csv"
 
     CUDA_VISIBLE_DEVICES_KEY: ClassVar[str] = "CUDA_VISIBLE_DEVICES"
@@ -71,6 +71,10 @@ class PredictionSettings(BaseSettings):
     DEFAULT_BATCH_SIZE: ClassVar[int] = 16
     DEFAULT_MARIADB_BATCH_SIZE: ClassVar[int] = 500
     DEFAULT_DVDBLK_BATCH_SIZE: ClassVar[int] = 16
+
+
+class TargetPredictionSettings(PredictionSettings):
+    AURORA_TARGET_PREDICTOR_LOG_NAME: ClassVar[str] = "target_predictor_aurora.log"
 
 
 class CollectorSettings(BaseSettings):
@@ -94,6 +98,14 @@ class ReducerSettings(BaseSettings):
     UMAP_MIN_DIST: ClassVar[float] = 0.1
     UMAP_N_COMPONENTS: ClassVar[int] = 2
 
+    # Arrays for UMAP parameter combinations
+    UMAP_N_NEIGHBORS_ARRAY: ClassVar[List[int]] = [15, 30]
+    UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.1]
+    UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
+
+    # Filter ranges
+    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.99), (0.99, 0.9), (0.9, 0.8)]  # SDG filter ranges
+
 
 
 class PublicationsRouterSettings(BaseSettings):
@@ -105,18 +117,23 @@ class SDGsRouterSettings(BaseSettings):
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
 
+class SDGUserLabelsSettings(BaseSettings):
+    SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
+
+class VotesSettings(BaseSettings):
+    VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
+
+class AnnotationsSettings(BaseSettings):
+    ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
+
+class DimensionalityReductionsRouterSettings(BaseSettings):
+    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_dimensionality_reductions.log"
+
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
     CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
     CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
     TOKEN_URL: ClassVar[str] = "auth/token"
-
-    # JWT
-    ACCESS_TOKEN_LIFETIME_MINUTES: int = 300 # Token validity duration
-    REFRESH_TOKEN_LIFETIME_MINUTES: int = 60 # How long refresh tokens last
-    ROTATE_REFRESH_TOKENS: ClassVar[bool] = False # Optional, for rotating refresh tokens
-    BLACKLIST_AFTER_ROTATION: ClassVar[bool] = True # Use token blacklist
-    AUTH_HEADER_TYPES: str = 'Bearer'
 
 class MariaDBSettings(BaseSettings):
     MARIADB_CHARSET: ClassVar[str] = "utf8mb4"

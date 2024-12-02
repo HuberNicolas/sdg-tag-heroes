@@ -10,8 +10,13 @@
       :src="avatar"
     alt="Avatar"
     />
-    <p>Your role: {{ user?.role }}</p>
-    <UButton @click="logout" label="Logout"></UButton>
+    <p>Your Roles:</p>
+    <ul>
+      <li v-for="role in user?.roles" :key="role">
+        {{ role }}
+      </li>
+    </ul>
+    <UButton label="Logout" @click="logout"></UButton>
     <UButton label="Show toast" @click="toast.add({ title: 'Hello world!' })" />
   </div>
 </template>

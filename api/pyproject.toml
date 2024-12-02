@@ -27,6 +27,7 @@ fastapi-pagination = "^0.12.31"
 openai = "^1.54.4"
 alembic = "^1.14.0"
 instructor = "^1.6.4"
+faker = "^33.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

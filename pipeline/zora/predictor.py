@@ -292,7 +292,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
                         publication_id=pub.publication_id,
                         prediction_model="Aurora",
                     )
-                    session.add(prediction_entry)
+                    #session.add(prediction_entry) # THIS CAUSES DUPLICAITON
                 else:
                     logging.info(
                         f"Prediction entry already exists for publication {pub.publication_id}. Updating existing record.")
