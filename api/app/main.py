@@ -12,6 +12,7 @@ from api.app.routes import votes
 from api.app.routes import annotations
 from api.app.routes import sdg_user_labels
 from api.app.routes import dimensionality_reductions
+from api.app.routes import users
 
 from fastapi_pagination import add_pagination
 
@@ -29,6 +30,7 @@ app.include_router(votes.router)
 app.include_router(annotations.router)
 app.include_router(sdg_user_labels.router)
 app.include_router(dimensionality_reductions.router)
+app.include_router(users.router)
 
 # CORS (development only)
 app.add_middleware(

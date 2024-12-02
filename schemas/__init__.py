@@ -13,6 +13,9 @@ from .sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaF
 from .sdg_label_history import SDGLabelHistorySchemaBase, SDGLabelHistorySchemaFull
 from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
 
+
+from .users.user import UserSchemaFull
+
 # Export all models for external use
 __all__ = [
     "AuthorSchemaBase",
@@ -44,4 +47,5 @@ __all__ = [
     "SDGLabelDecisionSchemaBase",
     "SDGLabelDecisionSchemaFull",
 
+    "UserSchemaFull",
 ]
