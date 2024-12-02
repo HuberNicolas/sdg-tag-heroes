@@ -34,8 +34,44 @@
             <span class="font-bold">{{ target.index }}</span> - {{ target.text }}
           </li>
         </ul>
+
+        <UButton label="Back to Worlds" @click="goBack" />
+
+        <!-- Levels Section -->
+        <div class="mt-10">
+          <h2 class="text-xl font-bold mb-6">Achievement Levels</h2>
+          <div class="flex justify-center gap-4">
+            <UCard
+              class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
+              :style="{ border: '4px solid #cd7f32' }"
+            >
+              <template #header>
+                <h3 class="text-lg font-bold mb-2 text-[#cd7f32]">Bronze</h3>
+              </template>
+              <p class="text-sm">Basic commitment to achieving this goal.</p>
+            </UCard>
+            <UCard
+              class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
+              :style="{ border: '4px solid #c0c0c0' }"
+            >
+              <template #header>
+                <h3 class="text-lg font-bold mb-2 text-[#c0c0c0]">Silver</h3>
+              </template>
+              <p class="text-sm">Moderate progress in meeting this goal.</p>
+            </UCard>
+            <UCard
+              class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
+              :style="{ border: '4px solid #ffd700' }"
+            >
+              <template #header>
+                <h3 class="text-lg font-bold mb-2 text-[#ffd700]">Gold</h3>
+              </template>
+              <p class="text-sm">Exceptional achievement in fulfilling this goal.</p>
+            </UCard>
+          </div>
+        </div>
       </div>
-      <UButton label="Back to Worlds" @click="goBack" />
+
     </main>
   </div>
 </template>
@@ -48,7 +84,6 @@ import { SDGGoal } from "~/types/sdg/goals";
 const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
-
 
 const { data, pending, error } = await useAsyncData<SDGGoal>(
   `sdgGoal-${route.params.id}`,
@@ -86,5 +121,17 @@ main {
 img {
   object-fit: contain;
   margin: auto;
+}
+
+.flex {
+  display: flex;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.mt-10 {
+  margin-top: 2.5rem;
 }
 </style>
