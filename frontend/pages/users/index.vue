@@ -15,14 +15,29 @@
     <!-- Display the list of users -->
     <div v-else>
       <ul v-if="users.length > 0" class="user-list">
-        <li v-for="user in users" :key="user.user_id">
-          <p>
-            <strong>{{ user.email }}</strong>
-            <span v-if="user.roles.length > 0"> - Roles: {{ user.roles.join(", ") }}</span>
-          </p>
-          <p>Status: <span :class="{ active: user.is_active, inactive: !user.is_active }">
-            {{ user.is_active ? "Active" : "Inactive" }}
-          </span></p>
+        <li v-for="user in users" :key="user.user_id" class="user-item">
+          <router-link :to="`/users/${user.user_id}`" class="user-link">
+            <div class="user-avatar">
+              <!-- Generate and display the avatar -->
+              <UAvatar
+                chip-color="primary"
+                chip-text=""
+                chip-position="top-right"
+                size="sm"
+                :src="generateUserAvatar(user.email)"
+                alt="Avatar"
+              />
+            </div>
+            <div class="user-details">
+              <p>
+                <strong>{{ user.email }}</strong>
+                <span v-if="user.roles.length > 0"> - Roles: {{ user.roles.join(", ") }}</span>
+              </p>
+              <p>Status: <span :class="{ active: user.is_active, inactive: !user.is_active }">
+                {{ user.is_active ? "Active" : "Inactive" }}
+              </span></p>
+            </div>
+          </router-link>
         </li>
       </ul>
       <p v-else>No users found.</p>
@@ -30,14 +45,29 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import UseUser from "@/composables/useUser";
+import useAvatar from "@/composables/useAvatar";
 
 // State variables
 const users = ref([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+
+// Import useAvatar composable
+const { generateAvatar } = useAvatar();
+
+// Function to generate avatars based on email
+const generateUserAvatar = (email: string) => {
+  return generateAvatar({ seed: email, size: 64 }).toDataUri();
+};
+
+// Navigate to user details
+const goToUser = (userId: string) => {
+  router.push(`/users/${userId}`);
+};
 
 // Fetch users on mount
 onMounted(async () => {
@@ -53,6 +83,7 @@ onMounted(async () => {
   }
 });
 </script>
+
 
 <style scoped>
 .users-page {
@@ -78,13 +109,21 @@ h1 {
   padding: 0;
 }
 
-.user-list li {
+.user-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
   padding: 10px;
-  border-bottom: 1px solid #ddd;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
 
-.user-list li p {
-  margin: 5px 0;
+.user-avatar {
+  margin-right: 10px;
+}
+
+.user-details p {
+  margin: 0;
 }
 
 .active {

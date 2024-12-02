@@ -1,68 +1,77 @@
 <template>
-  <div class="users-page">
-    <h1>User List</h1>
+  <div class="user-details-page">
+    <h1>User Details</h1>
 
-    <!-- Display a loading state -->
-    <div v-if="loading" class="loading">
-      Loading users...
-    </div>
+    <div v-if="loading" class="loading">Loading user details...</div>
+    <div v-if="error" class="error">{{ error }}</div>
 
-    <!-- Display an error state -->
-    <div v-if="error" class="error">
-      <p>An error occurred: {{ error }}</p>
-    </div>
-
-    <!-- Display the list of users -->
-    <div v-else>
-      <ul v-if="users.length > 0" class="user-list">
-        <li v-for="user in users" :key="user.user_id">
-          <p>
-            <strong>{{ user.email }}</strong>
-            <span v-if="user.roles.length > 0"> - Roles: {{ user.roles.join(", ") }}</span>
-          </p>
-          <p>Status: <span :class="{ active: user.is_active, inactive: !user.is_active }">
-            {{ user.is_active ? "Active" : "Inactive" }}
-          </span></p>
-        </li>
-      </ul>
-      <p v-else>No users found.</p>
+    <div v-if="user && !loading" class="user-details">
+      <div class="user-avatar">
+        <UAvatar
+          chip-color="primary"
+          chip-text=""
+          chip-position="top-right"
+          size="lg"
+          :src="generateUserAvatar(user.email)"
+          alt="Avatar"
+        />
+      </div>
+      <div class="user-info">
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Roles:</strong> {{ user.roles.join(", ") || "None" }}</p>
+        <p><strong>Status:</strong> {{ user.is_active ? "Active" : "Inactive" }}</p>
+      </div>
+      <UButton label="Back to Users" @click="goBack" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import UseUser from "@/composables/useUser";
+import useAvatar from "@/composables/useAvatar";
 
-// State variables
-const users = ref([]);
+// State
+const user = ref(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
 
-// Fetch users on mount
+// Routing
+const router = useRouter();
+const route = useRoute();
+const userId = route.params.id;
+
+// Avatar generation
+const { generateAvatar } = useAvatar();
+const generateUserAvatar = (email: string) => {
+  return generateAvatar({ seed: email, size: 128 }).toDataUri();
+};
+
+// Fetch user details
 onMounted(async () => {
   const useUser = new UseUser();
   try {
-    const response = await useUser.getUsers(); // Fetch users from the API
-    users.value = response.items;
+    const response = await useUser.getUserById(userId); // Fetch single user by ID
+    user.value = response; // Assuming the API returns a single user object
   } catch (err) {
-    console.error("Error fetching users:", err);
-    error.value = err.message || "Failed to load users.";
+    console.error("Error fetching user:", err);
+    error.value = err.message || "Failed to load user details.";
   } finally {
     loading.value = false;
   }
 });
+
+// Go back to the user list
+const goBack = () => {
+  router.push("/users");
+};
 </script>
 
 <style scoped>
-.users-page {
+.user-details-page {
   padding: 20px;
   font-family: Arial, sans-serif;
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 10px;
 }
 
 .loading {
@@ -73,25 +82,17 @@ h1 {
   color: red;
 }
 
-.user-list {
-  list-style: none;
-  padding: 0;
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-.user-list li {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+.user-avatar {
+  flex-shrink: 0;
 }
 
-.user-list li p {
+.user-info p {
   margin: 5px 0;
-}
-
-.active {
-  color: green;
-}
-
-.inactive {
-  color: red;
 }
 </style>

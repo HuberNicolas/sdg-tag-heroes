@@ -1,4 +1,3 @@
-// composables/useAvatar.js
 import { ref, watchEffect } from 'vue';
 import { createAvatar } from '@dicebear/core';
 import { thumbs } from '@dicebear/collection';
@@ -7,16 +6,23 @@ export default function useAvatar() {
   const seed = ref('');
   const avatar = ref('');
 
-  const generateAvatar = () => {
-    if (seed.value) {
-      avatar.value = createAvatar(thumbs, {
-        seed: seed.value,
-        size: 64, // Adjust size as needed
-      }).toDataUri();
+  const generateAvatar = (options: { seed: string; size?: number }) => {
+    const { seed, size = 64 } = options;
+    if (seed) {
+      return createAvatar(thumbs, {
+        seed,
+        size,
+      });
     }
+    return null;
   };
 
-  watchEffect(generateAvatar);
+  watchEffect(() => {
+    if (seed.value) {
+      const avatarInstance = generateAvatar({ seed: seed.value });
+      avatar.value = avatarInstance?.toDataUri() || '';
+    }
+  });
 
   return {
     avatar,
@@ -24,3 +30,4 @@ export default function useAvatar() {
     generateAvatar
   };
 }
+
