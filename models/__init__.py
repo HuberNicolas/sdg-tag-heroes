@@ -39,6 +39,8 @@ from .inventory import Inventory
 from .achievement import Achievement
 from .inventor_achievement_association import InventoryAchievementAssociation
 
+from .fact import Fact
+
 
 # Export all models for external use
 __all__ = [
@@ -80,4 +82,6 @@ __all__ = [
     "Inventory",
     "Achievement",
     "InventoryAchievementAssociation",
+
+    "Fact"
 ]

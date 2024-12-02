@@ -69,6 +69,8 @@ class Publication(Base):
         "PublicationCluster", back_populates="publication", cascade="all, delete-orphan"
     )
 
+    fact: Mapped[list["Fact"]] = relationship("Fact", back_populates="publication", uselist=False
+    )
 
     is_dim_reduced: Mapped[bool] = mapped_column(default=False)
 

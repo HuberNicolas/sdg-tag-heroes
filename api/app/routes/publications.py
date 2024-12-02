@@ -14,7 +14,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import SDGPrediction, SDGLabelDecision
+from models import SDGPrediction, SDGLabelDecision, Fact
 from models.publications.author import Author
 # Import models
 from models.publications.publication import Publication
@@ -826,6 +826,11 @@ async def create_did_you_know_fact(
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
+    # Check if a fact already exists in the database
+    existing_fact = db.query(Fact).filter(Fact.publication_id == publication_id).first()
+    if existing_fact:
+        return {"publication_id": publication_id, "fact": existing_fact.content}
+
     # Ensure the publication has content for fact generation
     if not publication.title and not publication.description:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -837,10 +842,19 @@ async def create_did_you_know_fact(
 
     # Use the SDGExplainer to generate the fact
     try:
-        fact = SDGExplainer().create_fact(title=title, abstract=abstract)
+        new_fact_content = SDGExplainer().create_fact(title=title, abstract=abstract)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Fact generation failed: {str(e)}")
 
+    # Save the new fact to the database
+    new_fact = Fact(
+        content=new_fact_content,
+        publication_id=publication_id
+    )
+    db.add(new_fact)
+    db.commit()
+    db.refresh(new_fact)
+
     # Return the generated fact
-    return {"publication_id": publication_id, "fact": fact}
+    return {"publication_id": publication_id, "fact": new_fact_content}
 
