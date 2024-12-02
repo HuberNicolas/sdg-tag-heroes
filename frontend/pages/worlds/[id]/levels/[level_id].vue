@@ -1,7 +1,8 @@
 <template>
   <div>
-    <p>{{sdgId}}</p>
-    <p>{{levelId}}</p>
+    <p>{{sdgId}} - {{levelId}}</p>
+    <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
+    <UButton label="Back to World" @click="goBackToWorld" />
   </div>
 </template>
 
@@ -21,8 +22,16 @@ const levelId = route.params.level_id;
 
 
 // Navigate back
-const goBack = () => {
+const goBackToWorlds = () => {
   router.push("/worlds");
+};
+
+const goBackToWorld = () => {
+  // Use the current `id` parameter from the route
+  const worldId = route.params.id;
+
+  // Navigate back to `/worlds/:id`
+  router.push({ name: 'worlds-id', params: { id: worldId } });
 };
 </script>
 

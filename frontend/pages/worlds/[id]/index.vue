@@ -35,7 +35,7 @@
           </li>
         </ul>
 
-        <UButton label="Back to Worlds" @click="goBack" />
+        <UButton label="Back to Worlds Overview" @click="goBack" />
 
         <!-- Levels Section -->
         <div class="mt-10">
@@ -58,6 +58,9 @@
                   {{ levelData.reductions[`sdg${sdgId}`]?.level1?.length }} items retrieved for Level 1.
                 </p>
                 <p v-else>No data found for Bronze level.</p>
+                <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 1 }}">
+                  <p>Play</p>
+                </NuxtLink>
               </UCard>
 
               <!-- Silver Level -->
@@ -72,6 +75,9 @@
                   {{ levelData.reductions[`sdg${sdgId}`]?.level2?.length }} items retrieved for Level 2.
                 </p>
                 <p v-else>No data found for Silver level.</p>
+                <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 2 }}">
+                  <p>Play</p>
+                </NuxtLink>
               </UCard>
 
               <!-- Gold Level -->
@@ -86,6 +92,9 @@
                   {{ levelData.reductions[`sdg${sdgId}`]?.level3?.length }} items retrieved for Level 3.
                 </p>
                 <p v-else>No data found for Gold level.</p>
+                <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 3 }}">
+                  <p>Play</p>
+                </NuxtLink>
               </UCard>
             </div>
           </div>
