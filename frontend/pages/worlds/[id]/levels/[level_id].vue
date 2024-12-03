@@ -11,9 +11,11 @@
     <p v-else>
       Data loaded successfully
       <ul>
-        <li v-for="pub in publications" :key="pub.publication_id">
-          {{ pub.title }} (ID: {{ pub.publication_id }})
-        </li>
+          <li v-for="pub in publications" :key="pub.publication_id">
+            <NuxtLink :to="{ name: 'publications-id', params: { id:pub.publication_id }}">
+              {{ pub.title }} (ID: {{ pub.publication_id }})
+            </NuxtLink>
+          </li>
       </ul>
     </p>
   </div>
@@ -36,8 +38,6 @@ const router = useRouter();
 
 const sdgId = parseInt(route.params.id as string, 10);
 const levelId = parseInt(route.params.level_id as string, 10);
-console.log("sdgId", sdgId);
-console.log("levelId", levelId);
 
 
 // Navigation
