@@ -54,8 +54,8 @@
                 <template #header>
                   <h3 class="text-lg font-bold mb-2 text-[#cd7f32]">Bronze</h3>
                 </template>
-                <p v-if="levelData?.reductions?.[`sdg${sdgId}`]?.level1?.length">
-                  {{ levelData.reductions[`sdg${sdgId}`]?.level1?.length }} items retrieved for Level 1.
+                <p v-if="levelData?.levels?.[1]?.reductions?.length">
+                  {{ levelData.levels[1].reductions.length }} items retrieved for Level 1.
                 </p>
                 <p v-else>No data found for Bronze level.</p>
                 <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 1 }}">
@@ -71,8 +71,8 @@
                 <template #header>
                   <h3 class="text-lg font-bold mb-2 text-[#c0c0c0]">Silver</h3>
                 </template>
-                <p v-if="levelData?.reductions?.[`sdg${sdgId}`]?.level2?.length">
-                  {{ levelData.reductions[`sdg${sdgId}`]?.level2?.length }} items retrieved for Level 2.
+                <p v-if="levelData?.levels?.[2]?.reductions?.length">
+                  {{ levelData.levels[2].reductions.length }} items retrieved for Level 2.
                 </p>
                 <p v-else>No data found for Silver level.</p>
                 <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 2 }}">
@@ -88,8 +88,8 @@
                 <template #header>
                   <h3 class="text-lg font-bold mb-2 text-[#ffd700]">Gold</h3>
                 </template>
-                <p v-if="levelData?.reductions?.[`sdg${sdgId}`]?.level3?.length">
-                  {{ levelData.reductions[`sdg${sdgId}`]?.level3?.length }} items retrieved for Level 3.
+                <p v-if="levelData?.levels?.[3]?.reductions?.length">
+                  {{ levelData.levels[3].reductions.length }} items retrieved for Level 3.
                 </p>
                 <p v-else>No data found for Gold level.</p>
                 <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 3 }}">

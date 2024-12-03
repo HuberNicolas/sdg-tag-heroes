@@ -18,7 +18,7 @@ from models import SDGPrediction, SDGLabelDecision, Fact
 from models.publications.author import Author
 # Import models
 from models.publications.publication import Publication
-
+from models.request import PublicationIdsRequest
 
 from schemas.dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
 from schemas.publications.author import AuthorSchemaBase, AuthorSchemaFull
@@ -674,6 +674,20 @@ async def get_publications_by_sdg_values(
 
     return result
 
+@router.post(
+    "/",
+    response_model=List[PublicationSchemaFull],
+    description="Get a list of publications by IDs"
+)
+async def get_publications_by_ids(
+    request: PublicationIdsRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> List[PublicationSchemaFull]:
+    user = verify_token(token)  # Ensure user is authenticated
+    publication_ids = request.publication_ids  # Access the list of IDs
+    publications = db.query(Publication).filter(Publication.publication_id.in_(publication_ids)).all()
+    return [PublicationSchemaFull.model_validate(pub) for pub in publications]
 
 @router.get(
     "/",

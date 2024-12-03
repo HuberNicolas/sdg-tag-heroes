@@ -1,75 +1,90 @@
 import { defineStore } from 'pinia';
-import type { PublicationSchemaFull } from '@/types/publicationSchema'; // Import your PublicationSchema type
+import { useRuntimeConfig } from 'nuxt/app';
+import type { PublicationSchemaFull } from '~/types/publicationSchema';
+const config = useRuntimeConfig();
 
-// Define a Pinia store for managing publications
-export const usePublicationStore = defineStore('publications', {
+export const usePublicationsStore = defineStore('publications', {
   state: () => ({
-    count: 0, // Initial state for count
-    selectedPoints: [], // Array to hold selected data points
-    publications: [] as PublicationSchemaFull[], // Array to hold loaded publications
-    selectedSDG: 0,
-    statistics: {},
-    loading: false, // State to indicate loading status
-    error: null as string | null // State to hold any error messages
+    publications: {} as Record<number, Record<number, Record<number, PublicationSchemaFull>>>, // SDG -> Level -> Publication ID -> Publication
+    fetching: false,
+    error: null as Error | null,
   }),
-
-  getters: {
-    // Getters are exactly the equivalent of computed values for the state of a Store.
-
-    getPublications: (state) => {
-      return state.publications;
-    }
-  },
-
-  setters: {
-    setSelectedSDG: (state, selectedSDG: number) => {
-      state.selectedSDG = selectedSDG;
-    }
-  },
-
-
   actions: {
-    // Actions are the equivalent of methods in components.
 
-    // Action to increment the count
-    increment() {
-      this.count++;
-    },
+    // Fetch a single publication by ID
+    async fetchPublication(sdgId: number, levelId: number, publicationId: number) {
+      if (this.publications[sdgId]?.[levelId]?.[publicationId]) {
+        return; // Already fetched
+      }
 
-    // Action to add points to the selection
-    addSelectedPoints(newPoints) {
-      this.selectedPoints = [...this.selectedPoints, ...newPoints];
-    },
-
-    // Action to clear selected points
-    clearSelectedPoints() {
-      this.selectedPoints = [];
-    },
-
-    // Action to set selected points (useful for brushing)
-    setSelectedPoints(points) {
-      this.selectedPoints = points;
-    },
-
-    // Action to load and store publications
-    async loadPublications(fetchPublicationsFn: () => Promise<PublicationSchema[]>) {
-      this.loading = true;
+      this.fetching = true;
       this.error = null;
+
       try {
-        const response = await fetchPublicationsFn();
-        this.publications = response.publications;
-        this.statistics = response.statistics;
-      } catch (err: any) {
-        this.error = err.message || 'Failed to load publications';
-        console.error('Error loading publications:', err);
+        const response = await $fetch<PublicationSchemaFull>(`${config.public.apiUrl}publications/${publicationId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+
+        if (!this.publications[sdgId]) {
+          this.publications[sdgId] = {};
+        }
+        if (!this.publications[sdgId][levelId]) {
+          this.publications[sdgId][levelId] = {};
+        }
+
+        this.publications[sdgId][levelId][publicationId] = response;
+      } catch (err) {
+        this.error = err as Error;
       } finally {
-        this.loading = false;
+        this.fetching = false;
       }
     },
 
-    // Action to clear publications from the store
-    clearPublications() {
-      this.publications = [];
-    }
-  }
+    // Fetch multiple publications by IDs for a specific SDG and level
+    async fetchPublicationsBatch(sdgId: number, levelId: number, publicationIds: number[]) {
+      const config = useRuntimeConfig();
+      console.log("Called fetchPublicationsBatch ")
+      const missingIds = publicationIds.filter(
+        (id) => !this.publications[sdgId]?.[levelId]?.[id]
+      );
+
+      if (missingIds.length === 0) {
+        return; // All publications already fetched
+      }
+
+      this.fetching = true;
+      this.error = null;
+
+      try {
+        const response = await $fetch<PublicationSchemaFull[]>(`${config.public.apiUrl}publications/`, {
+          method: 'POST',
+          body:  { publication_ids: missingIds },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+
+        if (!this.publications[sdgId]) {
+          this.publications[sdgId] = {};
+        }
+        if (!this.publications[sdgId][levelId]) {
+          this.publications[sdgId][levelId] = {};
+        }
+
+        // If response.data contains the array, use that
+        const publicationsArray = Array.isArray(response) ? response : response.data;
+
+        publicationsArray.forEach((pub) => {
+          this.publications[sdgId][levelId][pub.publication_id] = pub;
+        });
+      } catch (err) {
+        this.error = err as Error;
+      } finally {
+        this.fetching = false;
+      }
+    },
+  },
 });

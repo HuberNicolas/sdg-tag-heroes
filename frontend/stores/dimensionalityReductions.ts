@@ -1,15 +1,38 @@
 import { defineStore } from 'pinia';
 import { useRuntimeConfig } from 'nuxt/app';
-import { DimensionalityReductionResponse } from '~/types/dimensionalityReduction';
+import { DimensionalityReductionGroupedResponse } from '~/types/dimensionalityReduction';
 
 export const useDimensionalityReductionsStore = defineStore('dimensionalityReductions', {
   state: () => ({
-    reductions: {} as Record<number, DimensionalityReductionResponse | null>,
+    reductions: {} as Record<
+      number,
+      {
+        levels: Record<
+          number,
+          { reductions: DimensionalityReduction[]; stats: DimensionalityReductionStats | null }
+        >;
+      }
+    >,
     fetching: false,
     error: null as Error | null,
   }),
+
+  getters: {
+    // Getter to access reductions for a specific SDG and level
+    getReductionsForLevel: (state) => (sdgId: number, levelId: number) => {
+      const sdgData = state.reductions[sdgId];
+      if (!sdgData) return null;
+
+      const levelData = sdgData.levels[levelId]; // Access level data
+      if (!levelData) return null;
+
+      return levelData.reductions || null; // Return reductions for the level
+    },
+  },
+
   actions: {
     async fetchReductions(sdgId: number) {
+      // Check if data for this SDG is already in the store
       if (this.reductions[sdgId]) {
         return; // Already fetched
       }
@@ -19,9 +42,12 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
       this.error = null;
 
       try {
-        const levels = [1, 2, 3];
+        const levels = [1, 2, 3]; // Define the levels to fetch
+        this.reductions[sdgId] = { levels: {} }; // Initialize the SDG structure
+
+        // Fetch data for all levels in parallel
         const fetchPromises = levels.map((level) =>
-          $fetch<DimensionalityReductionResponse>(
+          $fetch<DimensionalityReductionGroupedResponse>(
             `${config.public.apiUrl}dimensionality_reductions?sdg=${sdgId}&level=${level}`,
             {
               method: 'GET',
@@ -34,44 +60,77 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
 
         const results = await Promise.all(fetchPromises);
 
-        // Merge all levels into one response
-        const reductions: DimensionalityReductionResponse = {
-          reductions: {},
-          stats: {
-            total_sdg_groups: 0,
-            total_levels: 0,
-            total_reductions: 0,
-            sdg_breakdown: {},
-          },
-        };
+        // Process the results for each level
+        results.forEach((result, index) => {
+          const level = levels[index]; // Current level being processed
 
-        results.forEach((result) => {
-          Object.entries(result.reductions).forEach(([sdg, levels]) => {
-            if (!reductions.reductions[sdg]) {
-              reductions.reductions[sdg] = {};
-            }
-            Object.entries(levels).forEach(([level, data]) => {
-              reductions.reductions[sdg][level] = data;
-            });
-          });
-          reductions.stats.total_sdg_groups += result.stats.total_sdg_groups;
-          reductions.stats.total_levels += result.stats.total_levels;
-          reductions.stats.total_reductions += result.stats.total_reductions;
-          Object.entries(result.stats.sdg_breakdown).forEach(([sdg, stats]) => {
-            if (!reductions.stats.sdg_breakdown[sdg]) {
-              reductions.stats.sdg_breakdown[sdg] = { total_levels: 0, total_reductions: 0 };
-            }
-            reductions.stats.sdg_breakdown[sdg].total_levels += stats.total_levels;
-            reductions.stats.sdg_breakdown[sdg].total_reductions += stats.total_reductions;
-          });
+          // Initialize the level structure if not present
+          if (!this.reductions[sdgId].levels[level]) {
+            this.reductions[sdgId].levels[level] = { reductions: [], stats: null };
+          }
+
+          // Assign reductions and stats for the specific level
+          const reductions = result.reductions[`sdg${sdgId}`]?.[`level${level}`] || [];
+          const stats = result.stats.sdg_breakdown[`sdg${sdgId}`] || null;
+
+          this.reductions[sdgId].levels[level] = { reductions, stats };
         });
 
-        this.reductions[sdgId] = reductions;
+        console.log(`Finished loading reductions for SDG ${sdgId}`);
       } catch (err) {
         this.error = err as Error;
       } finally {
         this.fetching = false;
       }
     },
+
+
+    async fetchReductionsPerLevel(sdgId: number, level: number) {
+      // Check if data for this SDG and level is already in the store
+      if (this.reductions[sdgId]?.levels[level]?.reductions?.length) {
+        return; // Already fetched
+      }
+
+      const config = useRuntimeConfig();
+      this.fetching = true;
+      this.error = null;
+
+      try {
+        const queryParams = new URLSearchParams({ sdg: sdgId.toString(), level: level.toString() });
+
+        const result = await $fetch<DimensionalityReductionGroupedResponse>(
+          `${config.public.apiUrl}dimensionality_reductions?${queryParams.toString()}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            },
+          }
+        );
+
+        // Initialize the SDG structure if not present
+        if (!this.reductions[sdgId]) {
+          this.reductions[sdgId] = { levels: {} };
+        }
+
+        // Initialize the level structure if not present
+        if (!this.reductions[sdgId].levels[level]) {
+          this.reductions[sdgId].levels[level] = { reductions: [], stats: null };
+        }
+
+        // Assign reductions and stats for the specific level
+        const reductions = result.reductions[`sdg${sdgId}`]?.[`level${level}`] || [];
+        const stats = result.stats.sdg_breakdown[`sdg${sdgId}`] || null;
+
+        this.reductions[sdgId].levels[level] = { reductions, stats };
+
+        console.log(`Finished loading reductions for SDG ${sdgId}, Level ${level}`);
+      } catch (err) {
+        this.error = err as Error;
+      } finally {
+        this.fetching = false;
+      }
+    },
+
   },
 });
