@@ -1,6 +1,7 @@
 import { useRuntimeConfig } from "nuxt/app";
 import type { SDGGoal } from "@/types/schemas";
 
+
 export default class UseSDGGoals {
   private config = useRuntimeConfig();
 
