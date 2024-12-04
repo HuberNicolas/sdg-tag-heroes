@@ -55,6 +55,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Bottom Section: Scrollable Labels -->
+    <div class="labels-section">
+      <h2 class="text-xl font-bold mb-4">Existing Labels</h2>
+      <div v-if="labelsLoading" class="loading">Loading labels...</div>
+      <div v-if="labelsError" class="error">{{ labelsError }}</div>
+      <div v-if="!labelsLoading && !labelsError && userLabels.length > 0" class="scrollable-labels">
+        <div v-for="label in userLabels" :key="label.label_id" class="label-card">
+          <p><strong>Proposed Label:</strong> {{ label.proposed_label }}</p>
+          <p><strong>Voted Label:</strong> {{ label.voted_label }}</p>
+          <p><strong>Description:</strong> {{ label.description }}</p>
+          <p><strong>Label Date:</strong> {{ formatDate(label.labeled_at) }}</p>
+        </div>
+      </div>
+      <p v-else>No labels found.</p>
+    </div>
   </div>
 </template>
 
@@ -76,7 +92,7 @@ const publication = computed(() => publicationsStore.selectedPublication);
 const markedText = ref("");
 const proposedLabel = ref<string | null>(null);
 const votedLabel = ref<string | null>(null);
-const labels = ["1", "2", "3", "4", "5"]; // Example dropdown options for labels
+const labels = ["1", "2", "3", "4", "5"];
 const highlightedAbstract = computed(() => {
   if (!publication.value?.description || !markedText.value) {
     return publication.value?.description || "No abstract available.";
@@ -86,6 +102,30 @@ const highlightedAbstract = computed(() => {
     `<mark class="highlight">${markedText.value}</mark>`
   );
 });
+
+// Labels Data
+const userLabels = ref([]);
+const labelsLoading = ref(false);
+const labelsError = ref<string | null>(null);
+
+const fetchLabels = async () => {
+  labelsLoading.value = true;
+  labelsError.value = null;
+
+  try {
+    const response = await $fetch(`${config.public.apiUrl}sdg_user_labels/publications/${publicationId.value}/labels`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+    userLabels.value = response;
+  } catch (err: any) {
+    labelsError.value = err.message || "Failed to load labels.";
+  } finally {
+    labelsLoading.value = false;
+  }
+};
 
 // Fetch publication details
 const fetchPublicationDetails = async () => {
@@ -98,6 +138,7 @@ const fetchPublicationDetails = async () => {
     error.value = err.message || "Failed to fetch publication details.";
   } finally {
     loading.value = false;
+    fetchLabels();
   }
 };
 
@@ -133,7 +174,7 @@ const confirmSelection = async () => {
     });
 
     console.log("Submitted successfully:", response);
-    // Reset inputs
+    fetchLabels(); // Refresh labels after submission
     markedText.value = "";
     proposedLabel.value = null;
     votedLabel.value = null;
@@ -141,11 +182,18 @@ const confirmSelection = async () => {
     console.error("Submission failed:", err.message || err);
   }
 };
+
+// Format dates for display
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString();
+};
 </script>
 
 <style scoped>
 .abstract-marking-page {
   display: flex;
+  flex-direction: column;
   gap: 1rem;
   height: 100vh;
   padding: 1rem;
@@ -155,34 +203,46 @@ const confirmSelection = async () => {
 .abstract-card-container {
   width: 50%;
   padding: 1rem;
-  box-sizing: border-box;
 }
 
 .details-container {
   width: 50%;
   padding: 1rem;
-  box-sizing: border-box;
 }
 
-.abstract-card,
-.details-card {
-  background: #ffffff;
+.labels-section {
+  margin-top: 2rem;
+}
+
+.scrollable-labels {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  height: 100%;
+}
+
+.label-card {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+.loading {
+  text-align: center;
+  color: #888888;
+}
+
+.error {
+  color: red;
+  text-align: center;
 }
 
 .highlight {
   background-color: yellow;
   font-weight: bold;
-}
-
-.marked-text {
-  background-color: #f0f0f0;
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-style: italic;
 }
 
 .dropdown {
@@ -195,7 +255,7 @@ const confirmSelection = async () => {
 
 .confirm-button {
   background-color: #007bff;
-  color: #fff;
+  color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
