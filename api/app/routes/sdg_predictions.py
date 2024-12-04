@@ -109,3 +109,16 @@ async def get_publications_by_ids(
     return [SDGPredictionSchemaFull.model_validate(pub) for pub in publications]
 
 
+@router.get(
+    "/publications/{publication_id}",
+    response_model=List[SDGPredictionSchemaFull],
+    description="Get predictions for a single publication ID"
+)
+async def get_publications_by_ids(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> List[SDGPredictionSchemaFull]:
+    user = verify_token(token)  # Ensure user is authenticated
+    publication= db.query(SDGPrediction).filter(SDGPrediction.prediction_id == publication_id).filter(SDGPrediction.prediction_model == "Aurora").first()
+    return [SDGPredictionSchemaFull.model_validate(publication)]
