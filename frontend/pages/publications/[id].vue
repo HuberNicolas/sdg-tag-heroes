@@ -14,7 +14,7 @@
         </template>
         <HexGrid />
         <template #footer>
-          <p class="text-sm mt-4">---</p>
+          <p class="text-sm mt-0">---</p>
         </template>
         </UCard>
       </div>
@@ -59,6 +59,8 @@ import { ref, watch } from "vue";
 import { useRuntimeConfig } from "nuxt/app";
 import { formatDate } from "~/utils/formatDate";
 import HexGrid from "~/components/HexGrid.vue";
+import {usePublicationsStore} from "~/stores/publications";
+const publicationStore = usePublicationsStore();
 
 const config = useRuntimeConfig();
 
@@ -66,29 +68,40 @@ const config = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
 
+// Loading and error state
+const loading = ref(true);
+const error = ref<string | null>(null);
+
 // Current publication ID
 const publicationId = ref<number>(Number(route.params.id));
 
-// Fetch publication details using useAsyncData
-const { data: publication, pending: loading, error, refresh } = useAsyncData(
-  `publication-${publicationId.value}`, // Unique key for the fetch
-  () =>
-    $fetch<PublicationSchemaFull>(`${config.public.apiUrl}publications/${publicationId.value}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      },
-    }),
-  { immediate: true } // Fetch data on component mount
-);
+// Fetch the publication when the component is mounted or the route changes
+const fetchPublicationDetails = async () => {
+  loading.value = true;
+  error.value = null;
 
-// Watch for route changes to refresh data
+  try {
+    await publicationStore.fetchPublication(publicationId.value);
+  } catch (err: any) {
+    error.value = err.message || "Failed to fetch publication details.";
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(fetchPublicationDetails);
+
 watch(
   () => route.params.id,
-  (newId) => {
+  async (newId) => {
     publicationId.value = Number(newId);
-    refresh(); // Refresh the fetch with new ID
+    await fetchPublicationDetails();
   }
 );
+
+// Access the fetched publication from the store
+const publication = computed(() => publicationStore.selectedPublication);
+
 
 // Format author name
 const formatAuthorName = (author: AuthorSchemaFull): string => {

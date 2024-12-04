@@ -6,7 +6,9 @@ const config = useRuntimeConfig();
 export const usePublicationsStore = defineStore('publications', {
   state: () => ({
     publications: {} as Record<number, Record<number, Record<number, PublicationSchemaFull>>>, // SDG -> Level -> Publication ID -> Publication
+    selectedPublication: null,
     fetching: false,
+    loading: false,
     error: null as Error | null,
   }),
   getters: {
@@ -29,13 +31,15 @@ export const usePublicationsStore = defineStore('publications', {
         return levelPublications?.[publicationId] || null;
       };
     },
+    getSelectedPublication: (state) => {
+      return state.selectedPublications;
+    }
   },
   actions: {
-
     // Fetch a single publication by ID
-    async fetchPublication(sdgId: number, levelId: number, publicationId: number) {
-      if (this.publications[sdgId]?.[levelId]?.[publicationId]) {
-        return; // Already fetched
+    async fetchPublication(publicationId: number) {
+      if (this.selectedPublication && this.selectedPublication.publication_id === publicationId) {
+        return; // Already fetched and selected
       }
 
       this.fetching = true;
@@ -49,20 +53,14 @@ export const usePublicationsStore = defineStore('publications', {
           },
         });
 
-        if (!this.publications[sdgId]) {
-          this.publications[sdgId] = {};
-        }
-        if (!this.publications[sdgId][levelId]) {
-          this.publications[sdgId][levelId] = {};
-        }
-
-        this.publications[sdgId][levelId][publicationId] = response;
+        this.selectedPublication = response;
       } catch (err) {
         this.error = err as Error;
       } finally {
         this.fetching = false;
       }
     },
+
 
     // Fetch multiple publications by IDs for a specific SDG and level
     async fetchPublicationsBatch(sdgId: number, levelId: number, publicationIds: number[]) {

@@ -51,7 +51,7 @@ export default function useHexGrid(values: number[]) {
     // Add SVG with proper scaling
     const svg = container
       .append('svg')
-      .attr('viewBox', `-${xSpacing} ${-0.61*gridHeight} ${gridWidth} ${gridHeight + ySpacing}`)
+      .attr('viewBox', `-${xSpacing} ${-0.623*gridHeight} ${gridWidth} ${gridHeight + ySpacing}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
       .attr('width', '100%')
       .attr('height', '100%')

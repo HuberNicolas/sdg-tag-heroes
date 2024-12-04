@@ -5,6 +5,7 @@ import type { SDGPredictionSchemaFull } from '~/types/sdgPredictionSchema';
 export const usePredictionsStore = defineStore('predictions', {
   state: () => ({
     predictions: {} as Record<number, Record<number, SDGPredictionSchemaFull>>, // SDG -> Prediction ID -> Prediction
+    selectedPublicationPrediction: null,
     fetching: false,
     error: null as Error | null,
   }),
@@ -60,6 +61,34 @@ export const usePredictionsStore = defineStore('predictions', {
         response.forEach((prediction) => {
           this.predictions[sdgId][levelId][prediction.prediction_id] = prediction;
         });
+      } catch (err) {
+        this.error = err as Error;
+      } finally {
+        this.fetching = false;
+      }
+    },
+    async fetchPredictionsByPublicationId(publicationId: number) {
+      console.log(publicationId);
+      const config = useRuntimeConfig();
+
+      this.fetching = true;
+      this.error = null;
+
+      try {
+        // Fetch predictions using POST
+        const response = await $fetch<SDGPredictionSchemaFull[]>(
+          `${config.public.apiUrl}sdg_predictions/publications/${publicationId}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            },
+          }
+        );
+
+        // Replace existing predictions with the fetched ones
+        this.selectedPublicationPrediction = response[0];
+
       } catch (err) {
         this.error = err as Error;
       } finally {
