@@ -1,23 +1,22 @@
 <template>
   <div>
-    <p>{{ sdgId }} - {{ levelId }}</p>
-    <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
-    <UButton label="Back to World" @click="goBackToWorld" />
+    <div>
 
-    <p v-if="fetchingReductions || fetchingPublications">Loading data...</p>
-    <p v-else-if="errorReductions || errorPublications">
-      Error: {{ errorReductions?.message || errorPublications?.message }}
-    </p>
-    <p v-else>
-      Data loaded successfully
-      <ul>
-          <li v-for="pub in publications" :key="pub.publication_id">
-            <NuxtLink :to="{ name: 'publications-id', params: { id:pub.publication_id }}">
-              {{ pub.title }} (ID: {{ pub.publication_id }})
-            </NuxtLink>
-          </li>
-      </ul>
-    </p>
+    </div>
+    <div>
+      <p>{{ sdgId }} - {{ levelId }}</p>
+      <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
+      <UButton label="Back to World" @click="goBackToWorld" />
+
+      <p v-if="fetchingReductions || fetchingPublications">Loading data...</p>
+      <p v-else-if="errorReductions || errorPublications">
+        Error: {{ errorReductions?.message || errorPublications?.message }}
+      </p>
+      <p v-else>
+        Data loaded successfully
+        <PublicationTable :sdgId="sdgId" :levelId="levelId" />
+      </p>
+    </div>
   </div>
 </template>
 

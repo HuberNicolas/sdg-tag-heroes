@@ -1,24 +1,58 @@
 <script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { ref, computed, watch } from 'vue';
-import { usePublicationStore } from '~/stores/publications';
+import { useRouter } from 'vue-router';
+import { usePublicationsStore } from '~/stores/publications';
 
-const publicationStore = usePublicationStore();
+interface Props {
+  sdgId: number;
+  levelId: number;
+}
+
+const props = defineProps<Props>();
+const router = useRouter();
+
+const publicationStore = usePublicationsStore();
 const { publications } = storeToRefs(publicationStore);
 
-// Watch the publications for changes (for debugging purposes)
-watch(publications, () => {
-  // console.log(publications.value); // Check the structure of publications
-});
+// State for fetching and errors
+const fetching = ref(false);
+const error = ref<Error | null>(null);
 
-// Extract and flatten the list of publications from the nested structure
+// Fetch publications for the given SDG and Level
+const loadPublications = async () => {
+  fetching.value = true;
+  error.value = null;
+
+  try {
+    // Flatten and retrieve publication IDs for the given SDG and Level
+    const pubIds = Object.keys(
+      publicationStore.publications[props.sdgId]?.[props.levelId] || {}
+    ).map(Number);
+
+    if (pubIds.length === 0) {
+      console.warn('No publications to fetch for this level.');
+      return;
+    }
+
+    // Fetch publications if not already cached
+    await publicationStore.fetchPublicationsBatch(props.sdgId, props.levelId, pubIds);
+  } catch (err) {
+    error.value = err as Error;
+    console.error('Error loading publications:', err);
+  } finally {
+    fetching.value = false;
+  }
+};
+
+// Flatten and retrieve all publications for the given SDG and Level
 const allPublications = computed(() => {
-  const pubData = publications.value ? publications.value : {};
-  // Flatten all the SDG publication arrays into a single array
-  return Object.values(pubData).flat();
+  return Object.values(
+    publicationStore.publications[props.sdgId]?.[props.levelId] || {}
+  );
 });
 
-// Define columns for the UTable component
+// Table Columns
 const columns = [
   { key: 'publication_id', label: 'ID', sortable: true },
   { key: 'title', label: 'Title', sortable: true },
@@ -26,65 +60,68 @@ const columns = [
   { key: 'publisher', label: 'Publisher', sortable: false }
 ];
 
-// Selection
-const selected = ref([]);
-
-// Search
+// Search Query
 const q = ref('');
 
-// Filtered rows with search
+// Filtered Rows
 const filteredRows = computed(() => {
   if (!q.value) {
     return allPublications.value;
   }
-
   return allPublications.value.filter((publication) => {
-    return Object.values(publication).some((value) => {
-      if (value) {
-        return String(value).toLowerCase().includes(q.value.toLowerCase());
-      }
-      return false;
-    });
+    return Object.values(publication).some((value) =>
+      String(value || '').toLowerCase().includes(q.value.toLowerCase())
+    );
   });
 });
 
-
 // Pagination
-const pageElements = 5;
 const page = ref(1);
+const pageElements = 5;
 const pageCount = computed(() => Math.ceil(filteredRows.value.length / pageElements));
 const rows = computed(() => {
   const start = (page.value - 1) * pageElements;
   const end = start + pageElements;
-  return filteredRows.value.slice(start, end); // `filteredRows.value` should always be an array now
+  return filteredRows.value.slice(start, end);
 });
 
-// Expandable
+// Selection and Expandable Rows
+const selected = ref([]);
 const expand = ref({
   openedRows: [],
-  row: {}
+  row: {},
 });
 
-// Selection function
+// Handle Row Selection
 function select(row) {
   const index = selected.value.findIndex((item) => item.publication_id === row.publication_id);
+  console.log(row)
   if (index === -1) {
     selected.value.push(row);
+
+    // Navigate to the route when a row is selected
+    router.push({ name: 'publications-id', params: { id: row.publication_id } });
   } else {
     selected.value.splice(index, 1);
   }
 }
+
+// Load data when the component is mounted
+onMounted(() => {
+  loadPublications();
+});
 </script>
 
 <template>
   <div>
+    <!-- Search Input -->
     <div class="flex px-3 py-3.5 border-b border-gray-200 dark:border-gray-700">
-      <UInput v-model="q" placeholder="Filter publications..." />
+      <UInput v-model="q" placeholder="Search publications..." />
     </div>
 
-    <!-- Conditional Rendering: Check if publications are available -->
+    <!-- Table -->
     <UTable
-      :loading="publicationStore.loading"
+      :loading="fetching"
       :loading-state="{ icon: 'i-heroicons-arrow-path-20-solid', label: 'Loading...' }"
       :progress="{ color: 'primary', animation: 'carousel' }"
       :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
@@ -102,6 +139,7 @@ function select(row) {
       </template>
     </UTable>
 
+    <!-- Pagination -->
     <div class="flex justify-end px-3 py-3.5 border-t border-gray-200 dark:border-gray-700">
       <UPagination v-model="page" :page-count="pageCount" :total="filteredRows.length" />
     </div>

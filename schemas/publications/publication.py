@@ -19,6 +19,8 @@ class PublicationSchemaFull(PublicationSchemaBase):
     oai_identifier_num: int
     title: Optional[str]
     description: Optional[str]
+    publisher: Optional[str]
+    year: Optional[int]
     authors: Optional[List[Union[AuthorSchemaBase, AuthorSchemaFull]]]
 
     created_at: datetime

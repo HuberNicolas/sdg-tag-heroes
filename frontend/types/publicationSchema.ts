@@ -10,6 +10,8 @@ export interface PublicationSchemaFull extends PublicationSchemaBase {
   title?: string;
   description?: string;
   authors?: Array<AuthorSchemaBase | AuthorSchemaFull>;
+  year?: number;
+  publisher?: string;
   created_at: string;
   updated_at: string;
 }
