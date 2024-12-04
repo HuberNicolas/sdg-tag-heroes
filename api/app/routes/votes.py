@@ -65,7 +65,7 @@ async def get_vote(
     Retrieve a specific vote by its ID.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         vote = db.query(Vote).filter(Vote.vote_id == vote_id).first()
 
@@ -99,7 +99,7 @@ async def create_vote(
     Create a new vote.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Ensure that exactly one of `sdg_user_label_id` or `annotation_id` is provided
         if (vote_data.sdg_user_label_id is None) == (vote_data.annotation_id is None):
@@ -143,7 +143,7 @@ async def get_all_votes(
     Retrieve all votes in the system.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         votes = db.query(Vote).all()
         return [VoteSchemaFull.model_validate(vote) for vote in votes]

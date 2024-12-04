@@ -78,7 +78,7 @@ async def get_sdg_user_labels(
     Retrieve all SDGUserLabel entries for a specific SDGLabelDecision.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the SDGLabelDecision
         decision = db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == decision_id).first()
@@ -114,7 +114,7 @@ async def get_sdg_user_label(
     Retrieve a specific SDGUserLabel entry for a specific SDGLabelDecision.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the SDGLabelDecision
         decision = db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == decision_id).first()
@@ -158,7 +158,7 @@ async def get_sdg_label_history(
     Retrieve the SDGLabelHistory for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDGLabelHistory
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -200,7 +200,7 @@ async def get_sdg_label_summary(
     Retrieve the SDGLabelSummary for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDGLabelSummary
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -234,7 +234,7 @@ async def get_sdg_label_decisions(
     Retrieve all SDGLabelDecision entries for a publication's SDGLabelHistory.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDGLabelHistory
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -278,7 +278,7 @@ async def get_sdg_label_decision(
     Retrieve a specific SDGLabelDecision entry for a publication's SDGLabelHistory.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDGLabelHistory
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -331,7 +331,7 @@ async def get_sdg_predictions(
     Retrieve all SDG predictions for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDG predictions
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -370,7 +370,7 @@ async def get_sdg_prediction(
     Retrieve a specific SDG prediction for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -420,7 +420,7 @@ async def get_dimensionality_reductions(
     Retrieve all dimensionality reductions for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its dimensionality reductions
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -459,7 +459,7 @@ async def get_dimensionality_reduction(
     Retrieve a specific dimensionality reduction for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -509,7 +509,7 @@ async def get_publication_author(
     Retrieve a specific author for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -554,7 +554,7 @@ async def get_publication_authors(
     Retrieve all authors for a specific publication.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its authors
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -596,7 +596,7 @@ async def get_publications_by_sdg_values(
     Always returns the full model with all related data included.
     """
     # Verify the token before proceeding
-    user = verify_token(token)  # Raises HTTPException if the token is invalid or expired
+    user = verify_token(token, db)  # Raises HTTPException if the token is invalid or expired
 
     # Unpack the range
     min_value, max_value = sdg_range
@@ -684,7 +684,7 @@ async def get_publications_by_ids(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ) -> List[PublicationSchemaFull]:
-    user = verify_token(token)  # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
     publication_ids = request.publication_ids  # Access the list of IDs
     publications = db.query(Publication).filter(Publication.publication_id.in_(publication_ids)).all()
     return [PublicationSchemaFull.model_validate(pub) for pub in publications]
@@ -703,7 +703,7 @@ async def get_publications(
     Supports pagination.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
         # Base query for fetching publications
         query = db.query(Publication)
 
@@ -735,7 +735,7 @@ async def get_publication(
     Retrieve a single publication by ID.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query to fetch the publication by ID
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -763,7 +763,7 @@ async def get_publication(
             description="Explain the relevance of a publication to a specific SDG")
 async def explain_publication_sdg_relevance(publication_id: int, sdg_id: int, db: Session = Depends(get_db),
                                             token: str = Depends(oauth2_scheme)) -> dict:
-    user = verify_token(token)  # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
@@ -778,7 +778,7 @@ async def explain_publication_sdg_relevance(publication_id: int, sdg_id: int, db
             description="Explain the relevance of a publication to a specific SDG target")
 async def explain_publication_sdg_target(publication_id: int, target_id: str, db: Session = Depends(get_db),
                                          token: str = Depends(oauth2_scheme)) -> dict:
-    user = verify_token(token)  # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
@@ -798,7 +798,7 @@ async def extract_keywords(
     Extract keywords from a specific publication using the GPT-based explainer.
     """
     # Verify the user's token
-    user = verify_token(token)  # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
 
     # Fetch the publication by its ID
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -833,7 +833,7 @@ async def create_did_you_know_fact(
     """
     Generate a 'Did-You-Know' fact based on the given title and abstract.
     """
-    user = verify_token(token)  # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
 
     # Fetch the publication by its ID
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()

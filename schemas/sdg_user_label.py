@@ -23,7 +23,7 @@ class SDGUserLabelSchemaBase(BaseModel):
 
 
 class SDGUserLabelSchemaCreate(BaseModel):
-    user_id: int
+    # user_id: Optional[int] = None
     proposed_label: int = None
     voted_label: int
     description: Optional[str] = None

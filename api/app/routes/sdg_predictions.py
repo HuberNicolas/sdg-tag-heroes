@@ -74,7 +74,7 @@ async def get_predictions_by_publication_ids(
         List[SDGPredictionSchemaFull]: List of predictions for the provided publication IDs.
     """
     # Authenticate the user
-    user = verify_token(token)
+    user = verify_token(token, db)
 
     # Extract the publication IDs from the request
     publications_ids = request.publications_ids  # Access the list of IDs
@@ -103,7 +103,7 @@ async def get_publications_by_ids(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
-    user = verify_token(token)  # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
     sdg_predictions_ids = request.sdg_predictions_ids  # Access the list of IDs
     publications = db.query(SDGPrediction).filter(SDGPrediction.prediction_id.in_(sdg_predictions_ids)).all()
     return [SDGPredictionSchemaFull.model_validate(pub) for pub in publications]
@@ -119,6 +119,6 @@ async def get_publications_by_ids(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
-    user = verify_token(token)  # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
     publication= db.query(SDGPrediction).filter(SDGPrediction.prediction_id == publication_id).filter(SDGPrediction.prediction_model == "Aurora").first()
     return [SDGPredictionSchemaFull.model_validate(publication)]

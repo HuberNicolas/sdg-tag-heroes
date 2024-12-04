@@ -62,7 +62,7 @@ async def get_all_authors(
     Retrieve all authors. Responds with a minimal or full response based on the 'minimal' query parameter.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
         logging.info(f"Fetching all authors with minimal={minimal}")
 
         # Base query
@@ -104,7 +104,7 @@ async def get_author(
     Retrieve a single author by ID. Responds with minimal or full details based on the 'minimal' query parameter.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
         logging.info(f"Fetching author with ID: {author_id}, minimal={minimal}")
 
         # Query the database for the author

@@ -48,7 +48,7 @@ async def get_users(
     Retrieve users filtered by role. If no role is specified, returns all users.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         query = db.query(User)
 
@@ -73,7 +73,7 @@ async def get_user_by_id(
     Retrieve a specific user by their ID.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query for the user by ID
         user_instance = db.query(User).filter(User.user_id == user_id).first()

@@ -62,7 +62,7 @@ async def get_sdg(
     """
     try:
         # Authenticate user
-        user = verify_token(token)
+        user = verify_token(token, db)
         logging.info(f"Fetching SDG goal with ID: {sdg_id}")
 
         # Base query for fetching the SDG goal
@@ -101,7 +101,7 @@ async def get_sdgs(
     """
     try:
         # Authenticate user
-        user = verify_token(token)
+        user = verify_token(token, db)
         logging.info("Fetching all SDG goals")
 
         # Base query for SDG goals

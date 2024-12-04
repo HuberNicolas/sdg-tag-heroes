@@ -62,7 +62,7 @@ async def get_vote_for_annotation(
     Retrieve a specific vote associated with a specific annotation.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         annotation = db.query(Annotation).filter(Annotation.annotation_id == annotation_id).first()
         if not annotation:
@@ -102,7 +102,7 @@ async def get_votes_for_annotation(
     Retrieve all votes associated with a specific annotation.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         annotation = db.query(Annotation).filter(Annotation.annotation_id == annotation_id).first()
         if not annotation:
@@ -134,7 +134,7 @@ async def create_vote(
     Create a new vote.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         # Ensure that the validation logic in `VoteSchemaCreate` has been applied
         new_vote = Vote(
@@ -197,7 +197,7 @@ async def get_annotation(
     Retrieve a specific annotation by its ID.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         annotation = db.query(Annotation).filter(Annotation.annotation_id == annotation_id).first()
 
@@ -231,7 +231,7 @@ async def get_all_annotations(
     Retrieve all annotations in the system.
     """
     try:
-        user = verify_token(token)  # Ensure user is authenticated
+        user = verify_token(token, db)  # Ensure user is authenticated
 
         annotations = db.query(Annotation).all()
         return [AnnotationSchemaFull.model_validate(annotation) for annotation in annotations]

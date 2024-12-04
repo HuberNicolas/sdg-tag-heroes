@@ -54,7 +54,7 @@ class TokenData(BaseModel):
 
 
 # Function to verify JWT tokens and extract claims using PyJWT
-def verify_token(token: str):
+def verify_token(token: str, db: Session):
     try:
         # Decode the token using PyJWT
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -71,7 +71,17 @@ def verify_token(token: str):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        return TokenData(email=email, roles=roles)
+            # Query the database for the user
+        from models.users.user import User  # Import User model
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        return {"user_id": user.user_id, "email": user.email, "roles": roles}
 
     # Handle various exceptions from PyJWT
 
@@ -96,18 +106,19 @@ def verify_token(token: str):
         )
 
 @router.get("/protected")
-async def protected_route(token: str = Depends(oauth2_scheme)):
+async def protected_route(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
         Protected endpoint that requires JWT authentication.
 
         Parameters:
             token: The JWT provided in the Authorization header.
+            db: The database session.
 
         Returns:
             Information about the authenticated user.
         """
-    user = verify_token(token)
-    return {"email": user.email, "roles": user.roles}
+    user = verify_token(token, db)
+    return {"user_id": user["user_id"], "email": user["email"], "roles": user["roles"]}
 
 class LoginRequest(BaseModel):
     email: str

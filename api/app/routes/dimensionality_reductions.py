@@ -74,7 +74,7 @@ async def get_dimensionality_reductions_by_sdg_values(
     Includes additional filters for levels and reduction shorthand.
     """
     # Verify the token before proceeding
-    user = verify_token(token)  # Raises HTTPException if the token is invalid or expired
+    user = verify_token(token, db)  # Raises HTTPException if the token is invalid or expired
 
     # Unpack the range
     min_value, max_value = sdg_range
