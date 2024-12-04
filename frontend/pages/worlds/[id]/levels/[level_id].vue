@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-
+<MinimapContainer></MinimapContainer>
     </div>
     <div>
       <p>{{ sdgId }} - {{ levelId }}</p>

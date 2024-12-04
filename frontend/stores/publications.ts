@@ -9,6 +9,27 @@ export const usePublicationsStore = defineStore('publications', {
     fetching: false,
     error: null as Error | null,
   }),
+  getters: {
+    // General getter to retrieve publications dynamically
+    getPublications: (state) => {
+      return (sdgId?: number, levelId?: number, publicationId?: number) => {
+
+        // If sdgId is not provided, return the entire publications object
+        if (sdgId === undefined) return state.publications;
+
+        // If levelId is not provided, return all levels for the specified SDG
+        const sdgLevels = state.publications[sdgId];
+        if (levelId === undefined) return sdgLevels || {};
+
+        // If publicationId is not provided, return all publications for the specified level
+        const levelPublications = sdgLevels?.[levelId];
+        if (publicationId === undefined) return levelPublications || {};
+
+        // Return the specific publication, or null if not found
+        return levelPublications?.[publicationId] || null;
+      };
+    },
+  },
   actions: {
 
     // Fetch a single publication by ID

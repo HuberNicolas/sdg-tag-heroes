@@ -13,6 +13,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
         >;
       }
     >,
+    selectedPoints: null,
     fetching: false,
     error: null as Error | null,
   }),
@@ -31,6 +32,12 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
   },
 
   actions: {
+    clearSelectedPoints() {
+      this.selectedPoints = null;
+    },
+    setSelectedPoints (points: any) {
+      this.selectedPoints = points;
+    },
     async fetchReductions(sdgId: number) {
       // Check if data for this SDG is already in the store
       if (this.reductions[sdgId]) {
