@@ -12,7 +12,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import SDGUserLabel, SDGLabelDecision
+from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association
 from models.publications.publication import Publication
 from models.sdg_label_history import SDGLabelHistory
 from models.sdg_label_summary import SDGLabelSummary
@@ -51,6 +51,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 @router.post(
     "/publications/{publication_id}",
     response_model=SDGUserLabelSchemaFull,
@@ -145,6 +146,75 @@ async def create_sdg_user_label(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while creating or linking the SDG user label.",
+        )
+
+@router.get(
+    "/publications/{publication_id}/labels",
+    response_model=List[SDGUserLabelSchemaFull],
+    description="Retrieve all SDG user labels for a specific publication.",
+)
+async def get_sdg_user_labels_for_publication(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGUserLabelSchemaFull]:
+    """
+    Retrieve all SDG user labels associated with a specific publication.
+    """
+    try:
+        # Verify token (optional, depending on access control requirements)
+        verify_token(token, db)
+
+        # Retrieve the publication
+        publication = db.query(Publication).filter(
+            Publication.publication_id == publication_id
+        ).first()
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found.",
+            )
+
+
+        # Retrieve associated SDGLabelSummary
+        sdg_label_summary = db.query(SDGLabelSummary).filter(
+            SDGLabelSummary.publication_id == publication.publication_id
+        ).first()
+        if not sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelSummary for Publication ID {publication.publication_id} not found.",
+            )
+
+
+        # Retrieve associated SDGLabelHistory
+        history = db.query(SDGLabelHistory).filter(
+            SDGLabelHistory.history_id == sdg_label_summary.history_id
+        ).first()
+        if not history:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDGLabelHistory for Summary ID {sdg_label_summary.sdg_label_summary_id} not found.",
+            )
+
+        # Retrieve all SDGUserLabels through the association table
+        labels = (
+            db.query(SDGUserLabel)
+            .join(sdg_label_decision_user_label_association,
+                  sdg_label_decision_user_label_association.c.user_label_id == SDGUserLabel.label_id)
+            .join(SDGLabelDecision,
+                  sdg_label_decision_user_label_association.c.decision_id == SDGLabelDecision.decision_id)
+            .filter(SDGLabelDecision.history_id == history.history_id)
+            .all()
+        )
+
+        return [SDGUserLabelSchemaFull.model_validate(label) for label in labels]
+
+    except Exception as e:
+        logging.error(f"Error retrieving SDG user labels: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while retrieving SDG user labels.",
         )
 
 
