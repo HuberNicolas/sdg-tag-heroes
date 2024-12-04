@@ -13,6 +13,7 @@ export function createScatterPlotMinimap() {
   const publicationStore = usePublicationsStore();
   const dimensionalityStore = useDimensionalityReductionsStore();
   const sdgStore = useSDGStore();
+  const predictionsStore = usePredictionsStore();
   const router = useRouter();
 
   const selectedSDG = sdgStore.getSelectedGoal;
@@ -27,20 +28,28 @@ export function createScatterPlotMinimap() {
     dimensionalityStore.getReductionsForLevel(selectedSDG, currentLevel)
   );
 
+  const predictionsForLevel = computed(() =>
+    predictionsStore.getPredictionsForLevel(selectedSDG, currentLevel)
+  )
+
 
   // Watch both `computed` properties
   watch(
-    [publicationsForLevel, reductionsForLevel],
-    ([newPublications, newReductions], [oldPublications, oldReductions]) => {
-      if (newPublications && newReductions) {
+    [publicationsForLevel, reductionsForLevel, predictionsForLevel],
+    ([newPublications, newReductions, newPredictions], [oldPublications, oldReductions, oldPredictions]) => {
+      if (newPublications && newReductions && newPredictions) {
         //console.log('Publications and reductions are loaded.');
-        initScatterPlot(newPublications, newReductions);
+        initScatterPlot(newPublications, newReductions, newPredictions);
       }
     },
     { immediate: true }
   );
 
-function prepareData(newPublications, newReductions) {
+function prepareData(newPublications, newReductions, newPredictions) {
+  const predictionArray = Array.isArray(newPredictions)
+    ? newPredictions
+    : Object.values(newPredictions);
+
   // "Zip" the data by matching `publication_id`
   return newReductions
     .filter(reduction => {
@@ -56,6 +65,15 @@ function prepareData(newPublications, newReductions) {
     .map(reduction => {
       const publication = newPublications[reduction.publication_id];
 
+      const prediction = predictionArray.find(
+        p => p.publication_id === reduction.publication_id
+      );
+
+      // Determine score based on prediction or default to 1 if not found
+      const score = prediction
+        ? prediction[`sdg${selectedSDG}`] || 1
+        : 1;
+
       return {
         reduction_id: reduction.dim_red_id, // Reduction ID
         publication_id: reduction.publication_id, // Matching Publication ID
@@ -70,14 +88,14 @@ function prepareData(newPublications, newReductions) {
         publication_publisher: publication.publisher,
         publication_description: publication.description,
         authors: publication.authors, // List of authors
-        score: 1,
+        score: score,
         color: sdgStore.getSelectedGoalColor(selectedSDG)
       };
     });
 }
 
-function initScatterPlot(newPublications, newReductions) {
-  const data = prepareData(newPublications, newReductions);
+function initScatterPlot(newPublications, newReductions, newPredictions) {
+  const data = prepareData(newPublications, newReductions, newPredictions);
   // Create a quadtree for efficient point lookup
   const quadtree = d3.quadtree()
     .x(d => d.x)

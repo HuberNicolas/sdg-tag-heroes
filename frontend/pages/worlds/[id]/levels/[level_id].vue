@@ -25,6 +25,7 @@
 import { useRoute, useRouter } from "vue-router";
 import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
 import { usePublicationsStore } from "~/stores/publications";
+import {usePredictionsStore} from "~/stores/sdg_predictions";
 import { computed, ref, onMounted } from "vue";
 
 // Define page metadata
@@ -52,6 +53,7 @@ const goBackToWorld = () => {
 // Use the Pinia stores
 const dimensionalityReductionsStore = useDimensionalityReductionsStore();
 const publicationsStore = usePublicationsStore();
+const predictionsStore = usePredictionsStore();
 const sdgStore = useSDGStore();
 
 dimensionalityReductionsStore.setCurrentLevel(levelId);
@@ -68,6 +70,11 @@ const errorPublications = ref<Error | null>(null);
 const publications = computed(() =>
   Object.values(publicationsStore.publications[sdgId]?.[levelId] || {})
 );
+
+// State for predictions
+const fetchingPredictions = ref(false);
+const errorPredictions = ref<Error | null>(null);
+const predictions = ref(null);
 
 // State for SDG goals
 const fetchingSDGGoals = ref(false);
@@ -139,6 +146,10 @@ const loadPublications = async () => {
 
     if (publicationIds.length > 0) {
       await publicationsStore.fetchPublicationsBatch(sdgId, levelId, publicationIds);
+
+      // Todo: outsource
+      await predictionsStore.fetchPredictionsBatch(sdgId, levelId, publicationIds);
+
     } else {
       console.warn("No publication IDs found in reductions data.");
     }

@@ -129,6 +129,9 @@ class AnnotationsSettings(BaseSettings):
 class DimensionalityReductionsRouterSettings(BaseSettings):
     DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_dimensionality_reductions.log"
 
+class SDGPredictionsRouterSettings(BaseSettings):
+    SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
+
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
     CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
