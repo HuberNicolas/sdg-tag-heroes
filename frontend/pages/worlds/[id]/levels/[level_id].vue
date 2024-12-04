@@ -51,6 +51,7 @@ const goBackToWorld = () => {
 // Use the Pinia stores
 const dimensionalityReductionsStore = useDimensionalityReductionsStore();
 const publicationsStore = usePublicationsStore();
+const sdgStore = useSDGStore();
 
 // State for reductions
 const fetchingReductions = ref(false);
@@ -63,6 +64,32 @@ const errorPublications = ref<Error | null>(null);
 const publications = computed(() =>
   Object.values(publicationsStore.publications[sdgId]?.[levelId] || {})
 );
+
+// State for SDG goals
+const fetchingSDGGoals = ref(false);
+const errorSDGGoals = ref<Error | null>(null);
+
+// Load SDG goals if not already loaded
+const loadSDGGoals = async () => {
+  if (!sdgStore.goals || sdgStore.goals.length === 0) {
+    fetchingSDGGoals.value = true;
+    errorSDGGoals.value = null;
+
+    try {
+      console.log("Fetching SDG goals...");
+      await sdgStore.fetchSDGGoals();
+      console.log("SDG goals loaded successfully:", sdgStore.goals);
+    } catch (err) {
+      errorSDGGoals.value = err as Error;
+      console.error("Error fetching SDG goals:", err);
+    } finally {
+      fetchingSDGGoals.value = false;
+    }
+  } else {
+    console.log("SDG goals are already loaded.");
+  }
+};
+
 
 // Fetch reductions and trigger publications loading only after reductions are ready
 const loadReductions = async () => {
@@ -122,6 +149,7 @@ const loadPublications = async () => {
   // Initial load
   const initializeData = async () => {
     try {
+      await loadSDGGoals(); // Load SDG goals first
       await loadReductions(); // Load reductions first
       if (reductionsData.value) {
         await loadPublications(); // Load publications only if reductionsData is initialized

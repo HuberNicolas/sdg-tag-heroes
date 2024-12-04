@@ -9,6 +9,13 @@ export const useSDGStore = defineStore('sdgs', {
     error: null as string | null, // State to hold any error messages
     selectedGoal: null,
   }),
+  getters: {
+    getColorOfSelectedGoal: (state: any) => {
+      return (sdgId?: number) => {
+        return (state.goals.items[sdgId-1].color);
+      };
+    }
+  },
 
   actions: {
     async fetchSDGGoals() {

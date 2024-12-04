@@ -1,11 +1,12 @@
 import * as d3 from "d3";
 import * as fc from "d3fc";
 import { computed, watch } from "vue";
+import { useRouter } from 'vue-router';
 import { usePublicationsStore } from "~/stores/publications";
 import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
 import {useSDGStore} from "~/stores/sdgs";
 
-const hardcodedSDG = 2
+const hardcodedSDG = 1
 const hardcodedLevel = 1
 
 // Function to create the scatter plot and minimap
@@ -14,7 +15,7 @@ export function createScatterPlotMinimap() {
   const publicationStore = usePublicationsStore();
   const dimensionalityStore = useDimensionalityReductionsStore();
   const sdgStore = useSDGStore();
-
+  const router = useRouter();
 
   // Use the getters directly with `computed` to make them reactive
   const publicationsForLevel = computed(() =>
@@ -45,9 +46,9 @@ function prepareData(newPublications, newReductions) {
       // Only include reductions that have a matching publication
       const hasPublication = newPublications[reduction.publication_id];
       if (!hasPublication) {
-        console.warn(
-          `No publication found for reduction with publication_id: ${reduction.publication_id}`
-        );
+        //console.warn(
+        //  `No publication found for reduction with publication_id: ${reduction.publication_id}`
+        //);
       }
       return hasPublication; // Include only if publication exists
     })
@@ -68,7 +69,8 @@ function prepareData(newPublications, newReductions) {
         publication_publisher: publication.publisher,
         publication_description: publication.description,
         authors: publication.authors, // List of authors
-        score: 1
+        score: 1,
+        color: sdgStore.getColorOfSelectedGoal(hardcodedSDG)
       };
     });
 }
@@ -140,6 +142,8 @@ function initScatterPlot(newPublications, newReductions) {
       }
     });
 
+
+
   // Update pointSeries to handle mouse events for showing tooltip
   const pointSeries = fc
     .seriesSvgPoint()
@@ -208,6 +212,24 @@ function initScatterPlot(newPublications, newReductions) {
         .on('mouseout', () => {
           tooltip.style('opacity', 0);
           d3.select('#scatter-plot-selected-point').html('');
+        })
+        .on('click', function (event) {
+          const [mouseX, mouseY] = d3.pointer(event);
+
+          // Invert the mouse position to get data coordinates
+          const xValue = x.invert(mouseX);
+          const yValue = y.invert(mouseY);
+
+          // Find the closest point using the quadtree
+          const closest = quadtree.find(xValue, yValue);
+
+          if (closest) {
+            // Perform an action on click, e.g., log details or highlight the point
+            console.log('Point clicked:', closest);
+            tooltip.style('opacity', 0);
+            d3.select('#scatter-plot-selected-point').html('');
+            router.push({ name: 'publications-id', params: { id: closest.publication_id } });
+          }
         });
     });
 
@@ -239,7 +261,7 @@ function initScatterPlot(newPublications, newReductions) {
 
     d3.select('#scatter-plot-visible-points')
       .html(`Number of Points: ${brushedPoints.length}`);
-    console.log('Visible Data Points:', brushedPoints);
+    //console.log('Visible Data Points:', brushedPoints);
 
     dimensionalityStore.setSelectedPoints(brushedPoints); // Update the store with selected points
   });
