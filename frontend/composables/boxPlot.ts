@@ -1,10 +1,18 @@
 import * as d3 from 'd3';
 
+
+
 // Function to create a box plot in a specified container
 export function createBoxPlot(containerId: string, data: number[], options: { width: number; height: number }) {
   const margin = { top: 10, right: 30, bottom: 30, left: 40 };
   const width = options.width - margin.left - margin.right;
   const height = options.height - margin.top - margin.bottom;
+
+  const sdgStore = useSDGStore();
+  const selectedSDG = sdgStore.getSelectedGoal;
+
+
+
 
 
   // Remove any previous SVG in the container
@@ -43,7 +51,8 @@ export function createBoxPlot(containerId: string, data: number[], options: { wi
     .attr('height', y(q1) - y(q3))
     .attr('width', 50)
     .attr('stroke', 'black')
-    .style('fill', '#69b3a2');
+    .style('fill', 'black')
+    .style('opacity', 0.3);
 
   // Add median line
   svg
@@ -64,7 +73,7 @@ export function createBoxPlot(containerId: string, data: number[], options: { wi
     .attr('stroke', 'black');
 
   // Add individual points with jitter
-  const jitterWidth = 20; // Adjust jitter width for spread
+  const jitterWidth = 40; // Adjust jitter width for spread
   svg
     .selectAll('indPoints')
     .data(data)

@@ -54,6 +54,9 @@ const dimensionalityReductionsStore = useDimensionalityReductionsStore();
 const publicationsStore = usePublicationsStore();
 const sdgStore = useSDGStore();
 
+dimensionalityReductionsStore.setCurrentLevel(levelId);
+sdgStore.setSelectedGoal(sdgId);
+
 // State for reductions
 const fetchingReductions = ref(false);
 const errorReductions = ref<Error | null>(null);

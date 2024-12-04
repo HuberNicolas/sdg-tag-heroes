@@ -14,11 +14,13 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
       }
     >,
     selectedPoints: [],
+    currentLevel: 1 as number,
     fetching: false,
     error: null as Error | null,
   }),
 
   getters: {
+    getCurrentLevel: state => state.currentLevel,
     // Getter to access reductions for a specific SDG and level
     getReductionsForLevel: (state) => (sdgId: number, levelId: number) => {
       const sdgData = state.reductions[sdgId];
@@ -32,6 +34,9 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
   },
 
   actions: {
+    setCurrentLevel(level: number) {
+      this.currentLevel = level;
+    },
     clearSelectedPoints() {
       this.selectedPoints = null;
     },

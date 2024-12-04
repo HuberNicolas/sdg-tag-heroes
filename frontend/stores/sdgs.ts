@@ -10,14 +10,19 @@ export const useSDGStore = defineStore('sdgs', {
     selectedGoal: null,
   }),
   getters: {
-    getColorOfSelectedGoal: (state: any) => {
+    getSelectedGoalColor: (state: any) => {
       return (sdgId?: number) => {
         return (state.goals.items[sdgId-1].color);
       };
-    }
+    },
+    getSelectedGoal() {
+      return this.selectedGoal;
+    },
   },
-
   actions: {
+    setSelectedGoal(goal: number) {
+      this.selectedGoal = goal;
+    },
     async fetchSDGGoals() {
       const config = useRuntimeConfig(); // Access runtime config
       const apiUrl = config.public.apiUrl; // Retrieve the hardcoded API URL

@@ -6,8 +6,6 @@ import { usePublicationsStore } from "~/stores/publications";
 import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
 import {useSDGStore} from "~/stores/sdgs";
 
-const hardcodedSDG = 1
-const hardcodedLevel = 1
 
 // Function to create the scatter plot and minimap
 export function createScatterPlotMinimap() {
@@ -17,13 +15,16 @@ export function createScatterPlotMinimap() {
   const sdgStore = useSDGStore();
   const router = useRouter();
 
+  const selectedSDG = sdgStore.getSelectedGoal;
+  const currentLevel = dimensionalityStore.getCurrentLevel;
+
   // Use the getters directly with `computed` to make them reactive
   const publicationsForLevel = computed(() =>
-    publicationStore.getPublications(hardcodedSDG, hardcodedLevel)
+    publicationStore.getPublications(selectedSDG, currentLevel)
   );
 
   const reductionsForLevel = computed(() =>
-    dimensionalityStore.getReductionsForLevel(hardcodedSDG, hardcodedLevel)
+    dimensionalityStore.getReductionsForLevel(selectedSDG, currentLevel)
   );
 
 
@@ -70,7 +71,7 @@ function prepareData(newPublications, newReductions) {
         publication_description: publication.description,
         authors: publication.authors, // List of authors
         score: 1,
-        color: sdgStore.getColorOfSelectedGoal(hardcodedSDG)
+        color: sdgStore.getSelectedGoalColor(selectedSDG)
       };
     });
 }
