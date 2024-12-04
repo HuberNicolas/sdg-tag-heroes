@@ -170,7 +170,7 @@ async def get_dimensionality_reductions(
     sdg: List[int] = Query(..., description="List of specific SDGs to filter, e.g., ?sdg=1&sdg=4&sdg=12"),
     level: List[int] = Query(..., description="List of levels to filter, e.g., ?level=1&level=2&level=3"),
     reduction_shorthand: Optional[str] = Query(None, description="Filter by reduction shorthand, e.g., 'UMAP-15-0.1-2'"),
-    limit: int = Query(1000, description="Limit the number of results per SDG and level"),
+    limit: int = Query(200, description="Limit the number of results per SDG and level"),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """

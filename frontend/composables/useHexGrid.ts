@@ -15,9 +15,11 @@ export default function useHexGrid(values: number[]) {
   ];
 
   const labels = [
-    '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', '10', '11', '12', '13',
-    '14', '15', '16', '17',
+    '1', '2', '3',
+    '4', '5', '6', '7',
+    '8', '9', '10', '11',
+    '12', '13', '14',
+    '15', '16', '17',
   ];
 
   const sdgColors = [
@@ -26,13 +28,6 @@ export default function useHexGrid(values: number[]) {
     '#FD9D24', '#BF8B2E', '#3F7E44', '#0A97D9', '#56C02B',
     '#00689D', '#19486A',
   ];
-
-  /*
-  const values = [
-    0.8, 0.9, 0.7, 0.5, 0.6, 0.4, 0.3,
-    0.9, 1.0, 0.7, 0.6, 0.4, 0.5, 0.8, 0.6, 0.4, 0.7,
-  ];
-   */
 
   /**
    * Renders the hexagonal grid using D3.
