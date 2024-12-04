@@ -13,7 +13,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
         >;
       }
     >,
-    selectedPoints: null,
+    selectedPoints: [],
     fetching: false,
     error: null as Error | null,
   }),

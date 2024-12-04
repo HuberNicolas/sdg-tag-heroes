@@ -15,7 +15,7 @@ import { usePublicationStore } from '~/stores/publications'; // Import the Pinia
 import { createBoxPlot } from '~/composables/boxPlot';
 
 // Access the store
-const store = usePublicationStore();
+const store = useDimensionalityReductionsStore();
 
 // Transform the selected data into arrays for x, y, and score
 const boxplotData = computed(() => {

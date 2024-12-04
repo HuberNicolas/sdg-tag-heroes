@@ -1,7 +1,8 @@
 <template>
   <div>
     <div>
-<MinimapContainer></MinimapContainer>
+      <MinimapContainer></MinimapContainer>
+      <BoxplotContainer></BoxplotContainer>
     </div>
     <div>
       <p>{{ sdgId }} - {{ levelId }}</p>
