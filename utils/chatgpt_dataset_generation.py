@@ -32,7 +32,7 @@ from utils.env_loader import load_env, get_env_variable
 load_env('api.env')
 
 #
-LIMIT = 100
+LIMIT = 5
 
 
 # Initialize session
@@ -122,19 +122,26 @@ def evaluate_abstract_sdg_relevance(abstract_text):
             "role": "system",
             "content": """
             Act as a sustainability expert whose goal is to label and evaluate scientific abstracts based on the Sustainable Development Goals (SDGs).
+            Here are the 17 SDGs:\n1: No Poverty\n2: Zero Hunger\n3: Good Health and Well-being\n4: Quality Education\n5: Gender Equality\n6: Clean Water and Sanitation\n7: Affordable and Clean Energy\n8: Decent Work and Economic Growth\n9: Industry, Innovation, and Infrastructure\n10: Reduced Inequalities\n11: Sustainable Cities and Communities\n12: Responsible Consumption and Production\n13: Climate Action\n14: Life Below Water\n15: Life on Land\n16: Peace, Justice, and Strong Institutions\n17: Partnerships for the Goals
             Your language is clear, scientific, and professional. Prioritize minimal words with maximum information density.
             Always respond in the following JSON format:
-            {"sdg_relevance": [float], "sdg_relevance_confidence": [float]}
+            {"sdg_relevance": [float], "sdg_relevance_confidence": [string]}
             Each array must contain exactly 17 elements, where the index corresponds to the SDG number (e.g., index 0 is SDG 1, index 16 is SDG 17).
-            The numbers must be between 0 and 1.
+            - "sdg_relevance" values must be a float between 0 and 1, representing the relevance of the abstract to each SDG.
+            - "sdg_relevance_confidence" values must be categorical Likert scale outputs: "Very sure", "Sure", "Neutral", "Unsure", "Very unsure".
+        
+            Assign the confidence based on the following rules:
+            - High relevance with high certainty → "Very sure"
+            - High relevance with low certainty → "Unsure" or "Very unsure"
+            - Low relevance with high certainty → "Very sure"
+            - Low relevance with low certainty → "Unsure" or "Very unsure"
+            - Moderate relevance → Use "Neutral" unless the evidence strongly skews confidence.
             """,
         },
         {
             "role": "user",
             "content": (
-                f"Analyze the following abstract and provide the relevance (i.e. a score for the relevance of the text for the respective SDG) and confidence (i.e. an assessment of how sure you are about each of the scores) values for each SDG:"
-                f"If you gave a high score and you are sure about it, give a confidence close to 1. If you gave a low score and you are sure that there is no relevance, give a score close to 1 as well. If you gave a high relevance score and unsure about it, give a low relevance confidence score. If you gave a low relevance score and are unsure about it, give a low relevance confidence score." 
-                f"\n\n{abstract_text}"
+                f"Analyze the following abstract and provide the relevance (a score between 0 and 1 indicating the abstract's relevance to each SDG) and confidence (a categorical Likert scale rating) values for each SDG:\n\n{abstract_text}"
             ),
         },
     ]
@@ -190,6 +197,7 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
             "role": "system",
             "content": """
             You are an expert in sustainability tasked with evaluating scientific abstracts based on a specific Sustainable Development Goal (SDG).
+            Here are the 17 SDGs:\n1: No Poverty\n2: Zero Hunger\n3: Good Health and Well-being\n4: Quality Education\n5: Gender Equality\n6: Clean Water and Sanitation\n7: Affordable and Clean Energy\n8: Decent Work and Economic Growth\n9: Industry, Innovation, and Infrastructure\n10: Reduced Inequalities\n11: Sustainable Cities and Communities\n12: Responsible Consumption and Production\n13: Climate Action\n14: Life Below Water\n15: Life on Land\n16: Peace, Justice, and Strong Institutions\n17: Partnerships for the Goals
             To save tokens, do not always start with filling words like 'the text talks about' ... but get straight to the point, like 'there is evidence that...'
             Your language is clear, scientific, and professional. Prioritize minimal words with maximum information density.
             Always respond in the following JSON format:
