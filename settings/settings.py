@@ -22,9 +22,6 @@ class EmbeddingsSettings(BaseSettings):
     DEFAULT_BATCH_SIZE: ClassVar[int] = 32
     VECTOR_CONTENT_NAME: ClassVar[str] = "content"
 
-class SimilaritySearchSettings(BaseSettings):
-    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
-
     # Define the content pattern as a list of format strings
     ENCODER_CONTENT_PATTERN: ClassVar[List[str]] = [
         "Title: {pub.title}",
@@ -33,6 +30,13 @@ class SimilaritySearchSettings(BaseSettings):
         # "Publisher: {pub.publisher}",
         "Abstract: {pub.description}"
     ]
+
+class SimilaritySearchSettings(BaseSettings):
+    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
+
+class ProfileRouterSettings(BaseSettings):
+    PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_profiles_.log"
+
 
 class LoaderSettings(BaseSettings):
     LOADER_LOG_NAME: ClassVar[str] = "loader.log"

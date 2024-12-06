@@ -13,3 +13,10 @@ class PublicationQuery(BaseModel):
 class SimilarityQueryRequest(BaseModel):
     user_query: str
     top_k: int = 5
+
+
+class SkillsRequest(BaseModel):
+    skills: str
+
+class InterestsRequest(BaseModel):
+    interests: str
