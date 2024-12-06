@@ -32,6 +32,19 @@ class ExtractKeywordsStrategy(PromptStrategy):
             "abstract": abstract
         }
 
+class SummarizePublicationStrategy(PromptStrategy):
+    """Summarizes a publication with maximum information density for non-experts."""
+
+    def generate_prompt(self, title: str, abstract: str):
+        return {
+            "instruction": (
+                "Summarize the publication in one sentence with the highest possible information density, "
+                "making it understandable and engaging for non-experts."
+            ),
+            "title": title,
+            "abstract": abstract
+        }
+
 
 class TargetStrategy(PromptStrategy):
     """Evaluates relevance to a specific UN SDG target."""
@@ -87,6 +100,9 @@ class KeywordResponse(BaseModel):
 class FactResponse(BaseModel):
     fact: str
 
+class SummaryResponse(BaseModel):
+    summary: str
+
 
 class SDGExplainer:
     """Main SDG Explainer class using Instructor library and function calling."""
@@ -131,3 +147,20 @@ class SDGExplainer:
         prompt_data = strategy.generate_prompt(title, abstract)
         response = self._call_model(prompt_data, FactResponse)
         return response.fact
+
+    def summarize_publication(self, title: str, abstract: str) -> str:
+        """
+        Summarizes a publication using the SummarizePublicationStrategy.
+
+        Args:
+            title (str): The title of the publication.
+            abstract (str): The abstract of the publication.
+
+        Returns:
+            str: A concise summary of the publication.
+        """
+        strategy = SummarizePublicationStrategy()
+        prompt_data = strategy.generate_prompt(title, abstract)
+        response = self._call_model(prompt_data, SummaryResponse)
+        return response.summary
+

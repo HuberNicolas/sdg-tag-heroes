@@ -16,7 +16,7 @@ from db.qdrantdb_connector import client as qdrant_client
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import SDGPrediction, SDGLabelDecision, Fact
+from models import SDGPrediction, SDGLabelDecision, Fact, Summary
 from models.publications.author import Author
 # Import models
 from models.publications.publication import Publication
@@ -31,7 +31,7 @@ from schemas.sdg_label_summary import SDGLabelSummarySchemaFull
 from schemas.sdg_prediction import SDGPredictionSchemaFull, SDGPredictionSchemaBase
 from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
 
-from services.gpt_explainer import SDGExplainer
+from services.gpt_explainer import SDGExplainer, SummarizePublicationStrategy
 from services.similarity_query import SimilarityQuery
 
 from settings.settings import PublicationsRouterSettings
@@ -874,6 +874,57 @@ async def create_did_you_know_fact(
 
     # Return the generated fact
     return {"publication_id": publication_id, "fact": new_fact_content}
+
+@router.get("/{publication_id}/summary", response_model=dict, description="Generate or retrieve a summary for a publication.")
+async def create_or_get_publication_summary(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> dict:
+    """
+    Generate a concise summary for a publication if it doesn't exist, or fetch the existing summary.
+    """
+    user = verify_token(token, db)  # Ensure user is authenticated
+
+    # Fetch the publication by its ID
+    publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+    if not publication:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    # Check if a summary already exists in the database
+    existing_summary = db.query(Summary).filter(Summary.publication_id == publication_id).first()
+    if existing_summary:
+        return {"publication_id": publication_id, "summary": existing_summary.content}
+
+    # Ensure the publication has content for summary generation
+    if not publication.title and not publication.description:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No content available for summary generation"
+        )
+
+    # Combine title and description for summary generation
+    title = publication.title or ""
+    abstract = publication.description or ""
+
+    # Use the SummarizePublicationStrategy to generate the summary
+    try:
+        new_summary_content = SDGExplainer().summarize_publication(title=title, abstract=abstract)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Summary generation failed: {str(e)}")
+
+    # Save the new summary to the database
+    new_summary = Summary(
+        content=new_summary_content,
+        publication_id=publication_id
+    )
+    db.add(new_summary)
+    db.commit()
+    db.refresh(new_summary)
+
+    # Return the generated summary
+    return {"publication_id": publication_id, "summary": new_summary_content}
+
 
 @router.post(
     "/similar/{top_k}",

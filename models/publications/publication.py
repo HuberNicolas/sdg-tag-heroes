@@ -72,6 +72,9 @@ class Publication(Base):
     fact: Mapped[list["Fact"]] = relationship("Fact", back_populates="publication", uselist=False
     )
 
+    summary: Mapped["Summary"] = relationship("Summary", back_populates="publication", uselist=False
+    )
+
     is_dim_reduced: Mapped[bool] = mapped_column(default=False)
 
     faculty_id: Mapped[int | None] = mapped_column(ForeignKey("faculties.faculty_id"), nullable=True)

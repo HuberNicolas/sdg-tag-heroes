@@ -40,7 +40,7 @@ from .achievement import Achievement
 from .inventor_achievement_association import InventoryAchievementAssociation
 
 from .fact import Fact
-
+from .summary import Summary
 
 # Export all models for external use
 __all__ = [
@@ -84,4 +84,5 @@ __all__ = [
     "InventoryAchievementAssociation",
 
     "Fact"
+    "Summary"
 ]
