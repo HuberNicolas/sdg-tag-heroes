@@ -1,3 +1,4 @@
+import time
 from collections import defaultdict
 from typing import List, Optional, Dict, Tuple, Any, Union
 
@@ -6,10 +7,11 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, sessionmaker, joinedload, load_only
 
-from api.app.models.query import PublicationQuery
+from api.app.models.query import PublicationQuery, SimilarityQueryRequest
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
+from db.qdrantdb_connector import client as qdrant_client
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
@@ -30,6 +32,7 @@ from schemas.sdg_prediction import SDGPredictionSchemaFull, SDGPredictionSchemaB
 from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
 
 from services.gpt_explainer import SDGExplainer
+from services.similarity_query import SimilarityQuery
 
 from settings.settings import PublicationsRouterSettings
 publications_router_settings = PublicationsRouterSettings()
@@ -872,3 +875,65 @@ async def create_did_you_know_fact(
     # Return the generated fact
     return {"publication_id": publication_id, "fact": new_fact_content}
 
+@router.post(
+    "/similar/{top_k}",
+    response_model=dict,
+    description="Retrieve publications similar to the user query along with their similarity scores."
+)
+async def get_similar_publications(
+    top_k: int,
+    request: SimilarityQueryRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> dict:
+    """
+    Retrieve publications similar to the user query based on vector similarity.
+    """
+    user = verify_token(token, db)  # Ensure user is authenticated
+
+    # Initialize the similarity service
+    similarity_service = SimilarityQuery(qdrant_client)
+
+    # Generate the query vector
+    start = time.time()
+    query_vector = similarity_service.generate_user_query_vector(request.user_query)
+    end = time.time()
+    query_building_time = end - start
+
+    start = time.time()
+    # Perform the similarity search
+    search_results = similarity_service.search_publications(
+        query_vector=query_vector,
+        collection_name="publications-mt",
+        top_k=top_k
+    )
+    end = time.time()
+    search_time = end - start
+
+    # Extract publication IDs and similarity scores
+    publication_scores = {result.payload["sql_id"]: result.score for result in search_results}
+    publication_ids = list(publication_scores.keys())
+
+    # Fetch publication details from the database
+    publications = (
+        db.query(Publication)
+        .filter(Publication.publication_id.in_(publication_ids))
+        .all()
+    )
+
+    # Build the response
+    results = [
+        {
+            **PublicationSchemaFull.model_validate(pub).dict(),  # Validate and convert to dict
+            "score": publication_scores.get(pub.publication_id, 0.0)  # Add similarity score
+        }
+        for pub in publications
+    ]
+
+    # Return the response
+    return {
+        "query_building_time": query_building_time,
+        "search_time": search_time,
+        "user_query": request.user_query,
+        "results": sorted(results, key=lambda x: x["score"], reverse=True)
+    }

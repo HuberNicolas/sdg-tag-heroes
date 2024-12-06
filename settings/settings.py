@@ -18,10 +18,12 @@ class EmbeddingsSettings(BaseSettings):
     EMBEDDINGS_LOG_NAME: ClassVar[str] = "embeddings.log"
     VECTOR_SIZE: ClassVar[int] = 384
     ENCODER_MODEL: ClassVar[str] = "sentence-transformers/all-MiniLM-L6-v2"
-    ENCODER_DEVICE: ClassVar[str] = "cuda:0" # Either "cpu" or "cuda: 0"
+    ENCODER_DEVICE: ClassVar[str] = "cpu" # Either "cpu" or "cuda: 0"
     DEFAULT_BATCH_SIZE: ClassVar[int] = 32
     VECTOR_CONTENT_NAME: ClassVar[str] = "content"
 
+class SimilaritySearchSettings(BaseSettings):
+    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
 
     # Define the content pattern as a list of format strings
     ENCODER_CONTENT_PATTERN: ClassVar[List[str]] = [
