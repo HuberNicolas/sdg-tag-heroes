@@ -5,11 +5,13 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
 from db.mariadb_connector import engine as mariadb_engine
-from models import User, SDGXPBank, SDGCoinWallet
+from models import User, SDGXPBank, SDGCoinWallet, SDGXPBankHistory, SDGCoinWalletHistory
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from schemas.sdg_coin_wallet import SDGCoinWalletSchemaFull
+from schemas.sdg_coin_wallet_history import SDGCoinWalletHistorySchemaFull, SDGCoinWalletHistorySchemaCreate
 from schemas.sdg_xp_bank import SDGXPBankSchemaFull
+from schemas.sdg_xp_bank_history import SDGXPBankHistorySchemaCreate, SDGXPBankHistorySchemaFull
 from schemas.users.user import UserSchemaFull, UserRoleEnum
 
 # Setup OAuth2 and security
@@ -64,6 +66,50 @@ async def get_users(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching users",
         )
+@router.post("/{user_id}/wallet/history", response_model=SDGCoinWalletHistorySchemaFull, description="Add a wallet increment for a specific user")
+async def add_wallet_increment(
+    user_id: int,
+    wallet_increment_data: SDGCoinWalletHistorySchemaCreate,  # Use a schema for input validation
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Add a wallet increment (SDGCoinWalletHistory) for a specific user.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Check if the user has a wallet
+        wallet = db.query(SDGCoinWallet).filter(SDGCoinWallet.user_id == user_id).first()
+        if not wallet:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Wallet for user with ID {user_id} not found",
+            )
+
+        # Create the wallet increment history entry
+        new_history = SDGCoinWalletHistory(
+            wallet_id=wallet.sdg_coin_wallet_id,
+            increment=wallet_increment_data.increment,
+            reason=wallet_increment_data.reason,
+        )
+        db.add(new_history)
+
+        # Update the wallet total
+        wallet.total_coins += wallet_increment_data.increment
+
+        db.commit()
+        db.refresh(new_history)
+
+        return new_history
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while adding the wallet increment",
+        )
+
 
 @router.get("/{user_id}/wallet", response_model=SDGCoinWalletSchemaFull, description="Retrieve the wallet for a specific user")
 async def get_user_wallet(
@@ -92,6 +138,50 @@ async def get_user_wallet(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the wallet",
+        )
+
+@router.post("/{user_id}/bank/history", response_model=SDGXPBankHistorySchemaFull, description="Add a bank increment for a specific user")
+async def add_bank_increment(
+    user_id: int,
+    bank_increment_data: SDGXPBankHistorySchemaCreate,  # Use a schema for input validation
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Add a bank increment (SDGXPBankHistory) for a specific user.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Check if the user has a bank
+        bank = db.query(SDGXPBank).filter(SDGXPBank.user_id == user_id).first()
+        if not bank:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Bank for user with ID {user_id} not found",
+            )
+
+        # Create the bank increment history entry
+        new_history = SDGXPBankHistory(
+            xp_bank_id=bank.sdg_xp_bank_id,
+            increment=bank_increment_data.increment,
+            reason=bank_increment_data.reason,
+        )
+        db.add(new_history)
+
+        # Update the bank total
+        bank.total_xp += bank_increment_data.increment
+
+        db.commit()
+        db.refresh(new_history)
+
+        return new_history
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while adding the bank increment",
         )
 
 
