@@ -107,6 +107,21 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
+    # One-to-One relationship with SDGCoinWallet
+    sdg_coin_wallet: Mapped["SDGCoinWallet"] = relationship(
+        "SDGCoinWallet",
+        back_populates="user",
+        uselist=False,  # Ensure one-to-one
+        cascade="all, delete-orphan"
+    )
+
+    # One-to-One relationship with SDGXPBank
+    sdg_xp_bank: Mapped["SDGXPBank"] = relationship(
+        "SDGXPBank",
+        back_populates="user",
+        uselist=False,  # Ensure one-to-one
+        cascade="all, delete-orphan"
+    )
 
 
     created_at: Mapped[datetime] = mapped_column(

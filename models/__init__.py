@@ -42,6 +42,9 @@ from .inventor_achievement_association import InventoryAchievementAssociation
 from .fact import Fact
 from .summary import Summary
 
+from .sdg_xp_bank import SDGXPBank
+from .sdg_coin_wallet import SDGCoinWallet
+
 # Export all models for external use
 __all__ = [
     "Base",
@@ -83,6 +86,9 @@ __all__ = [
     "Achievement",
     "InventoryAchievementAssociation",
 
-    "Fact"
-    "Summary"
+    "Fact",
+    "Summary",
+
+    "SDGXPBank",
+    "SDGCoinWallet",
 ]

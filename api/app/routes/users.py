@@ -5,9 +5,11 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
 from db.mariadb_connector import engine as mariadb_engine
-from models import User
+from models import User, SDGXPBank, SDGCoinWallet
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
+from schemas.sdg_coin_wallet import SDGCoinWalletSchemaFull
+from schemas.sdg_xp_bank import SDGXPBankSchemaFull
 from schemas.users.user import UserSchemaFull, UserRoleEnum
 
 # Setup OAuth2 and security
@@ -63,6 +65,65 @@ async def get_users(
             detail="An error occurred while fetching users",
         )
 
+@router.get("/{user_id}/wallet", response_model=SDGCoinWalletSchemaFull, description="Retrieve the wallet for a specific user")
+async def get_user_wallet(
+    user_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Retrieve the wallet (SDGCoinWallet) for a specific user by their ID.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query for the wallet by user ID
+        wallet = db.query(SDGCoinWallet).filter(SDGCoinWallet.user_id == user_id).first()
+
+        if not wallet:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Wallet for user with ID {user_id} not found",
+            )
+
+        return wallet
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the wallet",
+        )
+
+
+@router.get("/{user_id}/bank", response_model=SDGXPBankSchemaFull, description="Retrieve the bank for a specific user")
+async def get_user_bank(
+    user_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Retrieve the bank (SDGXPBank) for a specific user by their ID.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query for the bank by user ID
+        bank = db.query(SDGXPBank).filter(SDGXPBank.user_id == user_id).first()
+
+        if not bank:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Bank for user with ID {user_id} not found",
+            )
+
+        return bank
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the bank",
+        )
+
 @router.get("/{user_id}", response_model=UserSchemaFull, description="Retrieve a specific user by ID")
 async def get_user_by_id(
     user_id: int,
@@ -91,3 +152,4 @@ async def get_user_by_id(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the user",
         )
+

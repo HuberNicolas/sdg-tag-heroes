@@ -14,7 +14,7 @@ from models import (
     Expert,
     SDGLabelHistory,
     Publication,
-    User,
+    User, SDGCoinWallet, SDGXPBank,
 )
 from db.mariadb_connector import engine as mariadb_engine
 from models.base import Base
@@ -43,7 +43,7 @@ def truncate_tables(session: Session, tables: list):
     logger.info("Tables truncated successfully.")
 
 
-def load_users(session: Session, max_users: int = 10):
+def load_users(session: Session, max_users: int = 11):
     """
     Load a subset of users from the database.
     """
@@ -196,6 +196,44 @@ def create_sdg_label_decisions(
     logger.info(f"Created {num_decisions} unfinished SDGLabelDecisions.")
     return decisions
 
+def create_wallets(session: Session, users: list[User]):
+    """
+    Create SDGCoinWallets for each user.
+    """
+    logger.info("Creating SDGCoinWallets...")
+    wallets = []
+    for user in users:
+        wallet = SDGCoinWallet(
+            user_id=user.user_id,
+            total_coins=round(uniform(0, 1000), 2),  # Random initial coin balance
+            created_at=faker.date_time_this_year(),
+            updated_at=faker.date_time_this_year(),
+        )
+        session.add(wallet)
+        wallets.append(wallet)
+    session.commit()
+    logger.info(f"Created {len(wallets)} SDGCoinWallets.")
+    return wallets
+
+def create_xp_banks(session: Session, users: list[User]):
+    """
+    Create SDGXPBanks for each user.
+    """
+    logger.info("Creating SDGXPBanks...")
+    xp_banks = []
+    for user in users:
+        xp_bank = SDGXPBank(
+            user_id=user.user_id,
+            total_xp=round(uniform(0, 5000), 2),  # Random initial XP
+            created_at=faker.date_time_this_year(),
+            updated_at=faker.date_time_this_year(),
+        )
+        session.add(xp_bank)
+        xp_banks.append(xp_bank)
+    session.commit()
+    logger.info(f"Created {len(xp_banks)} SDGXPBanks.")
+    return xp_banks
+
 def create_votes_for_annotations(session: Session, annotations: list[Annotation], users: list[User], num_votes: int = 20):
     """
     Create Votes attached to Annotations and store them in the database.
@@ -229,7 +267,7 @@ def create_votes_for_annotations(session: Session, annotations: list[Annotation]
 def populate_db(
     session: Session,
     truncate: bool = False,
-    max_users: int = 2,
+    max_users: int = 11,
     max_pubs: int = 2,
     num_labels: int = 4,
     num_votes: int = 10,
@@ -237,13 +275,13 @@ def populate_db(
     num_decisions: int = 4,
 ):
     """
-    Populate the database with fixtures for SDGUserLabel, Vote, Annotation, and SDGLabelDecision.
+    Populate the database with fixtures for SDGUserLabel, Vote, Annotation, SDGLabelDecision, SDGCoinWallet and SDGXPBanks.
     Optionally truncates the relevant tables before insertion.
     """
     try:
         # Truncate tables if the flag is set
         if truncate:
-            truncate_tables(session, ["sdg_user_labels", "votes", "annotations", "sdg_label_decisions", "sdg_label_decision_user_label"])
+            truncate_tables(session, ["sdg_user_labels", "votes", "annotations", "sdg_label_decisions", "sdg_label_decision_user_label", "sdg_coin_wallets", "sdg_xp_banks"])
 
         # Load users, publications, and experts
         users = load_users(session, max_users)
@@ -259,6 +297,10 @@ def populate_db(
         if not histories:
             logger.error("No SDGLabelHistories found in the database.")
             return
+
+        # Create wallets and XP banks for each user
+        create_wallets(session, users)
+        create_xp_banks(session, users)
 
         # Create SDGUserLabels
         user_labels = create_sdg_user_labels(session, users, num_labels)
