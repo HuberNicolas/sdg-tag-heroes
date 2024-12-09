@@ -44,6 +44,8 @@ from .summary import Summary
 
 from .sdg_xp_bank import SDGXPBank
 from .sdg_coin_wallet import SDGCoinWallet
+from .sdg_xp_bank_history import SDGXPBankHistory
+from .sdg_coin_wallet_history import SDGCoinWalletHistory
 
 # Export all models for external use
 __all__ = [
@@ -91,4 +93,6 @@ __all__ = [
 
     "SDGXPBank",
     "SDGCoinWallet",
+    "SDGXPBankHistory",
+    "SDGCoinWalletHistory",
 ]

@@ -1,7 +1,7 @@
 import logging
 from random import choice, randint, uniform
 
-from sqlalchemy import text
+from sqlalchemy import text, func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from faker import Faker
@@ -14,7 +14,7 @@ from models import (
     Expert,
     SDGLabelHistory,
     Publication,
-    User, SDGCoinWallet, SDGXPBank,
+    User, SDGCoinWallet, SDGXPBank, SDGCoinWalletHistory, SDGXPBankHistory,
 )
 from db.mariadb_connector import engine as mariadb_engine
 from models.base import Base
@@ -215,6 +215,26 @@ def create_wallets(session: Session, users: list[User]):
     logger.info(f"Created {len(wallets)} SDGCoinWallets.")
     return wallets
 
+def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_entries: int = 5):
+    """
+    Create incremental history entries for each wallet.
+    """
+    logger.info("Creating SDGCoinWallet histories...")
+    for wallet in wallets:
+        for _ in range(num_entries):
+            increment = round(uniform(-10, 50), 2)  # Random increment between -10 and +50
+            history = SDGCoinWalletHistory(
+                wallet_id=wallet.sdg_coin_wallet_id,
+                increment=increment,
+                reason=faker.sentence(),
+                timestamp=faker.date_time_this_year(),
+            )
+            session.add(history)
+        # Update the wallet total after inserting histories
+        wallet.total_coins = session.query(func.sum(SDGCoinWalletHistory.increment)).filter_by(wallet_id=wallet.sdg_coin_wallet_id).scalar() or 0.0
+    session.commit()
+    logger.info("Created wallet histories.")
+
 def create_xp_banks(session: Session, users: list[User]):
     """
     Create SDGXPBanks for each user.
@@ -233,6 +253,26 @@ def create_xp_banks(session: Session, users: list[User]):
     session.commit()
     logger.info(f"Created {len(xp_banks)} SDGXPBanks.")
     return xp_banks
+
+def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_entries: int = 5):
+    """
+    Create incremental history entries for each XP bank.
+    """
+    logger.info("Creating SDGXPBank histories...")
+    for xp_bank in xp_banks:
+        for _ in range(num_entries):
+            increment = round(uniform(-20, 100), 2)  # Random increment between -20 and +100
+            history = SDGXPBankHistory(
+                xp_bank_id=xp_bank.sdg_xp_bank_id,
+                increment=increment,
+                reason=faker.sentence(),
+                timestamp=faker.date_time_this_year(),
+            )
+            session.add(history)
+        # Update the XP bank total after inserting histories
+        xp_bank.total_xp = session.query(func.sum(SDGXPBankHistory.increment)).filter_by(xp_bank_id=xp_bank.sdg_xp_bank_id).scalar() or 0.0
+    session.commit()
+    logger.info("Created XP bank histories.")
 
 def create_votes_for_annotations(session: Session, annotations: list[Annotation], users: list[User], num_votes: int = 20):
     """
@@ -268,6 +308,7 @@ def populate_db(
     session: Session,
     truncate: bool = False,
     max_users: int = 11,
+    history_entries_per_user: int = 5,
     max_pubs: int = 2,
     num_labels: int = 4,
     num_votes: int = 10,
@@ -299,8 +340,12 @@ def populate_db(
             return
 
         # Create wallets and XP banks for each user
-        create_wallets(session, users)
-        create_xp_banks(session, users)
+        wallets = create_wallets(session, users)
+        xp_banks = create_xp_banks(session, users)
+
+        # Create histories for wallets and XP banks
+        create_wallet_histories(session, wallets, num_entries=history_entries_per_user)
+        create_xp_bank_histories(session, xp_banks, num_entries=history_entries_per_user)
 
         # Create SDGUserLabels
         user_labels = create_sdg_user_labels(session, users, num_labels)

@@ -21,6 +21,13 @@ class SDGXPBank(Base):
     # Define relationship with User
     user: Mapped["User"] = relationship("User", back_populates="sdg_xp_bank")
 
+    # Relationship to track changes over time
+    histories: Mapped[list["SDGXPBankHistory"]] = relationship(
+        "SDGXPBankHistory",
+        back_populates="xp_bank",
+        cascade="all, delete-orphan"
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
