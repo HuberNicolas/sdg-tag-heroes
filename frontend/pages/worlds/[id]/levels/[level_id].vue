@@ -32,6 +32,25 @@
           v-model="userInterests"
         />
         <UButton label="Generate Query" @click="generateInterestsQuery" class="mt-2" />
+
+        <!-- Spinner for Similarity Results -->
+        <div v-if="fetchingPublications" class="spinner mt-4">
+          Loading similar publications...
+        </div>
+
+        <!-- Display Similar Publications -->
+        <div v-else class="mt-4">
+          <p class="font-bold">Similar Publications:</p>
+          <ul v-if="similarPublications.length > 0" class="publication-list">
+            <li v-for="publication in similarPublications" :key="publication.publication_id" class="mb-4 border-b pb-2">
+              <h3 class="font-semibold">{{ publication.title }}</h3>
+              <p><strong>Description:</strong> {{ publication.description }}</p>
+              <p><strong>Authors:</strong> {{ formatAuthors(publication.authors) }}</p>
+              <p><strong>Score:</strong> {{ publication.score }}</p>
+            </li>
+          </ul>
+          <p v-else>No similar publications found.</p>
+        </div>
       </div>
 
       <p v-if="fetchingQuery">Generating query...</p>
@@ -95,12 +114,10 @@ const fetchingReductions = ref(false);
 const errorReductions = ref<Error | null>(null);
 const reductionsData = ref(null);
 
-// State for publications
+// State for fetching similar publications
 const fetchingPublications = ref(false);
+const similarPublications = ref([]);
 const errorPublications = ref<Error | null>(null);
-const publications = computed(() =>
-  Object.values(publicationsStore.publications[sdgId]?.[levelId] || {})
-);
 
 // State for predictions
 const fetchingPredictions = ref(false);
@@ -191,7 +208,7 @@ const fetchSimilarPublications = async (query: string) => {
         publication_ids: publicationIds, // Use hardcoded IDs for now
       },
     });
-    publications.value = response.results;
+    similarPublications.value = response.results;
   } catch (err) {
     errorPublications.value = err as Error;
     console.error("Error fetching similar publications:", err);
@@ -200,6 +217,10 @@ const fetchSimilarPublications = async (query: string) => {
   }
 };
 
+// Format authors for display
+const formatAuthors = (authors) => {
+  return authors.map(author => author.name).join(", ");
+};
 
 // Fetch reductions and trigger publications loading only after reductions are ready
 const loadReductions = async () => {
