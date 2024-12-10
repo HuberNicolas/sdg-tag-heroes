@@ -103,7 +103,7 @@ const updateLinks = (coins: number, xpData: SDGXPBankResponse) => {
     .sort((a, b) => b.xp - a.xp)
     .slice(0, 3)
     .map((sdgData, index) => ({
-      label: `${index + 1}. ${sdgData.sdg.replace('sdg_', 'SDG ')}: ${sdgData.xp.toFixed(2)} XP`,
+      label: `${sdgData.sdg.replace('sdg_', 'SDG ')}: ${sdgData.xp.toFixed(0)} XP`,
       component: sdgData.sdg,
     }));
 
@@ -118,11 +118,11 @@ const updateLinks = (coins: number, xpData: SDGXPBankResponse) => {
         to: '/',
       },
       {
-        label: `SDG XP: ${total_xp.toFixed(2)}`,
-        customIcon: true, // Mark this for a custom slot
+        label: `SDG XP: ${total_xp.toFixed(0)}`,
+        customIcon: true,
       },
       {
-        label: `SDG Coins: ${coins.toFixed(2)}`,
+        label: `SDG Coins: ${coins.toFixed(0)}`,
         icon: 'i-heroicons-currency-dollar',
       },
     ],
@@ -155,65 +155,91 @@ onMounted(async () => {
 
 <template>
   <!-- Show loading state until links are ready -->
-  <div v-if="loading" class="flex justify-center items-center h-32">
+  <div v-if="loading" class="flex justify-center items-center">
     <span class="text-gray-500">Loading...</span>
   </div>
 
   <!-- Render content once links are ready -->
-  <div v-else class="flex flex-col items-center p-4 space-y-6 bg-gray-50 dark:bg-gray-900">
-    <!-- Overall SDG XP -->
-    <div v-if="links[0]?.[1]" class="flex items-center space-x-4">
-      <IconSDGXP class="w-12 h-12 rotate-45" :fontControlled="false" />
-      <span class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-        {{ links[0][1]?.label.split(': ')[1] || '0' }}
-      </span>
-    </div>
+  <nav v-else class="w-full bg-gray-100 dark:bg-gray-800 shadow-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-2">
+      <!-- Left Section: Home and Overall SDG XP -->
+      <div class="flex items-center space-x-6">
+        <!-- Home Link -->
+        <NuxtLink to="/">
+          <div class="flex items-center space-x-2">
+            <i class="i-heroicons-home text-gray-600 dark:text-gray-300"></i>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Home</span>
+          </div>
+        </NuxtLink>
 
-    <!-- Top 3 SDGs -->
-    <div v-if="links[1]" class="grid grid-cols-3 gap-4">
-      <div
-        v-for="(link, index) in links[1]"
-        :key="index"
-        class="flex flex-col items-center space-y-2"
-      >
-        <!-- Switch to decide which component to render -->
-        <div class="w-12 h-12">
-          <IconSDG1XP class="w-12 h-12 rotate-45" :fontControlled="false" v-if="link.component === 'sdg_1'" />
-          <IconSDG2XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_2'" />
-          <IconSDG3XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_3'" />
-          <IconSDG4XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_4'" />
-          <IconSDG5XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_5'" />
-          <IconSDG6XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_6'" />
-          <IconSDG7XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_7'" />
-          <IconSDG8XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_8'" />
-          <IconSDG9XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_9'" />
-          <IconSDG10XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_10'" />
-          <IconSDG11XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_11'" />
-          <IconSDG12XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_12'" />
-          <IconSDG13XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_13'" />
-          <IconSDG14XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_14'" />
-          <IconSDG15XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_15'" />
-          <IconSDG16XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_16'" />
-          <IconSDG17XP class="w-12 h-12 rotate-45" :fontControlled="false" v-else-if="link.component === 'sdg_17'" />
+        <!-- Overall SDG XP -->
+        <NuxtLink :to="{ name: 'worlds' }">
+          <div class="flex items-center space-x-2">
+            <IconSDGXP class="w-12 h-12 rotate-45 text-gray-700 dark:text-gray-300" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+              {{ links[0][1]?.label || '0' }}
+            </span>
+          </div>
+        </NuxtLink>
+        <!-- Overall Coins XP -->
+        <div class="flex items-center space-x-2">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+            {{ links[0][2]?.label || '0' }}
+          </span>
         </div>
-
-        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
-          {{ link.label }}
-        </span>
       </div>
-    </div>
 
+      <!-- Center Section: Top 3 SDGs -->
+      <div class="flex items-center space-x-4">
+          <div
+            v-for="(link, index) in links[1]"
+            :key="index"
+            class="flex flex-col items-center space-y-1"
+          >
+            <NuxtLink :to="{ name: 'worlds-id', params: { id: index+1 } }">
+            <!-- Dynamic SDG Icon -->
+            <div class="w-12 h-12 flex items-center justify-center">
+              <IconSDG1XP v-if="link.component === 'sdg_1'" class="w-12 h-12 rotate-45" />
+              <IconSDG2XP v-else-if="link.component === 'sdg_2'" class="w-12 h-12 rotate-45" />
+              <IconSDG3XP v-else-if="link.component === 'sdg_3'" class="w-12 h-12 rotate-45" />
+              <IconSDG4XP v-else-if="link.component === 'sdg_4'" class="w-12 h-12 rotate-45" />
+              <IconSDG5XP v-else-if="link.component === 'sdg_5'" class="w-12 h-12 rotate-45" />
+              <IconSDG6XP v-else-if="link.component === 'sdg_6'" class="w-12 h-12 rotate-45" />
+              <IconSDG7XP v-else-if="link.component === 'sdg_7'" class="w-12 h-12 rotate-45" />
+              <IconSDG8XP v-else-if="link.component === 'sdg_8'" class="w-12 h-12 rotate-45" />
+              <IconSDG9XP v-else-if="link.component === 'sdg_9'" class="w-12 h-12 rotate-45" />
+              <IconSDG10XP v-else-if="link.component === 'sdg_10'" class="w-12 h-12 rotate-45" />
+              <IconSDG11XP v-else-if="link.component === 'sdg_11'" class="w-12 h-12 rotate-45" />
+              <IconSDG12XP v-else-if="link.component === 'sdg_12'" class="w-12 h-12 rotate-45" />
+              <IconSDG13XP v-else-if="link.component === 'sdg_13'" class="w-12 h-12 rotate-45" />
+              <IconSDG14XP v-else-if="link.component === 'sdg_14'" class="w-12 h-12 rotate-45" />
+              <IconSDG15XP v-else-if="link.component === 'sdg_15'" class="w-12 h-12 rotate-45" />
+              <IconSDG16XP v-else-if="link.component === 'sdg_16'" class="w-12 h-12 rotate-45" />
+              <IconSDG17XP v-else-if="link.component === 'sdg_17'" class="w-12 h-12 rotate-45" />
+            </div>
 
-    <!-- Avatar -->
-    <div v-if="links[2]?.[0]?.avatar" class="flex items-center space-x-4">
-      <img
-        :src="links[2][0].avatar.src"
-        :alt="links[2][0].avatar.alt"
-        class="w-12 h-12 rounded-full border-2 border-primary"
-      />
-      <span class="text-gray-700 dark:text-gray-200">My Profile</span>
+            <!-- Label -->
+            <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+              {{ link.label }}
+            </span>
+            </NuxtLink>
+          </div>
+      </div>
+
+      <!-- Right Section: Avatar -->
+      <NuxtLink :to="{ name: 'profile' }">
+        <div v-if="links[2]?.[0]?.avatar" class="flex items-center space-x-2">
+          <img
+            :src="links[2][0].avatar.src"
+            :alt="links[2][0].avatar.alt"
+            class="w-10 h-10 rounded-full border-2 border-primary"
+          />
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Profile</span>
+        </div>
+      </NuxtLink>
     </div>
-  </div>
+  </nav>
 </template>
+
 
 
