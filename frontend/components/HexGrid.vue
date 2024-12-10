@@ -23,9 +23,8 @@ watch(
         await predictionsStore.fetchPredictionsByPublicationId(newPublication.publication_id);
         if (!isRendered && hexGridContainer.value) {
           const values = extractPredictionValues(predictionsStore.selectedPublicationPrediction);
-          // Invert each value: 1 - value
-          const invertedValues = values.map(value => 1 - value);
-          const { renderHexGrid } = useHexGrid(invertedValues);
+
+          const { renderHexGrid } = useHexGrid(values);
           renderHexGrid(hexGridContainer.value);
           isRendered = true;
         }

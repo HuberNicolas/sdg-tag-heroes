@@ -5,13 +5,12 @@ export default function useHexGrid(values: number[]) {
   const xSpacing = hexRadius * 2; // Horizontal spacing
   const ySpacing = Math.sqrt(3) * hexRadius; // Vertical spacing
 
-  // Updated coordinate system
   const coords = [
-    [0, 2], [1, 2], [2, 2],              // Row 1
-    [-0.5, 1], [0.5, 1], [1.5, 1], [2.5, 1],  // Row 2
-    [0, 0], [1, 0], [2, 0],              // Row 3
-    [-0.5, -1], [0.5, -1], [1.5, -1], [2.5, -1], // Row 4
-    [0, -2], [1, -2], [2, -2]            // Row 5
+    [0, -2], [1, -2], [2, -2],
+    [-0.5, -1], [0.5, -1], [1.5, -1], [2.5, -1],
+    [0, 0], [1, 0], [2, 0],
+    [-0.5, 1], [0.5, 1], [1.5, 1], [2.5, 1],
+    [0, 2], [1, 2], [2, 2],
   ];
 
   const labels = [
@@ -22,6 +21,16 @@ export default function useHexGrid(values: number[]) {
     '15', '16', '17',
   ];
 
+  const sdgTitles = [
+    'No Poverty', 'Zero Hunger', 'Good Health and Well-being',
+    'Quality Education', 'Gender Equality', 'Clean Water and Sanitation',
+    'Affordable and Clean Energy', 'Decent Work and Economic Growth',
+    'Industry, Innovation, and Infrastructure', 'Reduced Inequalities',
+    'Sustainable Cities and Communities', 'Responsible Consumption and Production',
+    'Climate Action', 'Life Below Water', 'Life on Land',
+    'Peace, Justice, and Strong Institutions', 'Partnerships for the Goals',
+  ];
+
   const sdgColors = [
     '#E5243B', '#DDA63A', '#4C9F38', '#C5192D', '#FF3A21',
     '#26BDE2', '#FCC30B', '#A21942', '#FD6925', '#DD1367',
@@ -29,36 +38,41 @@ export default function useHexGrid(values: number[]) {
     '#00689D', '#19486A',
   ];
 
-  /**
-   * Renders the hexagonal grid using D3.
-   * @param selector - The CSS selector of the container element.
-   */
   const renderHexGrid = (selector: HTMLElement): void => {
-    // Calculate full grid dimensions
     const gridWidth = (Math.max(...coords.map(([x]) => x)) + 1.5) * xSpacing;
     const gridHeight = (Math.max(...coords.map(([_, y]) => y)) + 2) * ySpacing;
 
     const container = d3.select(selector);
-
-    // Clear previous render
     container.selectAll('*').remove();
 
-    // Add SVG with proper scaling
     const svg = container
       .append('svg')
-      .attr('viewBox', `-${xSpacing} ${-0.623*gridHeight} ${gridWidth} ${gridHeight + ySpacing}`)
+      .attr('viewBox', `-${xSpacing} ${-0.623 * gridHeight} ${gridWidth} ${gridHeight + ySpacing}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
       .attr('width', '100%')
       .attr('height', '100%')
       .style('background', 'white');
 
+    const tooltip = container
+      .append('div')
+      .style('position', 'absolute')
+      .style('visibility', 'hidden')
+      .style('background', '#fff')
+      .style('border', '1px solid #ccc')
+      .style('padding', '8px')
+      .style('border-radius', '4px')
+      .style('font-size', '12px')
+      .style('box-shadow', '0px 4px 8px rgba(0, 0, 0, 0.1)');
+
     coords.forEach(([x, y], i) => {
       const color = d3.color(sdgColors[i % sdgColors.length]);
       const value = values[i];
-      const innerRadius = value * hexRadius;
+      const innerRadius = (1-value) * hexRadius;
+
+      const hexagonGroup = svg.append('g');
 
       // Outer hexagon
-      svg
+      hexagonGroup
         .append('polygon')
         .attr(
           'points',
@@ -77,7 +91,7 @@ export default function useHexGrid(values: number[]) {
         .attr('stroke-width', 1);
 
       // Inner hexagon
-      svg
+      hexagonGroup
         .append('polygon')
         .attr(
           'points',
@@ -96,7 +110,7 @@ export default function useHexGrid(values: number[]) {
         .attr('stroke-width', 1);
 
       // Add label
-      svg
+      hexagonGroup
         .append('text')
         .attr('x', x * xSpacing)
         .attr('y', y * ySpacing)
@@ -105,6 +119,24 @@ export default function useHexGrid(values: number[]) {
         .text(labels[i])
         .style('font-size', '12px')
         .style('fill', 'black');
+
+      // Tooltip events
+      hexagonGroup
+        .on('mouseover', () => {
+          tooltip
+            .style('visibility', 'visible')
+            .style('background', color?.toString() || 'gray') // Use SDG color as background
+            .style('color', '#fff') // Make text white for contrast
+            .html(`<strong>${sdgTitles[i]}</strong><br>Value: ${value.toFixed(2)}`);
+        })
+        .on('mousemove', (event) => {
+          tooltip
+            .style('top', `${event.pageY + 10}px`)
+            .style('left', `${event.pageX + 10}px`);
+        })
+        .on('mouseout', () => {
+          tooltip.style('visibility', 'hidden');
+        });
     });
   };
 
