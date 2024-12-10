@@ -263,6 +263,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
         x.domain(xExtent(data));
         y.domain(yExtent(data));
         dimensionalityStore.clearSelectedPoints(); // Clear selection in the store
+        dimensionalityStore.clearSelectedSummary();
         updateMinimap(null, null); // Clear the minimap selection
         render();
       }
@@ -283,6 +284,10 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
     //console.log('Visible Data Points:', brushedPoints);
 
     dimensionalityStore.setSelectedPoints(brushedPoints); // Update the store with selected points
+
+    // Trigger summary computation
+    dimensionalityStore.clearSelectedSummary();
+    dimensionalityStore.computeSummaryForSelectedPoints();
   });
 
   const multi = fc

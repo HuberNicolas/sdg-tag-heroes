@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { useRuntimeConfig } from 'nuxt/app';
 import { DimensionalityReductionGroupedResponse } from '~/types/dimensionalityReduction';
+import { CollectiveSummaryResponse } from "~/types/collectiveSummary"; // Define your response typ
+
 
 export const useDimensionalityReductionsStore = defineStore('dimensionalityReductions', {
   state: () => ({
@@ -17,6 +19,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
     currentLevel: 1 as number,
     fetching: false,
     error: null as Error | null,
+    selectedSummary: null as CollectiveSummaryResponse | null, // Add this field
   }),
 
   getters: {
@@ -39,6 +42,9 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
     },
     clearSelectedPoints() {
       this.selectedPoints = null;
+    },
+    clearSelectedSummary() {
+      this.selectedSummary = null;
     },
     setSelectedPoints (points: any) {
       this.selectedPoints = points;
@@ -141,6 +147,38 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
         this.error = err as Error;
       } finally {
         this.fetching = false;
+      }
+    },
+
+    async computeSummaryForSelectedPoints() {
+      if (this.selectedPoints.length === 0) {
+        this.selectedSummary = null;
+        return;
+      }
+
+      this.fetching = true; // Start loading
+      const apiUrl = useRuntimeConfig().public.apiUrl;
+
+      const data = {
+        publication_ids: this.selectedPoints.map(point => point.publication_id),
+      };
+
+      try {
+        const response = await $fetch<CollectiveSummaryResponse>(`${apiUrl}publications/summaries`, {
+          method: "POST",
+          body: data,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+
+        this.selectedSummary = response;
+      } catch (error) {
+        console.error("Error computing summary:", error);
+        this.selectedSummary = null;
+        this.selectedSummary = null;
+      } finally {
+        this.fetching = false; // Stop loading
       }
     },
 

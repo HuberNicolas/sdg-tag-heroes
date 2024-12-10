@@ -9,17 +9,44 @@
       <div id="scatter-plot-bottom-control" class="grid-item">
         <div id="scatter-plot-visible-points"></div>
         <div id="scatter-plot-selected-point"></div>
+        <div id="scatter-plot-summary">
+          <h3>Summary</h3>
+          <!-- Loading spinner -->
+          <div v-if="isLoading" class="flex justify-center items-center">
+            Loading ...
+            <!-- <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div> -->
+            <IconSDGLoader class="w-36 h-36 animate-spin" :fontControlled="false"></IconSDGLoader>
+          </div>
+          <!-- Summary content -->
+          <div v-else>
+            <p v-if="selectedSummary">{{ selectedSummary.summary }}</p>
+            <ul v-if="selectedSummary">
+              <li v-for="keyword in selectedSummary.keywords" :key="keyword">{{ keyword }}</li>
+            </ul>
+            <p v-else>No points selected for summary.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
+
 <script setup lang="ts">
 import useScatterPlotMinimap from "~/composables/useScatterPlotMinimap";
 useScatterPlotMinimap();
 
-onMounted(() => {});
+import { computed } from "vue";
+import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
+import IconSDGLoader from '~/assets/sdg_loader_glyph.svg';
+
+
+const dimensionalityStore = useDimensionalityReductionsStore();
+
+const selectedSummary = computed(() => dimensionalityStore.selectedSummary);
+const isLoading = computed(() => dimensionalityStore.fetching); // Watch fetching state
 </script>
+
 
 <style scoped>
 .map-container {
