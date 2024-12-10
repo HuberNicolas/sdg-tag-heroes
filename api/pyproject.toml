@@ -47,6 +47,7 @@ openai = "^1.54.4"
 torch = "2.1.1" # Needed for sentence transformers
 numpy = "<2.0"  # Needed for sentence transformers, Restrict to version 1.x
 sentence-transformers = "^3.0.1"
+keybert = "^0.8.5"
 
 
 [tool.poetry.group.dev.dependencies]
