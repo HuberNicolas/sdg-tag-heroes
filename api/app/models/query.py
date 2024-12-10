@@ -12,7 +12,7 @@ class PublicationQuery(BaseModel):
 
 class SimilarityQueryRequest(BaseModel):
     user_query: str
-    top_k: int = 5
+    publication_ids: Optional[List[int]] = None  # Optional list of publication IDs to restrict the search
 
 
 class SkillsRequest(BaseModel):

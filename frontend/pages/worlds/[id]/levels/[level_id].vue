@@ -4,10 +4,39 @@
       <MinimapContainer></MinimapContainer>
       <BoxplotContainer></BoxplotContainer>
     </div>
+    <div class="grid grid-cols-3 gap-4">
+      <div>01</div>
+      <div>01</div>
+      <div>01</div>
+
+      <div>01</div>
+      <div>01</div>
+      <div>01</div>
+
+      <div>01</div>
+      <div>01</div>
+      <div>09</div>
+    </div>
     <div>
       <p>{{ sdgId }} - {{ levelId }}</p>
       <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
       <UButton label="Back to World" @click="goBackToWorld" />
+
+      <div class="mt-4">
+        <!-- Input for User Interests -->
+        <p class="font-bold mb-2">Share your interests:</p>
+        <UTextarea
+          color="primary"
+          variant="outline"
+          placeholder="Type your interests here..."
+          v-model="userInterests"
+        />
+        <UButton label="Generate Query" @click="generateInterestsQuery" class="mt-2" />
+      </div>
+
+      <p v-if="fetchingQuery">Generating query...</p>
+      <p v-else-if="generatedQuery">{{ generatedQuery }}</p>
+
 
       <p v-if="fetchingReductions || fetchingPublications">Loading data...</p>
       <p v-else-if="errorReductions || errorPublications">
@@ -27,6 +56,8 @@ import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReducti
 import { usePublicationsStore } from "~/stores/publications";
 import {usePredictionsStore} from "~/stores/sdg_predictions";
 import { computed, ref, onMounted } from "vue";
+import { useRuntimeConfig } from "nuxt/app";
+const apiUrl = useRuntimeConfig().public.apiUrl;
 
 // Define page metadata
 definePageMeta({
@@ -98,6 +129,74 @@ const loadSDGGoals = async () => {
     }
   } else {
     console.log("SDG goals are already loaded.");
+  }
+};
+
+// State for user interests
+const userInterests = ref("");
+const generatedQuery = ref("");
+const fetchingQuery = ref(false);
+const errorQuery = ref<Error | null>(null);
+
+
+// Hardcoded publication IDs
+const publicationIds = [101, 102, 103, 104, 105];
+
+// Function to generate query based on user interests
+const generateInterestsQuery = async () => {
+  if (!userInterests.value) {
+    alert("Please enter your interests.");
+    return;
+  }
+
+  fetchingQuery.value = true;
+  errorQuery.value = null;
+
+  try {
+    // Call the /interests endpoint
+    const response = await $fetch(`${apiUrl}profiles/interests`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+      body: {
+        interests: userInterests.value,
+      },
+    });
+    generatedQuery.value = response.generated_query;
+
+    // Use the generated query to fetch similar publications
+    fetchSimilarPublications(response.generated_query);
+  } catch (err) {
+    errorQuery.value = err as Error;
+    console.error("Error generating interests query:", err);
+  } finally {
+    fetchingQuery.value = false;
+  }
+};
+
+// Function to fetch similar publications using the generated query
+const fetchSimilarPublications = async (query: string) => {
+  fetchingPublications.value = true;
+  errorPublications.value = null;
+
+  try {
+    const response = await $fetch(`${apiUrl}publications/similar/5`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+      body: {
+        user_query: query,
+        publication_ids: publicationIds, // Use hardcoded IDs for now
+      },
+    });
+    publications.value = response.results;
+  } catch (err) {
+    errorPublications.value = err as Error;
+    console.error("Error fetching similar publications:", err);
+  } finally {
+    fetchingPublications.value = false;
   }
 };
 

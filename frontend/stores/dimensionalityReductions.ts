@@ -34,6 +34,11 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
 
       return levelData.reductions || null; // Return reductions for the level
     },
+    getSelectedPublicationsIds: (state) => ()  => {
+      return state.selectedPoints.forEach(point => {
+        point.publication_id
+      })
+    }
   },
 
   actions: {

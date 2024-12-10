@@ -167,7 +167,6 @@ onMounted(async () => {
         <!-- Home Link -->
         <NuxtLink to="/">
           <div class="flex items-center space-x-2">
-            <i class="i-heroicons-home text-gray-600 dark:text-gray-300"></i>
             <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Home</span>
           </div>
         </NuxtLink>
@@ -175,7 +174,7 @@ onMounted(async () => {
         <!-- Overall SDG XP -->
         <NuxtLink :to="{ name: 'worlds' }">
           <div class="flex items-center space-x-2">
-            <IconSDGXP class="w-12 h-12 rotate-45 text-gray-700 dark:text-gray-300" />
+            <IconSDGXP class="w-12 h-12 rotate-45 text-gray-700 dark:text-gray-300" :fontControlled="false" />
             <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
               {{ links[0][1]?.label || '0' }}
             </span>
@@ -183,6 +182,7 @@ onMounted(async () => {
         </NuxtLink>
         <!-- Overall Coins XP -->
         <div class="flex items-center space-x-2">
+          <Icon name="heroicons-currency-dollar" style="color: black" />
           <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
             {{ links[0][2]?.label || '0' }}
           </span>
@@ -199,23 +199,23 @@ onMounted(async () => {
             <NuxtLink :to="{ name: 'worlds-id', params: { id: index+1 } }">
             <!-- Dynamic SDG Icon -->
             <div class="w-12 h-12 flex items-center justify-center">
-              <IconSDG1XP v-if="link.component === 'sdg_1'" class="w-12 h-12 rotate-45" />
-              <IconSDG2XP v-else-if="link.component === 'sdg_2'" class="w-12 h-12 rotate-45" />
-              <IconSDG3XP v-else-if="link.component === 'sdg_3'" class="w-12 h-12 rotate-45" />
-              <IconSDG4XP v-else-if="link.component === 'sdg_4'" class="w-12 h-12 rotate-45" />
-              <IconSDG5XP v-else-if="link.component === 'sdg_5'" class="w-12 h-12 rotate-45" />
-              <IconSDG6XP v-else-if="link.component === 'sdg_6'" class="w-12 h-12 rotate-45" />
-              <IconSDG7XP v-else-if="link.component === 'sdg_7'" class="w-12 h-12 rotate-45" />
-              <IconSDG8XP v-else-if="link.component === 'sdg_8'" class="w-12 h-12 rotate-45" />
-              <IconSDG9XP v-else-if="link.component === 'sdg_9'" class="w-12 h-12 rotate-45" />
-              <IconSDG10XP v-else-if="link.component === 'sdg_10'" class="w-12 h-12 rotate-45" />
-              <IconSDG11XP v-else-if="link.component === 'sdg_11'" class="w-12 h-12 rotate-45" />
-              <IconSDG12XP v-else-if="link.component === 'sdg_12'" class="w-12 h-12 rotate-45" />
-              <IconSDG13XP v-else-if="link.component === 'sdg_13'" class="w-12 h-12 rotate-45" />
-              <IconSDG14XP v-else-if="link.component === 'sdg_14'" class="w-12 h-12 rotate-45" />
-              <IconSDG15XP v-else-if="link.component === 'sdg_15'" class="w-12 h-12 rotate-45" />
-              <IconSDG16XP v-else-if="link.component === 'sdg_16'" class="w-12 h-12 rotate-45" />
-              <IconSDG17XP v-else-if="link.component === 'sdg_17'" class="w-12 h-12 rotate-45" />
+              <IconSDG1XP v-if="link.component === 'sdg_1'" class="w-12 h-12 rotate-45" :fontControlled="false"/>
+              <IconSDG2XP v-else-if="link.component === 'sdg_2'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG3XP v-else-if="link.component === 'sdg_3'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG4XP v-else-if="link.component === 'sdg_4'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG5XP v-else-if="link.component === 'sdg_5'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG6XP v-else-if="link.component === 'sdg_6'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG7XP v-else-if="link.component === 'sdg_7'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG8XP v-else-if="link.component === 'sdg_8'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG9XP v-else-if="link.component === 'sdg_9'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG10XP v-else-if="link.component === 'sdg_10'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG11XP v-else-if="link.component === 'sdg_11'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG12XP v-else-if="link.component === 'sdg_12'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG13XP v-else-if="link.component === 'sdg_13'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG14XP v-else-if="link.component === 'sdg_14'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG15XP v-else-if="link.component === 'sdg_15'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG16XP v-else-if="link.component === 'sdg_16'" class="w-12 h-12 rotate-45" :fontControlled="false" />
+              <IconSDG17XP v-else-if="link.component === 'sdg_17'" class="w-12 h-12 rotate-45" :fontControlled="false" />
             </div>
 
             <!-- Label -->

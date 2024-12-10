@@ -956,7 +956,8 @@ async def get_similar_publications(
     search_results = similarity_service.search_publications(
         query_vector=query_vector,
         collection_name="publications-mt",
-        top_k=top_k
+        top_k=top_k,
+        publication_ids=request.publication_ids
     )
     end = time.time()
     search_time = end - start

@@ -1,5 +1,6 @@
 import argparse
-from qdrant_client.http.models import Filter, SearchRequest, VectorParams, NamedVector
+from qdrant_client.http.models import Filter, SearchRequest, VectorParams, NamedVector, MatchValue, FieldCondition, \
+    MatchAny
 from sentence_transformers import SentenceTransformer
 import logging
 
@@ -40,13 +41,25 @@ class SimilarityQuery:
             logging.error(f"Failed to generate query vector: {e}")
             raise
 
-    def search_publications(self, query_vector, collection_name, top_k=5):
-        """Perform similarity search in Qdrant."""
+    def search_publications(self, query_vector, collection_name, top_k=5, publication_ids=None):
+        """Perform similarity search in Qdrant within a subset of publication IDs."""
         try:
+            # Create a filter if publication IDs are provided
+            query_filter = None
+            if publication_ids:
+                query_filter = Filter(
+                    must=[
+                        FieldCondition(
+                            key="sql_id",
+                            match=MatchAny(any=publication_ids)
+                        )
+                    ]
+                )
+
             search_results = self.qclient.search(
                 collection_name=collection_name,
                 query_vector=query_vector,
-                query_filter=None,  # Add filters if needed
+                query_filter=query_filter,  # Use the filter here
                 limit=top_k
             )
             logging.info(f"Found {len(search_results)} matching publications.")
@@ -69,7 +82,7 @@ class SimilarityQuery:
         return formatted_results
 
 
-def main(top_k, user_query):
+def main(top_k, user_query, subset_ids=None):
     # Initialize Qdrant client
     from db.qdrantdb_connector import client as qdrant_client
     from settings.settings import LoaderSettings
@@ -85,7 +98,7 @@ def main(top_k, user_query):
 
     # Perform similarity search
     logging.info("Searching for similar publications...")
-    search_results = sq.search_publications(query_vector, collection_name, top_k)
+    search_results = sq.search_publications(query_vector, collection_name, top_k, publication_ids=subset_ids)
 
     # Format and return results
     logging.info("Formatting search results...")
@@ -103,9 +116,18 @@ if __name__ == "__main__":
         default=5,
         help="Specify the number of top results to return (default: 5)."
     )
+    parser.add_argument(
+        "--ids",
+        type=str,
+        help="Comma-separated list of publication IDs to restrict the search (default: None)."
+    )
 
     args = parser.parse_args()
-    results = main(args.top_k)
+
+    # Parse the list of IDs from command-line arguments
+    subset_ids = [int(id.strip()) for id in args.ids.split(",")] if args.ids else None
+
+    results = main(args.top_k, user_query, subset_ids=subset_ids)
 
     print("Search Results:")
     for i, result in enumerate(results, 1):
