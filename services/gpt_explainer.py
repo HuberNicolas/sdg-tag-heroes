@@ -45,6 +45,37 @@ class SummarizePublicationStrategy(PromptStrategy):
             "abstract": abstract
         }
 
+class SummarizePublicationsStrategy(PromptStrategy):
+    """Generates a single summary for a set of publications."""
+
+    def generate_prompt(self, publications: list[dict]):
+        """
+        Generates a prompt for summarizing multiple publications collectively.
+
+        Args:
+            publications (list[dict]): A list of publications where each has 'title' and 'abstract'.
+
+        Returns:
+            dict: The prompt data for summarizing the set of publications.
+        """
+        summaries = []
+        for pub in publications:
+            title = pub.get("title", "No Title")
+            abstract = pub.get("abstract", "No Abstract")
+            summaries.append(f"Title: {title}\nAbstract: {abstract}")
+
+        joined_summaries = "\n\n".join(summaries)
+        return {
+            "instruction": (
+                "Generate a single cohesive sentence that captures the main themes across all the provided publications. "
+                "Do not refer to individual publications or use phrases like 'the first study'. "
+                "Even if the publications are unrelated, find overarching topics. "
+                "Make the summary concise, engaging, and understandable for non-experts. "
+                "Additionally, extract exactly 5 keywords that capture the overarching nature of the publications."
+            ),
+            "publications": joined_summaries
+        }
+
 
 class TargetStrategy(PromptStrategy):
     """Evaluates relevance to a specific UN SDG target."""
@@ -102,6 +133,11 @@ class FactResponse(BaseModel):
 
 class SummaryResponse(BaseModel):
     summary: str
+
+class CollectiveSummaryResponse(BaseModel):
+    summary: str = Field(description="One sentence that summarizes the set of publications.")
+    keywords: list[str] = Field(description="The list of extracted keywords for the set of publications.")
+
 
 
 class SDGExplainer:
@@ -163,4 +199,28 @@ class SDGExplainer:
         prompt_data = strategy.generate_prompt(title, abstract)
         response = self._call_model(prompt_data, SummaryResponse)
         return response.summary
+
+    def summarize_publications(self, publications: list[dict]) -> CollectiveSummaryResponse:
+        """
+        Summarizes a set of publications into a single sentence and extracts keywords.
+
+        Args:
+            publications (list[dict]): A list of publications where each has 'id', 'title', and 'abstract'.
+
+        Returns:
+            CollectiveSummaryResponse: A single cohesive summary and keywords for all publications.
+        """
+        strategy = SummarizePublicationsStrategy()
+        prompt_data = strategy.generate_prompt(publications)
+
+        try:
+            response = self._call_model(prompt_data, CollectiveSummaryResponse)
+            return response
+        except Exception as e:
+            return CollectiveSummaryResponse(
+                summary=f"Error generating summary: {str(e)}",
+                keywords=[]
+            )
+
+
 
