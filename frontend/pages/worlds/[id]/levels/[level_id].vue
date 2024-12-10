@@ -139,9 +139,6 @@ const fetchingQuery = ref(false);
 const errorQuery = ref<Error | null>(null);
 
 
-// Hardcoded publication IDs
-const publicationIds = [101, 102, 103, 104, 105];
-
 // Function to generate query based on user interests
 const generateInterestsQuery = async () => {
   if (!userInterests.value) {
@@ -181,6 +178,9 @@ const fetchSimilarPublications = async (query: string) => {
   errorPublications.value = null;
 
   try {
+    const publicationIds = dimensionalityReductionsStore.selectedPoints.length
+      ? dimensionalityReductionsStore.selectedPoints.map(point => point.publication_id)
+      : []; // Use empty list if no points are selected
     const response = await $fetch(`${apiUrl}publications/similar/5`, {
       method: "POST",
       headers: {
