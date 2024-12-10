@@ -140,6 +140,27 @@ async def get_user_wallet(
             detail="An error occurred while fetching the wallet",
         )
 
+@router.get("/wallets", response_model=Page[SDGCoinWalletSchemaFull], description="Retrieve wallets for all users")
+async def get_all_wallets(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Retrieve all wallets (SDGCoinWallet) for all users.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query all wallets
+        query = db.query(SDGCoinWallet)
+        return sqlalchemy_paginate(query)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching all wallets",
+        )
+
 @router.post("/{user_id}/bank/history", response_model=SDGXPBankHistorySchemaFull, description="Add a bank increment for a specific user")
 async def add_bank_increment(
     user_id: int,
@@ -223,6 +244,27 @@ async def get_user_bank(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the bank",
+        )
+
+@router.get("/banks", response_model=Page[SDGXPBankSchemaFull], description="Retrieve banks for all users")
+async def get_all_banks(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Retrieve all banks (SDGXPBank) for all users.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query all banks
+        query = db.query(SDGXPBank)
+        return sqlalchemy_paginate(query)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching all banks",
         )
 
 @router.get("/{user_id}", response_model=UserSchemaFull, description="Retrieve a specific user by ID")
