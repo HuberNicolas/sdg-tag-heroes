@@ -1,17 +1,17 @@
 import { defineStore } from "pinia";
 import { useRuntimeConfig } from "nuxt/app";
+import { SDGXPBankResponse } from "~/types"; // Import the updated type
 
 export const useUserStore = defineStore("sdg", {
   state: () => ({
     sdgCoins: {} as Record<number, number>, // Cache: userId -> totalCoins
-    sdgXP: {} as Record<number, number>, // Cache: userId -> totalXP
+    sdgXP: {} as Record<number, SDGXPBankResponse>, // Cache: userId -> SDGXPBankResponse
     fetching: false,
     error: null as Error | null,
   }),
   actions: {
     // Fetch SDG Coins for a user
     async fetchSDGCoins(userId: number): Promise<number> {
-      // Return cached value if it exists
       if (this.sdgCoins[userId] !== undefined) {
         return this.sdgCoins[userId];
       }
@@ -33,7 +33,6 @@ export const useUserStore = defineStore("sdg", {
           },
         });
 
-        // Cache and return total coins
         this.sdgCoins[userId] = response.total_coins;
         return response.total_coins;
       } catch (error) {
@@ -45,9 +44,8 @@ export const useUserStore = defineStore("sdg", {
       }
     },
 
-    // Fetch SDG XP for a user
-    async fetchSDGXP(userId: number): Promise<number> {
-      // Return cached value if it exists
+    // Fetch SDG XP for a user (all SDG values + total XP)
+    async fetchSDGXP(userId: number): Promise<SDGXPBankResponse> {
       if (this.sdgXP[userId] !== undefined) {
         return this.sdgXP[userId];
       }
@@ -63,15 +61,14 @@ export const useUserStore = defineStore("sdg", {
         }
 
         const url = `${config.public.apiUrl}users/${userId}/bank`;
-        const response = await $fetch<{ total_xp: number }>(url, {
+        const response = await $fetch<SDGXPBankResponse>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        // Cache and return total XP
-        this.sdgXP[userId] = response.total_xp;
-        return response.total_xp;
+        this.sdgXP[userId] = response;
+        return response;
       } catch (error) {
         console.error("Failed to fetch SDG XP", error);
         this.error = error as Error;
