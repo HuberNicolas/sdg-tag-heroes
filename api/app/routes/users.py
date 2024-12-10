@@ -161,17 +161,28 @@ async def add_bank_increment(
                 detail=f"Bank for user with ID {user_id} not found",
             )
 
+        # Determine the specific SDG XP field to update
+        sdg_field = f"{bank_increment_data.sdg.value.lower()}_xp"
+        if not hasattr(bank, sdg_field):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid SDG value: {bank_increment_data.sdg}",
+            )
+
+        # Update the specific SDG XP
+        setattr(bank, sdg_field, getattr(bank, sdg_field) + bank_increment_data.increment)
+
+        # Update the total XP
+        bank.total_xp += bank_increment_data.increment
+
         # Create the bank increment history entry
         new_history = SDGXPBankHistory(
             xp_bank_id=bank.sdg_xp_bank_id,
+            sdg=bank_increment_data.sdg,
             increment=bank_increment_data.increment,
             reason=bank_increment_data.reason,
         )
         db.add(new_history)
-
-        # Update the bank total
-        bank.total_xp += bank_increment_data.increment
-
         db.commit()
         db.refresh(new_history)
 
