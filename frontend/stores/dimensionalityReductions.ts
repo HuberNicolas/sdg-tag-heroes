@@ -19,6 +19,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
     currentLevel: 1 as number,
     fetching: false,
     error: null as Error | null,
+    userCoordinates: null as { x: number; y: number; z: number } | null, // User coordinates
     selectedSummary: null as CollectiveSummaryResponse | null, // Add this field
   }),
 
@@ -54,6 +55,39 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
     setSelectedPoints (points: any) {
       this.selectedPoints = points;
     },
+    async fetchUserCoordinates(query: string, sdg: number, level: number) {
+      /**
+       * Fetch user coordinates based on query, SDG, and level.
+       */
+      const config = useRuntimeConfig();
+      this.fetching = true;
+      this.error = null;
+
+
+
+      try {
+        const response = await $fetch<{ x: number; y: number; z: number }>(
+          `${config.public.apiUrl}dimensionality_reductions/user-coordinates`,
+          {
+            method: 'POST',
+            body: { user_query: query, sdg, level },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            },
+          }
+        );
+
+        this.userCoordinates = response;
+        console.log("Fetched user coordinates:", response);
+      } catch (err) {
+        console.error("Error fetching user coordinates:", err);
+        this.error = err as Error;
+        this.userCoordinates = null;
+      } finally {
+        this.fetching = false;
+      }
+    },
+
     async fetchReductions(sdgId: number) {
       // Check if data for this SDG is already in the store
       if (this.reductions[sdgId]) {

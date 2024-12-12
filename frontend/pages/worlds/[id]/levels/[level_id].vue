@@ -181,6 +181,8 @@ const generateInterestsQuery = async () => {
 
     // Use the generated query to fetch similar publications
     fetchSimilarPublications(response.generated_query);
+
+    dimensionalityReductionsStore.fetchUserCoordinates(generatedQuery.value, sdgId, levelId);
   } catch (err) {
     errorQuery.value = err as Error;
     console.error("Error generating interests query:", err);

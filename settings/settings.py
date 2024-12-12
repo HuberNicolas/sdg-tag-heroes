@@ -109,6 +109,9 @@ class ReducerSettings(BaseSettings):
     UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.1]
     UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
 
+    # Model path
+    UMAP_MODEL_PATH: ClassVar[str] = os.path.join("data", "api", "umap_model")
+
     # Filter ranges
     FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.9), (0.9, 0.8), (0.9, 0.5)]  # SDG filter ranges
 
