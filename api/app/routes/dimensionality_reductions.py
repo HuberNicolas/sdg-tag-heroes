@@ -65,6 +65,9 @@ async def get_dimensionality_reductions_by_sdg_values(
     token: str = Depends(oauth2_scheme),
 
 ) -> Dict[str, float]:
+    # Verify the token before proceeding
+    user = verify_token(token, db)  # Raises HTTPException if the token is invalid or expired
+
     umap_service = UMAPCoordinateService()
 
     coordinates = umap_service.get_coordinates(query=request.user_query, sdg=request.sdg, level=request.level)
