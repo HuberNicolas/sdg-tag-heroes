@@ -1,5 +1,8 @@
+import os
 import time
 
+import joblib
+from sqlalchemy import desc
 from sqlalchemy.orm import sessionmaker
 
 from settings.settings import ReducerSettings, LoaderSettings, EmbeddingsSettings
@@ -68,6 +71,8 @@ def create_dimensionality_reductions():
                         getattr(SDGPrediction, sdg_column) <= upper,
                         getattr(SDGPrediction, sdg_column) > lower,
                     )
+                    .order_by(desc(getattr(SDGPrediction, sdg_column)))
+                    .limit(1000)
                     .all()
                 )
                 end = time.time()
@@ -112,13 +117,21 @@ def create_dimensionality_reductions():
                         n_neighbors=params['n_neighbors'],
                         min_dist=params['min_dist'],
                         n_components=params['n_components'],
-                        random_state=42,  # For reproducibility
+                        random_state=31011997,
                         n_jobs = 1  # Explicitly disable parallelism
                     )
                     start = time.time()
                     umap_result = reducer.fit_transform(ordered_embeddings)
                     end = time.time()
                     print(f"UMAP fit took {end - start} seconds.")
+
+                    model_dir = f"./data/api/umap_model/config_{params['n_neighbors']}_{params['min_dist']}_{params['n_components']}"
+                    os.makedirs(model_dir, exist_ok=True)
+                    model_path = os.path.join(model_dir, f"SDG{sdg_index}.joblib")
+
+                    # Save the UMAP model
+                    joblib.dump(reducer, model_path)
+                    print(f"UMAP model saved to {model_path}.")
 
                     for pub, coords in zip(filtered_publications, umap_result):
                         x_coord, y_coord = coords.tolist()

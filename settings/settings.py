@@ -110,7 +110,7 @@ class ReducerSettings(BaseSettings):
     UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
 
     # Filter ranges
-    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.99), (0.99, 0.9), (0.9, 0.8)]  # SDG filter ranges
+    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.9), (0.9, 0.8), (0.9, 0.5)]  # SDG filter ranges
 
 
 
