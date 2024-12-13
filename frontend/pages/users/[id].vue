@@ -27,10 +27,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import UseUser from "@/composables/useUser";
 import useAvatar from "@/composables/useAvatar";
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import UseUser from "@/composables/useUser";
+
 
 // State
 const user = ref(null);
@@ -40,7 +41,7 @@ const error = ref<string | null>(null);
 // Routing
 const router = useRouter();
 const route = useRoute();
-const userId = route.params.id;
+const userId = Number(route.params.id);
 
 // Avatar generation
 const { generateAvatar } = useAvatar();
@@ -52,8 +53,8 @@ const generateUserAvatar = (email: string) => {
 onMounted(async () => {
   const useUser = new UseUser();
   try {
-    const response = await useUser.getUserById(userId); // Fetch single user by ID
-    user.value = response; // Assuming the API returns a single user object
+     // Fetch single user by ID
+    user.value = await useUser.getUserById(userId); // Assuming the API returns a single user object
   } catch (err) {
     console.error("Error fetching user:", err);
     error.value = err.message || "Failed to load user details.";

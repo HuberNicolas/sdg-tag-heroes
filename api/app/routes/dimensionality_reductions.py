@@ -6,7 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, sessionmaker, joinedload, load_only
 
-from api.app.models.query import PublicationQuery
+from api.app.models.query import PublicationQuery, UserCoordinatesRequest
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
@@ -17,6 +17,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 from models import DimensionalityReduction, SDGPrediction
 from models.publications.publication import Publication
 from schemas import DimensionalityReductionSchemaFull
+from services.umap_coordinates_generator import UMAPCoordinateService
 
 from settings.settings import DimensionalityReductionsRouterSettings
 dimensionality_reductions_router_settings = DimensionalityReductionsRouterSettings()
@@ -50,6 +51,30 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@router.post(
+    "/user-coordinates",
+    response_model=Dict[str, float],
+    description=(
+        "Calculate dimensionality reduction using user coordinates."
+    ),
+)
+async def get_dimensionality_reductions_by_sdg_values(
+    request: UserCoordinatesRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+
+) -> Dict[str, float]:
+    # Verify the token before proceeding
+    user = verify_token(token, db)  # Raises HTTPException if the token is invalid or expired
+
+    umap_service = UMAPCoordinateService()
+
+    coordinates = umap_service.get_coordinates(query=request.user_query, sdg=request.sdg, level=request.level)
+    return coordinates
+
+
+
 
 @router.get(
     "/by-sdg-values",

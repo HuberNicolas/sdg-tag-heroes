@@ -42,6 +42,11 @@ from .inventor_achievement_association import InventoryAchievementAssociation
 from .fact import Fact
 from .summary import Summary
 
+from .sdg_xp_bank import SDGXPBank
+from .sdg_coin_wallet import SDGCoinWallet
+from .sdg_xp_bank_history import SDGXPBankHistory
+from .sdg_coin_wallet_history import SDGCoinWalletHistory
+
 # Export all models for external use
 __all__ = [
     "Base",
@@ -83,6 +88,11 @@ __all__ = [
     "Achievement",
     "InventoryAchievementAssociation",
 
-    "Fact"
-    "Summary"
+    "Fact",
+    "Summary",
+
+    "SDGXPBank",
+    "SDGCoinWallet",
+    "SDGXPBankHistory",
+    "SDGCoinWalletHistory",
 ]

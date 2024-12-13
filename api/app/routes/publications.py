@@ -31,7 +31,7 @@ from schemas.sdg_label_summary import SDGLabelSummarySchemaFull
 from schemas.sdg_prediction import SDGPredictionSchemaFull, SDGPredictionSchemaBase
 from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
 
-from services.gpt_explainer import SDGExplainer, SummarizePublicationStrategy
+from services.gpt_explainer import SDGExplainer, SummarizePublicationStrategy, CollectiveSummaryResponse
 from services.similarity_query import SimilarityQuery
 
 from settings.settings import PublicationsRouterSettings
@@ -956,7 +956,8 @@ async def get_similar_publications(
     search_results = similarity_service.search_publications(
         query_vector=query_vector,
         collection_name="publications-mt",
-        top_k=top_k
+        top_k=top_k,
+        publication_ids=request.publication_ids
     )
     end = time.time()
     search_time = end - start
@@ -988,3 +989,41 @@ async def get_similar_publications(
         "user_query": request.user_query,
         "results": sorted(results, key=lambda x: x["score"], reverse=True)
     }
+
+@router.post(
+    "/summaries",
+    response_model=CollectiveSummaryResponse,
+    description="Generate a single cohesive summary and keywords for a set of publications by IDs."
+)
+async def create_collective_summary(
+    request: PublicationIdsRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> CollectiveSummaryResponse:
+    """
+    Generate a single cohesive summary and keywords for a set of publications by their IDs.
+    """
+    user = verify_token(token, db)  # Ensure user is authenticated
+    publication_ids = request.publication_ids  # Access the list of IDs
+
+    # Fetch the publications from the database
+    publications = db.query(Publication).filter(Publication.publication_id.in_(publication_ids)).all()
+
+    if not publications:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No publications found for the given IDs.")
+
+    # Prepare data for summarization
+    publication_data = [
+        {"id": pub.publication_id, "title": pub.title or "", "abstract": pub.description or ""}
+        for pub in publications
+    ]
+
+    # Use SDGExplainer to generate a collective summary and keywords
+    try:
+        result = SDGExplainer().summarize_publications(publications=publication_data)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Summary generation failed: {str(e)}")
+
+    return result
+
+

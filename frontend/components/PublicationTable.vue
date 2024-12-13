@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { usePublicationsStore } from '~/stores/publications';
 
@@ -13,7 +12,6 @@ const props = defineProps<Props>();
 const router = useRouter();
 
 const publicationStore = usePublicationsStore();
-const { publications } = storeToRefs(publicationStore);
 
 // State for fetching and errors
 const fetching = ref(false);
@@ -52,14 +50,6 @@ const allPublications = computed(() => {
   );
 });
 
-// Table Columns
-const columns = [
-  { key: 'publication_id', label: 'ID', sortable: true },
-  { key: 'title', label: 'Title', sortable: true },
-  { key: 'year', label: 'Year', sortable: true },
-  { key: 'publisher', label: 'Publisher', sortable: false }
-];
-
 // Search Query
 const q = ref('');
 
@@ -85,25 +75,9 @@ const rows = computed(() => {
   return filteredRows.value.slice(start, end);
 });
 
-// Selection and Expandable Rows
-const selected = ref([]);
-const expand = ref({
-  openedRows: [],
-  row: {},
-});
-
 // Handle Row Selection
-function select(row) {
-  const index = selected.value.findIndex((item) => item.publication_id === row.publication_id);
-  console.log(row)
-  if (index === -1) {
-    selected.value.push(row);
-
-    // Navigate to the route when a row is selected
-    router.push({ name: 'publications-id', params: { id: row.publication_id } });
-  } else {
-    selected.value.splice(index, 1);
-  }
+function select(publication) {
+  router.push({ name: 'publications-id', params: { id: publication.publication_id } });
 }
 
 // Load data when the component is mounted
@@ -112,36 +86,71 @@ onMounted(() => {
 });
 </script>
 
+
 <template>
   <div>
     <!-- Search Input -->
-    <div class="flex px-3 py-3.5 border-b border-gray-200 dark:border-gray-700">
-      <UInput v-model="q" placeholder="Search publications..." />
+    <div class="flex px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <input
+        v-model="q"
+        type="text"
+        class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-500"
+        placeholder="Search publications..."
+      />
     </div>
 
     <!-- Table -->
-    <UTable
-      :loading="fetching"
-      :loading-state="{ icon: 'i-heroicons-arrow-path-20-solid', label: 'Loading...' }"
-      :progress="{ color: 'primary', animation: 'carousel' }"
-      :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-      class="w-full"
-      v-model="selected"
-      v-model:expand="expand"
-      :columns="columns"
-      :rows="rows"
-      @select="select"
-    >
-      <template #expand="{ row }">
-        <div class="p-4">
-          <pre>{{ row }}</pre>
-        </div>
-      </template>
-    </UTable>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white border border-gray-200">
+        <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">ID</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Title</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Year</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Publisher</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+          v-for="publication in rows"
+          :key="publication.publication_id"
+          class="hover:bg-gray-50 cursor-pointer"
+          @click="select(publication)"
+        >
+          <td class="px-4 py-2 text-sm text-gray-700">{{ publication.publication_id }}</td>
+          <td class="px-4 py-2 text-sm text-gray-700">{{ publication.title }}</td>
+          <td class="px-4 py-2 text-sm text-gray-700">{{ publication.year }}</td>
+          <td class="px-4 py-2 text-sm text-gray-700">{{ publication.publisher }}</td>
+        </tr>
+        <tr v-if="!rows.length">
+          <td colspan="4" class="px-4 py-2 text-sm text-center text-gray-500">No items found.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Pagination -->
-    <div class="flex justify-end px-3 py-3.5 border-t border-gray-200 dark:border-gray-700">
-      <UPagination v-model="page" :page-count="pageCount" :total="filteredRows.length" />
+    <div class="flex justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200">
+      <p class="text-sm text-gray-500">
+        Showing {{ (page - 1) * pageElements + 1 }} -
+        {{ Math.min(page * pageElements, filteredRows.length) }} of {{ filteredRows.length }}
+      </p>
+      <div class="flex space-x-2">
+        <button
+          :disabled="page === 1"
+          @click="page--"
+          class="px-3 py-1 text-sm text-gray-700 bg-gray-100 border rounded hover:bg-gray-200 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          :disabled="page === pageCount"
+          @click="page++"
+          class="px-3 py-1 text-sm text-gray-700 bg-gray-100 border rounded hover:bg-gray-200 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   </div>
 </template>

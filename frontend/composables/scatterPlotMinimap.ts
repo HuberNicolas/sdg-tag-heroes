@@ -44,55 +44,69 @@ export function createScatterPlotMinimap() {
     },
     { immediate: true }
   );
+  function prepareData(newPublications, newReductions, newPredictions) {
+    const predictionArray = Array.isArray(newPredictions)
+      ? newPredictions
+      : Object.values(newPredictions);
 
-function prepareData(newPublications, newReductions, newPredictions) {
-  const predictionArray = Array.isArray(newPredictions)
-    ? newPredictions
-    : Object.values(newPredictions);
+    // "Zip" the data by matching `publication_id`
+    const data = newReductions
+      .filter(reduction => {
+        const hasPublication = newPublications[reduction.publication_id];
+        return hasPublication; // Include only if publication exists
+      })
+      .map(reduction => {
+        const publication = newPublications[reduction.publication_id];
+        const prediction = predictionArray.find(
+          p => p.publication_id === reduction.publication_id
+        );
 
-  // "Zip" the data by matching `publication_id`
-  return newReductions
-    .filter(reduction => {
-      // Only include reductions that have a matching publication
-      const hasPublication = newPublications[reduction.publication_id];
-      if (!hasPublication) {
-        //console.warn(
-        //  `No publication found for reduction with publication_id: ${reduction.publication_id}`
-        //);
-      }
-      return hasPublication; // Include only if publication exists
-    })
-    .map(reduction => {
-      const publication = newPublications[reduction.publication_id];
+        const score = prediction ? prediction[`sdg${selectedSDG}`] || 1 : 1;
 
-      const prediction = predictionArray.find(
-        p => p.publication_id === reduction.publication_id
-      );
+        return {
+          reduction_id: reduction.dim_red_id,
+          publication_id: reduction.publication_id,
+          reduction_shorthand: reduction.reduction_shorthand,
+          reduction_technique: reduction.reduction_technique,
+          x: reduction.x_coord,
+          y: reduction.y_coord,
+          z_coord: reduction.z_coord,
+          publication_title: publication.title,
+          publication_year: publication.year,
+          publication_publisher: publication.publisher,
+          publication_description: publication.description,
+          authors: publication.authors,
+          score: score,
+          color: sdgStore.getSelectedGoalColor(selectedSDG),
+        };
+      });
 
-      // Determine score based on prediction or default to 1 if not found
-      const score = prediction
-        ? prediction[`sdg${selectedSDG}`] || 1
-        : 1;
-
-      return {
-        reduction_id: reduction.dim_red_id, // Reduction ID
-        publication_id: reduction.publication_id, // Matching Publication ID
-        reduction_shorthand: reduction.reduction_shorthand, // Reduction details
-        reduction_technique: reduction.reduction_technique,
-        x: reduction.x_coord, // makes life easier
-        y: reduction.y_coord, // makes life easier
-        z_coord: reduction.z_coord,
-        // Include publication details
-        publication_title: publication.title,
-        publication_year: publication.year,
-        publication_publisher: publication.publisher,
-        publication_description: publication.description,
-        authors: publication.authors, // List of authors
-        score: score,
-        color: sdgStore.getSelectedGoalColor(selectedSDG)
+    // Append the user coordinates as an additional point
+    if (dimensionalityStore.userCoordinates) {
+      console.log("has User coordinates")
+      const userPoint = {
+        reduction_id: null,
+        publication_id: null, // No publication associated
+        reduction_shorthand: "User",
+        reduction_technique: "Manual",
+        x: dimensionalityStore.userCoordinates.x,
+        y: dimensionalityStore.userCoordinates.y,
+        z_coord: dimensionalityStore.userCoordinates.z,
+        publication_title: "User Point",
+        publication_year: "",
+        publication_publisher: "",
+        publication_description: "",
+        authors: [],
+        score: 1, // Default score
+        color: "red", // Use a distinctive color for the user point
       };
-    });
-}
+
+      data.push(userPoint);
+    }
+
+    return data;
+  }
+
 
 function initScatterPlot(newPublications, newReductions, newPredictions) {
   const data = prepareData(newPublications, newReductions, newPredictions);
@@ -171,7 +185,9 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
     .size(15)
     .decorate(selection => {
       selection.enter()
-        .style('fill', d => d.color);
+        .style('fill', d => d.color)
+        .style('stroke', d => (d.reduction_shorthand === "User" ? "black" : null))
+        .style('stroke-width', d => (d.reduction_shorthand === "User" ? 10 : 0));
 
       // Add mouse event listeners to the entire plot area
       d3.select('#scatter-plot')
@@ -263,6 +279,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
         x.domain(xExtent(data));
         y.domain(yExtent(data));
         dimensionalityStore.clearSelectedPoints(); // Clear selection in the store
+        dimensionalityStore.clearSelectedSummary();
         updateMinimap(null, null); // Clear the minimap selection
         render();
       }
@@ -283,6 +300,10 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
     //console.log('Visible Data Points:', brushedPoints);
 
     dimensionalityStore.setSelectedPoints(brushedPoints); // Update the store with selected points
+
+    // Trigger summary computation
+    dimensionalityStore.clearSelectedSummary();
+    dimensionalityStore.computeSummaryForSelectedPoints();
   });
 
   const multi = fc

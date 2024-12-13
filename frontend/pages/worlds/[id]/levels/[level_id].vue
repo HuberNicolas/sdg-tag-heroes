@@ -4,10 +4,58 @@
       <MinimapContainer></MinimapContainer>
       <BoxplotContainer></BoxplotContainer>
     </div>
+    <div class="grid grid-cols-3 gap-4">
+      <div>01</div>
+      <div>01</div>
+      <div>01</div>
+
+      <div>01</div>
+      <div>01</div>
+      <div>01</div>
+
+      <div>01</div>
+      <div>01</div>
+      <div>09</div>
+    </div>
     <div>
       <p>{{ sdgId }} - {{ levelId }}</p>
       <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
       <UButton label="Back to World" @click="goBackToWorld" />
+
+      <div class="mt-4">
+        <!-- Input for User Interests -->
+        <p class="font-bold mb-2">Share your interests:</p>
+        <UTextarea
+          color="primary"
+          variant="outline"
+          placeholder="Type your interests here..."
+          v-model="userInterests"
+        />
+        <UButton label="Generate Query" @click="generateInterestsQuery" class="mt-2" />
+
+        <!-- Spinner for Similarity Results -->
+        <div v-if="fetchingPublications" class="spinner mt-4">
+          Loading similar publications...
+        </div>
+
+        <!-- Display Similar Publications -->
+        <div v-else class="mt-4">
+          <p class="font-bold">Similar Publications:</p>
+          <ul v-if="similarPublications.length > 0" class="publication-list">
+            <li v-for="publication in similarPublications" :key="publication.publication_id" class="mb-4 border-b pb-2">
+              <h3 class="font-semibold">{{ publication.title }}</h3>
+              <p><strong>Description:</strong> {{ publication.description }}</p>
+              <p><strong>Authors:</strong> {{ formatAuthors(publication.authors) }}</p>
+              <p><strong>Score:</strong> {{ publication.score }}</p>
+            </li>
+          </ul>
+          <p v-else>No similar publications found.</p>
+        </div>
+      </div>
+
+      <p v-if="fetchingQuery">Generating query...</p>
+      <p v-else-if="generatedQuery">{{ generatedQuery }}</p>
+
 
       <p v-if="fetchingReductions || fetchingPublications">Loading data...</p>
       <p v-else-if="errorReductions || errorPublications">
@@ -27,6 +75,8 @@ import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReducti
 import { usePublicationsStore } from "~/stores/publications";
 import {usePredictionsStore} from "~/stores/sdg_predictions";
 import { computed, ref, onMounted } from "vue";
+import { useRuntimeConfig } from "nuxt/app";
+const apiUrl = useRuntimeConfig().public.apiUrl;
 
 // Define page metadata
 definePageMeta({
@@ -64,12 +114,10 @@ const fetchingReductions = ref(false);
 const errorReductions = ref<Error | null>(null);
 const reductionsData = ref(null);
 
-// State for publications
+// State for fetching similar publications
 const fetchingPublications = ref(false);
+const similarPublications = ref([]);
 const errorPublications = ref<Error | null>(null);
-const publications = computed(() =>
-  Object.values(publicationsStore.publications[sdgId]?.[levelId] || {})
-);
 
 // State for predictions
 const fetchingPredictions = ref(false);
@@ -101,6 +149,80 @@ const loadSDGGoals = async () => {
   }
 };
 
+// State for user interests
+const userInterests = ref("");
+const generatedQuery = ref("");
+const fetchingQuery = ref(false);
+const errorQuery = ref<Error | null>(null);
+
+
+// Function to generate query based on user interests
+const generateInterestsQuery = async () => {
+  if (!userInterests.value) {
+    alert("Please enter your interests.");
+    return;
+  }
+
+  fetchingQuery.value = true;
+  errorQuery.value = null;
+
+  try {
+    // Call the /interests endpoint
+    const response = await $fetch(`${apiUrl}profiles/interests`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+      body: {
+        interests: userInterests.value,
+      },
+    });
+    generatedQuery.value = response.generated_query;
+
+    // Use the generated query to fetch similar publications
+    fetchSimilarPublications(response.generated_query);
+
+    dimensionalityReductionsStore.fetchUserCoordinates(generatedQuery.value, sdgId, levelId);
+  } catch (err) {
+    errorQuery.value = err as Error;
+    console.error("Error generating interests query:", err);
+  } finally {
+    fetchingQuery.value = false;
+  }
+};
+
+// Function to fetch similar publications using the generated query
+const fetchSimilarPublications = async (query: string) => {
+  fetchingPublications.value = true;
+  errorPublications.value = null;
+
+  try {
+    const publicationIds = dimensionalityReductionsStore.selectedPoints.length
+      ? dimensionalityReductionsStore.selectedPoints.map(point => point.publication_id)
+      : []; // Use empty list if no points are selected
+    const response = await $fetch(`${apiUrl}publications/similar/5`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+      body: {
+        user_query: query,
+        publication_ids: publicationIds, // Use hardcoded IDs for now
+      },
+    });
+    similarPublications.value = response.results;
+  } catch (err) {
+    errorPublications.value = err as Error;
+    console.error("Error fetching similar publications:", err);
+  } finally {
+    fetchingPublications.value = false;
+  }
+};
+
+// Format authors for display
+const formatAuthors = (authors) => {
+  return authors.map(author => author.name).join(", ");
+};
 
 // Fetch reductions and trigger publications loading only after reductions are ready
 const loadReductions = async () => {
