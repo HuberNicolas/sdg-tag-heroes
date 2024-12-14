@@ -40,7 +40,8 @@ class SDGUserLabel(Base):
 
     proposed_label: Mapped[int] = mapped_column(Integer, nullable=True)
     voted_label: Mapped[int] = mapped_column(Integer, nullable=False)
-    description: Mapped[str] = mapped_column(String(1000), nullable=True)
+    abstract_section: Mapped[str] = mapped_column(String(1000), nullable=True)
+    comment: Mapped[str] = mapped_column(String(1000), nullable=True)
 
 
     labeled_at: Mapped[datetime] = mapped_column(

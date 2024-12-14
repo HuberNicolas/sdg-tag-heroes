@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, or_
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from settings.settings import TimeZoneSettings
 from models.base import Base
@@ -64,3 +64,56 @@ class SDGPrediction(Base):
             f"sdg17={self.sdg17}, predicted={self.predicted}, "
             f"last_predicted_goal={self.last_predicted_goal})>"
         )
+
+    def get_highest_sdg(self):
+        """
+        Get the SDG with the highest prediction value for this instance.
+        Returns a tuple of (SDG key, value).
+        """
+        sdg_values = {
+            "sdg1": self.sdg1,
+            "sdg2": self.sdg2,
+            "sdg3": self.sdg3,
+            "sdg4": self.sdg4,
+            "sdg5": self.sdg5,
+            "sdg6": self.sdg6,
+            "sdg7": self.sdg7,
+            "sdg8": self.sdg8,
+            "sdg9": self.sdg9,
+            "sdg10": self.sdg10,
+            "sdg11": self.sdg11,
+            "sdg12": self.sdg12,
+            "sdg13": self.sdg13,
+            "sdg14": self.sdg14,
+            "sdg15": self.sdg15,
+            "sdg16": self.sdg16,
+            "sdg17": self.sdg17,
+        }
+        highest_sdg = max(sdg_values.items(), key=lambda item: item[1])
+        return highest_sdg
+
+    def get_sdgs_above_threshold(self, threshold=0.98):
+        """
+        Get all SDGs with a prediction value above the threshold for this instance.
+        Returns a dictionary of SDG keys and their respective values.
+        """
+        sdg_values = {
+            "sdg1": self.sdg1,
+            "sdg2": self.sdg2,
+            "sdg3": self.sdg3,
+            "sdg4": self.sdg4,
+            "sdg5": self.sdg5,
+            "sdg6": self.sdg6,
+            "sdg7": self.sdg7,
+            "sdg8": self.sdg8,
+            "sdg9": self.sdg9,
+            "sdg10": self.sdg10,
+            "sdg11": self.sdg11,
+            "sdg12": self.sdg12,
+            "sdg13": self.sdg13,
+            "sdg14": self.sdg14,
+            "sdg15": self.sdg15,
+            "sdg16": self.sdg16,
+            "sdg17": self.sdg17,
+        }
+        return {key: value for key, value in sdg_values.items() if value >= threshold}

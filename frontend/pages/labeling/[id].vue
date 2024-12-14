@@ -24,7 +24,13 @@
           <p>No passage selected yet.</p>
         </div>
 
+        <div>
+          <h3 class="font-semibold mb-2">Write Comment:</h3>
+          <UTextarea v-model="comment" />
+        </div>
+
         <div class="form mt-4">
+        <!--
           <label class="block mb-2">
             <span class="text-sm font-medium">Proposed Label</span>
             <select v-model="proposedLabel" class="dropdown">
@@ -34,6 +40,7 @@
               </option>
             </select>
           </label>
+          -->
 
           <label class="block mb-2">
             <span class="text-sm font-medium">Voted Label</span>
@@ -48,7 +55,7 @@
           <button
             class="confirm-button mt-4"
             @click="confirmSelection"
-            :disabled="!markedText || !proposedLabel || !votedLabel"
+            :disabled="!votedLabel"
           >
             Submit
           </button>
@@ -65,7 +72,8 @@
         <div v-for="label in userLabels" :key="label.label_id" class="label-card">
           <p><strong>Proposed Label:</strong> {{ label.proposed_label }}</p>
           <p><strong>Voted Label:</strong> {{ label.voted_label }}</p>
-          <p><strong>Description:</strong> {{ label.description }}</p>
+          <p><strong>Abstract Selection:</strong> {{ label.abstract_section }}</p>
+          <p><strong>Comment</strong> {{ label.comment }}</p>
           <p><strong>Label Date:</strong> {{ formatDate(label.labeled_at) }}</p>
         </div>
       </div>
@@ -90,9 +98,10 @@ const publicationId = ref<number>(Number(route.params.id));
 const publication = computed(() => publicationsStore.selectedPublication);
 
 const markedText = ref("");
+const comment = ref("");
 const proposedLabel = ref<string | null>(null);
 const votedLabel = ref<string | null>(null);
-const labels = ["1", "2", "3", "4", "5"];
+const labels = [...Array(18).keys()];
 const highlightedAbstract = computed(() => {
   if (!publication.value?.description || !markedText.value) {
     return publication.value?.description || "No abstract available.";
@@ -158,9 +167,10 @@ const handleTextSelection = () => {
 // Submit the form data to the API
 const confirmSelection = async () => {
   const payload = {
-    proposed_label: Number(proposedLabel.value),
+    // proposed_label: Number(proposedLabel.value),
     voted_label: Number(votedLabel.value),
-    description: markedText.value,
+    abstract_section: markedText.value,
+    comment: comment.value,
   };
 
   try {
@@ -176,6 +186,7 @@ const confirmSelection = async () => {
     console.log("Submitted successfully:", response);
     fetchLabels(); // Refresh labels after submission
     markedText.value = "";
+    comment.value = "";
     proposedLabel.value = null;
     votedLabel.value = null;
   } catch (err: any) {

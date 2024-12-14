@@ -14,32 +14,12 @@ class SDGUserLabelSchemaBase(BaseModel):
     user_id: int
     proposed_label: Optional[int]
     voted_label: int
-    description: Optional[str]
+    abstract_section: Optional[str] = None
+    comment: Optional[str] = None
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation
     }
-
-
-
-class SDGUserLabelSchemaCreate(BaseModel):
-    # user_id: Optional[int] = None
-    proposed_label: int = None
-    voted_label: int
-    description: Optional[str] = None
-
-    # Optional decision fields
-    decision_id: Optional[int] = None
-
-    publication_id: Optional[int] = None  # Required if creating a new decision
-    suggested_label: Optional[int] = None # Required if creating a new decision
-    decision_type: Optional[DecisionType] = None
-
-    model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
-    }
-
-
 
 class SDGUserLabelSchemaFull(SDGUserLabelSchemaBase):
     labeled_at: datetime
@@ -49,4 +29,26 @@ class SDGUserLabelSchemaFull(SDGUserLabelSchemaBase):
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation
     }
+
+
+class SDGUserLabelSchemaCreate(BaseModel):
+    proposed_label: int = None
+    voted_label: int
+    abstract_section: Optional[str] = None
+    comment: Optional[str] = None
+
+
+
+    decision_id: Optional[int] = None
+
+    publication_id: Optional[int] = None
+    # suggested_label: Optional[int] = None
+    decision_type: Optional[DecisionType] = None
+
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
+
+
+
 

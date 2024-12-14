@@ -177,16 +177,14 @@ class EnvLoaderSettings(BaseSettings):
     # Do not set this to True in prod as it will print secrets
     ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
 
-class BackendSettings(BaseSettings):
-    BACKEND_LOG_NAME: ClassVar[str] = "backend.log"
-    DJANGO_DEBUG_MODE: ClassVar[bool] = True
-    LANGUAGE_CODE: str = "en-us"
-    USE_I18N: ClassVar[bool] = True
-
-
 class ExplainerSettings(BaseSettings):
     PROMPT_PATH: ClassVar[str] = "/prompts"
 
     # smaller model (cheapest as of 06.2024) to keep the cost down
     GPT_MODEL: ClassVar[str] = "gpt-3.5-turbo-0125"
     GPT_TEMPERATURE: ClassVar[float] = 0.2
+
+class UserAnnotationAssessmentSettings(BaseSettings):
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
+    BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
+

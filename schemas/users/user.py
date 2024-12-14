@@ -16,15 +16,17 @@ class UserRoleEnum(str, Enum):
 class UserSchemaBase(BaseModel):
     user_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
 
 class UserSchemaFull(UserSchemaBase):
     email: str
     roles: List[UserRole]
     is_active: bool
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
 
 
