@@ -164,41 +164,99 @@ const handleTextSelection = () => {
   }
 };
 
-// Submit the form data to the API
 const confirmSelection = async () => {
   const payload = {
-    // proposed_label: Number(proposedLabel.value),
     voted_label: Number(votedLabel.value),
     abstract_section: markedText.value,
     comment: comment.value,
   };
 
   try {
-    const response = await $fetch(`${config.public.apiUrl}sdg_user_labels/publications/${publicationId.value}/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-      body: payload,
+    // Submit the annotation first
+    const annotationResponse = await $fetch(
+      `${config.public.apiUrl}sdg_user_labels/publications/${publicationId.value}/`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: payload,
+      }
+    );
+
+    console.log("Annotation submitted successfully:", annotationResponse);
+
+    // Evaluate the annotation score
+    const scorePayload = {
+      passage: markedText.value,
+      annotation: comment.value,
+      sdg_label: votedLabel.value,
+    };
+
+    const scoreResponse = await $fetch(
+      `${config.public.apiUrl}annotations/score`, // Adjust the endpoint path as necessary
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: scorePayload,
+      }
+    );
+
+    console.log("Score evaluated successfully:", scoreResponse);
+
+    // Extract relevant details for the bank increment
+    const bankIncrementPayload = {
+      increment: scoreResponse.combined_score, // Use the combined score as the increment
+      sdg: `SDG_${votedLabel.value}`, // Convert voted label to SDG format (e.g., "SDG_17")
+      reason: scoreResponse.reasoning, // Reason for the increment
+    };
+
+
+    const bankIncrementResponse = await $fetch(
+      `${config.public.apiUrl}banks/history`, // Adjust the endpoint path as necessary
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: bankIncrementPayload,
+      }
+    );
+
+    console.log("Bank increment added successfully:", bankIncrementResponse);
+
+    // Display a toast with the XP gained
+    toast.add({
+      //title: "XP Gained!",
+      title: `You earned ${bankIncrementPayload.increment} XP for your annotation.`,
+      type: "success",
+      timeout: 5000,
     });
 
-    console.log("Submitted successfully:", response);
-    fetchLabels(); // Refresh labels after submission
+    // Refresh labels and reset fields after submission
+    fetchLabels();
     markedText.value = "";
     comment.value = "";
     proposedLabel.value = null;
     votedLabel.value = null;
   } catch (err: any) {
-    console.error("Submission failed:", err.message || err);
+    console.error("Submission or scoring failed:", err.message || err);
   }
 };
+
 
 // Format dates for display
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString();
 };
+
+const toast = useToast()
 </script>
 
 <style scoped>

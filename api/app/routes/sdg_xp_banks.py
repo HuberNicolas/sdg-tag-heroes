@@ -13,10 +13,17 @@ from schemas.sdg_coin_wallet_history import SDGCoinWalletHistorySchemaFull, SDGC
 from schemas.sdg_xp_bank import SDGXPBankSchemaFull
 from schemas.sdg_xp_bank_history import SDGXPBankHistorySchemaCreate, SDGXPBankHistorySchemaFull
 from schemas.users.user import UserSchemaFull, UserRoleEnum
+from settings.settings import XPBanksRouterSettings
+xp_banks_router_settings = XPBanksRouterSettings()
+
 
 # Setup OAuth2 and security
 security = Security()
 oauth2_scheme = security.oauth2_scheme
+
+# Setup Logging
+from utils.logger import logger
+logging = logger(xp_banks_router_settings.XP_BANKS_ROUTER_LOG_NAME)
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
@@ -32,8 +39,8 @@ def get_db():
 
 # Create the API router
 router = APIRouter(
-    prefix="/users",
-    tags=["users"],
+    prefix="/banks",
+    tags=["banks"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},
@@ -41,36 +48,8 @@ router = APIRouter(
     },
 )
 
-
-@router.get("/", response_model=Page[UserSchemaFull], description="Retrieve users filtered by role")
-async def get_users(
-    role: Optional[UserRoleEnum] = None,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-):
-    """
-    Retrieve users filtered by role. If no role is specified, returns all users.
-    """
-    try:
-        user = verify_token(token, db)  # Ensure user is authenticated
-
-        query = db.query(User)
-
-        if role:
-            query = query.filter(User._roles.contains(f'"{role}"'))
-
-        return sqlalchemy_paginate(query)
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching users",
-        )
-
-
-@router.post("/{user_id}/bank/history", response_model=SDGXPBankHistorySchemaFull, description="Add a bank increment for a specific user")
+@router.post("/history", response_model=SDGXPBankHistorySchemaFull, description="Add a bank increment for a specific user")
 async def add_bank_increment(
-    user_id: int,
     bank_increment_data: SDGXPBankHistorySchemaCreate,  # Use a schema for input validation
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
@@ -80,7 +59,7 @@ async def add_bank_increment(
     """
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
-
+        user_id = user["user_id"]
         # Check if the user has a bank
         bank = db.query(SDGXPBank).filter(SDGXPBank.user_id == user_id).first()
         if not bank:
@@ -124,9 +103,8 @@ async def add_bank_increment(
         )
 
 
-@router.get("/{user_id}/bank", response_model=SDGXPBankSchemaFull, description="Retrieve the bank for a specific user")
+@router.get("/personal", response_model=SDGXPBankSchemaFull, description="Retrieve the bank for a specific user")
 async def get_user_bank(
-    user_id: int,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
 ):
@@ -135,6 +113,7 @@ async def get_user_bank(
     """
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
+        user_id = user["user_id"]
 
         # Query for the bank by user ID
         bank = db.query(SDGXPBank).filter(SDGXPBank.user_id == user_id).first()
@@ -153,7 +132,7 @@ async def get_user_bank(
             detail="An error occurred while fetching the bank",
         )
 
-@router.get("/banks", response_model=Page[SDGXPBankSchemaFull], description="Retrieve banks for all users")
+@router.get("/", response_model=Page[SDGXPBankSchemaFull], description="Retrieve banks for all users")
 async def get_all_banks(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
@@ -174,32 +153,4 @@ async def get_all_banks(
             detail="An error occurred while fetching all banks",
         )
 
-@router.get("/{user_id}", response_model=UserSchemaFull, description="Retrieve a specific user by ID")
-async def get_user_by_id(
-    user_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-):
-    """
-    Retrieve a specific user by their ID.
-    """
-    try:
-        user = verify_token(token, db)  # Ensure user is authenticated
-
-        # Query for the user by ID
-        user_instance = db.query(User).filter(User.user_id == user_id).first()
-
-        if not user_instance:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with ID {user_id} not found",
-            )
-
-        return user_instance
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching the user",
-        )
 

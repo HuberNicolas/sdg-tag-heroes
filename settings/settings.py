@@ -144,6 +144,13 @@ class DimensionalityReductionsRouterSettings(BaseSettings):
 class SDGPredictionsRouterSettings(BaseSettings):
     SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
 
+class XPBanksRouterSettings(BaseSettings):
+    XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"
+
+class CoinWalletsRouterSettings(BaseSettings):
+    COIN_WALLETS_ROUTER_LOG_NAME: ClassVar[str] = "api_coin_wallets.log"
+
+
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
     CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"

@@ -86,7 +86,8 @@ async def evaluate_annotation_score(
             creativity=scores.creativity,
             llm_score=scores.llm_score,
             semantic_score=scores.semantic_score,
-            combined_score=scores.combined_score
+            combined_score=scores.combined_score,
+            reasoning=scores.reasoning,
         )
     except ValidationError as ve:
         logging.error(f"Validation error: {ve}")
