@@ -150,6 +150,9 @@ class XPBanksRouterSettings(BaseSettings):
 class CoinWalletsRouterSettings(BaseSettings):
     COIN_WALLETS_ROUTER_LOG_NAME: ClassVar[str] = "api_coin_wallets.log"
 
+class ExplanationsRouterSettings(BaseSettings):
+    EXPLANATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_explanations.log"
+
 
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
