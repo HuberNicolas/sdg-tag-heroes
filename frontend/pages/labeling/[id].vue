@@ -1,5 +1,7 @@
 <template>
   <div class="abstract-marking-page">
+    <SDGSelection></SDGSelection>
+
     <!-- Left side: Abstract Card -->
     <div class="abstract-card-container">
       <div class="abstract-card">
@@ -11,6 +13,27 @@
         ></p>
       </div>
     </div>
+    <!-- SHAP-Highlighted Abstract -->
+    <div class="abstract-card-container">
+      <div class="abstract-card">
+        <h2 class="text-xl font-bold mb-4">
+          SHAP-Highlighted Abstract
+          <span v-if="selectedSDG">(SDG {{ selectedSDG }})</span>
+        </h2>
+        <p
+          v-if="selectedSDG"
+          class="text-base text-justify"
+          v-html="shapHighlightedAbstract"
+        ></p>
+        <p
+          v-else
+          class="text-gray-500 text-center italic"
+        >
+          Please select an SDG to display the SHAP-highlighted abstract.
+        </p>
+      </div>
+    </div>
+
 
     <!-- Right side: Marked Text and Details -->
     <div class="details-container">
@@ -83,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+import * as d3 from 'd3';
 import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useRuntimeConfig } from "nuxt/app";
@@ -136,6 +160,13 @@ const fetchLabels = async () => {
   }
 };
 
+
+import { useSDGStore } from '@/stores/sdgs';
+
+const sdgStore = useSDGStore();
+const selectedSDG = computed(() => sdgStore.selectedGoal); // Dynamically selected SDG
+const shapHighlightedAbstract = ref<string | null>(null);
+
 // Fetch publication details
 const fetchPublicationDetails = async () => {
   loading.value = true;
@@ -143,6 +174,9 @@ const fetchPublicationDetails = async () => {
 
   try {
     await publicationsStore.fetchPublication(publicationId.value);
+
+    // Fetch SHAP explanations after fetching the publication
+    await fetchShapExplanations(publication.value?.publication_id);
   } catch (err: any) {
     error.value = err.message || "Failed to fetch publication details.";
   } finally {
@@ -150,6 +184,106 @@ const fetchPublicationDetails = async () => {
     fetchLabels();
   }
 };
+
+// Fetch SHAP explanations
+const fetchShapExplanations = async (publication_id: number | undefined) => {
+  if (!publication_id) return;
+
+  try {
+    const response = await $fetch(
+      `${config.public.apiUrl}explanations/publications/${publication_id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    // Process the SHAP explanation to highlight tokens
+    const { input_tokens, token_scores, base_values } = response;
+
+    console.log(input_tokens, token_scores, base_values);
+
+    // Fetch the weight (probability for the selected SDG)
+    const weight = base_values[0] // NOT USED YET
+
+    // Adjust the scores dynamically for the selected SDG
+    const adjustedScores = adjustTokenScoresWithBaseValues(
+      token_scores,
+      base_values,
+      selectedSDG.value - 1, // SDG index (0-based)
+      weight
+    );
+    const goalColor = sdgStore.getSelectedGoalColor(selectedSDG.value); // Fetch color dynamically
+
+    // Create color scales for highlighting
+    const maxScore = Math.max(0, Math.max(...adjustedScores));
+    const minScore = Math.min(0, Math.min(...adjustedScores));
+    const colorScale = d3.scaleLinear<string>().domain([0, maxScore]).range(["#ffffff", goalColor || "#ffffff"]);
+    const negColorScale = d3.scaleLinear<string>().domain([0, -minScore]).range(["#ffffff", "#7D7D7D"]); // Grey for negatives
+    // Highlight the tokens in the abstract
+    const shapHtml = highlightTextTokens(input_tokens, adjustedScores, publication.value?.description || "", colorScale, negColorScale);
+
+    shapHighlightedAbstract.value = shapHtml;
+  } catch (err: any) {
+    console.error("Failed to fetch SHAP explanations:", err.message || err);
+  }
+};
+
+const highlightTextTokens = (tokens: string[], scores: number[], text: string, colorScale: any, negColorScale: any) => {
+  const threshold = 0.0000001; // Small threshold to ignore negligible SHAP scores
+  const highlightedText: string[] = [];
+  let remainingText = text;
+  console.log(text)
+  console.log(tokens)
+  console.log(scores)
+
+  tokens.forEach((token, index) => {
+    const score = scores[index];
+    if (Math.abs(score) < threshold) return; // Skip tokens with near-zero scores
+
+    // Use a regex to match the token at the start of the remaining text
+    const tokenRegex = new RegExp(`\\b${token.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, "i");
+    const match = remainingText.match(tokenRegex);
+
+    if (!match) return; // Skip if token is not found
+
+    const idxStart = match.index!;
+    const idxEnd = idxStart + token.length;
+
+    const color = score > 0 ? colorScale(score) : negColorScale(-score);
+
+    // Add plain text before the token
+    highlightedText.push(remainingText.substring(0, idxStart));
+    // Add highlighted token
+    highlightedText.push(`<span style="background-color:${color}">${remainingText.substring(idxStart, idxEnd)}</span>`);
+
+    // Remove the processed part of the text
+    remainingText = remainingText.slice(idxEnd);
+  });
+
+  highlightedText.push(remainingText); // Add any remaining plain text
+  return highlightedText.join("");
+};
+
+
+
+const adjustTokenScoresWithBaseValues = (scores: number[][], baseValues: number[], sdgIndex: number, weight: number) => {
+  return scores.map((scoreArray, tokenIndex) => {
+    const baseValue = baseValues[tokenIndex] || 0; // Ensure baseValue exists
+    //const adjustedScore = scoreArray.map((score) => (score - baseValue) * weight); // Apply weight
+    const adjustedScore = scoreArray.map((score) => (score - 0) * 1); // Apply weight
+    return adjustedScore[sdgIndex]; // Only return the score for the selected SDG
+  });
+};
+
+// Watch for changes in selectedSDG and ensure it’s defined
+watchEffect(() => {
+  if (selectedSDG.value && publication.value?.publication_id) {
+    fetchShapExplanations(publication.value.publication_id);
+  }
+});
 
 onMounted(fetchPublicationDetails);
 
@@ -257,6 +391,7 @@ const formatDate = (dateString: string) => {
 };
 
 const toast = useToast()
+
 </script>
 
 <style scoped>
