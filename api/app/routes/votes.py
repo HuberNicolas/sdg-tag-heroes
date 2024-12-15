@@ -100,6 +100,7 @@ async def create_vote(
     """
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
+        user_id = user['user_id']
 
         # Ensure that exactly one of `sdg_user_label_id` or `annotation_id` is provided
         if (vote_data.sdg_user_label_id is None) == (vote_data.annotation_id is None):
@@ -110,7 +111,7 @@ async def create_vote(
 
         # Create the new vote
         new_vote = Vote(
-            user_id=vote_data.user_id,
+            user_id=user_id,
             sdg_user_label_id=vote_data.sdg_user_label_id,
             annotation_id=vote_data.annotation_id,
             vote_type=vote_data.vote_type,

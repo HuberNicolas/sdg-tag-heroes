@@ -24,7 +24,6 @@ class VoteSchemaBase(BaseModel):
 
 
 class VoteSchemaCreate(BaseModel):
-    user_id: int
     sdg_user_label_id: Optional[int] = None
     annotation_id: Optional[int] = None
     vote_type: VoteType

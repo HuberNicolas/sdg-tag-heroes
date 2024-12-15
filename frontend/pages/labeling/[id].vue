@@ -88,21 +88,47 @@
     </div>
 
     <!-- Bottom Section: Scrollable Labels -->
-    <div v-if="userLabels.length > 0 || labelSubmitted" class="labels-section">
-      <h2 class="text-xl font-bold mb-4">Existing Labels</h2>
-      <div v-if="labelsLoading" class="loading">Loading labels...</div>
-      <div v-if="labelsError" class="error">{{ labelsError }}</div>
-      <div v-if="!labelsLoading && !labelsError && userLabels.length > 0" class="scrollable-labels">
-        <div v-for="label in userLabels" :key="label.label_id" class="label-card">
-          <!-- <p><strong>Proposed Label:</strong> {{ label.proposed_label }}</p> -->
-          <p><strong>Voted Label:</strong> {{ label.voted_label }}</p>
-          <p><strong>Abstract Selection:</strong> {{ label.abstract_section }}</p>
-          <p><strong>Comment:</strong> {{ label.comment }}</p>
-          <p><strong>Label Date:</strong> {{ formatDate(label.labeled_at) }}</p>
-        </div>
+    <div v-for="label in userLabels" :key="label.label_id" class="label-card">
+      <p><strong>Voted Label:</strong> {{ label.voted_label }}</p>
+      <p><strong>Abstract Selection:</strong> {{ label.abstract_section }}</p>
+      <p><strong>Comment:</strong> {{ label.comment }}</p>
+      <p><strong>Label Date:</strong> {{ formatDate(label.labeled_at) }}</p>
 
+      <!-- Voting Totals -->
+      <div class="voting-summary">
+        <p><strong>Upvotes:</strong> {{ calculateVotes(label, 'positive') }}</p>
+        <p><strong>Neutral Votes:</strong> {{ calculateVotes(label, 'neutral') }}</p>
+        <p><strong>Downvotes:</strong> {{ calculateVotes(label, 'negative') }}</p>
+        <p><strong>Score:</strong> {{ calculateScore(label) }}</p>
       </div>
-      <p v-else>No labels found.</p>
+
+      <!-- Voting Buttons -->
+      <div class="vote-buttons">
+        <button
+          class="upvote-button"
+          :disabled="label.user_voted"
+          @click="castVote(label.label_id, 'positive', 5.0)"
+        >
+          Upvote
+        </button>
+        <button
+          class="neutral-button"
+          :disabled="label.user_voted"
+          @click="castVote(label.label_id, 'neutral', 3.0)"
+        >
+          Neutral
+        </button>
+        <button
+          class="downvote-button"
+          :disabled="label.user_voted"
+          @click="castVote(label.label_id, 'negative', 1.0)"
+        >
+          Downvote
+        </button>
+      </div>
+      <p v-if="label.user_voted" class="voted-text">
+        You have already voted for this label.
+      </p>
     </div>
     <div id="chart-container"></div>
 
@@ -181,7 +207,12 @@ const fetchLabels = async () => {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
       },
     });
-    userLabels.value = response;
+
+    userLabels.value = response.map((label) => ({
+      ...label,
+      user_voted: label.votes.some((vote) => vote.user_id === userStore.user?.id),
+    }));
+
 
 
 
@@ -430,12 +461,59 @@ const confirmSelection = async () => {
   }
 };
 
+const castVote = async (labelId, voteType, score) => {
+  try {
+    const payload = {
+      user_id: userStore.user?.id, // Get the authenticated user's ID
+      sdg_user_label_id: labelId, // The ID of the SDG user label being voted for
+      vote_type: voteType, // "upvote", "neutral", or "downvote"
+      score: score, // Corresponding score
+    };
+
+    // Call the voting API
+    const response = await $fetch(`${config.public.apiUrl}votes`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
+      body: payload,
+    });
+
+    console.log("Vote submitted successfully:", response);
+
+    // Update the label to reflect that the user has voted
+    const updatedLabels = userLabels.value.map((label) => {
+      if (label.label_id === labelId) {
+        return { ...label, user_voted: true }; // Add a `user_voted` property to disable further voting
+      }
+      return label;
+    });
+
+    userLabels.value = updatedLabels;
+
+    // Optionally, show a success message
+    toast.add({
+      title: "Vote Recorded",
+      type: "success",
+      timeout: 3000,
+    });
+  } catch (err: any) {
+    console.error("Failed to cast vote:", err.message || err);
+    toast.add({
+      title: "Failed to Cast Vote",
+      type: "error",
+      timeout: 3000,
+    });
+  }
+};
 
 // Format dates for display
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString();
 };
+
 
 
 const createBarChart = (labelsData) => {
@@ -529,6 +607,15 @@ const createBarChart = (labelsData) => {
 definePageMeta({
   layout: 'user'
 })
+const calculateVotes = (label, voteType) => {
+  // Filter votes for the specific type (positive, neutral, negative) and return the count
+  return label.votes?.filter((vote) => vote.vote_type === voteType).length || 0;
+};
+
+const calculateScore = (label) => {
+  // Sum the scores of all votes for the label
+  return label.votes?.reduce((sum, vote) => sum + vote.score, 0) || 0;
+};
 
 const toast = useToast()
 

@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
+from schemas.vote import VoteSchemaFull
 
 
 class DecisionType(str, Enum):
@@ -25,6 +26,7 @@ class SDGUserLabelSchemaFull(SDGUserLabelSchemaBase):
     labeled_at: datetime
     created_at: datetime
     updated_at: datetime
+    votes: Optional[list[VoteSchemaFull]] = None
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation

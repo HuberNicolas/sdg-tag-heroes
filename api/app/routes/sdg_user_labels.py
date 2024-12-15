@@ -13,7 +13,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, SDGPrediction
+from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, SDGPrediction, Vote
 from models.publications.publication import Publication
 from models.sdg_label_history import SDGLabelHistory
 from models.sdg_label_summary import SDGLabelSummary
@@ -113,7 +113,17 @@ async def get_sdg_user_labels_for_publication(
             .all()
         )
 
-        return [SDGUserLabelSchemaFull.model_validate(label) for label in labels]
+        # Fetch votes for each label and add to the result
+        result = []
+        for label in labels:
+            label_dict = SDGUserLabelSchemaFull.model_validate(label).dict()
+            # Fetch votes for the label
+            votes = db.query(Vote).filter(Vote.sdg_user_label_id == label.label_id).all()
+            label_dict["votes"] = [VoteSchemaFull.model_validate(vote).dict() for vote in votes]
+            result.append(label_dict)
+        print(result)
+
+        return result
 
     except Exception as e:
         logging.error(f"Error retrieving SDG user labels: {str(e)}")
