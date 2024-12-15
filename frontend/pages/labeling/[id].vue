@@ -88,7 +88,7 @@
     </div>
 
     <!-- Bottom Section: Scrollable Labels -->
-    <div class="labels-section">
+    <div v-if="userLabels.length > 0 || labelSubmitted" class="labels-section">
       <h2 class="text-xl font-bold mb-4">Existing Labels</h2>
       <div v-if="labelsLoading" class="loading">Loading labels...</div>
       <div v-if="labelsError" class="error">{{ labelsError }}</div>
@@ -97,12 +97,15 @@
           <!-- <p><strong>Proposed Label:</strong> {{ label.proposed_label }}</p> -->
           <p><strong>Voted Label:</strong> {{ label.voted_label }}</p>
           <p><strong>Abstract Selection:</strong> {{ label.abstract_section }}</p>
-          <p><strong>Comment</strong> {{ label.comment }}</p>
+          <p><strong>Comment:</strong> {{ label.comment }}</p>
           <p><strong>Label Date:</strong> {{ formatDate(label.labeled_at) }}</p>
         </div>
+
       </div>
       <p v-else>No labels found.</p>
     </div>
+    <div id="chart-container"></div>
+
   </div>
 </template>
 
@@ -165,6 +168,7 @@ const fetchUserProfile = async () => {
 const userLabels = ref([]);
 const labelsLoading = ref(false);
 const labelsError = ref<string | null>(null);
+const labelSubmitted = ref(false); // Tracks if a label has been submitted
 
 const fetchLabels = async () => {
   labelsLoading.value = true;
@@ -178,6 +182,15 @@ const fetchLabels = async () => {
       },
     });
     userLabels.value = response;
+
+
+
+    // Check if the user has already submitted a label
+    if (userLabels.value.length > 0) {
+      labelSubmitted.value = true;
+    }
+    // Call the bar chart function
+    createBarChart(userLabels.value);
   } catch (err: any) {
     labelsError.value = err.message || "Failed to load labels.";
   } finally {
@@ -403,6 +416,9 @@ const confirmSelection = async () => {
       timeout: 5000,
     });
 
+    // Indicate label submission
+    labelSubmitted.value = true;
+
     // Refresh labels and reset fields after submission
     fetchLabels();
     markedText.value = "";
@@ -420,6 +436,95 @@ const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString();
 };
+
+
+const createBarChart = (labelsData) => {
+  // Remove existing chart if it exists
+  d3.select("#chart-container").selectAll("*").remove();
+
+  const width = 500;
+  const height = 300;
+  const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+
+  const svg = d3
+    .select("#chart-container")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Prepare the data for the chart
+  const labelCounts = d3.rollup(
+    labelsData,
+    (v) => v.length,
+    (d) => d.voted_label
+  );
+
+  const data = Array.from(labelCounts, ([label, count]) => ({
+    label: `SDG ${label}`,
+    count,
+    rawLabel: label,
+  }));
+
+  // SDG color mapping
+  const sdgColors = {
+    1: "#E5243B", 2: "#DDA63A", 3: "#4C9F38", 4: "#C5192D", 5: "#FF3A21",
+    6: "#26BDE2", 7: "#FCC30B", 8: "#A21942", 9: "#FD6925", 10: "#DD1367",
+    11: "#FD9D24", 12: "#BF8B2E", 13: "#3F7E44", 14: "#0A97D9", 15: "#56C02B",
+    16: "#00689D", 17: "#19486A"
+  };
+
+  // Set up scales
+  const x = d3
+    .scaleBand()
+    .domain(data.map((d) => d.label))
+    .range([0, width])
+    .padding(0.1);
+
+  const y = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, (d) => d.count)])
+    .range([height, 0]);
+
+  // Add axes
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .attr("transform", "rotate(-45)")
+    .style("text-anchor", "end");
+
+  svg.append("g").call(d3.axisLeft(y));
+
+  // Add bars
+  svg
+    .selectAll(".bar")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", (d) => x(d.label))
+    .attr("y", (d) => y(d.count))
+    .attr("width", x.bandwidth())
+    .attr("height", (d) => height - y(d.count))
+    .attr("fill", (d) => sdgColors[d.rawLabel] || "#CCCCCC"); // Default color if SDG not found
+
+  // Add labels to bars
+  svg
+    .selectAll(".bar-label")
+    .data(data)
+    .enter()
+    .append("text")
+    .attr("class", "bar-label")
+    .attr("x", (d) => x(d.label) + x.bandwidth() / 2)
+    .attr("y", (d) => y(d.count) - 5)
+    .attr("text-anchor", "middle")
+    .text((d) => d.count);
+};
+
+
 
 definePageMeta({
   layout: 'user'
