@@ -55,11 +55,11 @@ const logout = () => {
   authService.logout();
   router.push('/login');
 };
-
-onMounted(fetchUserProfile);
 definePageMeta({
   layout: 'user'
 })
+onMounted(fetchUserProfile);
+
 
 const toast = useToast()
 </script>

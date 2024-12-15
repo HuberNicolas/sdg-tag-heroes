@@ -26,7 +26,7 @@ export const useUserStore = defineStore("sdg", {
           throw new Error("No access token found");
         }
 
-        const url = `${config.public.apiUrl}users/${userId}/wallet`;
+        const url = `${config.public.apiUrl}wallets/personal`;
         const response = await $fetch<{ total_coins: number }>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,6 +76,9 @@ export const useUserStore = defineStore("sdg", {
       } finally {
         this.fetching = false;
       }
+    },
+    async refetchSDGXP(userId: number) {
+      await this.fetchSDGXP(userId);
     },
   },
 });

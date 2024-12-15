@@ -53,103 +53,6 @@ def get_db():
     finally:
         db.close()
 
-@router.post(
-    "/publications/{publication_id}",
-    response_model=SDGUserLabelSchemaFull,
-    description="Create or link an SDG user label to a publication.",
-)
-async def create_sdg_user_label(
-    publication_id: int,
-    user_label_data: SDGUserLabelSchemaCreate,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-) -> SDGUserLabelSchemaFull:
-    """
-    Create or link an SDG user label to a specific publication.
-    """
-    try:
-        # Verify token and extract user (Assuming verify_token is implemented)
-        user = verify_token(token, db)
-        user_id = user["user_id"]
-
-        # Retrieve the publication
-        publication = db.query(Publication).filter(
-            Publication.publication_id == publication_id
-        ).first()
-        if not publication:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Publication with ID {publication_id} not found.",
-            )
-
-        # Retrieve the label summary
-        sdg_label_summary = db.query(SDGLabelSummary).filter(
-            SDGLabelSummary.publication_id == publication.publication_id
-        ).first()
-        if not sdg_label_summary:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"SDGLabelSummary for Publication ID {publication.publication_id} not found.",
-            )
-
-        # Retrieve the label history
-        history = db.query(SDGLabelHistory).filter(
-            SDGLabelHistory.history_id == sdg_label_summary.history_id
-        ).first()
-        if not history:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"SDGLabelHistory for Summary ID {sdg_label_summary.sdg_label_summary_id} not found.",
-            )
-
-        # Check for an existing decision with decided_label = -1
-        decision = (
-            db.query(SDGLabelDecision)
-            .filter(
-                SDGLabelDecision.history_id == history.history_id,
-                SDGLabelDecision.decided_label == -1,
-            )
-            .first()
-        )
-
-        # If no such decision exists, create a new one
-        if not decision:
-            decision = SDGLabelDecision(
-                suggested_label=user_label_data.proposed_label,
-                decided_label=-1,  # Default for undecided
-                history_id=history.history_id,
-                decided_at=datetime.now(),
-            )
-            db.add(decision)
-            db.flush()  # Persist to get the decision ID
-
-        # Create the new SDG user label
-        new_user_label = SDGUserLabel(
-            user_id=user_id,
-            proposed_label=user_label_data.proposed_label if user_label_data.proposed_label else None,
-            voted_label=user_label_data.voted_label,
-            abstract_section=user_label_data.abstract_section,
-            comment=user_label_data.comment,
-        )
-        db.add(new_user_label)
-        db.flush()  # Persist the new_user_label to get its ID
-
-        # Associate the user label with the decision
-        decision.user_labels.append(new_user_label)
-
-        # Commit the transaction
-        db.commit()
-        db.refresh(new_user_label)
-
-        return SDGUserLabelSchemaFull.model_validate(new_user_label)
-
-    except Exception as e:
-        logging.error(f"Error creating or linking SDG user label: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while creating or linking the SDG user label.",
-        )
-
 @router.get(
     "/publications/{publication_id}/labels",
     response_model=List[SDGUserLabelSchemaFull],
@@ -404,22 +307,19 @@ async def create_sdg_user_label(
                     print(f"{sdg}: {value}")
 
             # Find an unfinished decision or create a new one
-            unfinished_decision = next((d for d in history.decisions if d.decided_label == -1), None)
-            if unfinished_decision:
-                decision = unfinished_decision
-            else:
+            if len(history.decisions) == 0:
                 # Create a new SDGLabelDecision
                 decision = SDGLabelDecision(
-                    suggested_label=highest_sdg,
+                    suggested_label=highest_sdg_number,
                     history_id=history.history_id,
                     decision_type=user_label_data.decision_type,
                     decided_at=datetime.now(),
                 )
                 db.add(decision)
                 db.flush()  # Ensure the decision is persisted before associating it
-
-        print(decision)
-        print(user_label_data)
+            else:
+                unfinished_decision = next((d for d in history.decisions if d.decided_label == -1), None)
+                decision = unfinished_decision
 
         # Create the new SDG user label
         new_user_label = SDGUserLabel(

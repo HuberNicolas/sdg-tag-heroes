@@ -10,6 +10,7 @@
           class="text-base text-justify"
           v-html="highlightedAbstract"
           @mouseup="handleTextSelection"
+          :style="{ '--highlight-color': sdgStore.getSelectedGoalColor(selectedSDG) || '#E5243B' }"
         ></p>
       </div>
     </div>
@@ -93,7 +94,7 @@
       <div v-if="labelsError" class="error">{{ labelsError }}</div>
       <div v-if="!labelsLoading && !labelsError && userLabels.length > 0" class="scrollable-labels">
         <div v-for="label in userLabels" :key="label.label_id" class="label-card">
-          <p><strong>Proposed Label:</strong> {{ label.proposed_label }}</p>
+          <!-- <p><strong>Proposed Label:</strong> {{ label.proposed_label }}</p> -->
           <p><strong>Voted Label:</strong> {{ label.voted_label }}</p>
           <p><strong>Abstract Selection:</strong> {{ label.abstract_section }}</p>
           <p><strong>Comment</strong> {{ label.comment }}</p>
@@ -111,10 +112,19 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useRuntimeConfig } from "nuxt/app";
 import { usePublicationsStore } from "~/stores/publications";
+import {useUserStore} from "~/stores/user";
+import UseAuth from '~/composables/useAuth';
+
+// Refetch XP after successful annotation via emits
+const emit = defineEmits(["xp-updated"])
+
 
 const route = useRoute();
 const publicationsStore = usePublicationsStore();
+const userStore = useUserStore();
 const config = useRuntimeConfig();
+
+const user = ref<{ email: string } | null>(null);
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -130,11 +140,26 @@ const highlightedAbstract = computed(() => {
   if (!publication.value?.description || !markedText.value) {
     return publication.value?.description || "No abstract available.";
   }
+  const highlightColor = sdgStore.getSelectedGoalColor(selectedSDG.value) || "#E5243B";
+
   return publication.value.description.replace(
     markedText.value,
-    `<mark class="highlight">${markedText.value}</mark>`
+    `<span class="highlight" style="background-color: ${highlightColor};">${markedText.value}</span>`
   );
 });
+
+
+// Fetch user profile and generate avatar
+const fetchUserProfile = async () => {
+  try {
+    const authService = new UseAuth();
+    user.value = await authService.getProfile(); // Fetch user profile (e.g., email)
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+  } finally {
+    loading.value = false; // Set loading to false once complete
+  }
+};
 
 // Labels Data
 const userLabels = ref([]);
@@ -285,7 +310,9 @@ watchEffect(() => {
   }
 });
 
-onMounted(fetchPublicationDetails);
+onMounted(async () => {
+  await fetchPublicationDetails();
+});
 
 // Handle text selection from the abstract
 const handleTextSelection = () => {
@@ -300,6 +327,7 @@ const handleTextSelection = () => {
 
 const confirmSelection = async () => {
   const payload = {
+    publication_id: publicationId.value,
     voted_label: Number(votedLabel.value),
     abstract_section: markedText.value,
     comment: comment.value,
@@ -308,7 +336,7 @@ const confirmSelection = async () => {
   try {
     // Submit the annotation first
     const annotationResponse = await $fetch(
-      `${config.public.apiUrl}sdg_user_labels/publications/${publicationId.value}/`,
+      `${config.public.apiUrl}sdg_user_labels/`,
       {
         method: "POST",
         headers: {
@@ -364,6 +392,9 @@ const confirmSelection = async () => {
 
     console.log("Bank increment added successfully:", bankIncrementResponse);
 
+    // Emit an event to inform the parent or layout to refetch XP
+    emit('xp-updated');
+
     // Display a toast with the XP gained
     toast.add({
       //title: "XP Gained!",
@@ -389,6 +420,10 @@ const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString();
 };
+
+definePageMeta({
+  layout: 'user'
+})
 
 const toast = useToast()
 
@@ -445,8 +480,8 @@ const toast = useToast()
 }
 
 .highlight {
-  background-color: yellow;
   font-weight: bold;
+  padding: 0;
 }
 
 .dropdown {
