@@ -68,6 +68,8 @@ async def add_bank_increment(
                 detail=f"Bank for user with ID {user_id} not found",
             )
 
+        print(bank_increment_data)
+
         # Determine the specific SDG XP field to update
         sdg_field = f"{bank_increment_data.sdg.value.lower()}_xp"
         if not hasattr(bank, sdg_field):
@@ -96,6 +98,7 @@ async def add_bank_increment(
         return new_history
 
     except Exception as e:
+        print(e)
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

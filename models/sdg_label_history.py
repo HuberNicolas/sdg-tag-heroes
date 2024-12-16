@@ -38,3 +38,15 @@ class SDGLabelHistory(Base):
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
+
+    def __repr__(self) -> str:
+        return (
+            f"<SDGLabelHistory("
+            f"history_id={self.history_id}, "
+            f"active={self.active}, "
+            f"created_at={self.created_at.isoformat() if self.created_at else None}, "
+            f"updated_at={self.updated_at.isoformat() if self.updated_at else None}, "
+            f"decisions_count={len(self.decisions) if self.decisions else 0}, "
+            f"label_summary={'present' if self.label_summary else 'absent'}"
+            f")>"
+        )

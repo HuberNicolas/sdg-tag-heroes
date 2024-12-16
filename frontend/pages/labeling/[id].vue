@@ -366,9 +366,9 @@ onMounted(async () => {
   await fetchPublicationDetails();
 
   // TODO: this needs another field to hide it later
-  //setInterval(async () => {
-  //  await checkLatestWalletUpdate();
-  //}, 3000);
+  setInterval(async () => {
+    await checkLatestWalletUpdate();
+  }, 3000);
 });
 
 // Handle text selection from the abstract
@@ -471,7 +471,7 @@ const confirmSelection = async () => {
     votedLabel.value = null;
 
     // Check for new wallet history entries
-    await checkWalletUpdates();
+    await checkLatestWalletUpdate();
 
   } catch (err: any) {
     console.error("Submission or scoring failed:", err.message || err);
@@ -534,19 +534,33 @@ const checkLatestWalletUpdate = async () => {
       },
     });
 
-    // Show a toast for the latest wallet history entry
-    toast.add({
-      //title: "Coins Earned!",
-      //message: `You earned ${response.increment} coins. Reason: ${response.reason}`,
-      title: `You earned ${response.increment} coins. Reason: ${response.reason}`,
-      type: "success",
-      timeout: 5000,
-    });
+    // Check if we received a valid history update
+    if (response.increment && response.reason) {
+      // Show a toast for the latest wallet history entry
+      toast.add({
+        title: `You earned ${response.increment} coins. Reason: ${response.reason}`,
+        type: "success",
+        timeout: 5000,
+      });
+    } else if (response.message) {
+      // Handle case where no history updates are available
+      console.log("No updates:", response.message);
+    } else {
+      // Fallback for unexpected response structures
+      console.warn("Unexpected response structure:", response);
+    }
 
-    // Update the last checked time (optional for other tracking)
+    // Update the last checked time
     lastChecked.value = new Date();
   } catch (err) {
     console.error("Failed to fetch the latest wallet update:", err.message || err);
+    // Optionally, display an error toast
+    toast.add({
+      title: "Error",
+      message: "Failed to fetch wallet updates. Please try again later.",
+      type: "error",
+      timeout: 5000,
+    });
   }
 };
 

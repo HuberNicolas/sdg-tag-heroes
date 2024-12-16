@@ -316,6 +316,7 @@ async def create_sdg_user_label(
                 for sdg, value in sdgs_above_threshold.items():
                     print(f"{sdg}: {value}")
 
+            print(history)
             # Find an unfinished decision or create a new one
             if len(history.decisions) == 0:
                 # Create a new SDGLabelDecision
@@ -329,7 +330,19 @@ async def create_sdg_user_label(
                 db.flush()  # Ensure the decision is persisted before associating it
             else:
                 unfinished_decision = next((d for d in history.decisions if d.decided_label == -1), None)
-                decision = unfinished_decision
+
+                if unfinished_decision == None:
+                    # Create a new SDGLabelDecision
+                    decision = SDGLabelDecision(
+                        suggested_label=highest_sdg_number,
+                        history_id=history.history_id,
+                        decision_type=user_label_data.decision_type,
+                        decided_at=datetime.now(),
+                    )
+                    db.add(decision)
+                    db.flush()  # Ensure the decision is persisted before associating it
+                else:
+                    decision = unfinished_decision
 
         # Create the new SDG user label
         new_user_label = SDGUserLabel(

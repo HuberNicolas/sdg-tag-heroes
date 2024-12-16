@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Float, DateTime, String
+from sqlalchemy import ForeignKey, Float, DateTime, String, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
 from datetime import datetime
@@ -15,7 +15,8 @@ class SDGCoinWalletHistory(Base):
     history_id: Mapped[int] = mapped_column(primary_key=True, index=True)
     wallet_id: Mapped[int] = mapped_column(ForeignKey("sdg_coin_wallets.sdg_coin_wallet_id"), nullable=False)
     increment: Mapped[float] = mapped_column(Float, nullable=False)  # Incremental change in coins (+/-)
-    reason: Mapped[str] = mapped_column(String(255), nullable=True)  # Optional reason for the change
+    reason: Mapped[str] = mapped_column(Text, nullable=True)  # Optional reason for the change
+    is_shown: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(time_zone_settings.ZURICH_TZ), nullable=False)
 
     # Relationship with SDGCoinWallet
@@ -32,3 +33,18 @@ class SDGCoinWalletHistory(Base):
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
+
+    def __repr__(self) -> str:
+        return (
+            f"<SDGCoinWalletHistory("
+            f"history_id={self.history_id}, "
+            f"wallet_id={self.wallet_id}, "
+            f"increment={self.increment}, "
+            f"reason={self.reason!r}, "
+            f"is_shown={self.is_shown}, "
+            f"timestamp={self.timestamp}, "
+            f"created_at={self.created_at}, "
+            f"updated_at={self.updated_at}"
+            f")>"
+        )
+

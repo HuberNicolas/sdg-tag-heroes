@@ -89,7 +89,7 @@ async def add_wallet_increment(
             detail="An error occurred while adding the wallet increment",
         )
 
-@router.get("/latest", response_model=SDGCoinWalletHistorySchemaFull)
+@router.get("/latest", response_model=SDGCoinWalletHistorySchemaFull | dict)
 async def get_latest_wallet_history(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
@@ -98,7 +98,8 @@ async def get_latest_wallet_history(
     Get the latest wallet history entries since the last checked timestamp.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        # Ensure user is authenticated
+        user = verify_token(token, db)
         user_id = user["user_id"]
 
         # Fetch the most recent history entry for the user
@@ -106,23 +107,31 @@ async def get_latest_wallet_history(
             db.query(SDGCoinWalletHistory)
             .join(SDGCoinWallet, SDGCoinWallet.sdg_coin_wallet_id == SDGCoinWalletHistory.wallet_id)
             .filter(SDGCoinWallet.user_id == user_id)
-            .order_by(SDGCoinWalletHistory.created_at.desc())
+            .order_by(SDGCoinWalletHistory.timestamp.desc())
             .first()
         )
-
-        if not latest_history:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No wallet history found for the user.",
-            )
         print(latest_history)
-        return latest_history
+        if latest_history and latest_history.is_shown != 1: # Trap, True did not work!
+            latest_history.is_shown = True
+            db.commit()
+            # Return the latest wallet history entry
+            return latest_history
+
+        elif latest_history and latest_history.is_shown == 1:
+            # No wallet history available for the user
+            return {
+                "message": "No wallet history found for the user.",
+                "increment": 0,
+                "reason": "No updates available.",
+            }
     except Exception as e:
-        print(e)
+        # Log unexpected errors and return a 500 status
+        print(f"Error fetching wallet history: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the latest wallet history.",
         )
+
 
 @router.get("/personal", response_model=SDGCoinWalletSchemaFull, description="Retrieve the wallet for a specific user")
 async def get_user_wallet(

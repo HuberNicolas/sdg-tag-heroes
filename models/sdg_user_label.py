@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, DateTime, String, Integer, CheckConstraint
+from sqlalchemy import ForeignKey, DateTime, String, Integer, CheckConstraint, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from models import Base
@@ -35,16 +35,13 @@ class SDGUserLabel(Base):
     label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
         "SDGLabelDecision",
         secondary=sdg_label_decision_user_label_association,
-        back_populates="user_labels",
-        cascade="all, save-update",
-        default_factory=list,  # Initialize with empty list
-        lazy="joined",
+        back_populates="user_labels"
     )
 
     proposed_label: Mapped[int] = mapped_column(Integer, nullable=True)
     voted_label: Mapped[int] = mapped_column(Integer, nullable=False)
-    abstract_section: Mapped[str] = mapped_column(String(1000), nullable=True)
-    comment: Mapped[str] = mapped_column(String(1000), nullable=True)
+    abstract_section: Mapped[str] = mapped_column(Text, nullable=True)
+    comment: Mapped[str] = mapped_column(Text, nullable=True)
 
 
     labeled_at: Mapped[datetime] = mapped_column(

@@ -34,10 +34,7 @@ class SDGLabelDecision(Base):
     user_labels: Mapped[list["SDGUserLabel"]] = relationship(
         "SDGUserLabel",
         secondary=sdg_label_decision_user_label_association,
-        back_populates="label_decisions",
-        cascade="all, save-update",
-        default_factory=list,  # Initialize with empty list
-        lazy="joined",  # Load relationship eagerly for safety
+        back_populates="label_decisions"
     )
 
 
