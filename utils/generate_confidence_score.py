@@ -36,6 +36,7 @@ explainer_settings = ExplainerSettings()
 client = OpenAI(api_key=get_env_variable('OPENAI_API_KEY'))
 
 MODEL = "gpt-4o-2024-08-06"
+MODEL = "gpt-4o-mini-2024-07-18"
 print(client)
 logging.info(f"Initialized ChatGPT with model... ")
 

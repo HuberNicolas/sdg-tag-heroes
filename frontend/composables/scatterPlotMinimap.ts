@@ -263,7 +263,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
             console.log('Point clicked:', closest);
             tooltip.style('opacity', 0);
             d3.select('#scatter-plot-selected-point').html('');
-            router.push({ name: 'publications-id', params: { id: closest.publication_id } });
+            router.push({ name: 'labeling-id', params: { id: closest.publication_id } });
           }
         });
     });

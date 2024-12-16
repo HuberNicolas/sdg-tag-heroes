@@ -1,10 +1,10 @@
 <template>
-  <div class="boxplot-container">
+  <div class="grid grid-cols-3">
     <div
       v-for="(boxplot, index) in boxplotData"
       :key="index"
       :id="`boxplot-${index}`"
-      class="boxplot"
+      class="boxplot col-span-1"
     ></div>
   </div>
 </template>
@@ -48,14 +48,4 @@ watch(
 </script>
 
 <style scoped>
-.boxplot-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.boxplot {
-  width: 100%;
-  height: 400px;
-}
 </style>
