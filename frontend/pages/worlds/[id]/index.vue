@@ -1,107 +1,78 @@
 <template>
-  <div class="flex flex-col h-screen p-4">
-    <header class="flex justify-between items-start">
-      <h1 class="text-2xl font-bold mb-4">Sustainable Development Goal</h1>
-      <div class="w-1/3">
-        <UCard
-          v-if="goal"
-          class="aspect-square flex flex-col items-center justify-between text-center shadow-lg rounded-lg overflow-hidden"
-          :style="{ border: `4px solid ${goal.color}` }"
-        >
-          <template #header>
-            <h2 class="text-lg font-bold mb-2" :style="{ color: goal.color }">{{ goal.name }}</h2>
-          </template>
-          <img
-            v-if="goal.icon"
-            :src="`data:image/svg+xml;base64,${goal.icon}`"
-            :alt="goal.name"
-            class="w-full h-full object-contain"
-          />
-          <template #footer>
-            <p class="text-sm mt-4">Goal {{ goal.index }}</p>
-          </template>
-        </UCard>
+  <div class="grid grid-cols-2 gap-4">
+    <div class="col-span-2"><div class="flex justify-center gap-4">
+      <div><UCard
+        v-if="goal"
+        class="aspect-square flex flex-col items-center justify-between text-center shadow-lg rounded-lg overflow-hidden"
+        :style="{ border: `4px solid ${goal.color}` }"
+      >
+        <template #header>
+          <h2 class="text-lg font-bold mb-2" :style="{ color: goal.color }">Goal {{ goal.index }} - {{ goal.name }}</h2>
+        </template>
+        <img
+          v-if="goal.icon"
+          :src="`data:image/svg+xml;base64,${goal.icon}`"
+          :alt="goal.name"
+          class="w-1/2 h-1/2 object-contain"
+        />
+      </UCard>
       </div>
-    </header>
+      <!-- Bronze Level -->
+      <UCard
+        class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
+        :style="{ border: '4px solid #cd7f32' }"
+      >
+        <template #header>
+          <h3 class="text-lg font-bold mb-2 text-[#cd7f32]">Bronze</h3>
+        </template>
+        <p v-if="levelData?.levels?.[1]?.reductions?.length">
+          {{ levelData.levels[1].reductions.length }} items retrieved for Level 1.
+        </p>
+        <p v-else>No data found for Bronze level.</p>
+        <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 1 }}">
+          <p>Play</p>
+        </NuxtLink>
+      </UCard>
 
-    <main class="flex-grow mt-6">
-      <div v-if="error" class="text-red-500">Error: {{ error.message }}</div>
-      <div v-else-if="pending" class="text-center">Loading...</div>
-      <div v-else>
-        <p class="text-lg mb-4">Description:</p>
-        <ul class="list-disc list-inside">
-          <li v-for="target in goal.sdg_targets" :key="target.id">
-            <span class="font-bold">{{ target.index }}</span> - {{ target.text }}
-          </li>
-        </ul>
+      <!-- Silver Level -->
+      <UCard
+        class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
+        :style="{ border: '4px solid #c0c0c0' }"
+      >
+        <template #header>
+          <h3 class="text-lg font-bold mb-2 text-[#c0c0c0]">Silver</h3>
+        </template>
+        <p v-if="levelData?.levels?.[2]?.reductions?.length">
+          {{ levelData.levels[2].reductions.length }} items retrieved for Level 2.
+        </p>
+        <p v-else>No data found for Silver level.</p>
+        <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 2 }}">
+          <p>Play</p>
+        </NuxtLink>
+      </UCard>
 
-        <UButton label="Back to Worlds Overview" @click="goBack" />
-
-        <!-- Levels Section -->
-        <div class="mt-10">
-          <h2 class="text-xl font-bold mb-6">Achievement Levels</h2>
-          <div v-if="levelError" class="text-red-500">Error: {{ levelError.message }}</div>
-          <div v-else-if="levelFetching" class="text-center">Loading...</div>
-          <div v-else>
-
-
-            <div class="flex justify-center gap-4">
-              <!-- Bronze Level -->
-              <UCard
-                class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
-                :style="{ border: '4px solid #cd7f32' }"
-              >
-                <template #header>
-                  <h3 class="text-lg font-bold mb-2 text-[#cd7f32]">Bronze</h3>
-                </template>
-                <p v-if="levelData?.levels?.[1]?.reductions?.length">
-                  {{ levelData.levels[1].reductions.length }} items retrieved for Level 1.
-                </p>
-                <p v-else>No data found for Bronze level.</p>
-                <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 1 }}">
-                  <p>Play</p>
-                </NuxtLink>
-              </UCard>
-
-              <!-- Silver Level -->
-              <UCard
-                class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
-                :style="{ border: '4px solid #c0c0c0' }"
-              >
-                <template #header>
-                  <h3 class="text-lg font-bold mb-2 text-[#c0c0c0]">Silver</h3>
-                </template>
-                <p v-if="levelData?.levels?.[2]?.reductions?.length">
-                  {{ levelData.levels[2].reductions.length }} items retrieved for Level 2.
-                </p>
-                <p v-else>No data found for Silver level.</p>
-                <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 2 }}">
-                  <p>Play</p>
-                </NuxtLink>
-              </UCard>
-
-              <!-- Gold Level -->
-              <UCard
-                class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
-                :style="{ border: '4px solid #ffd700' }"
-              >
-                <template #header>
-                  <h3 class="text-lg font-bold mb-2 text-[#ffd700]">Gold</h3>
-                </template>
-                <p v-if="levelData?.levels?.[3]?.reductions?.length">
-                  {{ levelData.levels[3].reductions.length }} items retrieved for Level 3.
-                </p>
-                <p v-else>No data found for Gold level.</p>
-                <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 3 }}">
-                  <p>Play</p>
-                </NuxtLink>
-              </UCard>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </main>
+      <!-- Gold Level -->
+      <UCard
+        class="flex flex-col items-center justify-center text-center shadow-lg rounded-lg overflow-hidden w-1/4 aspect-square"
+        :style="{ border: '4px solid #ffd700' }"
+      >
+        <template #header>
+          <h3 class="text-lg font-bold mb-2 text-[#ffd700]">Gold</h3>
+        </template>
+        <p v-if="levelData?.levels?.[3]?.reductions?.length">
+          {{ levelData.levels[3].reductions.length }} items retrieved for Level 3.
+        </p>
+        <p v-else>No data found for Gold level.</p>
+        <NuxtLink :to="{ name: 'worlds-id-levels-level_id', params: { id:sdgId , level_id: 3 }}">
+          <p>Play</p>
+        </NuxtLink>
+      </UCard>
+      <UButton label="Back to Worlds Overview" @click="goBack" />
+    </div>
+    </div>
+    <div class="col-span-2">
+      <LeaderBoard></LeaderBoard>
+    </div>
   </div>
 </template>
 
@@ -110,6 +81,7 @@ import { useRoute, useAsyncData } from "#app";
 import { useRuntimeConfig } from "nuxt/app";
 import { SDGGoal } from "~/types/sdg/goals";
 import { useDimensionalityReductionsStore } from '~/stores/dimensionalityReductions';
+import LeaderBoard from "~/components/LeaderBoard.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -146,6 +118,9 @@ const levelData = computed(() => dimensionalityReductionsStore.reductions[sdgId]
 const levelFetching = computed(() => dimensionalityReductionsStore.fetching);
 const levelError = computed(() => dimensionalityReductionsStore.error);
 
+definePageMeta({
+  layout: 'user'
+})
 
 // Fetch data on mount
 onMounted(() => {
