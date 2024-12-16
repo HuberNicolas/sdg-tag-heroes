@@ -153,6 +153,9 @@ class CoinWalletsRouterSettings(BaseSettings):
 class ExplanationsRouterSettings(BaseSettings):
     EXPLANATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_explanations.log"
 
+class SDGSLabelSummariesRouterSettings(BaseSettings):
+    SDGLABELSUMMARIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_summaries.log"
+
 
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
