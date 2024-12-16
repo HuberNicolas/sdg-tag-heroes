@@ -1,6 +1,7 @@
 <template>
   <div class="abstract-marking-page">
     <SDGSelection></SDGSelection>
+    <HexGrid />
 
     <!-- Left side: Abstract Card -->
     <div class="abstract-card-container">
@@ -235,6 +236,7 @@ const fetchLabels = async () => {
 
 
 import { useSDGStore } from '@/stores/sdgs';
+import HexGrid from "~/components/HexGrid.vue";
 
 const sdgStore = useSDGStore();
 const selectedSDG = computed(() => sdgStore.selectedGoal); // Dynamically selected SDG

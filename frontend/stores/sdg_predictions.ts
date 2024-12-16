@@ -74,6 +74,7 @@ export const usePredictionsStore = defineStore('predictions', {
       this.fetching = true;
       this.error = null;
 
+
       try {
         // Fetch predictions using POST
         const response = await $fetch<SDGPredictionSchemaFull[]>(
@@ -85,6 +86,8 @@ export const usePredictionsStore = defineStore('predictions', {
             },
           }
         );
+        console.log(publicationId);
+        console.log(response);
 
         // Replace existing predictions with the fetched ones
         this.selectedPublicationPrediction = response[0];

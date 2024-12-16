@@ -2,9 +2,18 @@ import * as d3 from 'd3';
 
 export default function useHexGrid(values: number[]) {
   const hexRadius = 50; // Hexagon radius in pixels
-  const xSpacing = hexRadius * 2; // Horizontal spacing
-  const ySpacing = Math.sqrt(3) * hexRadius; // Vertical spacing
 
+  const scaleFactor = 0.9; // Scaling factor to reduce spacing (less than 1 reduces spacing)
+
+  // New spacing values based on the scale factor
+  const xSpacing = hexRadius * 2 * scaleFactor; // Horizontal spacing
+  const ySpacing = Math.sqrt(3) * hexRadius * scaleFactor; // Vertical spacing
+
+
+  //const xSpacing = hexRadius * 2; // Horizontal spacing
+  //const ySpacing = Math.sqrt(3) * hexRadius; // Vertical spacing
+
+  console.log(values)
   const coords = [
     [0, -2], [1, -2], [2, -2],
     [-0.5, -1], [0.5, -1], [1.5, -1], [2.5, -1],
@@ -39,8 +48,8 @@ export default function useHexGrid(values: number[]) {
   ];
 
   const renderHexGrid = (selector: HTMLElement): void => {
-    const gridWidth = (Math.max(...coords.map(([x]) => x)) + 1.5) * xSpacing;
-    const gridHeight = (Math.max(...coords.map(([_, y]) => y)) + 2) * ySpacing;
+    const gridWidth = (Math.max(...coords.map(([x]) => x)) + 3) * xSpacing;
+    const gridHeight = (Math.max(...coords.map(([_, y]) => y)) + 3) * ySpacing;
 
     const container = d3.select(selector);
     container.selectAll('*').remove();
@@ -71,6 +80,8 @@ export default function useHexGrid(values: number[]) {
 
       const hexagonGroup = svg.append('g');
 
+      const rotation = 30;
+
       // Outer hexagon
       hexagonGroup
         .append('polygon')
@@ -88,7 +99,8 @@ export default function useHexGrid(values: number[]) {
         )
         .attr('fill', color?.toString() || 'gray')
         .attr('stroke', 'black')
-        .attr('stroke-width', 1);
+        .attr('stroke-width', 1)
+        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
       // Inner hexagon
       hexagonGroup
@@ -107,7 +119,8 @@ export default function useHexGrid(values: number[]) {
         )
         .attr('fill', 'white')
         .attr('stroke', 'black')
-        .attr('stroke-width', 1);
+        .attr('stroke-width', 1)
+        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
       // Add label
       hexagonGroup
