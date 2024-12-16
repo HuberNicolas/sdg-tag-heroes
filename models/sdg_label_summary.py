@@ -53,3 +53,19 @@ class SDGLabelSummary(Base):
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
+
+    def __repr__(self) -> str:
+        active_sdgs = [
+            f"SDG{i}" for i in range(1, 18)
+            if getattr(self, f"sdg{i}") == 1
+        ]
+        return (
+            f"<SDGLabelSummary("
+            f"id={self.sdg_label_summary_id}, "
+            f"publication_id={self.publication_id}, "
+            f"history_id={self.history_id}, "
+            f"active_sdgs={active_sdgs}, "
+            f"created_at={self.created_at}, "
+            f"updated_at={self.updated_at}"
+            f")>"
+        )

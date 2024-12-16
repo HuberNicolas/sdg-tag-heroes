@@ -131,6 +131,7 @@
       </p>
     </div>
     <div id="chart-container"></div>
+    <div id="filtered-chart-container"></div>
 
   </div>
 </template>
@@ -222,6 +223,9 @@ const fetchLabels = async () => {
     }
     // Call the bar chart function
     createBarChart(userLabels.value);
+
+    // Create the second bar chart (filtered logic)
+    createFilteredBarChart(userLabels.value);
   } catch (err: any) {
     labelsError.value = err.message || "Failed to load labels.";
   } finally {
@@ -235,6 +239,10 @@ import { useSDGStore } from '@/stores/sdgs';
 const sdgStore = useSDGStore();
 const selectedSDG = computed(() => sdgStore.selectedGoal); // Dynamically selected SDG
 const shapHighlightedAbstract = ref<string | null>(null);
+
+
+// Track when the last history check occurred
+const lastChecked = ref(new Date());
 
 // Fetch publication details
 const fetchPublicationDetails = async () => {
@@ -356,6 +364,11 @@ watchEffect(() => {
 
 onMounted(async () => {
   await fetchPublicationDetails();
+
+  // TODO: this needs another field to hide it later
+  //setInterval(async () => {
+  //  await checkLatestWalletUpdate();
+  //}, 3000);
 });
 
 // Handle text selection from the abstract
@@ -456,6 +469,10 @@ const confirmSelection = async () => {
     comment.value = "";
     proposedLabel.value = null;
     votedLabel.value = null;
+
+    // Check for new wallet history entries
+    await checkWalletUpdates();
+
   } catch (err: any) {
     console.error("Submission or scoring failed:", err.message || err);
   }
@@ -508,6 +525,31 @@ const castVote = async (labelId, voteType, score) => {
   }
 };
 
+const checkLatestWalletUpdate = async () => {
+  try {
+    const response = await $fetch(`${config.public.apiUrl}wallets/latest`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+
+    // Show a toast for the latest wallet history entry
+    toast.add({
+      //title: "Coins Earned!",
+      //message: `You earned ${response.increment} coins. Reason: ${response.reason}`,
+      title: `You earned ${response.increment} coins. Reason: ${response.reason}`,
+      type: "success",
+      timeout: 5000,
+    });
+
+    // Update the last checked time (optional for other tracking)
+    lastChecked.value = new Date();
+  } catch (err) {
+    console.error("Failed to fetch the latest wallet update:", err.message || err);
+  }
+};
+
 // Format dates for display
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -540,6 +582,107 @@ const createBarChart = (labelsData) => {
   );
 
   const data = Array.from(labelCounts, ([label, count]) => ({
+    label: `SDG ${label}`,
+    count,
+    rawLabel: label,
+  }));
+
+  // SDG color mapping
+  const sdgColors = {
+    1: "#E5243B", 2: "#DDA63A", 3: "#4C9F38", 4: "#C5192D", 5: "#FF3A21",
+    6: "#26BDE2", 7: "#FCC30B", 8: "#A21942", 9: "#FD6925", 10: "#DD1367",
+    11: "#FD9D24", 12: "#BF8B2E", 13: "#3F7E44", 14: "#0A97D9", 15: "#56C02B",
+    16: "#00689D", 17: "#19486A"
+  };
+
+  // Set up scales
+  const x = d3
+    .scaleBand()
+    .domain(data.map((d) => d.label))
+    .range([0, width])
+    .padding(0.1);
+
+  const y = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, (d) => d.count)])
+    .range([height, 0]);
+
+  // Add axes
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .attr("transform", "rotate(-45)")
+    .style("text-anchor", "end");
+
+  svg.append("g").call(d3.axisLeft(y));
+
+  // Add bars
+  svg
+    .selectAll(".bar")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", (d) => x(d.label))
+    .attr("y", (d) => y(d.count))
+    .attr("width", x.bandwidth())
+    .attr("height", (d) => height - y(d.count))
+    .attr("fill", (d) => sdgColors[d.rawLabel] || "#CCCCCC"); // Default color if SDG not found
+
+  // Add labels to bars
+  svg
+    .selectAll(".bar-label")
+    .data(data)
+    .enter()
+    .append("text")
+    .attr("class", "bar-label")
+    .attr("x", (d) => x(d.label) + x.bandwidth() / 2)
+    .attr("y", (d) => y(d.count) - 5)
+    .attr("text-anchor", "middle")
+    .text((d) => d.count);
+};
+
+const createFilteredBarChart = (labelsData) => {
+  // Remove existing chart if it exists
+  d3.select("#filtered-chart-container").selectAll("*").remove();
+
+  const width = 500;
+  const height = 300;
+  const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+
+  const svg = d3
+    .select("#filtered-chart-container")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Prepare the data for the chart
+  const userVotes = {};
+  labelsData.forEach((label) => {
+    if (!userVotes[label.user_id]) {
+      userVotes[label.user_id] = new Set();
+    }
+    userVotes[label.user_id].add(label.voted_label);
+  });
+
+  const filteredVotes = [];
+  Object.values(userVotes).forEach((votes) => {
+    votes.forEach((votedLabel) => {
+      filteredVotes.push(votedLabel);
+    });
+  });
+
+  const voteCounts = d3.rollup(
+    filteredVotes,
+    (v) => v.length,
+    (d) => d
+  );
+
+  const data = Array.from(voteCounts, ([label, count]) => ({
     label: `SDG ${label}`,
     count,
     rawLabel: label,

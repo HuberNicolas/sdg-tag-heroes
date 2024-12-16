@@ -35,7 +35,10 @@ class SDGUserLabel(Base):
     label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
         "SDGLabelDecision",
         secondary=sdg_label_decision_user_label_association,
-        back_populates="user_labels"
+        back_populates="user_labels",
+        cascade="all, save-update",
+        default_factory=list,  # Initialize with empty list
+        lazy="joined",
     )
 
     proposed_label: Mapped[int] = mapped_column(Integer, nullable=True)

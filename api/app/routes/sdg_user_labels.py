@@ -1,6 +1,8 @@
+from collections import Counter
 from datetime import datetime
 from typing import List
 import re
+from random import choice
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker
@@ -13,8 +15,10 @@ from db.mariadb_connector import engine as mariadb_engine
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
-from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, SDGPrediction, Vote
+from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, SDGPrediction, Vote, \
+    SDGCoinWalletHistory, SDGCoinWallet
 from models.publications.publication import Publication
+from models.sdg_label_decision import DecisionType
 from models.sdg_label_history import SDGLabelHistory
 from models.sdg_label_summary import SDGLabelSummary
 from schemas.sdg_user_label import SDGUserLabelSchemaFull, SDGUserLabelSchemaCreate
@@ -282,7 +286,6 @@ async def create_sdg_user_label(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Publication with ID {user_label_data.publication_id} not found",
                 )
-            print(publication)
 
             sdg_label_summary = db.query(SDGLabelSummary).filter(
                 SDGLabelSummary.publication_id == publication.publication_id).first()
@@ -291,7 +294,6 @@ async def create_sdg_user_label(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="SDGLabelSummary not found for the given publication",
                 )
-            print(sdg_label_summary)
             history = db.query(SDGLabelHistory).filter(
                 SDGLabelHistory.history_id == sdg_label_summary.history_id).first()
             if not history:
@@ -299,8 +301,6 @@ async def create_sdg_user_label(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="SDGLabelHistory not found for the given summary",
                 )
-            print(history)
-            print(history.decisions)
 
             sdg_prediction = db.query(SDGPrediction).filter(
                 SDGPrediction.publication_id == publication.publication_id and SDGPrediction.prediction_model == "Aurora").first()
@@ -339,12 +339,106 @@ async def create_sdg_user_label(
             abstract_section=user_label_data.abstract_section or "",  # Default to empty string
             comment=user_label_data.comment or "",  # Default to empty string
         )
-        print(new_user_label)
         db.add(new_user_label)
         db.flush()  # Persist the new_user_label to get its ID
 
+
+        print(decision)
         # Associate the user label with the decision
         decision.user_labels.append(new_user_label)
+
+        # Decision logic: Calculate based on current user labels
+        # Group labels by user
+        user_votes = {}
+        for label in decision.user_labels:
+            if label.user_id not in user_votes:
+                user_votes[label.user_id] = set()
+            user_votes[label.user_id].add(label.voted_label)  # Add to the set for unique SDGs per user
+            print(user_votes)
+
+
+        if len(user_votes) >= 3:  # At least 3 distinct users
+            print("Decision")
+            # Aggregate votes across all users
+            aggregated_votes = Counter()
+            for user_set in user_votes.values():
+                aggregated_votes.update(user_set)  # Count each SDG in the user's set
+
+            # Determine majority
+            max_votes = max(aggregated_votes.values())
+            most_voted_labels = [label for label, count in aggregated_votes.items() if count == max_votes]
+
+            if len(most_voted_labels) > 1:
+                # Tie: Randomly decide among tied labels
+                decision.decided_label = choice(most_voted_labels)
+            else:
+                # Clear majority
+                decision.decided_label = most_voted_labels[0]
+
+            decision.decision_type = DecisionType.CONSENSUS_MAJORITY
+            decision.decided_at = datetime.now()
+        else:
+            print("No decision")
+            # Not enough distinct users for consensus, leave decision undecided (-1)
+            decision.decided_label = -1
+            decision.decision_type = DecisionType.CONSENSUS_MAJORITY
+
+        # Update history if a decision is finalized
+        if decision.decided_label != -1:
+            if not decision.history:
+                decision.history = SDGLabelHistory(
+                    active=True,
+                    created_at=datetime.now(),
+                )
+            decision.history.updated_at = datetime.now()
+
+        # Reward logic for users
+        winning_label = decision.decided_label
+        winners = []
+        for user_id, user_set in user_votes.items():
+            if winning_label in user_set:
+                winners.append(user_id)
+
+        for user_id in user_votes:
+            wallet = db.query(SDGCoinWallet).filter(SDGCoinWallet.user_id == user_id).first()
+            if not wallet:
+                print(f"Wallet for user {user_id} not found. Skipping rewards.")
+                continue
+
+            # Apply reward logic
+            if user_id in winners:
+                # Winner logic: Max 3 SDG labels result in +100 coins
+                if len(user_votes[user_id]) <= 3:
+                    increment = 100
+                    reason = f"Reward for voting for SDG {winning_label}."
+                else:
+                    # Penalty for voting on too many SDGs
+                    increment = -10 * (len(user_votes[user_id]) - 3)
+                    reason = f"Penalty for voting on too many SDGs (limit 3)."
+            else:
+                # No reward for users not voting for the winning SDG
+                increment = 0
+                reason = f"No reward: Did not vote for SDG {winning_label}."
+
+            # Update wallet and add history
+            if increment != 0:
+                wallet.total_coins += increment
+                wallet_history = SDGCoinWalletHistory(
+                    wallet_id=wallet.sdg_coin_wallet_id,
+                    increment=increment,
+                    reason=reason,
+                )
+                db.add(wallet_history)
+
+        # Update summary with the latest decision
+        if decision.history and decision.history.label_summary:
+            summary = decision.history.label_summary
+            print(summary)
+            decided_sdg_field = f"sdg{decision.decided_label}"
+            current_value = getattr(summary, decided_sdg_field, 0)
+            if current_value == 0:  # Update only if it's currently 0
+                setattr(summary, decided_sdg_field, 1)
+            print(summary)
 
         # Commit the transaction
         db.commit()

@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pymongo.synchronous.database import Database
 from sqlalchemy.orm import Session, sessionmaker, joinedload
@@ -78,6 +80,11 @@ async def get_sdg_explanation(
     oai_identifier = publication.oai_identifier
     explanations_collection = mongo_db['explanations_reduced']
     explanation = explanations_collection.find_one({"id": oai_identifier})
+
+    # Lifesaver
+    #indexes = explanations_collection.index_information()
+    #explanations_collection.create_index("id", unique=True)
+
 
     if not explanation:
         raise HTTPException(status_code=404, detail="Explanation not found for the given publication.")

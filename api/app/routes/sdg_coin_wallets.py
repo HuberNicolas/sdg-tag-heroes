@@ -1,6 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker, joinedload
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
@@ -89,6 +89,40 @@ async def add_wallet_increment(
             detail="An error occurred while adding the wallet increment",
         )
 
+@router.get("/latest", response_model=SDGCoinWalletHistorySchemaFull)
+async def get_latest_wallet_history(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Get the latest wallet history entries since the last checked timestamp.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+        user_id = user["user_id"]
+
+        # Fetch the most recent history entry for the user
+        latest_history = (
+            db.query(SDGCoinWalletHistory)
+            .join(SDGCoinWallet, SDGCoinWallet.sdg_coin_wallet_id == SDGCoinWalletHistory.wallet_id)
+            .filter(SDGCoinWallet.user_id == user_id)
+            .order_by(SDGCoinWalletHistory.created_at.desc())
+            .first()
+        )
+
+        if not latest_history:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No wallet history found for the user.",
+            )
+        print(latest_history)
+        return latest_history
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the latest wallet history.",
+        )
 
 @router.get("/personal", response_model=SDGCoinWalletSchemaFull, description="Retrieve the wallet for a specific user")
 async def get_user_wallet(

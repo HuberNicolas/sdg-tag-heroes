@@ -15,3 +15,7 @@ class SDGCoinWalletHistorySchemaCreate(BaseModel):
 class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaCreate):
     history_id: int
     wallet_id: int
+
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
