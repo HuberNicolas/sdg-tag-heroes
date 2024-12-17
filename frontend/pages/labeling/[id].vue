@@ -117,7 +117,18 @@
             <!-- Display Commenter's Email and Voted Label -->
             <p class="text-sm font-semibold text-gray-800">
               <span class="text-gray-600">{{ label.user_email }}</span> voted:
-              <span class="font-medium text-blue-600">SDG {{ label.voted_label }}</span>
+              <div class="flex items-center gap-2">
+                <!-- SDG Icon -->
+                <img
+                  v-if="getSDGIcon(label.voted_label)"
+                  :src="`data:image/svg+xml;base64,${getSDGIcon(label.voted_label)}`"
+                  :alt="`SDG ${label.voted_label} Icon`"
+                  class="w-6 h-6"
+                />
+                <!-- SDG Label (Fallback if no icon exists) -->
+                <span class="font-medium">SDG {{ label.voted_label }}</span>
+              </div>
+
             </p>
 
             <!-- Abstract Section -->
@@ -192,6 +203,8 @@ const generateUserAvatar = (email: string) => {
   return generateAvatar({ seed: email, size: 64 }).toDataUri();
 };
 
+
+
 // Refetch XP after successful annotation via emits
 const emit = defineEmits(["xp-updated"])
 
@@ -225,6 +238,12 @@ const highlightedAbstract = computed(() => {
   );
 });
 
+const getSDGIcon = (votedLabel: number) => {
+  // Ensure goals.items exists and is an array
+  const goalsArray = Array.isArray(sdgStore.goals.items) ? sdgStore.goals.items : [];
+  const sdgGoal = goalsArray.find((goal) => goal.id === votedLabel);
+  return sdgGoal?.icon || null; // Return icon or fallback to null
+};
 
 // Fetch user profile and generate avatar
 const fetchUserProfile = async () => {
