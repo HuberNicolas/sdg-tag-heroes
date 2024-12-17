@@ -4,35 +4,31 @@
       <div class="col-span-3"><MinimapContainer></MinimapContainer></div>
       <div class="col-span-3 justify-self-center">
 
-        <div class="flex items-center gap-4 mb-4">
-          <!-- Level Indicator -->
-          
-          <!-- SDG Icon and Level Indicator -->
-          <div class="flex items-center gap-4 mb-4">
-            <!-- SDG Icon -->
-            <div class="w-16 h-16 flex items-center justify-between border rounded-lg bg-gray-100">
-              <img
-                v-if="sdgIcon"
-                :src="`data:image/svg+xml;base64,${sdgIcon}`"
-                :alt="`SDG ${sdgId} Icon`"
-                class="w-12 h-12 object-contain"
-              />
-              <span v-else class="text-gray-500">SDG {{ sdgId }}</span>
-            </div>
-
-            <!-- Level Indicator with Dynamic Colors -->
-            <div
-              class="flex flex-col items-start justify-between px-4 py-2 rounded-lg shadow"
-              :class="levelClasses"
-            >
-              <span class="text-xs font-semibold uppercase">Level</span>
-              <span class="text-lg font-bold">{{ levelText }}</span>
-            </div>
+        <!-- SDG Icon and Level Indicator -->
+        <div class="flex items-center gap-4">
+          <!-- SDG Icon Container -->
+          <div class="flex items-center justify-center w-20 h-20 border-4 rounded-lg bg-gray-100">
+            <img
+              v-if="sdgIcon"
+              :src="`data:image/svg+xml;base64,${sdgIcon}`"
+              :alt="`SDG ${sdgId} Icon`"
+              class="w-16 h-16 object-contain"
+            />
+            <span v-else class="text-gray-500">SDG {{ sdgId }}</span>
           </div>
 
-
-
+          <!-- Level Indicator with Dynamic Colors -->
+          <div
+            class="flex-1 px-4 py-2 rounded-lg shadow flex items-center justify-between"
+            :class="levelClasses"
+          >
+            <span class="text-xs font-semibold uppercase">Level</span>
+            <span class="text-lg font-bold">{{ levelText }}</span>
+          </div>
         </div>
+
+
+
         <!-- Input for User Interests -->
         <p class="font-bold mb-2">Share your interests:</p>
         <UTextarea
