@@ -105,17 +105,32 @@
       <div v-for="label in userLabels" :key="label.label_id" class="border-b border-gray-200 pb-4 mb-4">
         <!-- Existing Comment Code -->
         <div class="flex items-start gap-4">
-          <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0"></div>
+
+          <div class="w-10 h-10 rounded-full flex-shrink-0">
+            <img
+              :src="generateUserAvatar(label.user_email)"
+              alt="User Avatar"
+              class="w-full h-full rounded-full"
+            />
+          </div>
           <div class="flex-1">
+            <!-- Display Commenter's Email and Voted Label -->
             <p class="text-sm font-semibold text-gray-800">
-              <span class="text-gray-600">Voted Label:</span> {{ label.voted_label }}
+              <span class="text-gray-600">{{ label.user_email }}</span> voted:
+              <span class="font-medium text-blue-600">SDG {{ label.voted_label }}</span>
             </p>
+
+            <!-- Abstract Section -->
             <p class="text-sm text-gray-700 mt-1">
               <span class="font-medium text-gray-600">Abstract Selection:</span> {{ label.abstract_section }}
             </p>
+
+            <!-- Comment -->
             <p class="text-sm text-gray-700 mt-1">
               <span class="font-medium text-gray-600">Comment:</span> {{ label.comment }}
             </p>
+
+            <!-- Label Date -->
             <p class="text-xs text-gray-500 mt-1">
               <span class="font-medium">Label Date:</span> {{ formatDate(label.labeled_at) }}
             </p>
@@ -169,6 +184,13 @@ import { useRuntimeConfig } from "nuxt/app";
 import { usePublicationsStore } from "~/stores/publications";
 import {useUserStore} from "~/stores/user";
 import UseAuth from '~/composables/useAuth';
+import useAvatar from "~/composables/useAvatar";
+
+const { generateAvatar } = useAvatar();
+
+const generateUserAvatar = (email: string) => {
+  return generateAvatar({ seed: email, size: 64 }).toDataUri();
+};
 
 // Refetch XP after successful annotation via emits
 const emit = defineEmits(["xp-updated"])
@@ -227,29 +249,42 @@ const fetchLabels = async () => {
   labelsError.value = null;
 
   try {
-    const response = await $fetch(`${config.public.apiUrl}sdg_user_labels/publications/${publicationId.value}/labels`, {
-      method: "GET",
+    // Fetch user labels
+    const labelsResponse = await $fetch(
+      `${config.public.apiUrl}sdg_user_labels/publications/${publicationId.value}/labels`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    // Extract unique user IDs
+    const userIds = [...new Set(labelsResponse.map(label => label.user_id))];
+
+    // Fetch user details for those user IDs
+    const userDetailsResponse = await $fetch(`${config.public.apiUrl}users`, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
       },
+      body: { user_ids: userIds },
     });
 
-    userLabels.value = response.map((label) => ({
+    // Map user details by user_id for quick lookup
+    const userMap = new Map(userDetailsResponse.map(user => [user.user_id, user.email]));
+
+    // Merge user emails into labels
+    userLabels.value = labelsResponse.map(label => ({
       ...label,
-      user_voted: label.votes.some((vote) => vote.user_id === userStore.user?.id),
+      user_email: userMap.get(label.user_id) || "Unknown", // Add email or fallback
+      user_voted: label.votes.some(vote => vote.user_id === userStore.user?.id),
     }));
 
-
-
-
-    // Check if the user has already submitted a label
-    if (userLabels.value.length > 0) {
-      labelSubmitted.value = true;
-    }
-    // Call the bar chart function
+    // Update charts
     createBarChart(userLabels.value);
-
-    // Create the second bar chart (filtered logic)
     createFilteredBarChart(userLabels.value);
   } catch (err: any) {
     labelsError.value = err.message || "Failed to load labels.";
@@ -257,6 +292,7 @@ const fetchLabels = async () => {
     labelsLoading.value = false;
   }
 };
+
 
 
 import { useSDGStore } from '@/stores/sdgs';

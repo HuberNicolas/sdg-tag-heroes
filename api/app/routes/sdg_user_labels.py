@@ -343,7 +343,8 @@ async def create_sdg_user_label(
                     db.flush()  # Ensure the decision is persisted before associating it
                 else:
                     decision = unfinished_decision
-
+        print(user_label_data)
+        print(user_label_data.abstract_section)
         # Create the new SDG user label
         new_user_label = SDGUserLabel(
             user_id=user["user_id"],

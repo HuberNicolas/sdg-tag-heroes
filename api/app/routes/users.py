@@ -8,6 +8,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from models import User, SDGXPBank, SDGCoinWallet, SDGXPBankHistory, SDGCoinWalletHistory
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
+from models.request import UserIdsRequest
 from schemas.sdg_coin_wallet import SDGCoinWalletSchemaFull
 from schemas.sdg_coin_wallet_history import SDGCoinWalletHistorySchemaFull, SDGCoinWalletHistorySchemaCreate
 from schemas.sdg_xp_bank import SDGXPBankSchemaFull
@@ -203,3 +204,26 @@ async def get_user_by_id(
             detail="An error occurred while fetching the user",
         )
 
+
+@router.post(
+    "/",
+    response_model=List[UserSchemaFull],
+    description="Get a list of users by IDs"
+)
+async def get_publications_by_ids(
+    request: UserIdsRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> List[UserSchemaFull]:
+    user = verify_token(token, db)  # Ensure user is authenticated
+
+    if request.user_ids:
+        user_ids = request.user_ids  # Access the list of IDs
+
+        users = db.query(User).filter(User.user_id.in_(user_ids)).all()
+
+        return [UserSchemaFull.model_validate(user) for user in users]
+
+    else:
+        users = db.query(User).all()
+        return [UserSchemaFull.model_validate(user) for user in users]
