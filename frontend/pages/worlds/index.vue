@@ -105,6 +105,10 @@ const gridStyle = computed(() => {
 // Adjust font size and card height to scale with the viewport
 const fontSize = "0.8rem"; // Adjust based on preference
 const cardHeight = "calc((100vh - 4rem) / 5)"; // Dynamically calculate height to fit screen
+
+definePageMeta({
+  layout: 'empty'
+})
 </script>
 
 <style scoped>
