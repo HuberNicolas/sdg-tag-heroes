@@ -1,27 +1,36 @@
 <template>
-  <div class="abstract-marking-page">
-    <SDGSelection></SDGSelection>
-    <HexGrid />
+  <div class="grid grid-cols-9 gap-4">
 
-    <!-- Left side: Abstract Card -->
-    <div class="abstract-card-container">
-      <div class="abstract-card">
-        <h2 class="text-xl font-bold mb-4">Abstract</h2>
-        <p
-          class="text-base text-justify"
-          v-html="highlightedAbstract"
-          @mouseup="handleTextSelection"
-          :style="{ '--highlight-color': sdgStore.getSelectedGoalColor(selectedSDG) || '#E5243B' }"
-        ></p>
-      </div>
+    <div class="col-span-1 justify-around">
+      <HexGrid class="place-self-center"/>
     </div>
+
+    <div class="col-span-8">
+      <SDGSelection></SDGSelection>
+    </div>
+
+    <!-- Raw abstract Abstract -->
+    <div class="col-span-3">
+
+      <p v-if="publication">{{ publication.title }}</p>
+      <br>
+      <p
+        class="text-base text-justify"
+        v-html="highlightedAbstract"
+        @mouseup="handleTextSelection"
+        :style="{ '--highlight-color': sdgStore.getSelectedGoalColor(selectedSDG) || '#E5243B' }"
+      ></p>
+    </div>
+
     <!-- SHAP-Highlighted Abstract -->
-    <div class="abstract-card-container">
-      <div class="abstract-card">
-        <h2 class="text-xl font-bold mb-4">
+    <div class="col-span-3">
+      <div>
+        <h1>
           SHAP-Highlighted Abstract
           <span v-if="selectedSDG">(SDG {{ selectedSDG }})</span>
-        </h2>
+        </h1>
+        <br>
+        <br>
         <p
           v-if="selectedSDG"
           class="text-base text-justify"
@@ -37,10 +46,11 @@
     </div>
 
 
-    <!-- Right side: Marked Text and Details -->
-    <div class="details-container">
-      <div class="details-card">
-        <h2 class="text-xl font-bold mb-4">Details</h2>
+
+
+    <div class="col-span-3">
+      <p>Voting</p>
+      <div>
         <div v-if="markedText">
           <h3 class="font-semibold mb-2">Selected Passage:</h3>
           <p class="marked-text">{{ markedText }}</p>
@@ -55,17 +65,17 @@
         </div>
 
         <div class="form mt-4">
-        <!--
-          <label class="block mb-2">
-            <span class="text-sm font-medium">Proposed Label</span>
-            <select v-model="proposedLabel" class="dropdown">
-              <option disabled value="">Select a label</option>
-              <option v-for="label in labels" :key="label" :value="label">
-                {{ label }}
-              </option>
-            </select>
-          </label>
-          -->
+          <!--
+            <label class="block mb-2">
+              <span class="text-sm font-medium">Proposed Label</span>
+              <select v-model="proposedLabel" class="dropdown">
+                <option disabled value="">Select a label</option>
+                <option v-for="label in labels" :key="label" :value="label">
+                  {{ label }}
+                </option>
+              </select>
+            </label>
+            -->
 
           <label class="block mb-2">
             <span class="text-sm font-medium">Voted Label</span>
@@ -77,62 +87,76 @@
             </select>
           </label>
 
-          <button
-            class="confirm-button mt-4"
+          <UButton
             @click="confirmSelection"
             :disabled="!votedLabel"
           >
             Submit
-          </button>
+          </UButton>
+        </div>
+      </div>
+    </div>
+    <div class="col-span-9">
+      <UDivider></UDivider>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="col-span-6 max-h-96 overflow-y-auto pr-2">
+      <div v-for="label in userLabels" :key="label.label_id" class="border-b border-gray-200 pb-4 mb-4">
+        <!-- Existing Comment Code -->
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0"></div>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-gray-800">
+              <span class="text-gray-600">Voted Label:</span> {{ label.voted_label }}
+            </p>
+            <p class="text-sm text-gray-700 mt-1">
+              <span class="font-medium text-gray-600">Abstract Selection:</span> {{ label.abstract_section }}
+            </p>
+            <p class="text-sm text-gray-700 mt-1">
+              <span class="font-medium text-gray-600">Comment:</span> {{ label.comment }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">
+              <span class="font-medium">Label Date:</span> {{ formatDate(label.labeled_at) }}
+            </p>
+            <div class="flex items-center gap-4 mt-2 text-gray-600 text-sm">
+              <p><strong>👍 Upvotes:</strong> {{ calculateVotes(label, 'positive') }}</p>
+              <p><strong>👎 Downvotes:</strong> {{ calculateVotes(label, 'negative') }}</p>
+              <p><strong>Score:</strong> {{ calculateScore(label) }}</p>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+              <button
+                @click="castVote(label.label_id, 'positive', 5.0)"
+                :disabled="label.user_voted"
+                class="flex items-center justify-center text-white bg-green-500 hover:bg-green-600 disabled:bg-gray-300 px-3 py-1 rounded"
+              >
+                👍 Upvote
+              </button>
+              <button
+                @click="castVote(label.label_id, 'negative', -1.0)"
+                :disabled="label.user_voted"
+                class="flex items-center justify-center text-white bg-red-500 hover:bg-red-600 disabled:bg-gray-300 px-3 py-1 rounded"
+              >
+                👎 Downvote
+              </button>
+            </div>
+            <p v-if="label.user_voted" class="text-xs text-gray-500 mt-1 italic">
+              You have already voted for this label.
+            </p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Section: Scrollable Labels -->
-    <div v-for="label in userLabels" :key="label.label_id" class="label-card">
-      <p><strong>Voted Label:</strong> {{ label.voted_label }}</p>
-      <p><strong>Abstract Selection:</strong> {{ label.abstract_section }}</p>
-      <p><strong>Comment:</strong> {{ label.comment }}</p>
-      <p><strong>Label Date:</strong> {{ formatDate(label.labeled_at) }}</p>
-
-      <!-- Voting Totals -->
-      <div class="voting-summary">
-        <p><strong>Upvotes:</strong> {{ calculateVotes(label, 'positive') }}</p>
-        <p><strong>Neutral Votes:</strong> {{ calculateVotes(label, 'neutral') }}</p>
-        <p><strong>Downvotes:</strong> {{ calculateVotes(label, 'negative') }}</p>
-        <p><strong>Score:</strong> {{ calculateScore(label) }}</p>
-      </div>
-
-      <!-- Voting Buttons -->
-      <div class="vote-buttons">
-        <button
-          class="upvote-button"
-          :disabled="label.user_voted"
-          @click="castVote(label.label_id, 'positive', 5.0)"
-        >
-          Upvote
-        </button>
-        <button
-          class="neutral-button"
-          :disabled="label.user_voted"
-          @click="castVote(label.label_id, 'neutral', 3.0)"
-        >
-          Neutral
-        </button>
-        <button
-          class="downvote-button"
-          :disabled="label.user_voted"
-          @click="castVote(label.label_id, 'negative', 1.0)"
-        >
-          Downvote
-        </button>
-      </div>
-      <p v-if="label.user_voted" class="voted-text">
-        You have already voted for this label.
-      </p>
+    <!-- Chart Containers -->
+    <div class="col-span-3">
+      <div id="chart-container"></div>
+      <div id="filtered-chart-container"></div>
     </div>
-    <div id="chart-container"></div>
-    <div id="filtered-chart-container"></div>
+
+
+
+
 
   </div>
 </template>
@@ -166,7 +190,7 @@ const markedText = ref("");
 const comment = ref("");
 const proposedLabel = ref<string | null>(null);
 const votedLabel = ref<string | null>(null);
-const labels = [...Array(18).keys()];
+const labels = [ ...Array(17).keys() ].map( i => i+1);
 const highlightedAbstract = computed(() => {
   if (!publication.value?.description || !markedText.value) {
     return publication.value?.description || "No abstract available.";
@@ -578,8 +602,8 @@ const createBarChart = (labelsData) => {
   // Remove existing chart if it exists
   d3.select("#chart-container").selectAll("*").remove();
 
-  const width = 500;
-  const height = 300;
+  const width = 50;
+  const height = 50;
   const margin = { top: 20, right: 30, bottom: 50, left: 50 };
 
   const svg = d3
@@ -632,7 +656,10 @@ const createBarChart = (labelsData) => {
     .attr("transform", "rotate(-45)")
     .style("text-anchor", "end");
 
-  svg.append("g").call(d3.axisLeft(y));
+  svg.append("g")
+    .call(d3.axisLeft(y).tickValues([])) // Remove ticks
+    .select(".domain") // Hide the y-axis line
+    .remove();
 
   // Add bars
   svg
@@ -658,14 +685,24 @@ const createBarChart = (labelsData) => {
     .attr("y", (d) => y(d.count) - 5)
     .attr("text-anchor", "middle")
     .text((d) => d.count);
+
+  d3.select('#chart-container svg')
+    .append("text")
+    .attr("class", "chart-title")
+    .attr("text-anchor", "middle")
+    .attr("x", "50%")
+    .attr("y", "5%")
+    .style("font-size", "10px")
+    .style("font-weight", "bold")
+    .text("User Comments Distribution");
 };
 
 const createFilteredBarChart = (labelsData) => {
   // Remove existing chart if it exists
   d3.select("#filtered-chart-container").selectAll("*").remove();
 
-  const width = 500;
-  const height = 300;
+  const width = 50;
+  const height = 50;
   const margin = { top: 20, right: 30, bottom: 50, left: 50 };
 
   const svg = d3
@@ -733,7 +770,10 @@ const createFilteredBarChart = (labelsData) => {
     .attr("transform", "rotate(-45)")
     .style("text-anchor", "end");
 
-  svg.append("g").call(d3.axisLeft(y));
+  svg.append("g")
+    .call(d3.axisLeft(y).tickValues([])) // Remove ticks
+    .select(".domain") // Hide the y-axis line
+    .remove();
 
   // Add bars
   svg
@@ -759,6 +799,16 @@ const createFilteredBarChart = (labelsData) => {
     .attr("y", (d) => y(d.count) - 5)
     .attr("text-anchor", "middle")
     .text((d) => d.count);
+
+  d3.select('#filtered-chart-container svg')
+    .append("text")
+    .attr("class", "chart-title")
+    .attr("text-anchor", "middle")
+    .attr("x", "50%")
+    .attr("y", "5%")
+    .style("font-size", "10px")
+    .style("font-weight", "bold")
+    .text("SDG User Voting");
 };
 
 
@@ -781,79 +831,8 @@ const toast = useToast()
 </script>
 
 <style scoped>
-.abstract-marking-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  height: 100vh;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-
-.abstract-card-container {
-  width: 50%;
-  padding: 1rem;
-}
-
-.details-container {
-  width: 50%;
-  padding: 1rem;
-}
-
-.labels-section {
-  margin-top: 2rem;
-}
-
-.scrollable-labels {
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-.label-card {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  border-radius: 4px;
-}
-
-.loading {
-  text-align: center;
-  color: #888888;
-}
-
-.error {
-  color: red;
-  text-align: center;
-}
-
 .highlight {
   font-weight: bold;
   padding: 0;
-}
-
-.dropdown {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-top: 0.5rem;
-}
-
-.confirm-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.confirm-button:disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
 }
 </style>
