@@ -2,7 +2,38 @@
   <div>
     <div class="grid grid-cols-6 gap-4">
       <div class="col-span-3"><MinimapContainer></MinimapContainer></div>
-      <div class="col-span-3 justify-self-center"><!-- Input for User Interests -->
+      <div class="col-span-3 justify-self-center">
+
+        <div class="flex items-center gap-4 mb-4">
+          <!-- Level Indicator -->
+          
+          <!-- SDG Icon and Level Indicator -->
+          <div class="flex items-center gap-4 mb-4">
+            <!-- SDG Icon -->
+            <div class="w-16 h-16 flex items-center justify-between border rounded-lg bg-gray-100">
+              <img
+                v-if="sdgIcon"
+                :src="`data:image/svg+xml;base64,${sdgIcon}`"
+                :alt="`SDG ${sdgId} Icon`"
+                class="w-12 h-12 object-contain"
+              />
+              <span v-else class="text-gray-500">SDG {{ sdgId }}</span>
+            </div>
+
+            <!-- Level Indicator with Dynamic Colors -->
+            <div
+              class="flex flex-col items-start justify-between px-4 py-2 rounded-lg shadow"
+              :class="levelClasses"
+            >
+              <span class="text-xs font-semibold uppercase">Level</span>
+              <span class="text-lg font-bold">{{ levelText }}</span>
+            </div>
+          </div>
+
+
+
+        </div>
+        <!-- Input for User Interests -->
         <p class="font-bold mb-2">Share your interests:</p>
         <UTextarea
           color="primary"
@@ -42,7 +73,7 @@
                 <tr>
                   <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Title</th>
                   <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Description</th>
-                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Score</th>
+                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Ranking Score</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -254,6 +285,38 @@ const fetchSimilarPublications = async (query: string) => {
 const formatAuthors = (authors) => {
   return authors.map(author => author.name).join(", ");
 };
+
+const sdgIcon = computed(() => {
+  const goal = sdgStore.goals?.items?.find((g) => g.id === sdgId);
+  return goal?.icon || null;
+});
+
+const levelClasses = computed(() => {
+  switch (levelId) {
+    case 1:
+      return 'border-4 border-[#cd7f32] text-[#cd7f32] bg-[#fff8e1]'; // Bronze
+    case 2:
+      return 'border-4 border-[#c0c0c0] text-[#c0c0c0] bg-[#f5f5f5]'; // Silver
+    case 3:
+      return 'border-4 border-[#ffd700] text-[#ffd700] bg-[#fffde7]'; // Gold
+    default:
+      return 'border-4 border-gray-400 text-gray-400 bg-gray-100'; // Default
+  }
+});
+
+const levelText = computed(() => {
+  switch (levelId) {
+    case 1:
+      return 'Bronze';
+    case 2:
+      return 'Silver';
+    case 3:
+      return 'Gold';
+    default:
+      return `Level ${levelId}`;
+  }
+});
+
 
 // Fetch reductions and trigger publications loading only after reductions are ready
 const loadReductions = async () => {

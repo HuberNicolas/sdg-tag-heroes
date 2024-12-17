@@ -21,7 +21,7 @@
 
     <div class="col-start-1 col-span-3 row-span-1">
       <div id="scatter-plot-summary">
-        <h3>Summary</h3>
+        <h3 class="font-semibold mb-2" >Summary of selected publications</h3>
         <!-- Loading spinner -->
         <div v-if="isLoading" class="flex justify-center items-center">
         </div>
@@ -35,7 +35,7 @@
                 <UBadge :ui="{ rounded: 'rounded-full' }" size="xs">{{keyword}}</UBadge>
               </span>
           </div>
-          <p v-else>No points selected for summary.</p>
+          <p v-else>No publications selected for summary.</p>
         </div>
       </div>
     </div>

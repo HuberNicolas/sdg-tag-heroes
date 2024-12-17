@@ -314,7 +314,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
     );
 
     d3.select('#scatter-plot-visible-points')
-      .html(`Number of Points: ${brushedPoints.length}`);
+      .html(`Number of selected Publications: ${brushedPoints.length}`);
     //console.log('Visible Data Points:', brushedPoints);
 
     dimensionalityStore.setSelectedPoints(brushedPoints); // Update the store with selected points
@@ -352,7 +352,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
       .attr("x", "50%")
       .attr("y", "95%")
       .style("font-size", "14px")
-      .text("Similarity Dimension 1");
+      .text("Content Dimension 1");
 
     // Add Y-Axis Label
     d3.select('#scatter-plot svg')
@@ -363,7 +363,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
       .attr("x", -200) // Adjust position based on your chart
       .attr("y", 20)
       .style("font-size", "14px")
-      .text("Similarity Dimension 2");
+      .text("Content Dimension 2");
 
     // Add Chart Title
     d3.select('#scatter-plot svg')
@@ -374,7 +374,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
       .attr("y", "5%")
       .style("font-size", "18px")
       .style("font-weight", "bold")
-      .text("Publication Abstracts: A Similarity Map");
+      .text("Publication Abstracts: A Content Map");
   }
 
 
@@ -435,7 +435,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
       .attr("x", "50%")
       .attr("y", "95%")
       .style("font-size", "7px")
-      .text("Similarity Dimension 1");
+      .text("Content Dimension 1");
 
     // Add Y-Axis Label
     d3.select('#scatter-plot-minimap svg')
@@ -446,7 +446,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
       .attr("x", -60) // Adjust position based on your chart
       .attr("y", 10)
       .style("font-size", "7px")
-      .text("Similarity Dimension 2");
+      .text("Content Dimension 2");
 
     // Add Chart Title
     d3.select('#scatter-plot-minimap svg')

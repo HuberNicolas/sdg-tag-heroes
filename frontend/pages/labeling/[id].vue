@@ -11,8 +11,7 @@
 
     <!-- Raw abstract Abstract -->
     <div class="col-span-3">
-
-      <p v-if="publication">{{ publication.title }}</p>
+      <h3  class="font-semibold mb-2" v-if="publication">{{ publication.title }}</h3>
       <br>
       <p
         class="text-base text-justify"
@@ -49,18 +48,19 @@
 
 
     <div class="col-span-3">
-      <p>Voting</p>
+      <h3 class="font-semibold mb-2">User Voting</h3>
       <div>
         <div v-if="markedText">
-          <h3 class="font-semibold mb-2">Selected Passage:</h3>
+          <h3 class="font-semibold mb-1">Selected abstract section</h3>
           <p class="marked-text">{{ markedText }}</p>
         </div>
         <div v-else>
+          <h3 class="font-semibold mb-1">Mark a section from the abstract to share your thoughts</h3>
           <p>No passage selected yet.</p>
         </div>
 
         <div>
-          <h3 class="font-semibold mb-2">Write Comment:</h3>
+          <h3 class="font-semibold mb-2">Your comment</h3>
           <UTextarea v-model="comment" />
         </div>
 
@@ -107,7 +107,7 @@
           <label class="block mb-2">
             <span class="text-sm font-medium">Voted Label</span>
             <select v-model="votedLabel" class="dropdown">
-              <option disabled value="">Select a label</option>
+              <option disabled value="">Select a SDG label</option>
               <option v-for="label in labels" :key="label" :value="label">
                 {{ label }}
               </option>
@@ -699,8 +699,8 @@ const createBarChart = (labelsData) => {
   d3.select("#chart-container").selectAll("*").remove();
 
   const width = 300;
-  const height = 50;
-  const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+  const height = 40;
+  const margin = { top: 50, right: 30, bottom: 50, left: 50 };
 
   const svg = d3
     .select("#chart-container")
@@ -787,7 +787,7 @@ const createBarChart = (labelsData) => {
     .attr("class", "chart-title")
     .attr("text-anchor", "middle")
     .attr("x", "50%")
-    .attr("y", "5%")
+    .attr("y", "10%")
     .style("font-size", "10px")
     .style("font-weight", "bold")
     .text("User Comments Distribution");
@@ -798,8 +798,8 @@ const createFilteredBarChart = (labelsData) => {
   d3.select("#filtered-chart-container").selectAll("*").remove();
 
   const width = 300;
-  const height = 50;
-  const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+  const height = 40;
+  const margin = { top: 50, right: 30, bottom: 50, left: 50 };
 
   const svg = d3
     .select("#filtered-chart-container")
@@ -901,7 +901,7 @@ const createFilteredBarChart = (labelsData) => {
     .attr("class", "chart-title")
     .attr("text-anchor", "middle")
     .attr("x", "50%")
-    .attr("y", "5%")
+    .attr("y", "10%")
     .style("font-size", "10px")
     .style("font-weight", "bold")
     .text("SDG User Voting");
