@@ -43,7 +43,8 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
       return state.selectedPoints.forEach(point => {
         point.publication_id;
       });
-    }
+    },
+    getUserCoordinates: state => state.userCoordinates,
   },
 
   actions: {

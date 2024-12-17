@@ -28,12 +28,12 @@
         <div>
           <!-- Spinner for Loading -->
           <div v-if="fetchingPublications" class="spinner mt-4">
-            Loading similar publications...
+            Loading recommended publications...
           </div>
 
           <!-- Publications Table -->
           <div v-else class="mt-4">
-            <p class="font-bold mb-2">Similar Publications:</p>
+            <p class="font-bold mb-2">Recommended Publications:</p>
             <div class="overflow-x-auto">
               <table class="min-w-full table-auto border-collapse border border-gray-200">
                 <thead class="bg-gray-100">

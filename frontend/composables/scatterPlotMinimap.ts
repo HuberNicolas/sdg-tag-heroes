@@ -44,6 +44,25 @@ export function createScatterPlotMinimap() {
     },
     { immediate: true }
   );
+
+  // Watch for userCoordinates updates
+  watch(
+    () => dimensionalityStore.userCoordinates,
+    (newUserCoordinates) => {
+      if (newUserCoordinates) {
+        console.log("User coordinates loaded:", newUserCoordinates);
+
+        // Re-initialize the scatter plot with updated user coordinates
+        initScatterPlot(
+          publicationsForLevel.value,
+          reductionsForLevel.value,
+          predictionsForLevel.value
+        );
+      }
+    },
+    { immediate: true }
+  );
+
   function prepareData(newPublications, newReductions, newPredictions) {
     const predictionArray = Array.isArray(newPredictions)
       ? newPredictions
@@ -98,7 +117,7 @@ export function createScatterPlotMinimap() {
         publication_description: "",
         authors: [],
         score: 1, // Default score
-        color: "red", // Use a distinctive color for the user point
+        color: "black", // Use a distinctive color for the user point
       };
 
       data.push(userPoint);
@@ -226,12 +245,11 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
               // Update the coordinates, score, and other details in the bottom control div
               d3.select('#scatter-plot-selected-point')
                 .html(`
-                      <strong>Selected Point Details:</strong><br>
-                      <strong>Coordinates:</strong> (${closest.x.toFixed(2)}, ${closest.y.toFixed(2)})<br>
-                      <strong>Score:</strong> ${closest.score}<br>
+                      <strong>Publication Details:</strong><br>
                       <strong>Title:</strong> ${closest.publication_title}<br>
+                      <strong>Coordinates:</strong> (${closest.x.toFixed(2)}, ${closest.y.toFixed(2)})<br>
+                      <strong>Prediction Score:</strong> ${closest.score}<br>
                       <strong>Year:</strong> ${closest.publication_year}<br>
-                      <strong>Publisher:</strong> ${closest.publication_publisher}<br>
                     `);
             }
 
@@ -325,7 +343,68 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
       .datum(data)
       //.transition() // could not fix error here :/
       .call(scatterPlot);
+
+    // Add X-Axis Label
+    d3.select('#scatter-plot svg')
+      .append("text")
+      .attr("class", "x-axis-label")
+      .attr("text-anchor", "middle")
+      .attr("x", "50%")
+      .attr("y", "95%")
+      .style("font-size", "14px")
+      .text("Similarity Dimension 1");
+
+    // Add Y-Axis Label
+    d3.select('#scatter-plot svg')
+      .append("text")
+      .attr("class", "y-axis-label")
+      .attr("text-anchor", "middle")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -200) // Adjust position based on your chart
+      .attr("y", 20)
+      .style("font-size", "14px")
+      .text("Similarity Dimension 2");
+
+    // Add Chart Title
+    d3.select('#scatter-plot svg')
+      .append("text")
+      .attr("class", "chart-title")
+      .attr("text-anchor", "middle")
+      .attr("x", "50%")
+      .attr("y", "5%")
+      .style("font-size", "18px")
+      .style("font-weight", "bold")
+      .text("Publication Abstracts: A Similarity Map");
   }
+
+
+
+
+  // Add a keyboard event listener to reset zoom when 'r' is pressed
+  d3.select('body').on('keydown', function (event) {
+    if (event.key === 'r' || event.key === 'R') {
+      // Reset x and y domains to their original extents
+      x.domain(xExtent(data));
+      y.domain(yExtent(data));
+
+      // Clear any selection in the minimap
+      updateMinimap(null, null);
+
+      // Re-render the scatter plot and minimap
+      render();
+      renderMinimap();
+
+      // Clear selected points and summaries from the store
+      dimensionalityStore.clearSelectedPoints();
+      dimensionalityStore.clearSelectedSummary();
+
+      // Update UI to show the total number of points
+      d3.select('#scatter-plot-visible-points').html(`Number of Points: ${data.length}`);
+
+      console.log('Zoom reset to default view!');
+    }
+  });
+
 
   // Create the minimap
   const minimapX = d3.scaleLinear().domain(xExtent(data)).range([0, 100]);
@@ -348,7 +427,40 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
       .datum(data)
       .call(minimap);
 
-    // Add a rectangle for the brush extent
+    // Add X-Axis Label
+    d3.select('#scatter-plot-minimap svg')
+      .append("text")
+      .attr("class", "x-axis-label")
+      .attr("text-anchor", "middle")
+      .attr("x", "50%")
+      .attr("y", "95%")
+      .style("font-size", "7px")
+      .text("Similarity Dimension 1");
+
+    // Add Y-Axis Label
+    d3.select('#scatter-plot-minimap svg')
+      .append("text")
+      .attr("class", "y-axis-label")
+      .attr("text-anchor", "middle")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -60) // Adjust position based on your chart
+      .attr("y", 10)
+      .style("font-size", "7px")
+      .text("Similarity Dimension 2");
+
+    // Add Chart Title
+    d3.select('#scatter-plot-minimap svg')
+      .append("text")
+      .attr("class", "chart-title")
+      .attr("text-anchor", "middle")
+      .attr("x", "50%")
+      .attr("y", "5%")
+      .style("font-size", "10px")
+      .style("font-weight", "bold")
+      .text("Minimap");
+
+
+  // Add a rectangle for the brush extent
     const svg = d3.select('#scatter-plot-minimap').select('svg');
 
     // Ensure that the rectangle is drawn within the SVG
