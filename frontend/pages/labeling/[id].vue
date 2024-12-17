@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-9 gap-4">
 
-    <div class="col-span-1 justify-around">
+    <div class="col-span-1 place-self-center">
       <HexGrid class="place-self-center"/>
     </div>
 
@@ -102,7 +102,7 @@
 
     <!-- Comments Section -->
     <div class="col-span-6 max-h-96 overflow-y-auto pr-2">
-      <div v-for="label in userLabels" :key="label.label_id" class="border-b border-gray-200 pb-4 mb-4">
+      <div v-for="label in sortedUserLabels" :key="label.label_id" class="border-b border-gray-200 pb-4 mb-4">
         <!-- Existing Comment Code -->
         <div class="flex items-start gap-4">
 
@@ -175,7 +175,7 @@
     </div>
 
     <!-- Chart Containers -->
-    <div class="col-span-3">
+    <div class="col-span-3 place-self-center">
       <div id="chart-container"></div>
       <div id="filtered-chart-container"></div>
     </div>
@@ -446,7 +446,6 @@ watchEffect(() => {
 onMounted(async () => {
   await fetchPublicationDetails();
 
-  // TODO: this needs another field to hide it later
   setInterval(async () => {
     await checkLatestWalletUpdate();
   }, 3000);
@@ -652,12 +651,23 @@ const formatDate = (dateString: string) => {
 };
 
 
+const sortedUserLabels = computed(() => {
+  return [...userLabels.value].sort((a, b) => {
+    // Sort in descending order based on the calculated score
+    const scoreA = calculateScore(a);
+    const scoreB = calculateScore(b);
+    return scoreB - scoreA; // Higher scores first
+  });
+});
+
+
+
 
 const createBarChart = (labelsData) => {
   // Remove existing chart if it exists
   d3.select("#chart-container").selectAll("*").remove();
 
-  const width = 50;
+  const width = 300;
   const height = 50;
   const margin = { top: 20, right: 30, bottom: 50, left: 50 };
 
@@ -756,7 +766,7 @@ const createFilteredBarChart = (labelsData) => {
   // Remove existing chart if it exists
   d3.select("#filtered-chart-container").selectAll("*").remove();
 
-  const width = 50;
+  const width = 300;
   const height = 50;
   const margin = { top: 20, right: 30, bottom: 50, left: 50 };
 
