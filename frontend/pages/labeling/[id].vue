@@ -76,6 +76,33 @@
               </select>
             </label>
             -->
+          <div>
+            <span class="text-sm font-medium">Voted Label</span>
+
+            <!-- SDG Icons Grid -->
+            <div class="grid grid-cols-4 gap-1 mt-2">
+              <!-- Render each SDG icon -->
+              <div
+                v-for="goal in sdgStore.goals.items"
+                :key="goal.id"
+                @click="selectSDGLabel(goal.id)"
+                :class="[
+        'cursor-pointer flex flex-col items-center justify-center border-2 rounded-lg p-1',
+        votedLabel === goal.id ? 'border-blue-500 bg-blue-100' : 'border-gray-200 hover:border-gray-400',
+      ]"
+              >
+                <!-- SDG Icon -->
+                <img
+                  v-if="goal.icon"
+                  :src="`data:image/svg+xml;base64,${goal.icon}`"
+                  :alt="`SDG ${goal.id} Icon`"
+                  class="w-4 h-4 object-contain"
+                />
+                <!-- SDG Label -->
+                <span class="text-xs font-medium text-gray-700 mt-1">SDG {{ goal.id }}</span>
+              </div>
+            </div>
+          </div>
 
           <label class="block mb-2">
             <span class="text-sm font-medium">Voted Label</span>
@@ -226,6 +253,10 @@ const comment = ref("");
 const proposedLabel = ref<string | null>(null);
 const votedLabel = ref<string | null>(null);
 const labels = [ ...Array(17).keys() ].map( i => i+1);
+const selectSDGLabel = (id: number) => {
+  votedLabel.value = id;
+};
+
 const highlightedAbstract = computed(() => {
   if (!publication.value?.description || !markedText.value) {
     return publication.value?.description || "No abstract available.";
