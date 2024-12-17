@@ -2,7 +2,7 @@
   <div>
     <div class="grid grid-cols-6 gap-4">
       <div class="col-span-3"><MinimapContainer></MinimapContainer></div>
-      <div class="col-span-3"><!-- Input for User Interests -->
+      <div class="col-span-3 justify-self-center"><!-- Input for User Interests -->
         <p class="font-bold mb-2">Share your interests:</p>
         <UTextarea
           color="primary"
@@ -15,11 +15,13 @@
           @click="generateInterestsQuery"
           class="mt-2"
         />
+        <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
+        <UButton label="Back to World" @click="goBackToWorld" />
         <p v-if="fetchingQuery" class="text-gray-500 italic">Generating query...</p>
         <div class="mt-2">
           <UTextarea
             resize
-            :placeholder="fetchingQuery ? 'Generating Query...' : (generatedQuery || 'Search...')"
+            :placeholder="fetchingQuery ? 'Generating Query...' : (generatedQuery || 'Generated Personalized User Search Query')"
             :value="generatedQuery"
           />
         </div>
@@ -81,10 +83,8 @@
       </div>
 
 
-      <div class="col-span-3"><BoxplotContainer></BoxplotContainer></div>
-      <div class="col-span-3"><UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
-        <UButton label="Back to World" @click="goBackToWorld" /></div>
-      <div  class="col-span-6">
+      <div class="col-span-6"><BoxplotContainer></BoxplotContainer></div>
+      <div class="col-span-6">
         <!-- <p>{{ sdgId }} - {{ levelId }}</p> -->
         <p v-if="fetchingReductions || fetchingPublications">Loading data...</p>
         <p v-else-if="errorReductions || errorPublications">
