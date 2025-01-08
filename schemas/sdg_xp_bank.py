@@ -5,8 +5,9 @@ class SDGXPBankSchemaBase(BaseModel):
     sdg_xp_bank_id: int
     user_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
 
 
 class SDGXPBankSchemaFull(SDGXPBankSchemaBase):

@@ -12,7 +12,11 @@ export const useSDGStore = defineStore('sdgs', {
   getters: {
     getSelectedGoalColor: (state: any) => {
       return (sdgId?: number) => {
-        return (state.goals.items[sdgId-1].color);
+        if (!sdgId || sdgId <= 0 || sdgId > state.goals.items.length) {
+          // Return a safe fallback color if SDG is not valid
+          return '#E0E0E0'; // Light grey for placeholder
+        }
+        return state.goals.items[sdgId - 1]?.color || '#E5243B'; // Default fallback to SDG red
       };
     },
     getSelectedGoal() {

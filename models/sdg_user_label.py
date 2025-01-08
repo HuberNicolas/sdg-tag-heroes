@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, DateTime, String, Integer, CheckConstraint
+from sqlalchemy import ForeignKey, DateTime, String, Integer, CheckConstraint, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from models import Base
@@ -40,7 +40,8 @@ class SDGUserLabel(Base):
 
     proposed_label: Mapped[int] = mapped_column(Integer, nullable=True)
     voted_label: Mapped[int] = mapped_column(Integer, nullable=False)
-    description: Mapped[str] = mapped_column(String(1000), nullable=True)
+    abstract_section: Mapped[str] = mapped_column(Text, nullable=True)
+    comment: Mapped[str] = mapped_column(Text, nullable=True)
 
 
     labeled_at: Mapped[datetime] = mapped_column(

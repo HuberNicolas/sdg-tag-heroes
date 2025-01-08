@@ -86,7 +86,8 @@ def create_sdg_user_labels(session: Session, users: list[User], num_labels: int 
             user_id=choice(users).user_id,
             proposed_label=randint(0, 17),
             voted_label=randint(0, 17),
-            description=faker.sentence(),
+            abstract_section=faker.sentence(),
+            comment=faker.sentence(),
             labeled_at=faker.date_time_this_year(),
             created_at=faker.date_time_this_year(),
             updated_at=faker.date_time_this_year(),
@@ -229,6 +230,7 @@ def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_
                 wallet_id=wallet.sdg_coin_wallet_id,
                 increment=increment,
                 reason=faker.sentence(),
+                is_shown=False,
                 timestamp=faker.date_time_this_year(),
             )
             session.add(history)
@@ -291,6 +293,7 @@ def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_en
                 sdg=sdg,
                 increment=increment,
                 reason=faker.sentence(),
+                is_shown=False,
                 timestamp=faker.date_time_this_year(),
             )
             session.add(history)

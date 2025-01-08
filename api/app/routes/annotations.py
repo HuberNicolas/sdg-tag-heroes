@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
+from api.app.models.query import AnnotationScoreRequest
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
@@ -14,8 +15,12 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 from models import Annotation, SDGUserLabel, Vote
 from schemas.annotations import AnnotationSchemaFull, AnnotationSchemaCreate
 from schemas.vote import VoteSchemaFull, VoteSchemaCreate
+from services.user_annotation_assessment import AnnotationScoreResponse, UserAnnotationAssessment
 from settings.settings import AnnotationsSettings
 annotations_router_settings = AnnotationsSettings()
+
+
+
 
 security = Security()
 # OAuth2 scheme for token authentication
@@ -24,7 +29,6 @@ oauth2_scheme = security.oauth2_scheme
 # Setup Logging
 from utils.logger import logger
 logging = logger(annotations_router_settings.ANNOTATIONS_ROUTER_LOG_NAME)
-
 
 router = APIRouter(
     prefix="/annotations",
@@ -47,6 +51,58 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.post(
+    "/score",
+    response_model=AnnotationScoreResponse,
+    description="Evaluate an annotation against an SDG label."
+)
+async def evaluate_annotation_score(
+    request: AnnotationScoreRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> AnnotationScoreResponse:
+    """
+    Evaluate an annotation's scores for relevance, depth, correctness, and creativity.
+    """
+    try:
+        user = verify_token(token, db)  # Authenticate user
+
+        annotation_assessment = UserAnnotationAssessment()
+
+        # Calculate scores using the UserAnnotationAssessment class
+        scores = annotation_assessment.evaluate_annotation(
+            passage=request.passage,
+            annotation=request.annotation,
+            sdg_label=request.sdg_label
+        )
+
+        # Return the response
+        return AnnotationScoreResponse(
+            relevance=scores.relevance,
+            depth=scores.depth,
+            correctness=scores.correctness,
+            creativity=scores.creativity,
+            llm_score=scores.llm_score,
+            semantic_score=scores.semantic_score,
+            combined_score=scores.combined_score,
+            reasoning=scores.reasoning,
+        )
+    except ValidationError as ve:
+        logging.error(f"Validation error: {ve}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid input. Please check your request data.",
+        )
+    except Exception as e:
+        logging.error(f"Error evaluating annotation score: {str(e)}")
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while evaluating the annotation score.",
+        )
+
 @router.get(
     "/{annotation_id}/votes/{vote_id}",
     response_model=VoteSchemaFull,

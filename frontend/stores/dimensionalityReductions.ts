@@ -1,10 +1,14 @@
-import { defineStore } from 'pinia';
-import { useRuntimeConfig } from 'nuxt/app';
-import { DimensionalityReductionGroupedResponse } from '~/types/dimensionalityReduction';
-import { CollectiveSummaryResponse } from "~/types/collectiveSummary"; // Define your response typ
+import { defineStore } from "pinia";
+import { useRuntimeConfig } from "nuxt/app";
+import {
+  type DimensionalityReductionGroupedResponse,
+  type DimensionalityReductionStats
+} from "~/types/dimensionalityReduction";
+import { type DimensionalityReduction } from "~/types/dimensionalityReduction";
+import { type CollectiveSummaryResponse } from "~/types/CollectiveSummaryResponse";
 
 
-export const useDimensionalityReductionsStore = defineStore('dimensionalityReductions', {
+export const useDimensionalityReductionsStore = defineStore("dimensionalityReductions", {
   state: () => ({
     reductions: {} as Record<
       number,
@@ -20,7 +24,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
     fetching: false,
     error: null as Error | null,
     userCoordinates: null as { x: number; y: number; z: number } | null, // User coordinates
-    selectedSummary: null as CollectiveSummaryResponse | null, // Add this field
+    selectedSummary: null as CollectiveSummaryResponse | null // Add this field
   }),
 
   getters: {
@@ -35,11 +39,12 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
 
       return levelData.reductions || null; // Return reductions for the level
     },
-    getSelectedPublicationsIds: (state) => ()  => {
+    getSelectedPublicationsIds: (state) => () => {
       return state.selectedPoints.forEach(point => {
-        point.publication_id
-      })
-    }
+        point.publication_id;
+      });
+    },
+    getUserCoordinates: state => state.userCoordinates,
   },
 
   actions: {
@@ -52,7 +57,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
     clearSelectedSummary() {
       this.selectedSummary = null;
     },
-    setSelectedPoints (points: any) {
+    setSelectedPoints(points: any) {
       this.selectedPoints = points;
     },
     async fetchUserCoordinates(query: string, sdg: number, level: number) {
@@ -64,16 +69,15 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
       this.error = null;
 
 
-
       try {
         const response = await $fetch<{ x: number; y: number; z: number }>(
           `${config.public.apiUrl}dimensionality_reductions/user-coordinates`,
           {
-            method: 'POST',
+            method: "POST",
             body: { user_query: query, sdg, level },
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-            },
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`
+            }
           }
         );
 
@@ -107,10 +111,10 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
           $fetch<DimensionalityReductionGroupedResponse>(
             `${config.public.apiUrl}dimensionality_reductions?sdg=${sdgId}&level=${level}`,
             {
-              method: 'GET',
+              method: "GET",
               headers: {
-                Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-              },
+                Authorization: `Bearer ${localStorage.getItem("access_token")}`
+              }
             }
           )
         );
@@ -158,10 +162,10 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
         const result = await $fetch<DimensionalityReductionGroupedResponse>(
           `${config.public.apiUrl}dimensionality_reductions?${queryParams.toString()}`,
           {
-            method: 'GET',
+            method: "GET",
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-            },
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`
+            }
           }
         );
 
@@ -199,7 +203,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
       const apiUrl = useRuntimeConfig().public.apiUrl;
 
       const data = {
-        publication_ids: this.selectedPoints.map(point => point.publication_id),
+        publication_ids: this.selectedPoints.map(point => point.publication_id)
       };
 
       try {
@@ -207,8 +211,8 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
           method: "POST",
           body: data,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          }
         });
 
         this.selectedSummary = response;
@@ -219,7 +223,7 @@ export const useDimensionalityReductionsStore = defineStore('dimensionalityReduc
       } finally {
         this.fetching = false; // Stop loading
       }
-    },
+    }
 
-  },
+  }
 });

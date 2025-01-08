@@ -119,6 +119,23 @@ async def get_publications_by_ids(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
-    user = verify_token(token, db)  # Ensure user is authenticated
-    publication= db.query(SDGPrediction).filter(SDGPrediction.prediction_id == publication_id).filter(SDGPrediction.prediction_model == "Aurora").first()
-    return [SDGPredictionSchemaFull.model_validate(publication)]
+    # Ensure user is authenticated
+    user = verify_token(token, db)
+
+    # Perform a JOIN between Publication and SDGPrediction
+    publication = db.query(Publication).join(
+        SDGPrediction, SDGPrediction.publication_id == Publication.publication_id
+    ).filter(
+        Publication.publication_id == publication_id,
+        SDGPrediction.prediction_model == "Aurora"
+    ).first()
+
+    if publication is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Publication with ID {publication_id} not found or no Aurora model prediction available."
+        )
+
+    # Return the SDG predictions for the matched publication
+    # Since the query fetches the entire Publication and its SDG predictions, we can now return them
+    return [SDGPredictionSchemaFull.model_validate(prediction) for prediction in publication.sdg_predictions]

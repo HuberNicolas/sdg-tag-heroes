@@ -144,6 +144,19 @@ class DimensionalityReductionsRouterSettings(BaseSettings):
 class SDGPredictionsRouterSettings(BaseSettings):
     SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
 
+class XPBanksRouterSettings(BaseSettings):
+    XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"
+
+class CoinWalletsRouterSettings(BaseSettings):
+    COIN_WALLETS_ROUTER_LOG_NAME: ClassVar[str] = "api_coin_wallets.log"
+
+class ExplanationsRouterSettings(BaseSettings):
+    EXPLANATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_explanations.log"
+
+class SDGSLabelSummariesRouterSettings(BaseSettings):
+    SDGLABELSUMMARIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_summaries.log"
+
+
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
     CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
@@ -177,16 +190,14 @@ class EnvLoaderSettings(BaseSettings):
     # Do not set this to True in prod as it will print secrets
     ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
 
-class BackendSettings(BaseSettings):
-    BACKEND_LOG_NAME: ClassVar[str] = "backend.log"
-    DJANGO_DEBUG_MODE: ClassVar[bool] = True
-    LANGUAGE_CODE: str = "en-us"
-    USE_I18N: ClassVar[bool] = True
-
-
 class ExplainerSettings(BaseSettings):
     PROMPT_PATH: ClassVar[str] = "/prompts"
 
     # smaller model (cheapest as of 06.2024) to keep the cost down
     GPT_MODEL: ClassVar[str] = "gpt-3.5-turbo-0125"
     GPT_TEMPERATURE: ClassVar[float] = 0.2
+
+class UserAnnotationAssessmentSettings(BaseSettings):
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
+    BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
+

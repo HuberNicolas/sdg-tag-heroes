@@ -7,10 +7,15 @@ class SDGCoinWalletHistorySchemaCreate(BaseModel):
     reason: Optional[str] = None
     timestamp: Optional[datetime] = None
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
 
 
 class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaCreate):
     history_id: int
     wallet_id: int
+
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }

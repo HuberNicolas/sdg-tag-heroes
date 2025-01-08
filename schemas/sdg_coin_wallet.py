@@ -6,8 +6,9 @@ class SDGCoinWalletSchemaBase(BaseModel):
     sdg_coin_wallet_id: int
     user_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
 
 
 class SDGCoinWalletSchemaFull(SDGCoinWalletSchemaBase):
@@ -15,5 +16,6 @@ class SDGCoinWalletSchemaFull(SDGCoinWalletSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }

@@ -113,9 +113,9 @@ const updateLinks = (coins: number, xpData: SDGXPBankResponse) => {
   links.value = [
     [
       {
-        label: 'Home',
-        icon: 'i-heroicons-home',
-        to: '/',
+        label: 'Worlds',
+        icon: 'i-heroicons-globe-alt',
+        to: '/worlds',
       },
       {
         label: `SDG XP: ${total_xp.toFixed(0)}`,
@@ -165,9 +165,10 @@ onMounted(async () => {
       <!-- Left Section: Home and Overall SDG XP -->
       <div class="flex items-center space-x-6">
         <!-- Home Link -->
-        <NuxtLink to="/">
+        <Icon name="heroicons-globe-alt" style="color: black" />
+        <NuxtLink to="/worlds">
           <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Home</span>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Worlds</span>
           </div>
         </NuxtLink>
 

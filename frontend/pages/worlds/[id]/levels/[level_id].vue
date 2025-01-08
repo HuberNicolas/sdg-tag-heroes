@@ -1,28 +1,34 @@
 <template>
   <div>
-    <div>
-      <MinimapContainer></MinimapContainer>
-      <BoxplotContainer></BoxplotContainer>
-    </div>
-    <div class="grid grid-cols-3 gap-4">
-      <div>01</div>
-      <div>01</div>
-      <div>01</div>
+    <div class="grid grid-cols-6 gap-4">
+      <div class="col-span-3"><MinimapContainer></MinimapContainer></div>
+      <div class="col-span-3 justify-self-center">
 
-      <div>01</div>
-      <div>01</div>
-      <div>01</div>
+        <!-- SDG Icon and Level Indicator -->
+        <div class="flex items-center gap-4">
+          <!-- SDG Icon Container -->
+          <div class="flex items-center justify-center w-20 h-20 border-4 rounded-lg bg-gray-100">
+            <img
+              v-if="sdgIcon"
+              :src="`data:image/svg+xml;base64,${sdgIcon}`"
+              :alt="`SDG ${sdgId} Icon`"
+              class="w-16 h-16 object-contain"
+            />
+            <span v-else class="text-gray-500">SDG {{ sdgId }}</span>
+          </div>
 
-      <div>01</div>
-      <div>01</div>
-      <div>09</div>
-    </div>
-    <div>
-      <p>{{ sdgId }} - {{ levelId }}</p>
-      <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
-      <UButton label="Back to World" @click="goBackToWorld" />
+          <!-- Level Indicator with Dynamic Colors -->
+          <div
+            class="flex-1 px-4 py-2 rounded-lg shadow flex items-center justify-between"
+            :class="levelClasses"
+          >
+            <span class="text-xs font-semibold uppercase">Level</span>
+            <span class="text-lg font-bold">{{ levelText }}</span>
+          </div>
+        </div>
 
-      <div class="mt-4">
+
+
         <!-- Input for User Interests -->
         <p class="font-bold mb-2">Share your interests:</p>
         <UTextarea
@@ -31,41 +37,93 @@
           placeholder="Type your interests here..."
           v-model="userInterests"
         />
-        <UButton label="Generate Query" @click="generateInterestsQuery" class="mt-2" />
-
-        <!-- Spinner for Similarity Results -->
-        <div v-if="fetchingPublications" class="spinner mt-4">
-          Loading similar publications...
+        <UButton
+          label="Generate Query"
+          @click="generateInterestsQuery"
+          class="mt-2"
+        />
+        <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
+        <UButton label="Back to World" @click="goBackToWorld" />
+        <p v-if="fetchingQuery" class="text-gray-500 italic">Generating query...</p>
+        <div class="mt-2">
+          <UTextarea
+            resize
+            :placeholder="fetchingQuery ? 'Generating Query...' : (generatedQuery || 'Generated Personalized User Search Query')"
+            :value="generatedQuery"
+          />
         </div>
 
-        <!-- Display Similar Publications -->
-        <div v-else class="mt-4">
-          <p class="font-bold">Similar Publications:</p>
-          <ul v-if="similarPublications.length > 0" class="publication-list">
-            <li v-for="publication in similarPublications" :key="publication.publication_id" class="mb-4 border-b pb-2">
-              <h3 class="font-semibold">{{ publication.title }}</h3>
-              <p><strong>Description:</strong> {{ publication.description }}</p>
-              <p><strong>Authors:</strong> {{ formatAuthors(publication.authors) }}</p>
-              <p><strong>Score:</strong> {{ publication.score }}</p>
-            </li>
-          </ul>
-          <p v-else>No similar publications found.</p>
+
+        <div>
+          <!-- Spinner for Loading -->
+          <div v-if="fetchingPublications" class="spinner mt-4">
+            Loading recommended publications...
+          </div>
+
+          <!-- Publications Table -->
+          <div v-else class="mt-4">
+            <p class="font-bold mb-2">Recommended Publications:</p>
+            <div class="overflow-x-auto">
+              <table class="min-w-full table-auto border-collapse border border-gray-200">
+                <thead class="bg-gray-100">
+                <tr>
+                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Title</th>
+                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Description</th>
+                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Ranking Score</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr
+                  v-for="publication in sortedPublications"
+                  :key="publication.publication_id"
+                  class="hover:bg-gray-50 cursor-pointer"
+                  @click="select(publication)"
+                >
+                  <td class="px-4 py-2 text-sm text-gray-700">
+                    <a
+                      :href="`/labeling/${publication.publication_id}`"
+                      class="text-blue-600 hover:underline"
+                      @click.stop
+                    >
+                      {{ publication.title.length > 30 ? publication.title.slice(0, 30) + '...' : publication.title }}
+                    </a>
+                  </td>
+                  <td class="px-4 py-2 text-sm text-gray-700 relative group">
+    <span>
+      {{ publication.description.length > 50 ? publication.description.slice(0, 50) + '...' : publication.description }}
+    </span>
+                    <!-- Tooltip -->
+                    <div class="absolute hidden group-hover:block top-full left-0 mt-1 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                      {{ publication.description }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-2 text-sm text-gray-700">
+                    {{ publication.score }}
+                  </td>
+                </tr>
+                </tbody>
+
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
-      <p v-if="fetchingQuery">Generating query...</p>
-      <p v-else-if="generatedQuery">{{ generatedQuery }}</p>
 
-
-      <p v-if="fetchingReductions || fetchingPublications">Loading data...</p>
-      <p v-else-if="errorReductions || errorPublications">
-        Error: {{ errorReductions?.message || errorPublications?.message }}
-      </p>
-      <p v-else>
-        Data loaded successfully
-        <PublicationTable :sdgId="sdgId" :levelId="levelId" />
-      </p>
+      <div class="col-span-6"><BoxplotContainer></BoxplotContainer></div>
+      <div class="col-span-6">
+        <!-- <p>{{ sdgId }} - {{ levelId }}</p> -->
+        <p v-if="fetchingReductions || fetchingPublications">Loading data...</p>
+        <p v-else-if="errorReductions || errorPublications">
+          Error: {{ errorReductions?.message || errorPublications?.message }}
+        </p>
+        <p v-else>
+          Data loaded successfully
+          <PublicationTable :sdgId="sdgId" :levelId="levelId" />
+        </p>
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -224,6 +282,38 @@ const formatAuthors = (authors) => {
   return authors.map(author => author.name).join(", ");
 };
 
+const sdgIcon = computed(() => {
+  const goal = sdgStore.goals?.items?.find((g) => g.id === sdgId);
+  return goal?.icon || null;
+});
+
+const levelClasses = computed(() => {
+  switch (levelId) {
+    case 1:
+      return 'border-4 border-[#cd7f32] text-[#cd7f32] bg-[#fff8e1]'; // Bronze
+    case 2:
+      return 'border-4 border-[#c0c0c0] text-[#c0c0c0] bg-[#f5f5f5]'; // Silver
+    case 3:
+      return 'border-4 border-[#ffd700] text-[#ffd700] bg-[#fffde7]'; // Gold
+    default:
+      return 'border-4 border-gray-400 text-gray-400 bg-gray-100'; // Default
+  }
+});
+
+const levelText = computed(() => {
+  switch (levelId) {
+    case 1:
+      return 'Bronze';
+    case 2:
+      return 'Silver';
+    case 3:
+      return 'Gold';
+    default:
+      return `Level ${levelId}`;
+  }
+});
+
+
 // Fetch reductions and trigger publications loading only after reductions are ready
 const loadReductions = async () => {
   fetchingReductions.value = true;
@@ -302,4 +392,24 @@ const loadPublications = async () => {
   onMounted(() => {
     initializeData();
   });
+const sortedPublications = computed(() =>
+  similarPublications.value
+    .sort((a, b) => b.score - a.score) // Sort by score descending
+    .map((pub) => ({
+      publication_id: pub.publication_id,
+      title: pub.title,
+      description: pub.description,
+      authors: pub.authors, // Pass raw authors to use with formatAuthors
+      score: pub.score,
+    }))
+);
+
+function select(publication) {
+  router.push({ name: 'labeling-id', params: { id: publication.publication_id } });
+}
+
+
+definePageMeta({
+  layout: 'user'
+})
 </script>
