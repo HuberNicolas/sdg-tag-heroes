@@ -1,0 +1,15 @@
+{
+    "title": "Interactive effects of environmental stress and inbreeding on reproductive traits in a wild bird population",
+
+    "goal": "SDG 15: Life on Land",
+    "goal_explanation": {
+        "relevant": "The study is relevant to UN SDG Goal 15 (Life on Land) because it addresses the factors that threaten biodiversity and ecosystem health. Specifically, it focuses on the interaction between inbreeding and environmental stress, which can both negatively impact the survival and reproduction of species. These factors are crucial to consider when aiming to protect, restore, and promote sustainable use of terrestrial ecosystems.",
+        "not_relevant": "While the study focuses on the effects of inbreeding and environmental stress on a specific bird population, it is less directly relevant to the broader goals of UN SDG 15, which aim to protect, restore, and promote sustainable use of terrestrial ecosystems. The abstract does not explicitly address the wider implications of its findings for ecosystem health, biodiversity conservation, or sustainable land management practices."
+    },
+
+    "target": "15.5: Take urgent and significant action to reduce the degradation of natural habitats, halt the loss of biodiversity and, by 2020, protect and prevent the extinction of threatened species.",
+    "target_explanation": {
+        "relevant": "The study is relevant to UN SDG Target 15.5 because it investigates factors that can increase the extinction risk of small and isolated populations. Specifically, it examines how the interaction between inbreeding and environmental stress can affect the fitness of individuals, ultimately impacting the population's ability to survive and reproduce. This research is directly relevant to Target 15.5, which aims to take urgent and significant action to reduce the degradation of natural habitats, halt the loss of biodiversity, and protect and prevent the extinction of threatened species. By understanding the combined effects of inbreeding and environmental stress, conservation biologists can develop more effective strategies to protect vulnerable populations and prevent their extinction.",
+        "not_relevant": "The study could be considered not directly relevant to UN SDG Target 15.5, which specifically focuses on taking urgent and significant action to reduce the degradation of natural habitats, halt the loss of biodiversity, and protect and prevent the extinction of threatened species. The abstract focuses on a single species (song sparrows) on a single island (Mandarte Island). While the findings could have implications for understanding the broader effects of inbreeding and environmental stress on bird populations, they do not directly address the global issue of biodiversity loss and habitat degradation. The abstract presents research findings but does not discuss specific actions or interventions that could be taken to reduce the degradation of natural habitats or protect threatened species. The abstract does not address the policy or governance aspects of biodiversity conservation, which are crucial for achieving UN SDG Target 15.5."
+    }
+}

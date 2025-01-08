@@ -30,3 +30,9 @@ try:
     logger.info(f"Connection to MongoDB successful! Databases: {databases}")
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
+
+def get_explanations_db():
+    """
+    Provides a connection to the sdg_explanations database.
+    """
+    return client['sdg_explanations']

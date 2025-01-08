@@ -34,7 +34,7 @@ predictor_settings = PredictionSettings()
 
 # Setup Logging
 from utils.logger import logger
-logging = logger(predictor_settings.ZORA_PREDICTOR_LOG_NAME)
+logging = logger(predictor_settings.AURORA_PREDICTOR_LOG_NAME)
 
 # Download nltk tokenizer if not already downloaded
 nltk.download(predictor_settings.NLTK_TOKENIZER_PUNKT)
@@ -213,7 +213,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     publications = (
         session.query(Publication)
         #.join(SDGPrediction)
-        #.filter(~SDGPrediction.prediction_model.in_(["Zora"]))
+        #.filter(~SDGPrediction.prediction_model.in_(["Aurora"]))
         .all()
     )
 
@@ -290,9 +290,9 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
                     # If the entry does not exist, create a new one
                     prediction_entry = SDGPrediction(
                         publication_id=pub.publication_id,
-                        prediction_model="Zora",
+                        prediction_model="Aurora",
                     )
-                    session.add(prediction_entry)
+                    #session.add(prediction_entry) # THIS CAUSES DUPLICAITON
                 else:
                     logging.info(
                         f"Prediction entry already exists for publication {pub.publication_id}. Updating existing record.")
@@ -306,7 +306,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
                 prediction_entry.last_predicted_goal = model_idx
 
                 # Update model
-                prediction_entry.prediction_model = "Zora"
+                prediction_entry.prediction_model = "Aurora"
 
                 # Add to the list of updated entries
                 updated_entries.append(prediction_entry)

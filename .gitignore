@@ -33,7 +33,6 @@ coverage/
 docker-compose.override.yml
 docker-compose.override.*
 .dockerignore
-*.log
 logs/
 tmp/
 
@@ -68,3 +67,10 @@ secrets/
 *.venv
 # env/
 venv/
+
+
+# Snapshots
+*.snapshot
+
+# PDF
+*.pdf

@@ -1,0 +1,51 @@
+<template>
+  <div class="grid grid-cols-3">
+    <div
+      v-for="(boxplot, index) in boxplotData"
+      :key="index"
+      :id="`boxplot-${index}`"
+      class="boxplot col-span-1"
+    ></div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { usePublicationStore } from '~/stores/publications'; // Import the Pinia store
+import { createBoxPlot } from '~/composables/boxPlot';
+
+// Access the store
+const store = useDimensionalityReductionsStore();
+
+// Transform the selected data into arrays for x, y, and score
+const boxplotData = computed(() => {
+  const selectedPoints = store.selectedPoints;
+  const xValues = selectedPoints.map(point => point.x);
+  const yValues = selectedPoints.map(point => point.y);
+  const scores = selectedPoints.map(point => point.score);
+
+  return [xValues, yValues, scores];
+});
+
+// Options for box plot dimensions
+const options = {
+  width: 200,
+  height: 200,
+};
+
+// Watch for changes in boxplotData and update the box plots
+watch(
+  boxplotData,
+  (newData) => {
+    // Clear existing box plots before creating new ones
+    newData.forEach((data, index) => {
+      const containerId = `boxplot-${index}`;
+      createBoxPlot(containerId, data, options);
+    });
+  },
+  { immediate: true } // Run the watch effect immediately on component mount
+);
+</script>
+
+<style scoped>
+</style>

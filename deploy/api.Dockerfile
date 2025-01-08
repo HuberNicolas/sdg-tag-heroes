@@ -1,4 +1,4 @@
-FROM docker.io/python:3.12.6-slim
+FROM docker.io/python:3.10.14-slim
 
 ARG YOUR_ENV
 
@@ -33,6 +33,9 @@ COPY ./schemas /schemas
 COPY ./env /env
 COPY ./utils /utils
 COPY ./settings /settings
+COPY ./services /services
+COPY ./prompts /prompts
+COPY ./data/api /data/api
 COPY deploy/entrypoint.api.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

@@ -10,7 +10,7 @@
         <label for="password">Password:</label>
         <input v-model="password" type="password" id="password" required />
       </div>
-      <button type="submit">Login</button>
+      <UButton type="submit">Login</UButton>
     </form>
     <div v-if="error">{{ error }}</div>
   </div>
@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import AuthService from '@/services/authService';
+import UseAuth from '~/composables/useAuth';
 
 const email = ref('');
 const password = ref('');
@@ -28,7 +28,7 @@ const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    const authService = new AuthService();
+    const authService = new UseAuth();
     await authService.login({ email: email.value, password: password.value });
     router.push('/profile');  // Navigate to profile page after login
   } catch (err) {

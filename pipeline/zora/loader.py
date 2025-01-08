@@ -111,7 +111,7 @@ class QdrantUploader:
                     collection_name=collection_name,
                     vectors_config={
                         "content": VectorParams(size=embeddings_settings.VECTOR_SIZE, distance=Distance.DOT),
-                        "goal_zora": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT),
+                        "goal_aurora": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT),
                         "goal_dvdblk": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT),
                     },
                 )

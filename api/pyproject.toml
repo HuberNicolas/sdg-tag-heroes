@@ -6,30 +6,57 @@ authors = ["Nicolas Huber <nicolas.huber2@uzh.ch>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
-fastapi = "^0.114.0"
-uvicorn = "^0.30.6"
-cloudant = "^2.15.0"
-mysql-connector-python = "^9.0.0"
-sqlalchemy = "^2.0.35"
-pymongo = "^4.10.0"
-qdrant-client = "^1.11.3"
+# Python version
+python = "3.10.14"  # Restrict to Python 3.10.14
+
+# Python Helpers
 python-dotenv = "^1.0.1"
 pytz = "2024.2"
 pydantic = "^2.9.2"
 pydantic-settings = "^2.5.2"
-redis = "^5.1.1"
+
+# API
+fastapi = "^0.114.0"
+uvicorn = "^0.30.6"
+fastapi-pagination = "^0.12.31"
+
+# API helpers
 pyjwt = "^2.9.0"
 bcrypt = "^4.2.0"
 passlib = "^1.7.4"
 python-multipart = "^0.0.12"
-fastapi-pagination = "^0.12.31"
+
+# Database clients
+mysql-connector-python = "^9.0.0"
+pymongo = "^4.10.0"
+qdrant-client = "^1.11.3"
+redis = "^5.1.1"
+
+# SQL Helpers
+alembic = "^1.14.0"
+sqlalchemy = "^2.0.35"
+
+# Redis Helper
+cloudant = "^2.15.0"
+
+# OpenAI
+instructor = "^1.6.4"
+openai = "^1.54.4"
+
+## Torch Setup
+torch = "2.1.1" # Needed for sentence transformers
+numpy = "<2.0"  # Needed for sentence transformers, Restrict to version 1.x
+sentence-transformers = "^3.0.1"
+keybert = "^0.8.5"
+umap-learn = "^0.5.7"
+pandas = "^2.2.3"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
 flake8 = "^7.1.1"
 isort = "^5.13.2"
+faker = "^33.0.0"
 
 [build-system]
 requires = ["poetry-core"]

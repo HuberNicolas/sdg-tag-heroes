@@ -1,51 +1,51 @@
 from datetime import datetime
-
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
-
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, or_
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from settings.settings import TimeZoneSettings
+from models.base import Base
 
 time_zone_settings = TimeZoneSettings()
-
-from models.base import Base
 
 
 class SDGPrediction(Base):
     __tablename__ = "sdg_predictions"
-    prediction_id = Column(Integer, primary_key=True, autoincrement=True)
-    publication_id = Column(
-        Integer, ForeignKey("publications.publication_id"), primary_key=True
-    )
-    publication = relationship("Publication", back_populates="sdg_predictions")
-    prediction_model = Column(String(255), nullable=False, default="")
+
+    prediction_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    publication_id: Mapped[int] = mapped_column(ForeignKey("publications.publication_id"), nullable=False)
+
+    # Relationships
+    publication: Mapped["Publication"] = relationship("Publication", back_populates="sdg_predictions")
+
+    prediction_model: Mapped[str] = mapped_column(String(255), nullable=False, default="")
 
     # Columns for each SDG goal prediction (values from 0 to 1, precision 4 decimal places)
-    # Set default=0.0 for each SDG goal prediction column
-    sdg1 = Column(Float(precision=4), default=0.0)
-    sdg2 = Column(Float(precision=4), default=0.0)
-    sdg3 = Column(Float(precision=4), default=0.0)
-    sdg4 = Column(Float(precision=4), default=0.0)
-    sdg5 = Column(Float(precision=4), default=0.0)
-    sdg6 = Column(Float(precision=4), default=0.0)
-    sdg7 = Column(Float(precision=4), default=0.0)
-    sdg8 = Column(Float(precision=4), default=0.0)
-    sdg9 = Column(Float(precision=4), default=0.0)
-    sdg10 = Column(Float(precision=4), default=0.0)
-    sdg11 = Column(Float(precision=4), default=0.0)
-    sdg12 = Column(Float(precision=4), default=0.0)
-    sdg13 = Column(Float(precision=4), default=0.0)
-    sdg14 = Column(Float(precision=4), default=0.0)
-    sdg15 = Column(Float(precision=4), default=0.0)
-    sdg16 = Column(Float(precision=4), default=0.0)
-    sdg17 = Column(Float(precision=4), default=0.0)
-    predicted = Column(Boolean, default=False)
-    last_predicted_goal = Column(Integer, default=0)
-    created_at = Column(
+    sdg1: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg2: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg3: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg4: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg5: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg6: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg7: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg8: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg9: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg10: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg11: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg12: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg13: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg14: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg15: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg16: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    sdg17: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+
+    predicted: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_predicted_goal: Mapped[int] = mapped_column(default=0)
+
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
@@ -54,12 +54,66 @@ class SDGPrediction(Base):
 
     def __repr__(self):
         return (
-            f"<SDGPrediction(prediction_id={self.prediction_id},"
-            f"<SDGPrediction(publication_id={self.publication_id}, "
-            f"<SDGPrediction(prediction_model={self.prediction_model}, "
+            f"<SDGPrediction(prediction_id={self.prediction_id}, "
+            f"publication_id={self.publication_id}, "
+            f"prediction_model={self.prediction_model}, "
             f"sdg1={self.sdg1}, sdg2={self.sdg2}, sdg3={self.sdg3}, sdg4={self.sdg4}, "
             f"sdg5={self.sdg5}, sdg6={self.sdg6}, sdg7={self.sdg7}, sdg8={self.sdg8}, "
             f"sdg9={self.sdg9}, sdg10={self.sdg10}, sdg11={self.sdg11}, sdg12={self.sdg12}, "
             f"sdg13={self.sdg13}, sdg14={self.sdg14}, sdg15={self.sdg15}, sdg16={self.sdg16}, "
-            f"sdg17={self.sdg17}, predicted={self.predicted}, last_predicted_goal={self.last_predicted_goal})>"
+            f"sdg17={self.sdg17}, predicted={self.predicted}, "
+            f"last_predicted_goal={self.last_predicted_goal})>"
         )
+
+    def get_highest_sdg(self):
+        """
+        Get the SDG with the highest prediction value for this instance.
+        Returns a tuple of (SDG key, value).
+        """
+        sdg_values = {
+            "sdg1": self.sdg1,
+            "sdg2": self.sdg2,
+            "sdg3": self.sdg3,
+            "sdg4": self.sdg4,
+            "sdg5": self.sdg5,
+            "sdg6": self.sdg6,
+            "sdg7": self.sdg7,
+            "sdg8": self.sdg8,
+            "sdg9": self.sdg9,
+            "sdg10": self.sdg10,
+            "sdg11": self.sdg11,
+            "sdg12": self.sdg12,
+            "sdg13": self.sdg13,
+            "sdg14": self.sdg14,
+            "sdg15": self.sdg15,
+            "sdg16": self.sdg16,
+            "sdg17": self.sdg17,
+        }
+        highest_sdg = max(sdg_values.items(), key=lambda item: item[1])
+        return highest_sdg
+
+    def get_sdgs_above_threshold(self, threshold=0.98):
+        """
+        Get all SDGs with a prediction value above the threshold for this instance.
+        Returns a dictionary of SDG keys and their respective values.
+        """
+        sdg_values = {
+            "sdg1": self.sdg1,
+            "sdg2": self.sdg2,
+            "sdg3": self.sdg3,
+            "sdg4": self.sdg4,
+            "sdg5": self.sdg5,
+            "sdg6": self.sdg6,
+            "sdg7": self.sdg7,
+            "sdg8": self.sdg8,
+            "sdg9": self.sdg9,
+            "sdg10": self.sdg10,
+            "sdg11": self.sdg11,
+            "sdg12": self.sdg12,
+            "sdg13": self.sdg13,
+            "sdg14": self.sdg14,
+            "sdg15": self.sdg15,
+            "sdg16": self.sdg16,
+            "sdg17": self.sdg17,
+        }
+        return {key: value for key, value in sdg_values.items() if value >= threshold}

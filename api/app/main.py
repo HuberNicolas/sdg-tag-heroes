@@ -7,6 +7,19 @@ from fastapi.openapi.utils import get_openapi
 from api.app.routes import publications
 from api.app.routes import authors
 from api.app.routes import authentication
+from api.app.routes import sdgs
+from api.app.routes import votes
+from api.app.routes import annotations
+from api.app.routes import sdg_user_labels
+from api.app.routes import dimensionality_reductions
+from api.app.routes import users
+from api.app.routes import sdg_predictions
+from api.app.routes import profiles
+#from api.app.routes import summaries # Way to slow w/o ChatGPT
+from api.app.routes import sdg_xp_banks
+from api.app.routes import sdg_coin_wallets
+from api.app.routes import sdg_explanations
+from api.app.routes import sdg_label_summaries
 
 from fastapi_pagination import add_pagination
 
@@ -19,6 +32,19 @@ add_pagination(app)  # important! add pagination to your app
 app.include_router(publications.router)
 app.include_router(authors.router)
 app.include_router(authentication.router)
+app.include_router(sdgs.router)
+app.include_router(votes.router)
+app.include_router(annotations.router)
+app.include_router(sdg_user_labels.router)
+app.include_router(dimensionality_reductions.router)
+app.include_router(users.router)
+app.include_router(sdg_predictions.router)
+app.include_router(profiles.router)
+#app.include_router(summaries.router)
+app.include_router(sdg_xp_banks.router)
+app.include_router(sdg_coin_wallets.router)
+app.include_router(sdg_explanations.router)
+app.include_router(sdg_label_summaries.router)
 
 # CORS (development only)
 app.add_middleware(
@@ -35,7 +61,7 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Your API Title",
+        title="SDG Tag Heroes",
         version="1.0.0",
         description="API Documentation with JWT Authentication",
         routes=app.routes,
@@ -47,7 +73,10 @@ def custom_openapi():
             "bearerFormat": "JWT",
         }
     }
-    openapi_schema["security"] = [{"BearerAuth": []}]
+    # Apply globally to all routes
+    for path in openapi_schema["paths"]:
+        for method in openapi_schema["paths"][path]:
+            openapi_schema["paths"][path][method]["security"] = [{"BearerAuth": []}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 

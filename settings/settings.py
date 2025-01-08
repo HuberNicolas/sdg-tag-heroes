@@ -1,5 +1,5 @@
 import os
-from typing import ClassVar, List
+from typing import ClassVar, List, Tuple
 
 import pytz
 from pydantic_settings import BaseSettings
@@ -18,10 +18,9 @@ class EmbeddingsSettings(BaseSettings):
     EMBEDDINGS_LOG_NAME: ClassVar[str] = "embeddings.log"
     VECTOR_SIZE: ClassVar[int] = 384
     ENCODER_MODEL: ClassVar[str] = "sentence-transformers/all-MiniLM-L6-v2"
-    ENCODER_DEVICE: ClassVar[str] = "cuda:0" # Either "cpu" or "cuda: 0"
+    ENCODER_DEVICE: ClassVar[str] = "cpu" # Either "cpu" or "cuda: 0"
     DEFAULT_BATCH_SIZE: ClassVar[int] = 32
     VECTOR_CONTENT_NAME: ClassVar[str] = "content"
-
 
     # Define the content pattern as a list of format strings
     ENCODER_CONTENT_PATTERN: ClassVar[List[str]] = [
@@ -31,6 +30,13 @@ class EmbeddingsSettings(BaseSettings):
         # "Publisher: {pub.publisher}",
         "Abstract: {pub.description}"
     ]
+
+class SimilaritySearchSettings(BaseSettings):
+    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
+
+class ProfileRouterSettings(BaseSettings):
+    PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_profiles_.log"
+
 
 class LoaderSettings(BaseSettings):
     LOADER_LOG_NAME: ClassVar[str] = "loader.log"
@@ -53,10 +59,10 @@ class LoggingSettings(BaseSettings):
     LOG_FORMAT: ClassVar[str] = "%(asctime)s - %(levelname)s - %(message)s"
 
 class PredictionSettings(BaseSettings):
-    ZORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_zora.log"
+    AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
 
-    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models")
+    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models", "targets")
     AURORA_MODEL_GOAL_LINKS: ClassVar[str] = "aurora-model-goal-only-links.csv"
 
     CUDA_VISIBLE_DEVICES_KEY: ClassVar[str] = "CUDA_VISIBLE_DEVICES"
@@ -70,6 +76,11 @@ class PredictionSettings(BaseSettings):
 
     DEFAULT_BATCH_SIZE: ClassVar[int] = 16
     DEFAULT_MARIADB_BATCH_SIZE: ClassVar[int] = 500
+    DEFAULT_DVDBLK_BATCH_SIZE: ClassVar[int] = 16
+
+
+class TargetPredictionSettings(PredictionSettings):
+    AURORA_TARGET_PREDICTOR_LOG_NAME: ClassVar[str] = "target_predictor_aurora.log"
 
 
 class CollectorSettings(BaseSettings):
@@ -93,26 +104,64 @@ class ReducerSettings(BaseSettings):
     UMAP_MIN_DIST: ClassVar[float] = 0.1
     UMAP_N_COMPONENTS: ClassVar[int] = 2
 
+    # Arrays for UMAP parameter combinations
+    UMAP_N_NEIGHBORS_ARRAY: ClassVar[List[int]] = [15, 30]
+    UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.1]
+    UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
+
+    # Model path
+    UMAP_MODEL_PATH: ClassVar[str] = os.path.join("data", "api", "umap_model")
+
+    # Filter ranges
+    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.9), (0.9, 0.8), (0.9, 0.5)]  # SDG filter ranges
+
 
 
 class PublicationsRouterSettings(BaseSettings):
     PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
 
+class SummaryRouterSettings(BaseSettings):
+    SUMMARY_ROUTER_LOG_NAME: ClassVar[str] = "api_summaries.log"
+
+class SDGsRouterSettings(BaseSettings):
+    SDGS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdgs.log"
+
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
+
+class SDGUserLabelsSettings(BaseSettings):
+    SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
+
+class VotesSettings(BaseSettings):
+    VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
+
+class AnnotationsSettings(BaseSettings):
+    ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
+
+class DimensionalityReductionsRouterSettings(BaseSettings):
+    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_dimensionality_reductions.log"
+
+class SDGPredictionsRouterSettings(BaseSettings):
+    SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
+
+class XPBanksRouterSettings(BaseSettings):
+    XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"
+
+class CoinWalletsRouterSettings(BaseSettings):
+    COIN_WALLETS_ROUTER_LOG_NAME: ClassVar[str] = "api_coin_wallets.log"
+
+class ExplanationsRouterSettings(BaseSettings):
+    EXPLANATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_explanations.log"
+
+class SDGSLabelSummariesRouterSettings(BaseSettings):
+    SDGLABELSUMMARIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_summaries.log"
+
 
 class AuthenticationRouterSettings(BaseSettings):
     AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
     CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
     CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
     TOKEN_URL: ClassVar[str] = "auth/token"
-
-    # JWT
-    ACCESS_TOKEN_LIFETIME_MINUTES: int = 300 # Token validity duration
-    REFRESH_TOKEN_LIFETIME_MINUTES: int = 60 # How long refresh tokens last
-    ROTATE_REFRESH_TOKENS: ClassVar[bool] = False # Optional, for rotating refresh tokens
-    BLACKLIST_AFTER_ROTATION: ClassVar[bool] = True # Use token blacklist
-    AUTH_HEADER_TYPES: str = 'Bearer'
 
 class MariaDBSettings(BaseSettings):
     MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
@@ -141,8 +190,14 @@ class EnvLoaderSettings(BaseSettings):
     # Do not set this to True in prod as it will print secrets
     ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
 
-class BackendSettings(BaseSettings):
-    BACKEND_LOG_NAME: ClassVar[str] = "backend.log"
-    DJANGO_DEBUG_MODE: ClassVar[bool] = True
-    LANGUAGE_CODE: str = "en-us"
-    USE_I18N: ClassVar[bool] = True
+class ExplainerSettings(BaseSettings):
+    PROMPT_PATH: ClassVar[str] = "/prompts"
+
+    # smaller model (cheapest as of 06.2024) to keep the cost down
+    GPT_MODEL: ClassVar[str] = "gpt-3.5-turbo-0125"
+    GPT_TEMPERATURE: ClassVar[float] = 0.2
+
+class UserAnnotationAssessmentSettings(BaseSettings):
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
+    BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
+

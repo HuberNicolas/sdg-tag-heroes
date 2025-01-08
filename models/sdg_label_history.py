@@ -1,30 +1,52 @@
+from sqlalchemy import ForeignKey, String, DateTime, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Integer, ForeignKey
-from sqlalchemy.orm import relationship
+from models import Base
 from settings.settings import TimeZoneSettings
-from models.base import Base
 
 time_zone_settings = TimeZoneSettings()
 
-class SDGLabelHistory(Base):
-    __tablename__ = "sdg_label_histories"
-    publication_id = Column(
-        Integer, ForeignKey("sdg_labels.publication_id"), primary_key=True
-    )
-    sdg_label = relationship("SDGLabel", back_populates="sdg_label_history")
-    sdg_label_decisions = relationship("SDGLabelDecision", back_populates="sdg_label_history")
 
-    created_at = Column(
+class SDGLabelHistory(Base):
+    """
+    Represents a historical record of SDG label evaluations.
+    """
+    __tablename__ = "sdg_label_histories"
+
+    history_id: Mapped[int] = mapped_column(primary_key=True, index=True)
+
+    # One-to-Many relationship with SDGLabelDecision
+    decisions: Mapped[list["SDGLabelDecision"]] = relationship(
+        "SDGLabelDecision", back_populates="history", cascade="all, delete-orphan"
+    )
+
+    # One-to-One relationship with SDGLabelSummary
+    label_summary: Mapped["SDGLabelSummary"] = relationship(
+        "SDGLabelSummary", back_populates="history", uselist=False
+    )
+
+    active: Mapped[bool] = mapped_column(default=True, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
 
-    def __repr__(self):
-        return f"<SDGLabelHistory(publication_id={self.publication_id})>"
+    def __repr__(self) -> str:
+        return (
+            f"<SDGLabelHistory("
+            f"history_id={self.history_id}, "
+            f"active={self.active}, "
+            f"created_at={self.created_at.isoformat() if self.created_at else None}, "
+            f"updated_at={self.updated_at.isoformat() if self.updated_at else None}, "
+            f"decisions_count={len(self.decisions) if self.decisions else 0}, "
+            f"label_summary={'present' if self.label_summary else 'absent'}"
+            f")>"
+        )

@@ -2,13 +2,14 @@ import base64
 import os
 import logging
 from mysql.connector import connect, Error
+from sqlalchemy import MetaData
 from sqlalchemy.orm import sessionmaker
 from settings.settings import MongoDBSDGSettings
 
 
 from models.base import Base
-from models.sdg_goal import SDGGoal
-from models.sdg_target import SDGTarget
+from models.sdg.sdg_goal import SDGGoal
+from models.sdg.sdg_target import SDGTarget
 
 # MariaDB connection settings
 mariadb_settings = MongoDBSDGSettings()
@@ -143,7 +144,7 @@ try:
                 text=texts[i],
                 color=goal.color,  # Inherit color from goal
                 sdg_goal_id=goal.id,  # Foreign key reference
-                targetVectorIndex=i,
+                target_vector_index=i,
                 icon=target_icon
             )
             session.add(new_target)

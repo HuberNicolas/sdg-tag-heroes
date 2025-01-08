@@ -20,6 +20,10 @@ from models.sdg_label_decision import SDGLabelDecision
 from models.sdg_user_label import SDGUserLabel
 from models.dim_red import DimRed
 from models.publication import Publication
+from models.user import User
+from models.admin import Admin
+from models.expert import Expert
+from models.labeler import Labeler
 
 
 from settings.settings import ReducerSettings, LoaderSettings, EmbeddingsSettings
@@ -84,10 +88,18 @@ class UmapProcessor:
                 # Convert numpy.float32 to Python float
                 umap_x, umap_y = map(float, umap_coords)
 
+                reduction_details_string = f"n_neighbors={ReducerSettings.UMAP_N_NEIGHBORS}, min_dist={ReducerSettings.UMAP_MIN_DIST}, n_components={ReducerSettings.UMAP_N_COMPONENTS}"
+
+                reduction_shorthand_string = f"UMAP-xy-{ReducerSettings.UMAP_N_NEIGHBORS}-{ReducerSettings.UMAP_MIN_DIST}-{ReducerSettings.UMAP_N_COMPONENTS}"
+
                 dim_red_entry = DimRed(
                     publication_id=pub.publication_id,
-                    umap_x_coord=umap_x,
-                    umap_y_coord=umap_y,
+                    reduction_technique="UMAP",
+                    reduction_details=reduction_details_string,
+                    reduction_shorthand=reduction_shorthand_string,
+                    x_coord=umap_x,
+                    y_coord=umap_y,
+                    z_coord=0
                 )
 
                 # Add the UMAP result to the publication
@@ -172,11 +184,14 @@ def main(db, mariadb_batch_size):
         Session = sessionmaker(bind=engine)
         session = Session()
 
+        # Ensure tables are created
+        Base.metadata.create_all(engine)
+
         # Initialize UMAP processor
-        umap_processor = UmapProcessor(qdrantdb_client, mariadb_batch_size=mariadb_batch_size)
+        #umap_processor = UmapProcessor(qdrantdb_client, mariadb_batch_size=mariadb_batch_size)
 
         # Process and reduce un-UMAPed publications
-        umap_processor.process_and_reduce(session)
+        #umap_processor.process_and_reduce(session)
 
     except Exception as e:
         logging.error(f"Failed to start the UMAP-Qdrant loader: {e}")
@@ -203,5 +218,5 @@ if __name__ == "__main__":
 
     main(args.db, args.mariadb_batch_size)
 
-def reducer_main(db):
+def reducer_main(db, mariadb_batch_size):
     main(db, mariadb_batch_size)
