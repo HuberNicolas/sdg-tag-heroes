@@ -261,6 +261,8 @@ services:
       # - /path/on/server/:/path/on/dockerservice/on/service
       #  - /home/deployer/recycle-bin:/recycle-bin
       - ./data/db/igcl_dump.sql:/workspace/igcl_dump.sql
+      - ./utils/restore-qdrant.sh:/workspace/restore-qdrant.sh
+      - ./data/db/publications-mt-4595442005324815-2024-11-15-13-46-47.snapshot:/workspace/publications-mt-4595442005324815-2024-11-15-13-46-47.snapshot
     entrypoint: [ "tail", "-f", "/dev/null" ] # Keep container alive for interactive use
 
 networks:
