@@ -245,6 +245,23 @@ services:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.14
 
+  utils:
+    build:
+      context: .
+      dockerfile: deploy/utils.Dockerfile
+    container_name: utils
+    restart: always
+    tty: true # Keep the container running
+    profiles: [ dev, debug ]
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.5.0.20
+    # To delete things, mount here
+    # volumes:
+    # - /path/on/server/:/path/on/dockerservice/on/service
+    #  - /home/deployer/recycle-bin:/recycle-bin
+    entrypoint: [ "tail", "-f", "/dev/null" ] # Keep container alive for interactive use
+
 networks:
   sdg-tag-heroes-net:
     driver: bridge
