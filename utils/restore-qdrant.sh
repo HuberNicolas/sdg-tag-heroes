@@ -18,10 +18,9 @@ else
 fi
 
 # Upload the backup
-upload_response=$(wget --method=POST \
-     --header="Content-Type: multipart/form-data" \
-     --body-file="$backup_path" \
-     "http://sdg-tag-heroes.ifi.uzh.ch/db/qdrant:6333/collections/{collection_name}/snapshots/upload")
+upload_response=$(curl --location 'localhost:6333/collections/publications-mt/snapshots/upload' \
+--header 'Content-Type: multipart/form-data' \
+--form "snapshot=@$backup_path")
 
 # Check if the upload was successful
 echo "$upload_response" | grep -q '"result":true'
