@@ -18,7 +18,8 @@ else
 fi
 
 # Upload the backup
-upload_response=$(curl --location 'localhost:6333/collections/publications-mt/snapshots/upload' \
+# or 'localhost:6333/collections/publications-mt/snapshots/upload'
+upload_response=$(curl --location 'http://qdrant-database:6333/collections/publications-mt/snapshots/upload' \
 --header 'Content-Type: multipart/form-data' \
 --form "snapshot=@$backup_path")
 
