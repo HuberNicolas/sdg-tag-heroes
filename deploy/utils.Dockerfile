@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     net-tools \
     iputils-ping \
+    mariadb-client \
     nano \
     vim \
     && apt-get clean
