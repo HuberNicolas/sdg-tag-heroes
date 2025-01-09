@@ -257,9 +257,10 @@ services:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.20
     # To delete things, mount here
-    # volumes:
-    # - /path/on/server/:/path/on/dockerservice/on/service
-    #  - /home/deployer/recycle-bin:/recycle-bin
+    volumes:
+      # - /path/on/server/:/path/on/dockerservice/on/service
+      #  - /home/deployer/recycle-bin:/recycle-bin
+      - ./data/db/igcl_dump.sql:/workspace/igcl_dump.sql
     entrypoint: [ "tail", "-f", "/dev/null" ] # Keep container alive for interactive use
 
 networks:
