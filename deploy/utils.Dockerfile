@@ -27,8 +27,9 @@ RUN wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
-# Add MongoDB APT repository and install MongoDB client (mongosh)
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | apt-key add - && \
-    echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list && \
-    apt-get update && apt-get install -y mongodb-org-shell && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install MongoDB Shell (mongosh)
+RUN wget https://downloads.mongodb.com/compass/mongosh-1.10.0-linux-x64.tgz && \
+    tar -xvzf mongosh-1.10.0-linux-x64.tgz && \
+    mv mongosh-1.10.0-linux-x64 /usr/local/mongosh && \
+    ln -s /usr/local/mongosh/bin/mongosh /usr/bin/mongosh && \
+    rm mongosh-1.10.0-linux-x64.tgz
