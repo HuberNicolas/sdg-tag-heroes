@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM ubuntu:latest
 
 # Install essential tools
 RUN apt-get update && apt-get install -y \
@@ -11,3 +11,8 @@ RUN apt-get update && apt-get install -y \
     vim \
     && apt-get clean
 
+
+RUN wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-arm64-100.10.0.deb && \
+    dpkg -i mongodb-database-tools-ubuntu2404-arm64-100.10.0.deb && \
+    rm mongodb-database-tools-ubuntu2404-arm64-100.10.0.deb && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
