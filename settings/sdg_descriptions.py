@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+
 class SDGDescription(BaseModel):
     index: int = Field(..., ge=1, le=17)
     link: str
@@ -9,6 +10,7 @@ class SDGDescription(BaseModel):
     sdg_shortname: str
     sdg_description: str
     seed_words: List[str]
+
 
 sdg1 = SDGDescription(
     index=1,
@@ -21,7 +23,18 @@ sdg1 = SDGDescription(
     Progress has also been limited in other regions, such as South Asia and sub-Saharan Africa, which account for 80 percent of those living in extreme poverty. New threats brought on by climate change, conflict and food insecurity, mean even more work is needed to bring people out of poverty.
     The SDGs are a bold commitment to finish what we started, and end poverty in all forms and dimensions by 2030. This involves targeting the most vulnerable, increasing basic resources and services, and supporting communities affected by conflict and climate-related disasters.
     """,
-    seed_words=["poverty", "inequality", "income", "hunger", "housing", "employment", "nutrition", "security", "aid", "vulnerability"]
+    seed_words=[
+        "poverty",
+        "inequality",
+        "income",
+        "hunger",
+        "housing",
+        "employment",
+        "nutrition",
+        "security",
+        "aid",
+        "vulnerability",
+    ],
 )
 
 sdg2 = SDGDescription(
@@ -34,12 +47,22 @@ sdg2 = SDGDescription(
     Unfortunately, extreme hunger and malnutrition remain a huge barrier to development in many countries. There are 821 million people estimated to be chronically undernourished as of 2017, often as a direct consequence of environmental degradation, drought and biodiversity loss. Over 90 million children under five are dangerously underweight. Undernourishment and severe food insecurity appear to be increasing in almost all regions of Africa, as well as in South America.
     The SDGs aim to end all forms of hunger and malnutrition by 2030, making sure all people–especially children–have sufficient and nutritious food all year. This involves promoting sustainable agricultural, supporting small-scale farmers and equal access to land, technology and markets. It also requires international cooperation to ensure investment in infrastructure and technology to improve agricultural productivity.
     """,
-    seed_words=["hunger", "nutrition", "food", "agriculture", "sustainability", "farming", "crops", "resilience", "livelihoods", "harvest"],
-
+    seed_words=[
+        "hunger",
+        "nutrition",
+        "food",
+        "agriculture",
+        "sustainability",
+        "farming",
+        "crops",
+        "resilience",
+        "livelihoods",
+        "harvest",
+    ],
 )
 
 
-sdg3= SDGDescription(
+sdg3 = SDGDescription(
     index=3,
     link="https://www.undp.org/sustainable-development-goals/good-health",
     sdg_name="Good Health and Well-being",
@@ -49,11 +72,22 @@ sdg3= SDGDescription(
     Good health is essential to sustainable development and the 2030 Agenda reflects the complexity and interconnectedness of the two. It takes into account widening economic and social inequalities, rapid urbanization, threats to the climate and the environment, the continuing burden of HIV and other infectious diseases, and emerging challenges such as noncommunicable diseases. Universal health coverage will be integral to achieving SDG 3, ending poverty and reducing inequalities. Emerging global health priorities not explicitly included in the SDGs, including antimicrobial resistance, also demand action.
     But the world is off-track to achieve the health-related SDGs. Progress has been uneven, both between and within countries. There’s a 31-year gap between the countries with the shortest and longest life expectancies. And while some countries have made impressive gains, national averages hide that many are being left behind. Multisectoral, rights-based and gender-sensitive approaches are essential to address inequalities and to build good health for all.
     """,
-    seed_words=["health", "wellness", "vaccination", "disease", "medicine", "hospitals", "hygiene", "epidemics", "mental_health", "sanitation"],
+    seed_words=[
+        "health",
+        "wellness",
+        "vaccination",
+        "disease",
+        "medicine",
+        "hospitals",
+        "hygiene",
+        "epidemics",
+        "mental_health",
+        "sanitation",
+    ],
 )
 
 
-sdg4= SDGDescription(
+sdg4 = SDGDescription(
     index=4,
     link="https://www.undp.org/sustainable-development-goals/quality-education",
     sdg_name="Quality Education",
@@ -63,11 +97,22 @@ sdg4= SDGDescription(
     Progress has also been tough in some developing regions due to high levels of poverty, armed conflicts and other emergencies. In Western Asia and North Africa, ongoing armed conflict has seen an increase in the number of children out of school. This is a worrying trend. While Sub-Saharan Africa made the greatest progress in primary school enrollment among all developing regions – from 52 percent in 1990, up to 78 percent in 2012 – large disparities still remain. Children from the poorest households are up to four times more likely to be out of school than those of the richest households. Disparities between rural and urban areas also remain high.
     Achieving inclusive and quality education for all reaffirms the belief that education is one of the most powerful and proven vehicles for sustainable development. This goal ensures that all girls and boys complete free primary and secondary schooling by 2030. It also aims to provide equal access to affordable vocational training, to eliminate gender and wealth disparities, and achieve universal access to a quality higher education.
     """,
-    seed_words=["education", "literacy", "school", "teachers", "learning", "access", "skills", "knowledge", "students", "quality"],
+    seed_words=[
+        "education",
+        "literacy",
+        "school",
+        "teachers",
+        "learning",
+        "access",
+        "skills",
+        "knowledge",
+        "students",
+        "quality",
+    ],
 )
 
 
-sdg5= SDGDescription(
+sdg5 = SDGDescription(
     index=5,
     link="https://www.undp.org/sustainable-development-goals/gender-equality",
     sdg_name="Gender Equality",
@@ -78,10 +123,21 @@ sdg5= SDGDescription(
     But although there are more women than ever in the labour market, there are still large inequalities in some regions, with women systematically denied the same work rights as men. Sexual violence and exploitation, the unequal division of unpaid care and domestic work, and discrimination in public office all remain huge barriers. Climate change and disasters continue to have a disproportionate effect on women and children, as do conflict and migration.
     It is vital to give women equal rights land and property, sexual and reproductive health, and to technology and the internet. Today there are more women in public office than ever before, but encouraging more women leaders will help achieve greater gender equality.
     """,
-    seed_words=["gender", "equality", "empowerment", "rights", "inclusion", "discrimination", "education", "leadership", "violence", "justice"]
+    seed_words=[
+        "gender",
+        "equality",
+        "empowerment",
+        "rights",
+        "inclusion",
+        "discrimination",
+        "education",
+        "leadership",
+        "violence",
+        "justice",
+    ],
 )
 
-sdg6= SDGDescription(
+sdg6 = SDGDescription(
     index=6,
     link="https://www.undp.org/sustainable-development-goals/clean-water-and-sanitation",
     sdg_name="Clean Water and Sanitation",
@@ -93,10 +149,21 @@ sdg6= SDGDescription(
     Ensuring universal safe and affordable drinking water involves reaching over 800 million people who lack basic services and improving accessibility and safety of services for over two billion.
     In 2015, 4.5 billion people lacked safely managed sanitation services (with adequately disposed or treated excreta) and 2.3 billion lacked even basic sanitation.
     """,
-    seed_words=["water", "sanitation", "hygiene", "cleanliness", "access", "sustainability", "waste", "pollution", "health", "safety"]
+    seed_words=[
+        "water",
+        "sanitation",
+        "hygiene",
+        "cleanliness",
+        "access",
+        "sustainability",
+        "waste",
+        "pollution",
+        "health",
+        "safety",
+    ],
 )
 
-sdg7= SDGDescription(
+sdg7 = SDGDescription(
     index=7,
     link="https://www.undp.org/sustainable-development-goals/affordable-and-clean-energy",
     sdg_name="Affordable and Clean Energy",
@@ -107,11 +174,22 @@ sdg7= SDGDescription(
     Investing in solar, wind and thermal power, improving energy productivity, and ensuring energy for all is vital if we are to achieve SDG 7 by 2030.
     Expanding infrastructure and upgrading technology to provide clean and more efficient energy in all countries will encourage growth and help the environment. 
     """,
-    seed_words=["water", "sanitation", "hygiene", "cleanliness", "access", "sustainability", "waste", "pollution", "health", "safety"]
+    seed_words=[
+        "water",
+        "sanitation",
+        "hygiene",
+        "cleanliness",
+        "access",
+        "sustainability",
+        "waste",
+        "pollution",
+        "health",
+        "safety",
+    ],
 )
 
 
-sdg8= SDGDescription(
+sdg8 = SDGDescription(
     index=8,
     link="https://www.undp.org/sustainable-development-goals/decent-work-and-economic-growth",
     sdg_name="Decent Work and Economic Growth",
@@ -121,10 +199,21 @@ sdg8= SDGDescription(
     However, as the global economy continues to recover we are seeing slower growth, widening inequalities, and not enough jobs to keep up with a growing labour force. According to the International Labour Organization, more than 204 million people were unemployed in 2015.
     The SDGs promote sustained economic growth, higher levels of productivity and technological innovation. Encouraging entrepreneurship and job creation are key to this, as are effective measures to eradicate forced labour, slavery and human trafficking. With these targets in mind, the goal is to achieve full and productive employment, and decent work, for all women and men by 2030.
     """,
-    seed_words=["employment", "growth", "economy", "jobs", "productivity", "innovation", "sustainability", "business", "rights", "investment"]
+    seed_words=[
+        "employment",
+        "growth",
+        "economy",
+        "jobs",
+        "productivity",
+        "innovation",
+        "sustainability",
+        "business",
+        "rights",
+        "investment",
+    ],
 )
 
-sdg9= SDGDescription(
+sdg9 = SDGDescription(
     index=9,
     link="https://www.undp.org/sustainable-development-goals/industry-innovation-and-infrastructure",
     sdg_name="Industry, Innovation and Infrastructure",
@@ -134,10 +223,21 @@ sdg9= SDGDescription(
     Technological progress is also key to finding lasting solutions to both economic and environmental challenges, such as providing new jobs and promoting energy efficiency. Promoting sustainable industries, and investing in scientific research and innovation, are all important ways to facilitate sustainable development.
     More than 4 billion people still do not have access to the Internet, and 90 percent are from the developing world. Bridging this digital divide is crucial to ensure equal access to information and knowledge, as well as foster innovation and entrepreneurship.   
     """,
-    seed_words=["infrastructure", "innovation", "technology", "sustainability", "industry", "development", "research", "transportation", "engineering", "growth"]
+    seed_words=[
+        "infrastructure",
+        "innovation",
+        "technology",
+        "sustainability",
+        "industry",
+        "development",
+        "research",
+        "transportation",
+        "engineering",
+        "growth",
+    ],
 )
 
-sdg10= SDGDescription(
+sdg10 = SDGDescription(
     index=10,
     link="https://www.undp.org/sustainable-development-goals/reduced-inequalities",
     sdg_name="Reduced Inequalities",
@@ -148,11 +248,22 @@ sdg10= SDGDescription(
     These widening disparities require sound policies to empower lower income earners, and promote economic inclusion of all regardless of sex, race or ethnicity.
     Income inequality requires global solutions. This involves improving the regulation and monitoring of financial markets and institutions, encouraging development assistance and foreign direct investment to regions where the need is greatest. Facilitating the safe migration and mobility of people is also key to bridging the widening divide.
     """,
-    seed_words=["inequality", "rights", "equity", "discrimination", "justice", "inclusion", "access", "poverty", "migration", "policy"]
+    seed_words=[
+        "inequality",
+        "rights",
+        "equity",
+        "discrimination",
+        "justice",
+        "inclusion",
+        "access",
+        "poverty",
+        "migration",
+        "policy",
+    ],
 )
 
 
-sdg11= SDGDescription(
+sdg11 = SDGDescription(
     index=11,
     link="https://www.undp.org/sustainable-development-goals/sustainable-cities-and-communities",
     sdg_name="Sustainable Cities and Communities",
@@ -162,10 +273,21 @@ sdg11= SDGDescription(
     The rapid growth of cities—a result of rising populations and increasing migration—has led to a boom in mega-cities, especially in the developing world, and slums are becoming a more significant feature of urban life.
     Making cities sustainable means creating career and business opportunities, safe and affordable housing, and building resilient societies and economies. It involves investment in public transport, creating green public spaces, and improving urban planning and management in participatory and inclusive ways.
     """,
-    seed_words=["sustainability", "urban", "infrastructure", "housing", "transport", "communities", "resilience", "planning", "cleanliness", "safety"]
+    seed_words=[
+        "sustainability",
+        "urban",
+        "infrastructure",
+        "housing",
+        "transport",
+        "communities",
+        "resilience",
+        "planning",
+        "cleanliness",
+        "safety",
+    ],
 )
 
-sdg12= SDGDescription(
+sdg12 = SDGDescription(
     index=12,
     link="https://www.undp.org/sustainable-development-goals/responsible-consumption-and-production",
     sdg_name="Responsible Consumption and Production",
@@ -175,11 +297,22 @@ sdg12= SDGDescription(
     The efficient management of our shared natural resources, and the way we dispose of toxic waste and pollutants, are important targets to achieve this goal. Encouraging industries, businesses and consumers to recycle and reduce waste is equally important, as is supporting developing countries to move towards more sustainable patterns of consumption by 2030.
     A large share of the world population is still consuming far too little to meet even their basic needs.  Halving the per capita of global food waste at the retailer and consumer levels is also important for creating more efficient production and supply chains. This can help with food security, and shift us towards a more resource efficient economy.
     """,
-    seed_words=["consumption", "production", "sustainability", "resources", "waste", "efficiency", "recycling", "energy", "pollution", "climate"]
+    seed_words=[
+        "consumption",
+        "production",
+        "sustainability",
+        "resources",
+        "waste",
+        "efficiency",
+        "recycling",
+        "energy",
+        "pollution",
+        "climate",
+    ],
 )
 
 
-sdg13= SDGDescription(
+sdg13 = SDGDescription(
     index=13,
     link="https://www.undp.org/sustainable-development-goals/climate-action",
     sdg_name="Climate Action",
@@ -189,11 +322,22 @@ sdg13= SDGDescription(
     The annual average economic losses from climate-related disasters are in the hundreds of billions of dollars. This is not to mention the human impact of geo-physical disasters, which are 91 percent climate-related, and which between 1998 and 2017 killed 1.3 million people, and left 4.4 billion injured. The goal aims to mobilize US$100 billion annually by 2020 to address the needs of developing countries to both adapt to climate change and invest in low-carbon development.
     Supporting vulnerable regions will directly contribute not only to Goal 13 but also to the other SDGs. These actions must also go hand in hand with efforts to integrate disaster risk measures, sustainable natural resource management, and human security into national development strategies. It is still possible, with strong political will, increased investment, and using existing technology, to limit the increase in global mean temperature to two degrees Celsius above pre-industrial levels, aiming at 1.5°C, but this requires urgent and ambitious collective action.
     """,
-    seed_words=["climate", "action", "resilience", "emissions", "sustainability", "adaptation", "mitigation", "policies", "energy", "conservation"]
+    seed_words=[
+        "climate",
+        "action",
+        "resilience",
+        "emissions",
+        "sustainability",
+        "adaptation",
+        "mitigation",
+        "policies",
+        "energy",
+        "conservation",
+    ],
 )
 
 
-sdg14= SDGDescription(
+sdg14 = SDGDescription(
     index=14,
     link="https://www.undp.org/sustainable-development-goals/below-water",
     sdg_name="Life Below Water",
@@ -204,10 +348,21 @@ sdg14= SDGDescription(
     Oceans also absorb about 30 percent of the carbon dioxide produced by humans, and we are seeing a 26 percent rise in ocean acidification since the beginning of the industrial revolution. Marine pollution, an overwhelming majority of which comes from land-based sources, is reaching alarming levels, with an average of 13,000 pieces of plastic litter to be found on every square kilometre of ocean.
     The SDGs aim to sustainably manage and protect marine and coastal ecosystems from pollution, as well as address the impacts of ocean acidification. Enhancing conservation and the sustainable use of ocean-based resources through international law will also help mitigate some of the challenges facing our oceans.
     """,
-    seed_words=["oceans", "marine", "biodiversity", "fishing", "pollution", "conservation", "sustainability", "ecosystems", "resources", "habitats"]
+    seed_words=[
+        "oceans",
+        "marine",
+        "biodiversity",
+        "fishing",
+        "pollution",
+        "conservation",
+        "sustainability",
+        "ecosystems",
+        "resources",
+        "habitats",
+    ],
 )
 
-sdg15= SDGDescription(
+sdg15 = SDGDescription(
     index=15,
     link="https://www.undp.org/sustainable-development-goals/life-on-land",
     sdg_name="Life on Land",
@@ -218,10 +373,21 @@ sdg15= SDGDescription(
     While 15 percent of land is protected, biodiversity is still at risk. Nearly 7,000 species of animals and plants have been illegally traded. Wildlife trafficking not only erodes biodiversity, but creates insecurity, fuels conflict, and feeds corruption.
     Urgent action must be taken to reduce the loss of natural habitats and biodiversity which are part of our common heritage and support global food and water security, climate change mitigation and adaptation, and peace and security.
     """,
-    seed_words=["biodiversity", "forests", "ecosystems", "wildlife", "conservation", "sustainability", "deforestation", "habitats", "land_use", "restoration"]
+    seed_words=[
+        "biodiversity",
+        "forests",
+        "ecosystems",
+        "wildlife",
+        "conservation",
+        "sustainability",
+        "deforestation",
+        "habitats",
+        "land_use",
+        "restoration",
+    ],
 )
 
-sdg16= SDGDescription(
+sdg16 = SDGDescription(
     index=16,
     link="https://www.undp.org/sustainable-development-goals/peace-justice-and-strong-institutions",
     sdg_name="Peace, Justice and Strong Institutions",
@@ -231,11 +397,22 @@ sdg16= SDGDescription(
     Armed violence and insecurity have a destructive impact on a country’s development, affecting economic growth, and often resulting in grievances that last for generations. Sexual violence, crime, exploitation and torture are also prevalent where there is conflict, or no rule of law, and countries must take measures to protect those who are most at risk
     The SDGs aim to significantly reduce all forms of violence, and work with governments and communities to end conflict and insecurity. Promoting the rule of law and human rights are key to this process, as is reducing the flow of illicit arms and strengthening the participation of developing countries in the institutions of global governance.
     """,
-    seed_words=["justice", "peace", "institutions", "governance", "rights", "transparency", "corruption", "equality", "violence", "policy"]
+    seed_words=[
+        "justice",
+        "peace",
+        "institutions",
+        "governance",
+        "rights",
+        "transparency",
+        "corruption",
+        "equality",
+        "violence",
+        "policy",
+    ],
 )
 
 
-sdg17= SDGDescription(
+sdg17 = SDGDescription(
     index=17,
     link="https://www.undp.org/sustainable-development-goals/partnerships-for-the-goals",
     sdg_name="Partnerships for the Goals",
@@ -245,9 +422,36 @@ sdg17= SDGDescription(
     The world is more interconnected than ever. Improving access to technology and knowledge is an important way to share ideas and foster innovation. Coordinating policies to help developing countries manage their debt, as well as promoting investment for the least developed, is vital for sustainable growth and development.
     The goals aim to enhance North-South and South-South cooperation by supporting national plans to achieve all the targets. Promoting international trade, and helping developing countries increase their exports is all part of achieving a universal rules-based and equitable trading system that is fair and open and benefits all.
     """,
-    seed_words=["partnerships", "cooperation", "collaboration", "finance", "development", "innovation", "policy", "investment", "resources", "goals"]
+    seed_words=[
+        "partnerships",
+        "cooperation",
+        "collaboration",
+        "finance",
+        "development",
+        "innovation",
+        "policy",
+        "investment",
+        "resources",
+        "goals",
+    ],
 )
 
-sdgs = [sdg1, sdg2, sdg3, sdg4, sdg5, sdg6, sdg7, sdg8, sdg9, sdg10, sdg11, sdg12, sdg13, sdg14, sdg15, sdg16, sdg17]
-
-
+sdgs = [
+    sdg1,
+    sdg2,
+    sdg3,
+    sdg4,
+    sdg5,
+    sdg6,
+    sdg7,
+    sdg8,
+    sdg9,
+    sdg10,
+    sdg11,
+    sdg12,
+    sdg13,
+    sdg14,
+    sdg15,
+    sdg16,
+    sdg17,
+]

@@ -9,6 +9,7 @@ class ProjectSettings(BaseSettings):
     APP_NAME: str = "iCoGaLa"
     DEBUG_MODE: bool = False
 
+
 class SDGSettings(BaseSettings):
     SDGOAL_NUMBER: int = 17
     SDTARGET_NUMBER: int = 169
@@ -18,7 +19,7 @@ class EmbeddingsSettings(BaseSettings):
     EMBEDDINGS_LOG_NAME: ClassVar[str] = "embeddings.log"
     VECTOR_SIZE: ClassVar[int] = 384
     ENCODER_MODEL: ClassVar[str] = "sentence-transformers/all-MiniLM-L6-v2"
-    ENCODER_DEVICE: ClassVar[str] = "cpu" # Either "cpu" or "cuda: 0"
+    ENCODER_DEVICE: ClassVar[str] = "cpu"  # Either "cpu" or "cuda: 0"
     DEFAULT_BATCH_SIZE: ClassVar[int] = 32
     VECTOR_CONTENT_NAME: ClassVar[str] = "content"
 
@@ -28,11 +29,13 @@ class EmbeddingsSettings(BaseSettings):
         # "Author: {', '.join([author.name for author in pub.authors])}",
         # "Date: {pub.date}",
         # "Publisher: {pub.publisher}",
-        "Abstract: {pub.description}"
+        "Abstract: {pub.description}",
     ]
+
 
 class SimilaritySearchSettings(BaseSettings):
     SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
+
 
 class ProfileRouterSettings(BaseSettings):
     PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_profiles_.log"
@@ -45,24 +48,22 @@ class LoaderSettings(BaseSettings):
 
 
 class TimeZoneSettings(BaseSettings):
-    ZURICH_TZ_STRING: str = "Europe/Zurich" # Specify the timezone for Zurich
+    ZURICH_TZ_STRING: str = "Europe/Zurich"  # Specify the timezone for Zurich
     ZURICH_TZ: ClassVar = pytz.timezone(ZURICH_TZ_STRING)
-
-    # For Django
-    DJANGO_TIME_ZONE: str = "CET" # Origin: "UTC"
-    DJANGO_USE_TZ: bool = True
-
 
 
 class LoggingSettings(BaseSettings):
     LOG_PATH: ClassVar[str] = "logs"
     LOG_FORMAT: ClassVar[str] = "%(asctime)s - %(levelname)s - %(message)s"
 
+
 class PredictionSettings(BaseSettings):
     AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
 
-    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models", "targets")
+    MODEL_DIR: ClassVar[str] = os.path.join(
+        "data", "pipeline", "aurora_models", "targets"
+    )
     AURORA_MODEL_GOAL_LINKS: ClassVar[str] = "aurora-model-goal-only-links.csv"
 
     CUDA_VISIBLE_DEVICES_KEY: ClassVar[str] = "CUDA_VISIBLE_DEVICES"
@@ -95,6 +96,7 @@ class CollectorSettings(BaseSettings):
 
     PUBLICATION_LIMIT: ClassVar[int] = 300000
 
+
 class ReducerSettings(BaseSettings):
     REDUCER_LOG_NAME: ClassVar[str] = "reducer.log"
 
@@ -113,45 +115,62 @@ class ReducerSettings(BaseSettings):
     UMAP_MODEL_PATH: ClassVar[str] = os.path.join("data", "api", "umap_model")
 
     # Filter ranges
-    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.9), (0.9, 0.8), (0.9, 0.5)]  # SDG filter ranges
-
+    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [
+        (1.0, 0.9),
+        (0.9, 0.8),
+        (0.9, 0.5),
+    ]  # SDG filter ranges
 
 
 class PublicationsRouterSettings(BaseSettings):
     PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
 
+
 class SummaryRouterSettings(BaseSettings):
     SUMMARY_ROUTER_LOG_NAME: ClassVar[str] = "api_summaries.log"
+
 
 class SDGsRouterSettings(BaseSettings):
     SDGS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdgs.log"
 
+
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
+
 
 class SDGUserLabelsSettings(BaseSettings):
     SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
 
+
 class VotesSettings(BaseSettings):
     VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
+
 
 class AnnotationsSettings(BaseSettings):
     ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
 
+
 class DimensionalityReductionsRouterSettings(BaseSettings):
-    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_dimensionality_reductions.log"
+    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = (
+        "api_dimensionality_reductions.log"
+    )
+
 
 class SDGPredictionsRouterSettings(BaseSettings):
     SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
 
+
 class XPBanksRouterSettings(BaseSettings):
     XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"
+
 
 class CoinWalletsRouterSettings(BaseSettings):
     COIN_WALLETS_ROUTER_LOG_NAME: ClassVar[str] = "api_coin_wallets.log"
 
+
 class ExplanationsRouterSettings(BaseSettings):
     EXPLANATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_explanations.log"
+
 
 class SDGSLabelSummariesRouterSettings(BaseSettings):
     SDGLABELSUMMARIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_summaries.log"
@@ -163,11 +182,11 @@ class AuthenticationRouterSettings(BaseSettings):
     CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
     TOKEN_URL: ClassVar[str] = "auth/token"
 
+
 class MariaDBSettings(BaseSettings):
     MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
     MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
     SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
-
 
 
 class PrefectSettings(BaseSettings):
@@ -185,11 +204,15 @@ class MongoDBSDGSettings(BaseSettings):
     DB_COLLECTION_NAME: ClassVar[str] = "explanations"
     SVG_ENCODING: ClassVar[str] = "utf-8"
     GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
-    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
+    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = (
+        "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
+    )
+
 
 class EnvLoaderSettings(BaseSettings):
     # Do not set this to True in prod as it will print secrets
     ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
+
 
 class ExplainerSettings(BaseSettings):
     PROMPT_PATH: ClassVar[str] = "/prompts"
@@ -198,7 +221,7 @@ class ExplainerSettings(BaseSettings):
     GPT_MODEL: ClassVar[str] = "gpt-3.5-turbo-0125"
     GPT_TEMPERATURE: ClassVar[float] = 0.2
 
+
 class UserAnnotationAssessmentSettings(BaseSettings):
     GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
     BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
-

@@ -1,5 +1,6 @@
 from enum import Enum as PyEnum
 
+
 class SDGEnum(PyEnum):
     SDG_1 = "SDG_1"
     SDG_2 = "SDG_2"
