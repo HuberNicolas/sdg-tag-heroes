@@ -13,51 +13,14 @@
         <p>An error occurred: {{ error }}</p>
       </div>
 
-
-
-
+      <!-- Leaderboard -->
       <div v-else>
-        <!-- Legend -->
-        <div class="mb-6 p-4 border rounded-lg bg-white shadow-sm">
-          <h2 class="text-lg font-semibold mb-2">Leaderboard Legend</h2>
-          <p class="text-sm text-gray-600 mb-4">Users are ranked based on their SDG XP. Higher XP reflects greater engagement and achievements in the SDG activities.</p>
-          <div class="flex flex-wrap gap-4">
-            <div class="flex items-center border border-gray-200 rounded-lg p-2 bg-[#b9f2ff]/10">
-              <span class="inline-block w-5 h-5 border-3 rounded-full border-[#b9f2ff] mr-2"></span>
-              <span class="text-sm font-medium text-gray-700">Diamond: > 500 XP</span>
-            </div>
-            <div class="flex items-center border border-gray-200 rounded-lg p-2 bg-[#e5e4e2]/10">
-              <span class="inline-block w-5 h-5 border-3 rounded-full border-[#e5e4e2] mr-2"></span>
-              <span class="text-sm font-medium text-gray-700">Platinum: > 200 XP</span>
-            </div>
-            <div class="flex items-center border border-gray-200 rounded-lg p-2 bg-[#ffd700]/10">
-              <span class="inline-block w-5 h-5 border-3 rounded-full border-[#ffd700] mr-2"></span>
-              <span class="text-sm font-medium text-gray-700">Gold: > 100 XP</span>
-            </div>
-            <div class="flex items-center border border-gray-200 rounded-lg p-2 bg-[#c0c0c0]/10">
-              <span class="inline-block w-5 h-5 border-3 rounded-full border-[#c0c0c0] mr-2"></span>
-              <span class="text-sm font-medium text-gray-700">Silver: > 50 XP</span>
-            </div>
-            <div class="flex items-center border border-gray-200 rounded-lg p-2 bg-[#cd7f32]/10">
-              <span class="inline-block w-5 h-5 border-3 rounded-full border-[#cd7f32] mr-2"></span>
-              <span class="text-sm font-medium text-gray-700">Bronze: > 10 XP</span>
-            </div>
-            <div class="flex items-center border border-gray-200 rounded-lg p-2 bg-gray-100">
-              <span class="inline-block w-5 h-5 border-3 rounded-full border-gray-500 mr-2"></span>
-              <span class="text-sm font-medium text-gray-700">No Frame: ≤ 10 XP</span>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- Leaderboard -->
-        <div class="overflow-y-auto max-h-96">
         <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg">
           <thead class="bg-gray-100">
           <tr>
             <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Rank</th>
             <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">User</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Name</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Nickname</th>
             <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">XP</th>
           </tr>
           </thead>
@@ -85,12 +48,17 @@
                 </div>
               </router-link>
             </td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ user.email }}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">{{ user.nickname }}</td>
             <td class="px-6 py-4 text-sm text-gray-700">{{ user.sdg_xp }}</td>
           </tr>
           </tbody>
         </table>
-        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="mt-6">
+        <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
+        <UButton label="Back to World" @click="goBackToWorld" />
       </div>
     </div>
   </div>
@@ -131,7 +99,6 @@ const getAvatarFrameClass = (xp: number) => {
   return "frame-none"; // Default frame if XP is <= 10
 };
 
-// Fetch SDG XP leaderboard on mount
 onMounted(async () => {
   const config = useRuntimeConfig();
   const apiUrl = config.public.apiUrl;
@@ -140,7 +107,6 @@ onMounted(async () => {
     const authService = new UseAuth();
     const profile = await authService.getProfile(); // Fetch logged-in user's profile
     loggedInUserId.value = profile?.user_id; // Store the logged-in user's ID
-
 
     const response = await $fetch(`${apiUrl}users/banks`, {
       method: 'GET',
@@ -152,13 +118,33 @@ onMounted(async () => {
     console.log("Raw API Response:", response);
     const sdgField = `sdg_${sdgId}_xp`;
 
+    // Extract user IDs with non-zero XP
+    const userIds = response.items
+      .filter((bank: any) => bank[sdgField] > 0)
+      .map((bank: any) => bank.user_id);
+
+    // Query user details from /users endpoint
+    const userDetailsResponse = await $fetch(`${apiUrl}users`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        "Content-Type": "application/json",
+      },
+      body: { user_ids: userIds },
+    });
+    console.log(userDetailsResponse);
+
+    // Map user details by user_id for quick lookup
+    const userMap = new Map(userDetailsResponse.map(user => [user.user_id, { email: user.email, nickname: user.nickname }]));
+    console.log("User Details Map:", userMap);
 
     // Filter out users with 0 XP for the specific SDG and sort by XP
     leaderboard.value = response.items
       .filter((bank: any) => bank[sdgField] > 0)
       .map((bank: any) => ({
         user_id: bank.user_id,
-        email: `User ${bank.user_id}`, // Replace this with an actual email if available
+        email: userMap.get(bank.user_id)?.email || `User ${bank.user_id}`, // Add email or fallback
+        nickname: userMap.get(bank.user_id)?.nickname || "Unknown", // Add nickname or fallback
         sdg_xp: bank[sdgField],
       }))
       .sort((a: any, b: any) => b.sdg_xp - a.sdg_xp);
@@ -170,9 +156,17 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
-
-
 });
+
+
+// Navigation
+const goBackToWorlds = () => {
+  router.push("/worlds");
+};
+
+const goBackToWorld = () => {
+  router.push({ name: 'worlds-id', params: { id: sdgId } });
+};
 </script>
 
 <style scoped>

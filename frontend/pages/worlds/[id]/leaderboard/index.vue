@@ -20,7 +20,7 @@
           <tr>
             <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Rank</th>
             <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">User</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Name</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Nickname</th>
             <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">XP</th>
           </tr>
           </thead>
@@ -48,7 +48,7 @@
                 </div>
               </router-link>
             </td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ user.email }}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">{{ user.nickname }}</td>
             <td class="px-6 py-4 text-sm text-gray-700">{{ user.sdg_xp }}</td>
           </tr>
           </tbody>
@@ -99,7 +99,6 @@ const getAvatarFrameClass = (xp: number) => {
   return "frame-none"; // Default frame if XP is <= 10
 };
 
-// Fetch SDG XP leaderboard on mount
 onMounted(async () => {
   const config = useRuntimeConfig();
   const apiUrl = config.public.apiUrl;
@@ -108,7 +107,6 @@ onMounted(async () => {
     const authService = new UseAuth();
     const profile = await authService.getProfile(); // Fetch logged-in user's profile
     loggedInUserId.value = profile?.user_id; // Store the logged-in user's ID
-
 
     const response = await $fetch(`${apiUrl}users/banks`, {
       method: 'GET',
@@ -120,13 +118,33 @@ onMounted(async () => {
     console.log("Raw API Response:", response);
     const sdgField = `sdg_${sdgId}_xp`;
 
+    // Extract user IDs with non-zero XP
+    const userIds = response.items
+      .filter((bank: any) => bank[sdgField] > 0)
+      .map((bank: any) => bank.user_id);
+
+    // Query user details from /users endpoint
+    const userDetailsResponse = await $fetch(`${apiUrl}users`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        "Content-Type": "application/json",
+      },
+      body: { user_ids: userIds },
+    });
+    console.log(userDetailsResponse);
+
+    // Map user details by user_id for quick lookup
+    const userMap = new Map(userDetailsResponse.map(user => [user.user_id, { email: user.email, nickname: user.nickname }]));
+    console.log("User Details Map:", userMap);
 
     // Filter out users with 0 XP for the specific SDG and sort by XP
     leaderboard.value = response.items
       .filter((bank: any) => bank[sdgField] > 0)
       .map((bank: any) => ({
         user_id: bank.user_id,
-        email: `User ${bank.user_id}`, // Replace this with an actual email if available
+        email: userMap.get(bank.user_id)?.email || `User ${bank.user_id}`, // Add email or fallback
+        nickname: userMap.get(bank.user_id)?.nickname || "Unknown", // Add nickname or fallback
         sdg_xp: bank[sdgField],
       }))
       .sort((a: any, b: any) => b.sdg_xp - a.sdg_xp);
@@ -138,9 +156,8 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
-
-
 });
+
 
 // Navigation
 const goBackToWorlds = () => {
