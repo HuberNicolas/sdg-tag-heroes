@@ -1,5 +1,5 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List
+from pydantic import BaseModel
 
 class TokenScore(BaseModel):
     input_token: str
@@ -13,5 +13,6 @@ class ExplanationSchema(BaseModel):
     xai_method: str
     prediction_model: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }

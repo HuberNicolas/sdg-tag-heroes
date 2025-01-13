@@ -34,6 +34,7 @@ def create_initial_users(session: Session):
         try:
             # Load user data from environment variables
             user_email = get_env_variable(f"USER_{i}_EMAIL")
+            user_nickname = get_env_variable(f"USER_{i}_NICKNAME")
             user_password = get_env_variable(f"USER_{i}_PASSWORD")
             user_roles_raw = get_env_variable(f"USER_{i}_ROLE")
 
@@ -59,7 +60,7 @@ def create_initial_users(session: Session):
             logger.info(f"Creating user {user_email} with roles {user_roles}")
 
             # Create the user
-            user = User(email=user_email, roles=user_roles)
+            user = User(email=user_email, nickname=user_nickname, roles=user_roles)
             user.set_password(user_password)
 
             # Create an inventory for the user

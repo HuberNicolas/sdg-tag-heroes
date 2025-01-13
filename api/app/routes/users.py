@@ -221,6 +221,7 @@ async def get_publications_by_ids(
         user_ids = request.user_ids  # Access the list of IDs
 
         users = db.query(User).filter(User.user_id.in_(user_ids)).all()
+        print(users)
 
         return [UserSchemaFull.model_validate(user) for user in users]
 

@@ -33,6 +33,7 @@ class User(Base):
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    nickname: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -41,10 +42,11 @@ class User(Base):
     _roles: Mapped[str] = mapped_column("roles", JSON, default=lambda: json.dumps([UserRole.USER.value]),
                                         nullable=False)
 
-    def __init__(self, email: str, hashed_password: str = None, roles: List[UserRole] = None, **kwargs):
+    def __init__(self, email: str, nickname: str = None, hashed_password: str = None, roles: List[UserRole] = None, **kwargs):
         """
         Custom initializer to handle `roles` and other parameters.
         """
+        self.nickname = nickname
         self.email = email
         self.is_active = kwargs.get('is_active', True)
         self._roles = json.dumps([role.value for role in (roles or [UserRole.USER])])

@@ -135,15 +135,15 @@
 
           <div class="w-10 h-10 rounded-full flex-shrink-0">
             <img
-              :src="generateUserAvatar(label.user_email)"
+              :src="generateUserAvatar(label.user_nickname)"
               alt="User Avatar"
               class="w-full h-full rounded-full"
             />
           </div>
           <div class="flex-1">
             <!-- Display Commenter's Email and Voted Label -->
-            <p class="text-sm font-semibold text-gray-800">
-              <span class="text-gray-600">{{ label.user_email }}</span> voted:
+            <div class="text-sm font-semibold text-gray-800">
+              <span class="text-gray-600">{{ label.user_nickname }}</span> voted:
               <div class="flex items-center gap-2">
                 <!-- SDG Icon -->
                 <img
@@ -156,7 +156,7 @@
                 <span class="font-medium">SDG {{ label.voted_label }}</span>
               </div>
 
-            </p>
+            </div>
 
             <!-- Abstract Section -->
             <p class="text-sm text-gray-700 mt-1">
@@ -324,14 +324,20 @@ const fetchLabels = async () => {
     });
 
     // Map user details by user_id for quick lookup
-    const userMap = new Map(userDetailsResponse.map(user => [user.user_id, user.email]));
+    const userMap = new Map(userDetailsResponse.map(user => [user.user_id, { email: user.email, nickname: user.nickname }]));
+    console.log(userMap);
 
     // Merge user emails into labels
-    userLabels.value = labelsResponse.map(label => ({
-      ...label,
-      user_email: userMap.get(label.user_id) || "Unknown", // Add email or fallback
-      user_voted: label.votes.some(vote => vote.user_id === userStore.user?.id),
-    }));
+    userLabels.value = labelsResponse.map(label => {
+      const userDetails = userMap.get(label.user_id) || {}; // Fallback to an empty object if user is not found
+      return {
+        ...label,
+        user_email: userDetails.email || "Unknown", // Add email or fallback
+        user_nickname: userDetails.nickname || "Unknown", // Add nickname or fallback
+        user_voted: label.votes.some(vote => vote.user_id === userStore.user?.id), // Check if the user has voted
+      };
+    });
+
 
     // Update charts
     createBarChart(userLabels.value);
@@ -388,6 +394,7 @@ const fetchShapExplanations = async (publication_id: number | undefined) => {
         },
       }
     );
+    console.log(`${config.public.apiUrl}explanations/publications/${publication_id}`);
 
     // Process the SHAP explanation to highlight tokens
     const { input_tokens, token_scores, base_values } = response;

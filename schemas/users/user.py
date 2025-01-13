@@ -15,6 +15,7 @@ class UserRoleEnum(str, Enum):
 
 class UserSchemaBase(BaseModel):
     user_id: int
+    nickname: str
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation
