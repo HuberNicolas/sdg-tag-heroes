@@ -182,6 +182,7 @@ class PrefectSettings(BaseSettings):
 
 class MongoDBSDGSettings(BaseSettings):
     DB_NAME: ClassVar[str] = "sdg_database"
+    DB_COLLECTION_NAME: ClassVar[str] = "explanations"
     SVG_ENCODING: ClassVar[str] = "utf-8"
     GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
     TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"

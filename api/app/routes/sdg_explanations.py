@@ -18,9 +18,10 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 
 from schemas.sdg_explanations import ExplanationSchema
-from settings.settings import ExplanationsRouterSettings
+from settings.settings import ExplanationsRouterSettings, MongoDBSDGSettings
 
 explanations_router_settings = ExplanationsRouterSettings()
+mongo_db_settings = MongoDBSDGSettings()
 
 security = Security()
 # OAuth2 scheme for token authentication
@@ -78,7 +79,7 @@ async def get_sdg_explanation(
 
     # Use the oai_identifier to query the MongoDB explanations collection
     oai_identifier = publication.oai_identifier
-    explanations_collection = mongo_db['explanations_reduced']
+    explanations_collection = mongo_db[mongo_db_settings.DB_COLLECTION_NAME]
     explanation = explanations_collection.find_one({"id": oai_identifier})
 
     # Lifesaver
