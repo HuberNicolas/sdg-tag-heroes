@@ -1,11 +1,11 @@
 import os
 import logging
+import argparse
 from db.mariadb_connector import conn as mconn
 from db.mongodb_connector import client as mclient
 from db.qdrantdb_connector import client as qclient
 from db.couchdb_connector import client as cclient
 from db.redisdb_connector import client as rclient
-from utils.env_loader import load_env, is_running_in_docker
 
 # Set up logger
 logging.basicConfig(level=logging.INFO)
@@ -45,10 +45,7 @@ def test_db_connections():
     check_connection(cclient, "CouchDB")
     check_connection(rclient, "RedisDB")
 
-
-if __name__ == "__main__":
-    import argparse
-
+def main():
     # Set up argument parsing to switch between Docker and local simulations
     parser = argparse.ArgumentParser(description="Simulate database environment (Docker or local).")
     parser.add_argument('--docker', action='store_true', help='Simulate Docker environment')
@@ -59,3 +56,6 @@ if __name__ == "__main__":
 
     # Test all database connections
     test_db_connections()
+
+if __name__ == "__main__":
+    main()
