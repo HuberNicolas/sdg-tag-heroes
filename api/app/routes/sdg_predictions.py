@@ -1,12 +1,13 @@
 from collections import defaultdict
-from typing import List, Optional, Dict, Tuple, Any, Union
+from typing import List, Optional, Dict, Tuple, Any, Union, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from sqlalchemy import func, case
 from sqlalchemy.orm import Session, sessionmaker, joinedload, load_only
 
-from api.app.models.query import PublicationQuery
+from api.app.models.query import PublicationQuery, SDGFilterQuery
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
@@ -356,3 +357,140 @@ async def get_publications_by_metric(
         entry["order"] = order
 
     return sorted_results
+from fastapi import HTTPException, Request
+
+
+@router.post(
+    "/publications/metrics/filter/{metric_type}/{order}/{top_n}",
+    response_model=Dict[str, Any],
+    description=(
+        "Filter publications by SDG values and rank by entropy or standard deviation. "
+        "Supports optional filtering by SDG field and no_high_predictions."
+    )
+)
+async def post_filter_publications_by_metric(
+    metric_type: Literal["entropy", "standard_deviation"],
+    order: Literal["top", "bottom"],
+    top_n: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> Dict[str, Any]:
+    # Ensure user is authenticated
+    user = verify_token(token, db)
+
+    # Parse the JSON body
+    body = await request.json()
+    print(f"Received body: {body}")
+
+    # Validate required fields in the body
+    if "sdg_field" not in body or body["sdg_field"] is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing or invalid 'sdg_field'."
+        )
+    if "lower_limit" not in body or "upper_limit" not in body:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing 'lower_limit' or 'upper_limit'."
+        )
+
+    # Initialize SDGFilterQuery
+    # TODO: make more robust, this is a bit sketchy, but accessing the sdg directly somehow fails
+    sdg_query = SDGFilterQuery(**body)
+
+    # Define all SDG fields
+    sdg_fields = [f"sdg{i}" for i in range(1, 18)]
+
+    # Validate sdg_field
+    if sdg_query.sdg_field not in sdg_fields:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid sdg_field '{sdg_query.sdg_field}'. Allowed fields: {', '.join(sdg_fields)}"
+        )
+
+    # Filter rows based on the primary sdg_field
+    query = db.query(SDGPrediction).filter(
+        SDGPrediction.prediction_model == "Aurora",
+        getattr(SDGPrediction, sdg_query.sdg_field).between(
+            sdg_query.lower_limit, sdg_query.upper_limit
+        )
+    )
+
+    # Fetch initial filtered results
+    filtered_predictions = query.all()
+
+    if not filtered_predictions:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"No predictions found with {sdg_query.sdg_field} values "
+                f"between {sdg_query.lower_limit} and {sdg_query.upper_limit}."
+            )
+        )
+
+    # Further filter based on no_high_predictions
+    final_predictions = []
+    for prediction in filtered_predictions:
+        # Count how many other SDG fields fall into the range
+        other_sdg_count = sum(
+            1 for field in sdg_fields
+            if field != sdg_query.sdg_field and
+            getattr(prediction, field) and
+            sdg_query.lower_limit <= getattr(prediction, field) <= sdg_query.upper_limit
+        )
+
+        # Include if the count matches (or exceeds >=)  no_high_predictions
+        if other_sdg_count == sdg_query.no_high_predictions:
+            final_predictions.append(prediction)
+
+    # Initialize the service
+    service = ALCalculationService()
+
+    # Calculate metrics for each prediction
+    metrics = []
+    for prediction in final_predictions:
+        # Extract SDG values dynamically
+        sdg_values = [getattr(prediction, field) for field in sdg_fields]
+        entropy = service.calculate_entropy(sdg_values)
+        sd = service.calculate_standard_deviation(sdg_values)
+
+        metrics.append({
+            "publication_id": prediction.publication_id,
+            "entropy": entropy,
+            "standard_deviation": sd,
+        })
+
+    # Sort by the specified metric in the correct order
+    reverse_order = order == "top"
+    sorted_results = sorted(
+        metrics, key=lambda x: x[metric_type], reverse=reverse_order
+    )[:top_n]
+
+    # Calculate summary statistics
+    if metrics:
+        highest_entropy = max(metrics, key=lambda x: x["entropy"])
+        lowest_entropy = min(metrics, key=lambda x: x["entropy"])
+        highest_std_dev = max(metrics, key=lambda x: x["standard_deviation"])
+        lowest_std_dev = min(metrics, key=lambda x: x["standard_deviation"])
+    else:
+        highest_entropy = lowest_entropy = highest_std_dev = lowest_std_dev = None
+
+    # Add metric type and order to the response for clarity
+    for entry in sorted_results:
+        entry["metric_type"] = metric_type
+        entry["order"] = order
+
+    # Add summary statistics
+    summary_statistics = {
+        "number_of_results": len(sorted_results),
+        "highest_entropy": highest_entropy["entropy"] if highest_entropy else None,
+        "lowest_entropy": lowest_entropy["entropy"] if lowest_entropy else None,
+        "highest_standard_deviation": highest_std_dev["standard_deviation"] if highest_std_dev else None,
+        "lowest_standard_deviation": lowest_std_dev["standard_deviation"] if lowest_std_dev else None,
+    }
+
+    return {
+        "summary_statistics": summary_statistics,
+        "sorted_results": sorted_results,
+    }
