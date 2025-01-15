@@ -71,6 +71,9 @@
     </div>
     </div>
     <div class="col-span-2">
+      <LeaderBoardButtons></LeaderBoardButtons>
+    </div>
+    <div class="col-span-2">
       <LeaderBoard></LeaderBoard>
     </div>
   </div>
@@ -82,6 +85,7 @@ import { useRuntimeConfig } from "nuxt/app";
 import { SDGGoal } from "~/types/sdg/goals";
 import { useDimensionalityReductionsStore } from '~/stores/dimensionalityReductions';
 import LeaderBoard from "~/components/LeaderBoard.vue";
+import LeaderBoardButtons from "~/components/LeaderBoardButtons.vue";
 
 const route = useRoute();
 const router = useRouter();

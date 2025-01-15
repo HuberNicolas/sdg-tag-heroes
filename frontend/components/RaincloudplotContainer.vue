@@ -37,7 +37,7 @@ const raincloudData = computed(() => {
   }
 
 
-  
+
   return ([generate(20), generate(4), generate(10)])
 
 });
