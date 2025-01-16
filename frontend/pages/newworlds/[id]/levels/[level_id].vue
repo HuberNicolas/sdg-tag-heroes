@@ -180,13 +180,13 @@
 <script setup lang="ts">
 
 
-import alConfirm from "~/assets/al_least_labeled.svg?component";
+import alConfirm from "~/assets/al_confirm.svg?component";
 import alExplore from "~/assets/al_explore.svg?component";
 import alInvestigate from "~/assets/al_investigate.svg?component";
 import alTiebreaker from "~/assets/al_tiebreaker.svg?component";
 
 const leftIcons = [
-  { component: alConfirm, action: "confirm", value: "$$", label: "Least Labeled", tooltip: "This is the Confirm option" },
+  { component: alConfirm, action: "confirm", value: "$", label: "Confirm", tooltip: "This is the Confirm option" },
   { component: alExplore, action: "explore", value: "$$", label: "Explore", tooltip: "This is the Explore option" },
   {
     component: alInvestigate,
