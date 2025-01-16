@@ -318,10 +318,20 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
     //console.log('Visible Data Points:', brushedPoints);
 
     dimensionalityStore.setSelectedPoints(brushedPoints); // Update the store with selected points
+    publicationStore.syncSelectedPublications(); // Update the points
+
+    // Extract publication IDs from the selected publications
+    const publicationIds = publicationStore.selectedPublications.map(
+      (pub) => pub.publication_id
+    );
+
+    // Fetch and update scores
+    publicationStore.fetchPublicationScores(publicationIds);
+
 
     // Trigger summary computation
     dimensionalityStore.clearSelectedSummary();
-    dimensionalityStore.computeSummaryForSelectedPoints();
+    //dimensionalityStore.computeSummaryForSelectedPoints();
   });
 
   const multi = fc
@@ -492,6 +502,7 @@ function initScatterPlot(newPublications, newReductions, newPredictions) {
         .attr('height', minimapY(yDomain[0]) - minimapY(yDomain[1]));
     }
   }
+
 
   render();
   renderMinimap();

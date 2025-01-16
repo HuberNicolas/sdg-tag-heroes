@@ -11,7 +11,7 @@
             :popper="{ arrow: true }"
           >
             <UButton
-              class="flex flex-col items-center justify-center w-72 h-72 bg-gray-200 rounded-full shadow-md hover:bg-gray-300 focus:outline-none"
+              class="flex flex-col items-center justify-center w-56 h-56 bg-gray-200 rounded-full shadow-md hover:bg-gray-300 focus:outline-none"
               @click="handleClick(icon.action)"
             >
               <component
@@ -28,7 +28,7 @@
         <!-- Right Section: Fifth Button -->
         <UTooltip :text="rightIcon.tooltip" :popper="{ arrow: true }">
           <UButton
-            class="flex flex-col items-center justify-center w-72 h-72 bg-gray-200 rounded-full shadow-md hover:bg-gray-300 focus:outline-none"
+            class="flex flex-col items-center justify-center w-56 h-56 bg-gray-200 rounded-full shadow-md hover:bg-gray-300 focus:outline-none"
             @click="handleClick(rightIcon.action)"
           >
             <component

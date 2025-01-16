@@ -38,13 +38,13 @@ const raincloudData = computed(() => {
 
 
 
-  return ([generate(20), generate(4), generate(10)])
+  return ([ generate(10)])
 
 });
 
 const options = {
-  width: 500,
-  height: 500,
+  width: 350,
+  height: 450,
 };
 
 watch(
@@ -68,7 +68,7 @@ watch(
 <style scoped>
 .raincloud {
   width: 500px;
-  height: 500px;
+  height: 450px;
   background-color: lightgray;
 }
 </style>

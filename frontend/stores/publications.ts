@@ -7,6 +7,7 @@ export const usePublicationsStore = defineStore('publications', {
   state: () => ({
     publications: {} as Record<number, Record<number, Record<number, PublicationSchemaFull>>>, // SDG -> Level -> Publication ID -> Publication
     selectedPublication: null,
+    selectedPublications: [],
     fetching: false,
     loading: false,
     error: null as Error | null,
@@ -32,6 +33,9 @@ export const usePublicationsStore = defineStore('publications', {
       };
     },
     getSelectedPublication: (state) => {
+      return state.selectedPublications;
+    },
+    getSelectedPublications: (state) => {
       return state.selectedPublications;
     }
   },
@@ -104,6 +108,81 @@ export const usePublicationsStore = defineStore('publications', {
       } finally {
         this.fetching = false;
       }
+    },
+
+    async fetchPublicationScores(publicationIds: number[]) {
+      const config = useRuntimeConfig();
+      const apiUrl = config.public.apiUrl;
+
+      if (!publicationIds || publicationIds.length === 0) {
+        console.warn("No publication IDs provided for score fetching.");
+        return;
+      }
+
+      try {
+        const response = await $fetch(`${apiUrl}sdg_predictions/publications/metrics`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "Content-Type": "application/json",
+          },
+          body: { publications_ids: publicationIds },
+        });
+
+        console.log("Fetched publication scores:", response);
+
+        // Update the publications with the fetched scores
+        response.forEach((metric: { publication_id: number; entropy: number }) => {
+          const publication = this.selectedPublications.find(
+            (pub) => pub.publication_id === metric.publication_id
+          );
+
+          if (publication) {
+            publication.score = metric.entropy; // Use entropy as the score
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching publication scores:", error);
+        this.error = error as Error;
+      }
+    },
+
+    // Synchronize selected publications with selected points
+    async syncSelectedPublications() {
+      const dimensionalityStore = useDimensionalityReductionsStore();
+      const selectedPoints = dimensionalityStore.selectedPoints;
+      console.log(selectedPoints);
+
+      const sdgId = dimensionalityStore.getCurrentLevel;
+      const levelId = dimensionalityStore.getCurrentLevel;
+
+
+      if (!selectedPoints || selectedPoints.length === 0) {
+        this.selectedPublications = []; // Clear if no points
+        return;
+      }
+
+      // Extract publication IDs from selected points
+      const selectedIds = selectedPoints
+        .map((point) => point.publication_id)
+        .filter((id): id is number => !!id);
+
+      // Ensure publications for the current SDG and level are fetched
+      const allPublications = this.getPublications(sdgId, levelId);
+
+      // If publications are not yet loaded, fetch them first
+      if (!allPublications || Object.keys(allPublications).length === 0) {
+        console.log(`Fetching publications for SDG ${sdgId}, Level ${levelId}`);
+        await this.fetchPublicationsBatch(sdgId, levelId, selectedIds); // Fetch only necessary publications
+      }
+
+      // Re-access the publications after fetching
+      const levelPublications = this.getPublications(sdgId, levelId);
+      this.selectedPublications = selectedIds
+        .map((id) => levelPublications[id])
+        .filter((pub): pub is PublicationSchemaFull => !!pub);
+
+      console.log('Synced selected publications:', this.selectedPublications);
     },
   },
 });
