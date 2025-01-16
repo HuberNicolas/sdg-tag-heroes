@@ -1,10 +1,12 @@
-import logging
 from pymongo import MongoClient
 from utils.env_loader import load_env, get_env_variable, is_running_in_docker
 
-# Set up logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from settings.settings import MongoDBSDGSettings
+mongodb_settings = MongoDBSDGSettings()
+
+# Setup Logging
+from utils.logger import logger
+logging = logger(mongodb_settings.MONGODB_LOG_NAME)
 
 # Load the MongoDB environment variables
 load_env('mongodb.env')
@@ -20,19 +22,31 @@ port = get_env_variable('MONGODB_PORT') if running_in_docker else get_env_variab
 mongo_url = f"mongodb://{user}:{password}@{host}:{port}/"
 
 # Log the connection details
-logger.info(f"Connecting to MongoDB at {host}:{port} with user {user}")
+logging.info(f"Connecting to MongoDB at {host}:{port} with user {user}")
 
 # Establish connection to MongoDB
 try:
     client = MongoClient(mongo_url)
     # List the databases
     databases = client.list_database_names()
-    logger.info(f"Connection to MongoDB successful! Databases: {databases}")
+    logging.info(f"Connection to MongoDB successful! Databases: {databases}")
 except Exception as e:
-    logger.error(f"Failed to connect to MongoDB: {e}")
+    logging.error(f"Failed to connect to MongoDB: {e}")
 
 def get_explanations_db():
     """
     Provides a connection to the sdg_explanations database.
     """
     return client['sdg_explanations']
+
+def test_mongodb_connection():
+    """
+    Test the MongoDB connection by listing database names.
+    """
+    global client  # Ensure you're using the already established client
+    try:
+        databases = client.list_database_names()
+        return True
+    except Exception as e:
+        logging.error(f"MongoDB connection test failed: {e}")
+        return False

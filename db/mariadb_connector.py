@@ -1,4 +1,3 @@
-import logging
 from mysql.connector import connect
 from sqlalchemy import create_engine
 from utils.env_loader import load_env, get_env_variable, is_running_in_docker
@@ -7,9 +6,9 @@ from settings.settings import MariaDBSettings
 
 mariadb_settings = MariaDBSettings()
 
-# Set up logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Setup Logging
+from utils.logger import logger
+logging = logger(mariadb_settings.MARIADB_LOG_NAME)
 
 # Load the mariadb environment variables
 load_env('mariadb.env')
@@ -27,7 +26,7 @@ host = get_env_variable('MARIADB_HOST') if running_in_docker else get_env_variab
 port = int(get_env_variable('MARIADB_PORT')) if running_in_docker else int(get_env_variable('MARIADB_PORT_LOCAL'))
 
 # Log the connection details
-logger.info(f"Connecting to MariaDB at {host}:{port} with user {user}")
+logging.info(f"Connecting to MariaDB at {host}:{port} with user {user}")
 
 # Establish connection to MariaDB with a compatible collation
 try:
@@ -45,12 +44,12 @@ try:
     cursor.execute("SHOW DATABASES")
     databases = cursor.fetchall()
     
-    logger.info(f"Connection to MariaDB successful! Databases: {[db[0] for db in databases]}")
+    logging.info(f"Connection to MariaDB successful! Databases: {[db[0] for db in databases]}")
 
     # Don't close connection here
     # conn.close()
 except Exception as e:
-    logger.error(f"Failed to connect to MariaDB: {e}")
+    logging.error(f"Failed to connect to MariaDB: {e}")
 
 # Create an SQLAlchemy engine for MariaDB without specifying a database
 engine = None
@@ -66,6 +65,20 @@ try:
         pool_recycle=3600,      # Recycle connections after this many seconds
         pool_timeout=30         # Wait for this many seconds for a connection
     )
-    logger.info("SQLAlchemy engine for MariaDB created successfully.")
+    logging.info("SQLAlchemy engine for MariaDB created successfully.")
 except Exception as e:
-    logger.error(f"Failed to create SQLAlchemy engine for MariaDB: {e}")
+    logging.error(f"Failed to create SQLAlchemy engine for MariaDB: {e}")
+
+
+def test_mariadb_connection():
+    """
+    Test the MariaDB connection by executing a simple query.
+    """
+    global conn  # Ensure you're using the already established connection
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        return True
+    except Exception as e:
+        logging.error(f"MariaDB connection test failed: {e}")
+        return False

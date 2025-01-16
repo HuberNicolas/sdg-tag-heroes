@@ -1,10 +1,12 @@
-import logging
 import redis
 from utils.env_loader import load_env, get_env_variable, is_running_in_docker
 
-# Set up logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from settings.settings import RedisDBSettings
+redisdb_settings = RedisDBSettings()
+
+# Setup Logging
+from utils.logger import logger
+logging = logger(redisdb_settings.REDIS_LOG_NAME)
 
 # Load the Redis environment variables
 load_env('redisdb.env')
@@ -21,7 +23,7 @@ host = get_env_variable('REDIS_HOST') if running_in_docker else get_env_variable
 port = get_env_variable('REDIS_PORT') if running_in_docker else get_env_variable('REDIS_PORT_LOCAL')
 
 # Log the connection details
-logger.info(f"Connecting to Redis at {host}:{port} with user {user}")
+logging.info(f"Connecting to Redis at {host}:{port} with user {user}")
 
 # Establish connection to Redis
 try:
@@ -36,13 +38,27 @@ try:
 
     # Test connection by pinging Redis
     client.ping()
-    logger.info(f"Connection to Redis successful!")
+    logging.info(f"Connection to Redis successful!")
 
     # List keys in the current database (default is 0)
-    logger.info("Listing all keys in the current database")
+    logging.info("Listing all keys in the current database")
     keys = client.keys('*')  # List all keys
-    logger.info(f"Keys in database 0: {keys}")
-    print(f"Keys in database 0: {keys}")
+    logging.info(f"Keys in database 0: {keys}")
 
 except redis.ConnectionError as e:
     logger.error(f"Failed to connect to Redis: {e}")
+
+def test_redis_connection():
+    """
+    Test the Redis connection by pinging the server and listing keys.
+    """
+    global client  # Ensure you're using the already established client
+    try:
+        client.ping()
+        logging.info("Redis connection test successful!")
+        keys = client.keys('*')
+        logging.info(f"Keys in Redis database 0: {keys}")
+        return True
+    except Exception as e:
+        logging.error(f"Redis connection test failed: {e}")
+        return False

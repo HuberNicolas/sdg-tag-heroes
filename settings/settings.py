@@ -54,7 +54,7 @@ class TimeZoneSettings(BaseSettings):
 
 class LoggingSettings(BaseSettings):
     LOG_PATH: ClassVar[str] = "logs"
-    LOG_FORMAT: ClassVar[str] = "%(asctime)s - %(levelname)s - %(message)s"
+    LOG_FORMAT: ClassVar[str] = "{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
 
 
 class PredictionSettings(BaseSettings):
@@ -96,6 +96,8 @@ class CollectorSettings(BaseSettings):
 
     PUBLICATION_LIMIT: ClassVar[int] = 300000
 
+class FastAPISettings(BaseSettings):
+    FASTAPI_LOG_NAME: ClassVar[str] = "api_.log"
 
 class ReducerSettings(BaseSettings):
     REDUCER_LOG_NAME: ClassVar[str] = "reducer.log"
@@ -187,7 +189,17 @@ class MariaDBSettings(BaseSettings):
     MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
     MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
     SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
+    MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
 
+class QdrantDBSettings(BaseSettings):
+    QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
+    QDRANT_TIMEOUT: ClassVar[int] = 120
+
+class CouchDBSettings(BaseSettings):
+    COUCHDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
+
+class RedisDBSettings(BaseSettings):
+    REDIS_LOG_NAME: ClassVar[str] = "db_redis.log"
 
 class PrefectSettings(BaseSettings):
     PREFECT_LOG_NAME: ClassVar[str] = "prefect.log"
@@ -207,6 +219,7 @@ class MongoDBSDGSettings(BaseSettings):
     TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = (
         "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
     )
+    MONGODB_LOG_NAME: ClassVar[str] = "db_mongodb.log"
 
 
 class EnvLoaderSettings(BaseSettings):

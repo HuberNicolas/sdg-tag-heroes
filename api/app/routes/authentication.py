@@ -61,9 +61,6 @@ def verify_token(token: str, db: Session):
         email: str = payload.get("email")
         roles: list = payload.get("roles")
 
-
-        logging.info(f"Decoded payload: {payload}")
-
         if email is None or roles is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -81,17 +78,21 @@ def verify_token(token: str, db: Session):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        logging.info(f"Verify token function: User {user} is authenticated")
+
         return {"user_id": user.user_id, "email": user.email, "roles": roles}
 
     # Handle various exceptions from PyJWT
 
     except InvalidTokenError:
+        logging.error(f"Invalid token: {token}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token signature",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except ExpiredSignatureError:
+        logging.error(f"Expired token: {token}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
@@ -99,6 +100,7 @@ def verify_token(token: str, db: Session):
         )
 
     except DecodeError:
+        logging.error(f"Decode Error: {token}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Failed to decode token",
@@ -143,6 +145,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == request.email).first()
 
     if not user:
+        logging.error(f"User not found: {request.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -151,6 +154,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     # Verify the provided password against the stored hash
     if not pwd_context.verify(request.password, user.hashed_password):
+        logging.error(f"Invalid password: {request.password}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",

@@ -1,8 +1,7 @@
-import logging
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from contextlib import asynccontextmanager
 
 from api.app.routes import publications
 from api.app.routes import authors
@@ -23,10 +22,91 @@ from api.app.routes import sdg_label_summaries
 
 from fastapi_pagination import add_pagination
 
-log = logging.getLogger(__name__)
+from settings.settings import FastAPISettings
+fastapi_settings = FastAPISettings()
+
+# Setup Logging
+from utils.logger import logger
+logging = logger(fastapi_settings.FASTAPI_LOG_NAME)
 
 
-app = FastAPI()
+# Import test utilities for each database
+from db.mariadb_connector import test_mariadb_connection, conn as mariadb_conn
+from db.mongodb_connector import test_mongodb_connection, client as mongo_client
+from db.couchdb_connector import test_couchdb_connection, client as couchdb_client
+from db.qdrantdb_connector import test_qdrant_connection, client as qdrant_client
+from db.redisdb_connector import test_redis_connection, client as redis_client
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.info("Initializing resources...")
+
+    # Test MariaDB connection
+    if test_mariadb_connection():
+        logging.info("MariaDB connection is working.")
+    else:
+        logging.error("MariaDB connection failed!")
+
+    # Test MongoDB connection
+    if test_mongodb_connection():
+        logging.info("MongoDB connection is working.")
+    else:
+        logging.error("MongoDB connection failed!")
+
+    # Test CouchDB connection
+    if test_couchdb_connection():
+        logging.info("CouchDB connection is working.")
+    else:
+        logging.error("CouchDB connection failed!")
+
+    # Test Qdrant connection
+    if test_qdrant_connection():
+        logging.info("Qdrant connection is working.")
+    else:
+        logging.error("Qdrant connection failed!")
+
+    # Test Redis connection
+    if test_redis_connection():
+        logging.info("Redis connection is working.")
+    else:
+        logging.error("Redis connection failed!")
+
+    yield  # Allow the application to run
+
+    logging.info("Cleaning up resources...")
+
+    # Cleanup logic
+    try:
+        mariadb_conn.close()
+        logging.info("MariaDB connection closed.")
+    except Exception as e:
+        logging.warning(f"Error while closing MariaDB connection: {e}")
+
+    try:
+        mongo_client.close()
+        logging.info("MongoDB client closed.")
+    except Exception as e:
+        logging.warning(f"Error while closing MongoDB client: {e}")
+
+    try:
+        couchdb_client.disconnect()
+        logging.info("CouchDB client disconnected.")
+    except Exception as e:
+        logging.warning(f"Error while disconnecting CouchDB client: {e}")
+
+    try:
+        # Qdrant doesn't require explicit disconnection
+        logging.info("Qdrant client cleanup completed.")
+    except Exception as e:
+        logging.warning(f"Error while cleaning up Qdrant client: {e}")
+
+    try:
+        redis_client.close()
+        logging.info("Redis client closed.")
+    except Exception as e:
+        logging.warning(f"Error while closing Redis client: {e}")
+
+app = FastAPI(lifespan=lifespan)
 add_pagination(app)  # important! add pagination to your app
 
 app.include_router(publications.router)
