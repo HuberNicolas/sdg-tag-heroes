@@ -72,6 +72,9 @@ importers:
       eslint-config-prettier:
         specifier: ^9.1.0
         version: 9.1.0(eslint@9.14.0(jiti@2.4.0))
+      leader-line-vue:
+        specifier: ^2.1.1
+        version: 2.1.1
       nuxt-particles:
         specifier: ^0.3.0
         version: 0.3.0(magicast@0.3.5)(rollup@4.26.0)
@@ -3848,6 +3851,9 @@ packages:
   lazystream@1.0.1:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
+
+  leader-line-vue@2.1.1:
+    resolution: {integrity: sha512-ZfNoDcwgfHESNLErfPBdJ4I/1tbXLBUFwGfbqAZvTcOghcm7UtUm7mUPZVAOThlO3q75n8pZmDTGtM/Gwfx+xA==}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -10450,6 +10456,8 @@ snapshots:
   lazystream@1.0.1:
     dependencies:
       readable-stream: 2.3.8
+
+  leader-line-vue@2.1.1: {}
 
   levn@0.4.1:
     dependencies:
