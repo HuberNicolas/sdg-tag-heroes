@@ -35,7 +35,7 @@ const { renderHexGrid } = createGlyph(props.values);
 
 onMounted(() => {
   if (glyphContainer.value) {
-    renderHexGrid(glyphContainer.value);
+    renderHexGrid(glyphContainer.value, props.width, props.height);
   }
 });
 </script>

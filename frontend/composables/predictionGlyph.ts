@@ -26,23 +26,44 @@ export default function createGlyph(values: number[]) {
     '15', '16', '17',
   ];
 
-  const renderHexGrid = (selector: HTMLElement): void => {
-    const gridWidth = (Math.max(...coords.map(([x]) => x)) + 3) * xSpacing;
-    const gridHeight = (Math.max(...coords.map(([_, y]) => y)) + 3) * ySpacing;
+  const renderHexGrid = (selector: HTMLElement, width: number, height: number): void => {
+    console.log(width, height);
+    const xCoords = coords.map(([x]) => x * xSpacing);
+    const yCoords = coords.map(([_, y]) => y * ySpacing);
+
+    // Calculate the bounds of the glyph content
+    const minX = Math.min(...xCoords) - hexRadius;
+    const maxX = Math.max(...xCoords) + hexRadius;
+    const minY = Math.min(...yCoords) - hexRadius;
+    const maxY = Math.max(...yCoords) + hexRadius;
+
+    const gridWidth = maxX - minX; // Actual content width
+    const gridHeight = maxY - minY; // Actual content height
+
+    // Slight manual adjustments for centering
+    const xShift = hexRadius; // Move slightly to the right
+    const yShift = -hexRadius; // Move slightly up
+
+    // Centering offsets with manual adjustments
+    const xOffset = (width - gridWidth) / 2 + xShift;
+    const yOffset = (height - gridHeight) / 2 + yShift;
 
     const container = d3.select(selector);
     container.selectAll('*').remove();
 
     const svg = container
       .append('svg')
-      .attr('viewBox', `-${xSpacing} ${-0.623 * gridHeight} ${gridWidth} ${gridHeight + ySpacing}`)
+      .attr('viewBox', `${minX} ${minY} ${gridWidth} ${gridHeight}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
-      .attr('width', '100%')
-      .attr('height', '100%')
-      .style('background', 'transparent')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background', 'transparent');
 
+    // Create a group to shift content
+    const contentGroup = svg.append('g')
+      .attr('transform', `translate(${xOffset - minX}, ${yOffset - minY})`); // Apply explicit horizontal adjustment
 
-    const tooltip = d3.select('body') // Append tooltip to the body
+    const tooltip = d3.select('body')
       .append('div')
       .attr('class', 'glyph-tooltip')
       .style('position', 'absolute')
@@ -53,19 +74,17 @@ export default function createGlyph(values: number[]) {
       .style('border-radius', '4px')
       .style('font-size', '12px')
       .style('box-shadow', '0px 4px 8px rgba(0, 0, 0, 0.1)')
-      .style('z-index', '1000'); // Ensure it appears above other content
-
+      .style('z-index', '1000');
 
     coords.forEach(([x, y], i) => {
       const color = d3.color(sdgColors[i % sdgColors.length]);
       const value = values[i];
-      const innerRadius = (1-value) * hexRadius;
+      const innerRadius = (1 - value) * hexRadius;
 
-      const hexagonGroup = svg.append('g');
+      const hexagonGroup = contentGroup.append('g');
 
       const rotation = 30;
 
-      // Outer hexagon
       hexagonGroup
         .append('polygon')
         .attr(
@@ -85,7 +104,6 @@ export default function createGlyph(values: number[]) {
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
-      // Inner hexagon
       hexagonGroup
         .append('polygon')
         .attr(
@@ -105,7 +123,6 @@ export default function createGlyph(values: number[]) {
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
-      // Add label
       hexagonGroup
         .append('text')
         .attr('x', x * xSpacing)
@@ -116,30 +133,23 @@ export default function createGlyph(values: number[]) {
         .style('font-size', '12px')
         .style('fill', 'black');
 
-      // Tooltip events
       hexagonGroup
         .on('mouseover', () => {
           tooltip
             .style('visibility', 'visible')
-            .style('background', color?.toString() || 'gray') // Use SDG color as background
-            .style('color', '#fff') // Make text white for contrast
+            .style('background', color?.toString() || 'gray')
+            .style('color', '#fff')
             .html(`<strong>${sdgTitles[i]}</strong><br>Value: ${value.toFixed(2)}`);
-          console.log("Hello")
         })
         .on('mousemove', (event) => {
           tooltip
-            .style('top', `${event.pageY + 10}px`) // Add offset to avoid cursor overlap
+            .style('top', `${event.pageY + 10}px`)
             .style('left', `${event.pageX + 10}px`);
-          console.log("Hello")
         })
         .on('mouseout', () => {
           tooltip.style('visibility', 'hidden');
-          console.log("Hello")
         });
-
-
     });
   };
-
   return { renderHexGrid };
 }

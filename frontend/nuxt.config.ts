@@ -83,5 +83,6 @@ export default defineNuxtConfig({
         monospace: ["Tahoma"]
       }
     }
-  }
+  },
+  watch: ['composables/**/*.ts', 'components/**/*.vue'], // does not trigger new build
 });

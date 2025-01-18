@@ -240,6 +240,8 @@ services:
     volumes:
       - ./frontend:/app # Mount the local frontend folder into /app inside the container
       - /app/node_modules # Ensure node_modules inside the container is separate
+      - ./frontend/components:/app/components # line to mount components specifically
+      - ./frontend/composables:/app/composables # line to mount composables specifically
     profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
