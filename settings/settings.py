@@ -123,6 +123,8 @@ class ReducerSettings(BaseSettings):
         (0.9, 0.5),
     ]  # SDG filter ranges
 
+    MAP_PARTITION_SIZE: ClassVar[int] = 9
+
 
 class PublicationsRouterSettings(BaseSettings):
     PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
