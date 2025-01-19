@@ -1,5 +1,6 @@
 import Plotly from 'plotly.js-dist';
-import { sdgColors } from "~/constants/sdgs";
+import {baseSdgColors} from "~/constants/sdgs";
+const sdgColors = baseSdgColors
 
 
 export function createBarPlot(
@@ -23,7 +24,7 @@ export function createBarPlot(
     barmode: 'group',
     width: width,
     height: height,
-    margin: { t: 40, r: 20, b: 40, l: 40 },
+    margin: { t: 0, r: 0, b: 0, l: 0 },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
     xaxis: {

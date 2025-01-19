@@ -40,7 +40,7 @@ watch([() => props.width, () => props.height, () => props.data,], ([newWidth, ne
 
 <style scoped>
 .bar-plot {
-  width: 100%;
-  height: 100%;
+  width: 25%;
+  height: 25%;
 }
 </style>

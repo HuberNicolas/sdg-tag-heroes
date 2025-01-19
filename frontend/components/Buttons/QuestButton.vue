@@ -1,48 +1,70 @@
 <template>
-  <UTooltip :text="'Tooltip'" :popper="{ arrow: true }">
-    <UButton
-      class="flex flex-col items-center justify-center w-12 h-12 bg-gray-200 rounded-full shadow-md hover:bg-gray-300 focus:outline-none"
-      @click="handleClick(props.mode)"
-    >
-      <component
-        :is="AlConfirm"
-        class="w-4 h-4"
-        :fontControlled="false"
-      />
-      <UChip :text="'Test'" size="3xl" class="mt-2" />
-      <p class="text-sm mt-2 text-gray-600">{{ props.name }}</p>
-    </UButton>
+  <UTooltip :text="tooltip" :popper="{ arrow: true }">
+    <UChip size="3xl" :text="chipText">
+      <UButton
+        size="xl"
+        color="primary"
+        variant="solid"
+        @click="handleClick(mode)"
+        :icon="icon"
+      >
+      </UButton>
+    </UChip>
   </UTooltip>
 </template>
 
 <script setup lang="ts">
-
 const props = defineProps({
-  name: {
-    type: String,
-    required: true,
-  },
   mode: {
     type: String,
     required: true,
-  }
+  },
 });
 
+// Lookup for mode details
+const modeDetails = {
+  '1': {
+    icon: 'i-heroicons-scale',
+    name: 'Tiebreaker',
+    tooltip: 'Resolve conflicts with a balanced approach',
+    chipText: '4',
+  },
+  '2': {
+    icon: 'i-heroicons-magnifying-glass',
+    name: 'Investigate',
+    tooltip: 'Analyze and investigate data',
+    chipText: '3',
+  },
+  '3': {
+    icon: 'i-heroicons-map',
+    name: 'Search/Explore',
+    tooltip: 'Search, explore, or chart new areas',
+    chipText: '2',
+  },
+  '4': {
+    icon: 'i-heroicons-check-badge',
+    name: 'Confirm the King',
+    tooltip: 'Crown the most prominent instance',
+    chipText: '1',
+  },
+  '5': {
+    icon: 'i-heroicons-light-bulb',
+    name: 'Label Sparse Instances',
+    tooltip: 'Label an instance with the least annotations',
+    chipText: '3',
+  },
+};
 
-import AlConfirm from '~/assets/al_confirm.svg?component';
-import AlExplore from '~/assets/al_explore.svg?component';
-import AlInvestigate from '~/assets/al_investigate.svg?component';
-import AlTiebreaker from '~/assets/al_tiebreaker.svg?component';
-import AlLeastLabeled from '~/assets/al_least_labeled.svg?component';
 
+// Fallback values if mode is not defined in modeDetails
+const icon = modeDetails[props.mode]?.icon || 'i-heroicons-question-mark-circle';
+const tooltip = modeDetails[props.mode]?.tooltip || 'No details available';
+const chipText = modeDetails[props.mode]?.chipText || 'Unknown';
 
 function handleClick(action: string) {
   console.log(action);
 }
-
-
 </script>
 
-<style>
-
+<style scoped>
 </style>

@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import {sdgTitles, sdgColors} from "@/constants/constants";
+import {baseSdgTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
 
 export default function createGlyph(values: number[]) {
   const hexRadius = 50; // Hexagon radius in pixels
@@ -10,21 +10,11 @@ export default function createGlyph(values: number[]) {
   const xSpacing = hexRadius * 2 * scaleFactor; // Horizontal spacing
   const ySpacing = Math.sqrt(3) * hexRadius * scaleFactor; // Vertical spacing
 
-  const coords = [
-    [0, -2], [1, -2], [2, -2],
-    [-0.5, -1], [0.5, -1], [1.5, -1], [2.5, -1],
-    [0, 0], [1, 0], [2, 0],
-    [-0.5, 1], [0.5, 1], [1.5, 1], [2.5, 1],
-    [0, 2], [1, 2], [2, 2],
-  ];
 
-  const labels = [
-    '1', '2', '3',
-    '4', '5', '6', '7',
-    '8', '9', '10', '11',
-    '12', '13', '14',
-    '15', '16', '17',
-  ];
+  const coords = baseCoords
+  const labels = baseLabelsNumbers
+  const sdgTitles = baseSdgTitles
+  const sdgColors = baseSdgColors
 
   const renderHexGrid = (selector: HTMLElement, width: number, height: number): void => {
     console.log(width, height);

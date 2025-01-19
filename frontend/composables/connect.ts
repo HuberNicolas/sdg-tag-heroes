@@ -1,13 +1,17 @@
 import { ref, onMounted } from 'vue';
 import * as d3 from 'd3';
 import LeaderLine from 'leader-line-new';
-import { coords, sdgColors, sdgShortTitles } from '@/constants/constants';
+import { baseCoords, baseSdgColors, baseSdgShortTitles, sdgNullColor, sdgNullCoord, sdgNullShortTitle } from '@/constants/constants';
 
 export default function useConnect() {
   const fixedConnections = ref([]);
   const currentHex = ref(null);
   const hexRadius = 50;
   const arrowLines = ref([]); // Array to store all pre-created arrows
+
+  const coords = [...baseCoords, sdgNullCoord];
+  const sdgColors = [...baseSdgColors, sdgNullColor];
+  const sdgShortTitles = [...baseSdgShortTitles, sdgNullShortTitle];
 
   const renderHexGrid = (selector, width, height) => {
     const xSpacing = hexRadius * 2 * 0.9;

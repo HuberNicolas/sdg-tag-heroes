@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 
 // Function to create a raincloud plot in a specified container
 export function createRaincloudPlot(container: HTMLElement, data: number[], options: { width: number; height: number }) {
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  const margin = { top: 0, right: 0, bottom: 0, left: 0 };
   const totalWidth = options.width - margin.left - margin.right;
   const totalHeight = options.height - margin.top - margin.bottom;
 
@@ -75,7 +75,7 @@ export function createRaincloudPlot(container: HTMLElement, data: number[], opti
   // Boxplot
   const boxplot = (selection, data) => {
     const y = totalHeight * 0.5;
-    const boxHeight = totalHeight / 12;
+    const boxHeight = Math.max(0, totalHeight / 12); // Ensure boxHeight is always positive
 
     selection
       .append('g')
@@ -105,10 +105,11 @@ export function createRaincloudPlot(container: HTMLElement, data: number[], opti
           .attr('stroke', 'black');
 
         // Box
+        const width = Math.max(0, x(q3) - x(q1));
         g.append('rect')
           .attr('x', x(q1))
           .attr('y', -boxHeight / 2)
-          .attr('width', x(q3) - x(q1))
+          .attr('width', width)
           .attr('height', boxHeight)
           .attr('fill', 'steelblue')
           .attr('opacity', 0.6);
