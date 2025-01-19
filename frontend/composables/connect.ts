@@ -1,5 +1,5 @@
 import { ref, onMounted } from 'vue';
-import LeaderLine from 'leader-line-vue';
+import LeaderLine from 'leader-line-new';
 
 export default function useConnect() {
   const fixedConnections = ref([]);
@@ -8,11 +8,6 @@ export default function useConnect() {
   const initHoverAndClick = () => {
     const boxes = document.querySelectorAll('.box');
     const targetBox = document.getElementById('target-box');
-
-    if (!LeaderLine) {
-      console.error('LeaderLine library is not loaded.');
-      return;
-    }
 
     boxes.forEach((box) => {
       box.addEventListener('mouseenter', () => {
