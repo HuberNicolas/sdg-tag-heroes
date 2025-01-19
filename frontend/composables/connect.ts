@@ -1,27 +1,13 @@
 import { ref, onMounted } from 'vue';
 import * as d3 from 'd3';
 import LeaderLine from 'leader-line-new';
-import { sdgTitles, sdgColors } from '@/constants/constants';
+import { coords, sdgColors, sdgShortTitles } from '@/constants/constants';
 
 export default function useConnect() {
   const fixedConnections = ref([]);
-  const activeLine = ref(null);
   const currentHex = ref(null);
   const hexRadius = 50;
-  const coords = [
-    [0, -2], [1, -2], [2, -2],
-    [-0.5, -1], [0.5, -1], [1.5, -1], [2.5, -1],
-    [0, 0], [1, 0], [2, 0],
-    [-0.5, 1], [0.5, 1], [1.5, 1], [2.5, 1],
-    [0, 2], [1, 2], [2, 2],
-  ];
-  const labels = [
-    '1', '2', '3',
-    '4', '5', '6', '7',
-    '8', '9', '10', '11',
-    '12', '13', '14',
-    '15', '16', '17',
-  ];
+  const arrowLines = ref([]); // Array to store all pre-created arrows
 
   const renderHexGrid = (selector, width, height) => {
     const xSpacing = hexRadius * 2 * 0.9;
@@ -37,19 +23,17 @@ export default function useConnect() {
       .style('background', 'transparent');
 
     const contentGroup = svg.append('g')
-      .attr('transform', `translate(${width / 2}, ${height / 2})`);
+      .attr('transform', `translate(${width / 4}, ${height / 2})`);
 
     coords.forEach(([x, y], i) => {
-
       const color = d3.color(sdgColors[i % sdgColors.length]);
-      const value = 0.5;
+      const value = 1.0;
       const innerRadius = (1 - value) * hexRadius;
 
       const hexagonGroup = contentGroup.append('g');
-
       const rotation = 30;
 
-      const hexagon = hexagonGroup
+      hexagonGroup
         .append('polygon')
         .attr(
           'points',
@@ -86,6 +70,7 @@ export default function useConnect() {
         .attr('stroke', 'black')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
+
       contentGroup
         .append('text')
         .attr('x', x * xSpacing)
@@ -93,9 +78,9 @@ export default function useConnect() {
         .attr('text-anchor', 'middle')
         .attr('dy', '0.35em')
         .attr('class', 'hexagon')
-        .attr('data-id', labels[i])
+        .attr('data-id', sdgShortTitles[i])
         .attr('data-color', color?.toString())
-        .text(labels[i])
+        .text(sdgShortTitles[i])
         .style('font-size', '12px')
         .style('fill', 'black');
     });
@@ -105,14 +90,17 @@ export default function useConnect() {
     const container = d3.select(selector);
     container.selectAll('*').remove();
 
+    // complete svg
     const svg = container
       .append('svg')
       .attr('width', width)
       .attr('height', height)
+      .attr('transform', `translate(${width}, ${height*0})`)
       .style('background', 'transparent');
 
+    // rendered hex inside
     const hexagonGroup = svg.append('g')
-      .attr('transform', `translate(${width / 2}, ${height / 2})`);
+      .attr('transform', `translate(${width/2}, ${height/2})`);
 
     const rotation = 30;
 
@@ -142,70 +130,60 @@ export default function useConnect() {
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
       .text(label)
-      .style('font-size', '16px')
+      .style('font-size', '12px')
       .style('fill', 'black');
   };
 
-  const initHoverAndClick = () => {
+  const initArrows = () => {
     const hexagons = document.querySelectorAll('.hexagon');
     const targetBox = document.getElementById('target-box');
 
     hexagons.forEach((hex) => {
-      hex.addEventListener('mouseenter', () => {
-        if (activeLine.value) {
-          activeLine.value.remove();
-        }
-        const hexColor = hex.getAttribute('data-color');
-        activeLine.value = new LeaderLine(hex, targetBox, {
-          color: hexColor || 'blue',
-          startPlug: 'behind',
-          endPlug: 'arrow1',
-          dash:  {animation: true},
-          animation: { duration: 500, timing: 'ease-in-out' },
-        });
+      const hexColor = hex.getAttribute('data-color');
+      const line = new LeaderLine(hex, targetBox, {
+        color: hexColor || 'blue',
+        startPlug: 'behind',
+        endPlug: 'arrow1',
+        dash: { animation: true },
+        visible: false, // Hide arrows initially
       });
+      arrowLines.value.push(line);
+    });
+  };
 
-      hex.addEventListener('mouseleave', () => {
-        if (activeLine.value) {
-          activeLine.value.remove();
-          activeLine.value = null;
-        }
-      });
+  const toggleArrow = (hex) => {
+    const hexIndex = sdgShortTitles.indexOf(hex.getAttribute('data-id'));
+    const line = arrowLines.value[hexIndex];
 
-      hex.addEventListener('click', () => {
-        if (currentHex.value === hex) {
-          // Remove the existing line if clicked again
-          if (activeLine.value) {
-            activeLine.value.remove();
-            activeLine.value = null;
-            currentHex.value = null;
-            renderDecisionHex('#target-box', 150, 150, 'whitesmoke', 'Publication');
-          }
-        } else {
-          // Deselect the previous hexagon and remove its line
-          if (currentHex.value && activeLine.value) {
-            activeLine.value.remove();
-          }
+    if (!line) return;
 
-          // Select the new hexagon
-          currentHex.value = hex;
-          const hexColor = hex.getAttribute('data-color');
-          activeLine.value = new LeaderLine(hex, targetBox, {
-            color: hexColor || 'black',
-            startPlug: 'behind',
-            endPlug: 'arrow1',
-            dash: true,
-            animation: { duration: 500, timing: 'ease-in-out' },
-          });
-          renderDecisionHex('#target-box', 150, 150, hexColor, hex.getAttribute('data-id'));
-        }
-      });
+    if (line.visible) {
+      line.hide();
+      line.visible = false;
+      currentHex.value = null;
+      renderDecisionHex('#target-box', 150, 150, 'whitesmoke', 'Publication');
+    } else {
+      arrowLines.value.forEach((arrow) => arrow.hide());
+      line.show();
+      line.visible = true;
+      currentHex.value = hex;
+      const hexColor = hex.getAttribute('data-color');
+      renderDecisionHex('#target-box', 150, 150, hexColor, hex.getAttribute('data-id'));
+    }
+  };
+
+  const initHoverAndClick = () => {
+    const hexagons = document.querySelectorAll('.hexagon');
+
+    hexagons.forEach((hex) => {
+      hex.addEventListener('click', () => toggleArrow(hex));
     });
   };
 
   onMounted(() => {
     renderHexGrid('#glyph-container', 500, 500);
     renderDecisionHex('#target-box', 150, 150, 'whitesmoke', 'Publication');
+    initArrows();
     initHoverAndClick();
   });
 

@@ -1,6 +1,6 @@
 <template>
-  <div id="app">
-    <div id="glyph-container" style="width: 500px; height: 500px;"></div>
+  <div>
+    <div id="glyph-container"></div>
     <div id="target-box" class="decision-box"></div>
   </div>
 </template>
@@ -17,14 +17,6 @@ export default {
 </script>
 
 <style>
-#app {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 80%;
-  margin: auto;
-  margin-top: 50px;
-}
 
 
 </style>
