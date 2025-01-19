@@ -4,6 +4,7 @@ export const sdgColors = [
   '#FD6925', '#DD1367', '#FD9D24', '#BF8B2E',
   '#3F7E44', '#0A97D9', '#56C02B', '#00689D',
   '#19486A',
+  '#D3D3D3'
 ];
 
 export const sdgTitles = [
@@ -22,6 +23,7 @@ export const sdgShortTitles = [
   'Work', 'Industry', 'Inequality', 'City',
   'Consumption', 'Climate', 'Ocean',
   'Land', 'Justice', 'Partner',
+  'Non-relevant'
 ];
 
 export const coords = [
@@ -30,6 +32,7 @@ export const coords = [
   [0, 0], [1, 0], [2, 0],
   [-0.5, 1], [0.5, 1], [1.5, 1], [2.5, 1],
   [0, 2], [1, 2], [2, 2],
+  [3, 2], // Add the position for the new null hexagon
 ];
 
 export const labels_numbers = [
