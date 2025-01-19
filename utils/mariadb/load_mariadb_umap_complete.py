@@ -137,7 +137,7 @@ def create_dimensionality_reductions():
 
                     reduction_details = (
                         f"UMAP with n_neighbors={params['n_neighbors']}, min_dist={params['min_dist']}, "
-                        f"n_components={params['n_components']}, filter_range={upper}-{lower}"
+                        f"n_components={params['n_components']}, level={level}"
                     )
                     reduction_shorthand = (
                         f"UMAP-{params['n_neighbors']}-{params['min_dist']}-{params['n_components']}"
