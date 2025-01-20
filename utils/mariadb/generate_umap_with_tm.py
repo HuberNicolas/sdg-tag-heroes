@@ -26,7 +26,7 @@ embeddings_settings = EmbeddingsSettings()
 Session = sessionmaker(bind=mariadb_engine)
 db = Session()
 
-LIMIT = 1000
+LIMIT = 50000
 # Step 1: Query Publications
 
 # Fetch publications matching the shorthand
@@ -163,6 +163,22 @@ class TopicModelPipeline:
 
         # Step 3: Clustering
         # https://maartengr.github.io/BERTopic/getting_started/clustering/clustering.html
+
+
+        """
+        Modify Clustering Parameters -> To many topics? (Topics depend on clusters):
+
+        Increase the min_cluster_size:
+        This controls the minimum number of documents in a cluster.
+        A larger value will merge smaller clusters and reduce the total number of topics.
+        Adjust the cluster_method or its parameters to tune the clustering behavior.
+        
+        Merge Similar Topics:
+        Use the reduce_topics method to combine similar topics after the initial extraction.
+        Predefine Topics:
+        
+        Provide predefined seed words or constraints for clustering or representation to control topic granularity.
+        """
         cluster_model = self._get_cluster_model(**cluster_method_params)
 
         # Step 4: Vectorizers
@@ -288,7 +304,7 @@ print(seed_words)
 
 topic_model = tm_pipeline.create_topic_model(
     dim_reduction_params={"n_neighbors": 10 , "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
-    cluster_method_params={"min_cluster_size": 15, "metric": "euclidean", "prediction_data": True},
+    cluster_method_params={"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
     vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
     ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
     representation_params={"diversity": 0.5, "candidate_topics": seed_words},
@@ -298,11 +314,18 @@ start = time.time()
 topic_model.fit(docs, embeddings)
 print(f"Fitting took {time.time() - start:.2f}s")
 
+
+# Reduce the number of topics
+# nr_topics specifies the desired number of topics after reduction
+reduced_topic_model = topic_model.reduce_topics(docs, nr_topics=21) # 20 + 1 Null Class
+
+
+
 # Data Export for Visualization
 #topic_model.visualize_documents(docs, embeddings=embeddings)
 
 # Step 1: Reduce Dimensionality to 2D
-reduced_embeddings = topic_model._reduce_dimensionality(embeddings=embeddings)
+reduced_embeddings = reduced_topic_model._reduce_dimensionality(embeddings=embeddings)
 print(f"Reduced embeddings shape: {reduced_embeddings.shape}")
 
 # Ensure the embeddings are 2D
@@ -314,8 +337,8 @@ data = pd.DataFrame(reduced_embeddings, columns=["x", "y"])
 data["id"] = ids  # Reuse the passed IDs
 data["title"] = titles
 data["descriptions"] =descriptions
-doc_info = topic_model.get_document_info(docs)
-topic_info = topic_model.get_topic_info()
+doc_info = reduced_topic_model.get_document_info(docs)
+topic_info = reduced_topic_model.get_topic_info()
 data["topic"] = doc_info["Topic"]
 data["document"] = docs
 data["keywords"] = doc_info["Representation"]
@@ -334,10 +357,8 @@ print("Data exported successfully!")
 # Visualize Documents with Plotly and Save as HTML
 import plotly.io as pio
 
-# Generate the visualization
-fig = topic_model.visualize_documents(docs, embeddings=embeddings)
-
-# Save the visualization to an HTML file
+# Visualization after topic reduction
+fig = reduced_topic_model.visualize_documents(docs, embeddings=embeddings)
 fig.write_html("visualization.html")
 
 
