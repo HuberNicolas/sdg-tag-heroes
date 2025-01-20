@@ -17,7 +17,6 @@ from db.qdrantdb_connector import client as qdrantdb_client
 from db.mariadb_connector import engine as mariadb_engine
 from qdrant_client.http.models import Filter, MatchAny, FieldCondition
 from models.publications.publication import Publication
-from models.publications.dimensionality_reduction import DimensionalityReduction
 from settings.sdg_descriptions import sdgs
 from settings.settings import EmbeddingsSettings
 
@@ -27,15 +26,12 @@ embeddings_settings = EmbeddingsSettings()
 Session = sessionmaker(bind=mariadb_engine)
 db = Session()
 
-LIMIT = 5000
-# Step 1: Query Publications and Dimensionality Reduction Data
-shorthand_filter = "UMAP-30-0.1-2"
+LIMIT = 1000
+# Step 1: Query Publications
 
 # Fetch publications matching the shorthand
 results = (
-    db.query(Publication, DimensionalityReduction)
-    .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
-    #.filter(DimensionalityReduction.reduction_shorthand == shorthand_filter)
+    db.query(Publication)
     .limit(LIMIT)
     .all()
 )
@@ -44,8 +40,7 @@ if not results:
     raise ValueError("No publications found with the specified shorthand.")
 
 # Extract publication data and shorthand predictions
-publications = [{"id": pub.publication_id, "description": pub.description, "title": pub.title} for pub, _ in results]
-dim_reductions = {pub.publication_id: {"x": dr.x_coord, "y": dr.y_coord, "shorthand": dr.reduction_shorthand} for pub, dr in results}
+publications = [{"id": pub.publication_id, "description": pub.description, "title": pub.title} for pub in results]
 
 # Step 2: Fetch Embeddings from Qdrant
 publication_ids = [pub["id"] for pub in publications]
@@ -84,9 +79,6 @@ for pub in publications:
             "id": pub_id,
             "description": pub["description"],
             "title": pub["title"],
-            "x": dim_reductions[pub_id]["x"],
-            "y": dim_reductions[pub_id]["y"],
-            "shorthand": dim_reductions[pub_id]["shorthand"],
             "embedding": embeddings_dict[pub_id]
         })
 
@@ -112,21 +104,24 @@ print(f"Sample document: {docs[0]}")
 ids = [item["id"] for item in merged_data]  # Publication IDs
 print(f"Sample id: {ids[0]}")
 
+titles = [item["title"] for item in merged_data]
+print(f"Sample title: {titles[0]}")
+
+descriptions = [item["description"] for item in merged_data]
+print(f"Sample abstract: {descriptions[0]}")
+
 embeddings = np.array([item["embedding"] for item in merged_data])  # Embeddings as NumPy array
 print(f"Sample embedding: {embeddings[0]}")
 
-dimreds = np.array([[item["x"], item["y"]] for item in merged_data]) # Extract (dimreds) as [[x, y], ...]
-print(f"Sample dimreds: {dimreds[0]}")
 
-
-print(f"Total documents: {len(docs)}, total embeddings: {len(embeddings)}, total ids: {len(ids)}, total embeddings: {len(dimreds)}")
+print(f"Total documents: {len(docs)}, total embeddings: {len(embeddings)}, total ids: {len(ids)}")
 
 # Topic Modeling Pipeline
 class TopicModelPipeline:
     """
        A modular pipeline for creating a BERTopic model with advanced representation techniques.
     """
-    def __init__(self, embedding_model="all-MiniLM-L6-v2"):
+    def __init__(self, embedding_model="distilbert-base-uncased"): # all-MiniLM-L6-v2
         """
                Initialize the pipeline with default settings.
 
@@ -138,12 +133,11 @@ class TopicModelPipeline:
         # https://maartengr.github.io/BERTopic/getting_started/embeddings/embeddings.html
         self.embedding_model = embedding_model
 
-    def create_topic_model(self, reduced_dimensions=None, **params):
+    def create_topic_model(self, **params):
         """
                Create a fully-configured BERTopic model.
 
                Args:
-                   reduced_dimensions (np.ndarray | None): Precomputed reduced dimensions (e.g., x, y values).
                    dim_reduction_method (str): The dimensionality reduction method, either 'umap' or 'pca'.
                    dim_reduction_params (dict): Parameters for the dimensionality reduction model.
                    cluster_method (str): The name of the cluster method to use, either 'hdbscan', 'kmeans' or 'agglomerative'.
@@ -164,14 +158,8 @@ class TopicModelPipeline:
 
         # Step 2: Dimensionality Reduction
         # https://maartengr.github.io/BERTopic/getting_started/dim_reduction/dim_reduction.html
+        dim_model = self._get_dim_model(**dim_reduction_params)
 
-        # Dimensionality Reduction
-        if reduced_dimensions is not None:
-            print("Using precomputed reduced dimensions.")
-            dim_model = None  # Skip dimensionality reduction
-        else:
-            dim_reduction_params = params.get("dim_reduction_params", {})
-            dim_model = self._get_dim_model(**dim_reduction_params)
 
         # Step 3: Clustering
         # https://maartengr.github.io/BERTopic/getting_started/clustering/clustering.html
@@ -300,7 +288,6 @@ print(seed_words)
 
 topic_model = tm_pipeline.create_topic_model(
     dim_reduction_params={"n_neighbors": 10 , "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
-    # reduced_dimensions=dimreds,
     cluster_method_params={"min_cluster_size": 15, "metric": "euclidean", "prediction_data": True},
     vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
     ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
@@ -325,6 +312,8 @@ if reduced_embeddings.shape[1] != 2:
 # Step 2: Combine with Metadata
 data = pd.DataFrame(reduced_embeddings, columns=["x", "y"])
 data["id"] = ids  # Reuse the passed IDs
+data["title"] = titles
+data["descriptions"] =descriptions
 doc_info = topic_model.get_document_info(docs)
 topic_info = topic_model.get_topic_info()
 data["topic"] = doc_info["Topic"]
@@ -340,4 +329,15 @@ data.to_csv("topic_data.csv", index=False)
 topic_info.to_csv("topic_info.csv", index=False)
 
 print("Data exported successfully!")
+
+
+# Visualize Documents with Plotly and Save as HTML
+import plotly.io as pio
+
+# Generate the visualization
+fig = topic_model.visualize_documents(docs, embeddings=embeddings)
+
+# Save the visualization to an HTML file
+fig.write_html("visualization.html")
+
 
