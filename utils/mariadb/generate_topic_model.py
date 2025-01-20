@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import json
 import time
+import sys
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import CountVectorizer
@@ -16,22 +17,37 @@ from db.qdrantdb_connector import client as qdrantdb_client
 from db.mariadb_connector import engine as mariadb_engine
 from qdrant_client.http.models import Filter, MatchAny, FieldCondition
 from models.publications.publication import Publication
+from models.publications.dimensionality_reduction import DimensionalityReduction
 from settings.sdg_descriptions import sdgs
 
 # Establish MariaDB connection
 Session = sessionmaker(bind=mariadb_engine)
 db = Session()
 
-LIMIT = 500
+LIMIT = 2000
+# Step 1: Query Publications and Dimensionality Reduction Data
+shorthand_filter = "UMAP-30-0.1-2"
 
-# Load Publications
-publications = db.query(Publication).limit(LIMIT).all()
-if not publications:
-    raise ValueError("No publications found in the database.")
+# Fetch publications matching the shorthand
+results = (
+    db.query(Publication, DimensionalityReduction)
+    .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
+    .filter(DimensionalityReduction.reduction_shorthand == shorthand_filter)
+    .limit(LIMIT)
+    .all()
+)
 
-publication_ids = [pub.publication_id for pub in publications]
+if not results:
+    raise ValueError("No publications found with the specified shorthand.")
 
-# Fetch Content Embeddings from Qdrant
+# Extract publication data and shorthand predictions
+publications = [{"id": pub.publication_id, "description": pub.description, "title": pub.title} for pub, _ in results]
+dim_reductions = {pub.publication_id: {"x": dr.x_coord, "y": dr.y_coord, "shorthand": dr.reduction_shorthand} for pub, dr in results}
+
+# Step 2: Fetch Embeddings from Qdrant
+publication_ids = [pub["id"] for pub in publications]
+
+# Create filter condition for Qdrant
 filter_condition = Filter(
     must=[
         FieldCondition(
@@ -40,40 +56,49 @@ filter_condition = Filter(
         )
     ]
 )
+
+# Query embeddings from Qdrant
 result = qdrantdb_client.scroll(
     collection_name="publications-mt",
     scroll_filter=filter_condition,
-    #limit=10_000_000,  # Adjust as needed
-    limit=LIMIT,
+    limit=100000000,  # Replace with appropriate limit
     with_payload=True,
     with_vectors=True,
 )
 
 publications_qdrant = result[0]
 
-# Merge Publications with Embeddings
-content_dict = {pub.publication_id: pub.description for pub in publications}
+# Step 3: Merge SQL Data with Qdrant Embeddings
+# Create a dictionary of embeddings for quick lookup
+embeddings_dict = {pub.payload["sql_id"]: pub.vector["content"] for pub in publications_qdrant}
 
-# Filter and merge only matching publications and embeddings
-joined_data = [
-    {
-        "sql_id": pub.payload["sql_id"], # SQL and qdrant
-        "content": content_dict[pub.payload["sql_id"]], # SQL
-        "embedding": pub.vector["content"]} # qdrant
-    for pub in publications_qdrant
-    if pub.payload["sql_id"] in content_dict
-]
+# Merge data
+merged_data = []
+for pub in publications:
+    pub_id = pub["id"]
+    if pub_id in embeddings_dict:
+        merged_data.append({
+            "id": pub_id,
+            "description": pub["description"],
+            "title": pub["title"],
+            "x": dim_reductions[pub_id]["x"],
+            "y": dim_reductions[pub_id]["y"],
+            "shorthand": dim_reductions[pub_id]["shorthand"],
+            "embedding": embeddings_dict[pub_id]
+        })
 
-# Ensure the merged data is not empty
-if not joined_data:
+if not merged_data:
     raise ValueError("No matching publications and embeddings found.")
 
-# Extract documents and embeddings for modeling
-docs_with_ids = [{"id": item["sql_id"], "content": item["content"]} for item in joined_data]
-docs = [item["content"] for item in docs_with_ids]  # Only pass content to the model
-ids = [item["id"] for item in docs_with_ids]  # Extract IDs separately
-embeddings = np.array([item["embedding"] for item in joined_data])
+# Step 4: Extract Separate Lists for Model Input
+docs = [item["description"] for item in merged_data]  # Content for the model
+ids = [item["id"] for item in merged_data]  # Publication IDs
+embeddings = np.array([item["embedding"] for item in merged_data])  # Embeddings as NumPy array
+# Extract dimensionality reduction (dimreds) as [[x, y], ...]
+dimreds = np.array([[item["x"], item["y"]] for item in merged_data])
 
+
+print(f"Total documents: {len(docs)}, total embeddings: {len(embeddings)}, total ids: {len(ids)}, total embeddings: {len(dimreds)}")
 
 # Topic Modeling Pipeline
 class TopicModelPipeline:
@@ -92,11 +117,12 @@ class TopicModelPipeline:
         # https://maartengr.github.io/BERTopic/getting_started/embeddings/embeddings.html
         self.embedding_model = embedding_model
 
-    def create_topic_model(self, **params):
+    def create_topic_model(self, reduced_dimensions=None, **params):
         """
                Create a fully-configured BERTopic model.
 
                Args:
+                   reduced_dimensions (np.ndarray | None): Precomputed reduced dimensions (e.g., x, y values).
                    dim_reduction_method (str): The dimensionality reduction method, either 'umap' or 'pca'.
                    dim_reduction_params (dict): Parameters for the dimensionality reduction model.
                    cluster_method (str): The name of the cluster method to use, either 'hdbscan', 'kmeans' or 'agglomerative'.
@@ -117,7 +143,14 @@ class TopicModelPipeline:
 
         # Step 2: Dimensionality Reduction
         # https://maartengr.github.io/BERTopic/getting_started/dim_reduction/dim_reduction.html
-        dim_model = self._get_dim_model(**dim_reduction_params)
+
+        # Dimensionality Reduction
+        if reduced_dimensions is not None:
+            print("Using precomputed reduced dimensions.")
+            dim_model = None  # Skip dimensionality reduction
+        else:
+            dim_reduction_params = params.get("dim_reduction_params", {})
+            dim_model = self._get_dim_model(**dim_reduction_params)
 
         # Step 3: Clustering
         # https://maartengr.github.io/BERTopic/getting_started/clustering/clustering.html
@@ -156,7 +189,7 @@ class TopicModelPipeline:
         # Create BERTopic Model
         return BERTopic(
             embedding_model=self.embedding_model,
-            umap_model=dim_model,
+            umap_model=dim_model,  # None if reduced dimensions are provided
             hdbscan_model=cluster_model,
             vectorizer_model=vectorizer_model,
             representation_model=representation_models,
@@ -245,7 +278,8 @@ seed_words = [word for sdg in sdgs for word in sdg.seed_words[:N]]
 print(seed_words)
 
 topic_model = tm_pipeline.create_topic_model(
-    dim_reduction_params={"n_neighbors": 15, "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
+    # dim_reduction_params={"n_neighbors": 15, "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
+    reduced_dimensions=dimreds,
     cluster_method_params={"min_cluster_size": 15, "metric": "euclidean", "prediction_data": True},
     vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
     ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
