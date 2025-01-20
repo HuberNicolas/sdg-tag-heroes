@@ -47,6 +47,13 @@ class SDGLabelDecision(Base):
     # Relationship back to SDGLabelHistory
     history: Mapped["SDGLabelHistory"] = relationship("SDGLabelHistory", back_populates="decisions")
 
+    # Relationship to Annotations
+    annotations: Mapped[list["Annotation"]] = relationship(
+        "Annotation",
+        back_populates="decision",
+        cascade="all, delete-orphan",
+    )
+
 
     comment: Mapped[str] = mapped_column(Text(), nullable=True)
 
