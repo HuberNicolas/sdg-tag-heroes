@@ -62,8 +62,11 @@ class SDGUserLabel(Base):
         nullable=False,
     )
 
+    # -1 -> Null Class
+    # 0 -> Not defined yet, but it could be "not defined yet"
+    # 1 ... 17 -> SDG
     __table_args__ = (
-        CheckConstraint("proposed_label >= 0 AND proposed_label <= 17", name="check_proposed_label_range"),
-        CheckConstraint("voted_label >= 0 AND voted_label <= 17", name="check_voted_label_range"),
+        CheckConstraint("(proposed_label >= -1 AND proposed_label <= 17)", name="check_proposed_label_range"),
+        CheckConstraint("(voted_label >= -1 AND voted_label <= 17)", name="check_voted_label_range"),
     )
 
