@@ -13,6 +13,7 @@ pydantic = "^2.9.1"
 pydantic-settings = "^2.5.2"
 python-dotenv = "^1.0.1"
 xmltodict = "^0.13.0"
+loguru = "^0.7.3"
 
 # API
 uvicorn = "^0.30.6"
@@ -38,6 +39,7 @@ nltk = "^3.9.1"
 h5py = "^3.11.0"
 
 # ML
+scikit-learn = "^1.6.0"
 umap-learn = "^0.5.6"
 bertopic = "^0.16.4"
 datamapplot = "0.3.0"
@@ -60,7 +62,6 @@ openai = "^1.57.0"
 
 # Orchestrator
 prefect = "<3.0"
-scikit-learn = "^1.6.0"
 
 [build-system]
 requires = ["poetry-core"]
