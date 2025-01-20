@@ -1,56 +1,32 @@
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
-from enum import Enum
-from schemas.vote import VoteSchemaFull
+from typing import Optional, List, Union
+from pydantic import BaseModel
 
+from schemas import AnnotationSchemaBase, AnnotationSchemaFull
+from schemas import VoteSchemaBase, VoteSchemaFull
+from schemas import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
 
-class DecisionType(str, Enum):
-    CONSENSUS_MAJORITY = "Consensus Majority"
-    CONSENSUS_TECHNOCRATIC = "Consensus Technocratic"
-    EXPERT_DECISION = "Expert Decision"
 
 class SDGUserLabelSchemaBase(BaseModel):
     label_id: int
     user_id: int
     proposed_label: Optional[int]
     voted_label: int
-    abstract_section: Optional[str] = None
-    comment: Optional[str] = None
+    abstract_section: Optional[str]
+    comment: Optional[str]
+    annotations: List[Union[AnnotationSchemaBase, AnnotationSchemaFull]]
+    votes: List[Union[VoteSchemaBase, VoteSchemaFull]]
+    label_decisions: List[Union[SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull]]
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
+
 
 class SDGUserLabelSchemaFull(SDGUserLabelSchemaBase):
-    labeled_at: datetime
     created_at: datetime
     updated_at: datetime
-    votes: Optional[list[VoteSchemaFull]] = None
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
-
-
-class SDGUserLabelSchemaCreate(BaseModel):
-    proposed_label: int = None
-    voted_label: int
-    abstract_section: Optional[str] = None
-    comment: Optional[str] = None
-
-
-
-    decision_id: Optional[int] = None
-
-    publication_id: Optional[int] = None
-    # suggested_label: Optional[int] = None
-    decision_type: Optional[DecisionType] = None
-
-    model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
-    }
-
-
-
-

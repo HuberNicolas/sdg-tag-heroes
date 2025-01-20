@@ -16,15 +16,6 @@ from models.base import Base
 
 time_zone_settings = TimeZoneSettings()
 
-# TODO: Move to association.py
-# Association table for the many-to-many relationship
-publication_authors = Table(
-    "publication_authors",
-    Base.metadata,
-    Column("publication_id", ForeignKey("publications.publication_id"), primary_key=True),
-    Column("author_id", ForeignKey("authors.author_id"), primary_key=True),
-)
-
 class Publication(Base):
     __tablename__ = "publications"
 

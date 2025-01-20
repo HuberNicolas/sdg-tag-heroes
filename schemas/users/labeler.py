@@ -2,22 +2,19 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
 
-from enums.enums import VoteType
+from schemas.users.user import UserSchemaBase
 
-class VoteSchemaBase(BaseModel):
-    vote_id: int
-    user_id: int
-    sdg_user_label_id: Optional[int]
-    annotation_id: Optional[int]
-    vote_type: VoteType
-    score: float
+class LabelerSchemaBase(BaseModel):
+    labeler_id: int
+    labeler_score: float
 
     model_config = {
         "from_attributes": True
     }
 
 
-class VoteSchemaFull(VoteSchemaBase):
+class LabelerSchemaFull(LabelerSchemaBase):
+    user: Optional[UserSchemaBase]
     created_at: datetime
     updated_at: datetime
 

@@ -4,26 +4,18 @@ from typing import List
 
 from sqlalchemy import String, Boolean, DateTime, JSON
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column, relationship, InstrumentedAttribute
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from passlib.context import CryptContext
-from enum import Enum as PyEnum
 
 from models.associations import user_group_association
 from models.base import Base
+from enums.enums import UserRole
 
 from settings.settings import TimeZoneSettings
 time_zone_settings = TimeZoneSettings()
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-# Define user roles as an Enum
-class UserRole(PyEnum):
-    USER = "user"
-    ADMIN = "admin"
-    LABELER = "labeler"
-    EXPERT = "expert"
 
 
 class User(Base):

@@ -1,13 +1,16 @@
-from datetime import datetime
 from pydantic import BaseModel
-from typing import List, Union
-
-from schemas import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
-
+from datetime import datetime
 
 class SDGXPBankSchemaBase(BaseModel):
     sdg_xp_bank_id: int
     user_id: int
+
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
+
+
+class SDGXPBankSchemaFull(SDGXPBankSchemaBase):
     total_xp: float
     sdg_1_xp: float
     sdg_2_xp: float
@@ -26,17 +29,5 @@ class SDGXPBankSchemaBase(BaseModel):
     sdg_15_xp: float
     sdg_16_xp: float
     sdg_17_xp: float
-    histories: List[Union[SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull]]
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
-class SDGXPBankSchemaFull(SDGXPBankSchemaBase):
     created_at: datetime
     updated_at: datetime
-
-    model_config = {
-        "from_attributes": True
-    }

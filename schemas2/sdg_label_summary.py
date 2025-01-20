@@ -1,11 +1,17 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-
 class SDGLabelSummarySchemaBase(BaseModel):
     sdg_label_summary_id: int
     publication_id: int
     history_id: int
+
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
+
+
+class SDGLabelSummarySchemaFull(SDGLabelSummarySchemaBase):
     sdg1: int
     sdg2: int
     sdg3: int
@@ -23,17 +29,9 @@ class SDGLabelSummarySchemaBase(BaseModel):
     sdg15: int
     sdg16: int
     sdg17: int
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
-class SDGLabelSummarySchemaFull(SDGLabelSummarySchemaBase):
-
     created_at: datetime
     updated_at: datetime
 
     model_config = {
-        "from_attributes": True
+        "from_attributes": True  # Enables ORM-style model validation
     }

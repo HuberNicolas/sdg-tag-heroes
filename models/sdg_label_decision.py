@@ -3,15 +3,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from models import Base
 from settings.settings import TimeZoneSettings
-from enum import Enum as PyEnum
 
 time_zone_settings = TimeZoneSettings()
 
-
-class DecisionType(PyEnum):
-    CONSENSUS_MAJORITY = "Consensus Majority"
-    CONSENSUS_TECHNOCRATIC = "Consensus Technocratic"
-    EXPERT_DECISION = "Expert Decision"
+from enums.enums import DecisionType
 
 
 

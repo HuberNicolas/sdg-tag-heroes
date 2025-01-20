@@ -26,9 +26,8 @@ class SDGPredictionSchemaBase(BaseModel):
     predicted: bool
 
     model_config = {
-        "from_attributes": True
+        "from_attributes": True  # Enables ORM-style model validation
     }
-
 
 class SDGPredictionSchemaFull(SDGPredictionSchemaBase):
     last_predicted_goal: int
@@ -36,5 +35,5 @@ class SDGPredictionSchemaFull(SDGPredictionSchemaBase):
     updated_at: datetime
 
     model_config = {
-        "from_attributes": True
+        "from_attributes": True  # Enables ORM-style model validation
     }

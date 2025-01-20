@@ -1,35 +1,73 @@
-from .publications.author import AuthorSchemaBase, AuthorSchemaFull
+from .sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
+from .sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
 
-from .publications.publication import PublicationSchemaBase, PublicationSchemaFull
+from .users.user import UserSchemaBase, UserSchemaFull
+from .users.admin import AdminSchemaBase, AdminSchemaFull
+from .users.expert import ExpertSchemaBase, ExpertSchemaFull
+from .users.labeler import LabelerSchemaBase, LabelerSchemaFull
 
-from .sdg.target import SDGTargetSchemaBase, SDGTargetSchemaFull
-from .sdg.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
+from .author import AuthorSchemaBase, AuthorSchemaFull
+from .publication import PublicationSchemaBase, PublicationSchemaFull
+
+from .faculty import FacultySchemaBase, FacultySchemaFull
+from .institute import InstituteSchemaBase, InstituteSchemaFull
+from .division import DivisionSchemaBase, DivisionSchemaFull
 
 from .dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
 
 from .sdg_prediction import SDGPredictionSchemaBase, SDGPredictionSchemaFull
-
 from .sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull
 from .sdg_label_history import SDGLabelHistorySchemaBase, SDGLabelHistorySchemaFull
 from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
+from .sdg_user_label import SDGUserLabelSchemaBase, SDGUserLabelSchemaFull
+
+from .vote import VoteSchemaBase, VoteSchemaFull
+from .annotation import AnnotationSchemaBase, AnnotationSchemaFull
+
+from sdg_coin_wallet_history import SDGCoinWalletHistorySchemaBase, SDGCoinWalletHistorySchemaFull
+from sdg_coin_wallet import SDGCoinWalletSchemaBase, SDGCoinWalletSchemaFull
+from sdg_xp_bank_history import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
+from sdg_xp_bank import SDGXPBankSchemaBase, SDGXPBankSchemaFull
+
+from fact import FactSchemaBase, FactSchemaFull
+from summary import SummarySchemaBase, SummarySchemaFull
 
 
-from .users.user import UserSchemaFull
 
 # Export all models for external use
 __all__ = [
-    "AuthorSchemaBase",
-    "AuthorSchemaFull",
-
-
-    "PublicationSchemaBase",
-    "PublicationSchemaFull",
-
     "SDGTargetSchemaBase",
     "SDGTargetSchemaFull",
 
     "SDGGoalSchemaBase",
     "SDGGoalSchemaFull",
+
+    "UserSchemaBase",
+    "UserSchemaFull",
+
+    "AdminSchemaBase",
+    "AdminSchemaFull",
+
+    "ExpertSchemaBase",
+    "ExpertSchemaFull",
+
+    "LabelerSchemaBase",
+    "LabelerSchemaFull",
+
+    "AuthorSchemaBase",
+    "AuthorSchemaFull",
+
+    "PublicationSchemaBase",
+    "PublicationSchemaFull",
+
+    "FacultySchemaBase",
+    "FacultySchemaFull",
+
+    "InstituteSchemaBase",
+    "InstituteSchemaFull",
+
+    "DivisionSchemaBase",
+    "DivisionSchemaFull",
 
     "DimensionalityReductionSchemaBase",
     "DimensionalityReductionSchemaFull",
@@ -37,15 +75,40 @@ __all__ = [
     "SDGPredictionSchemaBase",
     "SDGPredictionSchemaFull",
 
-
     "SDGLabelSummarySchemaBase",
     "SDGLabelSummarySchemaFull",
 
-    "SDGLabelHistorySchemaFull",
+    "SDGLabelHistorySchemaBase",
     "SDGLabelHistorySchemaFull",
 
     "SDGLabelDecisionSchemaBase",
     "SDGLabelDecisionSchemaFull",
 
-    "UserSchemaFull",
+    "SDGUserLabelSchemaBase",
+    "SDGUserLabelSchemaFull",
+
+
+    "VoteSchemaBase",
+    "VoteSchemaFull",
+
+    "AnnotationSchemaBase",
+    "AnnotationSchemaFull",
+
+    "SDGCoinWalletHistorySchemaBase",
+    "SDGCoinWalletHistorySchemaFull",
+
+    "SDGCoinWalletSchemaBase",
+    "SDGCoinWalletSchemaFull",
+
+    "SDGXPBankHistorySchemaBase",
+    "SDGXPBankHistorySchemaFull",
+
+    "SDGXPBankSchemaBase",
+    "SDGXPBankSchemaFull",
+
+    "FactSchemaBase",
+    "FactSchemaFull",
+
+    "SummarySchemaBase",
+    "SummarySchemaFull",
 ]

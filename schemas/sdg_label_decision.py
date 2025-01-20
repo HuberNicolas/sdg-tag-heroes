@@ -1,23 +1,30 @@
 from datetime import datetime
-from typing import Optional
-
+from typing import Optional, List, Union
 from pydantic import BaseModel
+
+from enums.enums import DecisionType
+from schemas import AnnotationSchemaBase, AnnotationSchemaFull
+
 
 class SDGLabelDecisionSchemaBase(BaseModel):
     decision_id: int
-    history_id: int
+    suggested_label: int
+    decided_label: int
+    decision_type: DecisionType
+    expert_id: Optional[int]
+    history_id: Optional[int]
     comment: Optional[str]
+    annotations: List[Union[AnnotationSchemaBase, AnnotationSchemaFull]]
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
 
 
 class SDGLabelDecisionSchemaFull(SDGLabelDecisionSchemaBase):
-    decided_at: datetime
     created_at: datetime
     updated_at: datetime
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }

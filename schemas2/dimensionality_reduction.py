@@ -13,7 +13,7 @@ class DimensionalityReductionSchemaBase(BaseModel):
     x_coord: float
     y_coord: float
     z_coord: Optional[float]
-    reduction_details: Optional[str]
+
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation
@@ -21,8 +21,10 @@ class DimensionalityReductionSchemaBase(BaseModel):
 
 
 class DimensionalityReductionSchemaFull(DimensionalityReductionSchemaBase):
+    reduction_details: Optional[str]
     created_at: datetime
     updated_at: datetime
+
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation

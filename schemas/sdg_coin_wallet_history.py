@@ -1,21 +1,25 @@
-from pydantic import BaseModel
 from datetime import datetime
+from pydantic import BaseModel
 from typing import Optional
 
-class SDGCoinWalletHistorySchemaCreate(BaseModel):
+
+class SDGCoinWalletHistorySchemaBase(BaseModel):
+    history_id: int
+    wallet_id: int
     increment: float
-    reason: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    reason: Optional[str]
+    is_shown: Optional[bool] = False
+    timestamp: datetime
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
 
 
-class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaCreate):
-    history_id: int
-    wallet_id: int
+class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaBase):
+    created_at: datetime
+    updated_at: datetime
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }

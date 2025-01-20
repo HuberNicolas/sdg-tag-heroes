@@ -21,7 +21,7 @@ from models.base import Base
 from models.sdg_label_decision import DecisionType
 from models.vote import VoteType
 
-from settings.enums import SDGEnum
+from enums.enums import SDGType
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)

@@ -16,3 +16,11 @@ user_group_association = Table(
     Column("user_id", ForeignKey("users.user_id"), primary_key=True),
     Column("group_id", ForeignKey("groups.group_id"), primary_key=True)
 )
+
+# Association table for the many-to-many relationship
+publication_authors_association = Table(
+    "publication_authors",
+    Base.metadata,
+    Column("publication_id", ForeignKey("publications.publication_id"), primary_key=True),
+    Column("author_id", ForeignKey("authors.author_id"), primary_key=True),
+)

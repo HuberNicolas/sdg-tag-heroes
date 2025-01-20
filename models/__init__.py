@@ -15,6 +15,7 @@ from .sdg_label_summary import SDGLabelSummary
 from .sdg_prediction import SDGPrediction
 from .sdg_target_prediction import SDGTargetPrediction
 
+from .associations import publication_authors_association
 from .associations import sdg_label_decision_user_label_association
 from .associations import user_group_association
 
@@ -75,6 +76,7 @@ __all__ = [
     "Faculty",
     "DimensionalityReduction",
     "Publication",
+    "publication_authors_association",
 
     "SDGGoal",
     "SDGTarget",
