@@ -2,8 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import List, Union
 
-from schemas import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
-
 class SDGXPBankSchemaBase(BaseModel):
     sdg_xp_bank_id: int
     user_id: int
@@ -25,7 +23,7 @@ class SDGXPBankSchemaBase(BaseModel):
     sdg15_xp: float
     sdg16_xp: float
     sdg17_xp: float
-    histories: List[Union[SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull]]
+    histories: List[Union["SDGXPBankHistorySchemaBase", "SDGXPBankHistorySchemaFull"]]
 
     model_config = {
         "from_attributes": True

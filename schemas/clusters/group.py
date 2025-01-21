@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Union
 from pydantic import BaseModel
 
-from schemas.clusters.level import ClusterLevelSchemaBase, ClusterLevelSchemaFull
 
 class ClusterGroupSchemaBase(BaseModel):
     id: int

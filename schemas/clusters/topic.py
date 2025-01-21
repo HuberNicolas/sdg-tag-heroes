@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Union
 from pydantic import BaseModel
 
-from schemas.clusters.publication_cluster import PublicationClusterSchemaBase, PublicationClusterSchemaFull
 
 class ClusterTopicSchemaBase(BaseModel):
     topic_id: int
@@ -13,7 +12,7 @@ class ClusterTopicSchemaBase(BaseModel):
     center_y: float
     name: str
     topic_name: str
-    publications: List[Union[PublicationClusterSchemaBase, PublicationClusterSchemaFull]]
+    publications: List[Union["PublicationClusterSchemaBase", "PublicationClusterSchemaFull"]]
 
     model_config = {
         "from_attributes": True

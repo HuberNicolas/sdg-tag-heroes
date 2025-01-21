@@ -1,8 +1,8 @@
 # Note: This was/should be deactivated as the circular imports are hard to handle for automatic schema generation via pydantic-to-typescript
+from .authentication import UserDataSchemaBase, UserDataSchemaFull, TokenDataSchemaBase, TokenDataSchemaFull, LoginSchemaBase, LoginSchemaFull
 
-
-from .sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
 from .sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
+from .sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
 
 from .users.user import UserSchemaBase, UserSchemaFull
 from .users.admin import AdminSchemaBase, AdminSchemaFull
@@ -29,27 +29,34 @@ from .sdg_user_label import SDGUserLabelSchemaBase, SDGUserLabelSchemaFull
 from .vote import VoteSchemaBase, VoteSchemaFull
 from .annotation import AnnotationSchemaBase, AnnotationSchemaFull
 
-from sdg_coin_wallet_history import SDGCoinWalletHistorySchemaBase, SDGCoinWalletHistorySchemaFull
-from sdg_coin_wallet import SDGCoinWalletSchemaBase, SDGCoinWalletSchemaFull
-from sdg_xp_bank_history import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
-from sdg_xp_bank import SDGXPBankSchemaBase, SDGXPBankSchemaFull
+from .sdg_coin_wallet_history import SDGCoinWalletHistorySchemaBase, SDGCoinWalletHistorySchemaFull
+from .sdg_coin_wallet import SDGCoinWalletSchemaBase, SDGCoinWalletSchemaFull
+from .sdg_xp_bank_history import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
+from .sdg_xp_bank import SDGXPBankSchemaBase, SDGXPBankSchemaFull
 
-from fact import FactSchemaBase, FactSchemaFull
-from summary import SummarySchemaBase, SummarySchemaFull
+from .fact import FactSchemaBase, FactSchemaFull
+from .summary import SummarySchemaBase, SummarySchemaFull
 
-from achievement import AchievementSchemaBase, AchievementSchemaFull
-from inventory import InventorySchemaBase, InventorySchemaFull
-from inventory_achievement_association import InventoryAchievementAssociationSchemaBase, InventoryAchievementAssociationSchemaFull
+from .achievement import AchievementSchemaBase, AchievementSchemaFull
+from .inventory import InventorySchemaBase, InventorySchemaFull
+from .inventory_achievement_association import InventoryAchievementAssociationSchemaBase, InventoryAchievementAssociationSchemaFull
 
-from clusters.publication_cluster import PublicationClusterSchemaBase, PublicationClusterSchemaFull
-from clusters.group import ClusterGroupSchemaBase, ClusterGroupSchemaFull
-from clusters.level import ClusterLevelSchemaBase, ClusterLevelSchemaFull
-from clusters.topic import ClusterTopicSchemaBase, ClusterTopicSchemaFull
+from .clusters.publication_cluster import PublicationClusterSchemaBase, PublicationClusterSchemaFull
+from .clusters.group import ClusterGroupSchemaBase, ClusterGroupSchemaFull
+from .clusters.level import ClusterLevelSchemaBase, ClusterLevelSchemaFull
+from .clusters.topic import ClusterTopicSchemaBase, ClusterTopicSchemaFull
 
-from collection import CollectionSchemaBase, CollectionSchemaFull
+from .collection import CollectionSchemaBase, CollectionSchemaFull
 
 # Export all models for external use
 __all__ = [
+    "UserDataSchemaBase",
+    "UserDataSchemaFull",
+    "TokenDataSchemaBase",
+    "TokenDataSchemaFull",
+    "LoginSchemaBase",
+    "LoginSchemaFull",
+
     "SDGTargetSchemaBase",
     "SDGTargetSchemaFull",
 

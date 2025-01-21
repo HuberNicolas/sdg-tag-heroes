@@ -2,10 +2,6 @@ from datetime import datetime
 from typing import Optional, List, Union
 from pydantic import BaseModel
 
-from schemas import AnnotationSchemaBase, AnnotationSchemaFull
-from schemas import VoteSchemaBase, VoteSchemaFull
-from schemas import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
-
 class SDGUserLabelSchemaBase(BaseModel):
     label_id: int
     user_id: int
@@ -13,9 +9,9 @@ class SDGUserLabelSchemaBase(BaseModel):
     voted_label: int
     abstract_section: Optional[str]
     comment: Optional[str]
-    annotations: List[Union[AnnotationSchemaBase, AnnotationSchemaFull]]
-    votes: List[Union[VoteSchemaBase, VoteSchemaFull]]
-    label_decisions: List[Union[SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull]]
+    annotations: List[Union["AnnotationSchemaBase", "AnnotationSchemaFull"]]
+    votes: List[Union["VoteSchemaBase", "VoteSchemaFull"]]
+    label_decisions: List[Union["SDGLabelDecisionSchemaBase", "SDGLabelDecisionSchemaFull"]]
 
     model_config = {
         "from_attributes": True

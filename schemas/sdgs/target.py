@@ -2,7 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, Union
 
-from schemas.sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
 
 class SDGTargetSchemaBase(BaseModel):
     id: int
@@ -11,7 +10,7 @@ class SDGTargetSchemaBase(BaseModel):
     color: str
     target_vector_index: int
     icon: Optional[str] = None  # Default to None if missing
-    sdg_goal: Optional[Union[SDGGoalSchemaBase, SDGGoalSchemaFull]]  # Nested relationship for goal
+    sdg_goal: Optional[Union["SDGGoalSchemaBase", "SDGGoalSchemaFull"]]  # Nested relationship for goal
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation

@@ -4,7 +4,6 @@ from typing import Optional
 
 from enums.enums import SDGType
 
-
 class SDGXPBankHistorySchemaBase(BaseModel):
     history_id: int
     xp_bank_id: int

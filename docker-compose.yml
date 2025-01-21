@@ -30,6 +30,8 @@ services:
       - ./api:/api
       - ./schemas:/schemas
       - ./models:/models
+      - ./enums:/enums
+      - ./queries:/queries
       - ./data/docker/logs:/logs
     ports:
       - "1002:8001"

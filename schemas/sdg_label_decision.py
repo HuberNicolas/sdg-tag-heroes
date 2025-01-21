@@ -3,7 +3,6 @@ from typing import Optional, List, Union
 from pydantic import BaseModel
 
 from enums.enums import DecisionType
-from schemas import AnnotationSchemaBase, AnnotationSchemaFull
 
 class SDGLabelDecisionSchemaBase(BaseModel):
     decision_id: int
@@ -13,7 +12,7 @@ class SDGLabelDecisionSchemaBase(BaseModel):
     expert_id: Optional[int]
     history_id: Optional[int]
     comment: Optional[str]
-    annotations: List[Union[AnnotationSchemaBase, AnnotationSchemaFull]]
+    annotations: List[Union["AnnotationSchemaBase", "AnnotationSchemaFull"]]
 
     model_config = {
         "from_attributes": True

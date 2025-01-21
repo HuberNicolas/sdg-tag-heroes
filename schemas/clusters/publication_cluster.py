@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
 
+
 class PublicationClusterSchemaBase(BaseModel):
     publication_cluster_id: int
     publication_id: int

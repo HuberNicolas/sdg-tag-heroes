@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 from enums.enums import UserRole
 
 class UserSchemaBase(BaseModel):
     user_id: int
     nickname: Optional[str]
-    email: EmailStr
+    email: str
     is_active: bool
     roles: List[UserRole]
 
