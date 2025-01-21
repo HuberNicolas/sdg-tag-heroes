@@ -77,6 +77,9 @@ class Publication(Base):
     division_id: Mapped[int | None] = mapped_column(ForeignKey("divisions.division_id"), nullable=True)
     division: Mapped["Division | None"] = relationship("Division")
 
+    collection_id: Mapped[int | None] = mapped_column(ForeignKey("collections.collection_id"), nullable=True)
+    collection: Mapped["Collection | None"] = relationship("Collection", back_populates="publications")
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(TimeZoneSettings.ZURICH_TZ),
@@ -95,7 +98,8 @@ class Publication(Base):
             f"title={self.title}, "
             f"oai_identifier={self.oai_identifier}, "
             f"year={self.year}, "
-            f"publisher={self.publisher})>"
+            f"publisher={self.publisher})>, ",
+            f"collection_id={self.collection_id}"
         )
 
 

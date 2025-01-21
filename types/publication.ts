@@ -9,6 +9,7 @@ import { SummarySchemaBase, SummarySchemaFull } from "./summary";
 import { FacultySchemaBase, FacultySchemaFull } from "./faculty";
 import { InstituteSchemaBase, InstituteSchemaFull } from "./institute";
 import { DivisionSchemaBase, DivisionSchemaFull } from "./division";
+import {CollectionSchemaBase, CollectionSchemaFull} from "./collection";
 
 export interface PublicationSchemaBase {
   publicationId: number;
@@ -42,6 +43,9 @@ export interface PublicationSchemaBase {
   institute?: (InstituteSchemaBase | InstituteSchemaFull)[] | null;
   divisionId?: number | null;
   division?: (DivisionSchemaBase | DivisionSchemaFull)[] | null;
+
+  collectionId?: number | null;
+  collection?: CollectionSchemaBase | CollectionSchemaFull | null;
 }
 
 export interface PublicationSchemaFull extends PublicationSchemaBase {

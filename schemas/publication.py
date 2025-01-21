@@ -16,6 +16,8 @@ from schemas.faculty import FacultySchemaBase, FacultySchemaFull
 from schemas.institute import InstituteSchemaBase, InstituteSchemaFull
 from schemas.division import DivisionSchemaBase, DivisionSchemaFull
 
+from schemas.collection import CollectionSchemaBase, CollectionSchemaFull
+
 class PublicationSchemaBase(BaseModel):
     publication_id: int
     oai_identifier: str
@@ -48,6 +50,9 @@ class PublicationSchemaBase(BaseModel):
     institute: Optional[List[Union[InstituteSchemaBase, InstituteSchemaFull]]]
     division_id: Optional[int]
     division: Optional[List[Union[DivisionSchemaBase, DivisionSchemaFull]]]
+
+    collection_id: Optional[int]
+    collection: Optional[Union[CollectionSchemaBase, CollectionSchemaFull]]
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation

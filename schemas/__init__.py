@@ -46,6 +46,8 @@ from clusters.group import ClusterGroupSchemaBase, ClusterGroupSchemaFull
 from clusters.level import ClusterLevelSchemaBase, ClusterLevelSchemaFull
 from clusters.topic import ClusterTopicSchemaBase, ClusterTopicSchemaFull
 
+from collection import CollectionSchemaBase, CollectionSchemaFull
+
 # Export all models for external use
 __all__ = [
     "SDGTargetSchemaBase",
@@ -151,4 +153,6 @@ __all__ = [
     "ClusterTopicSchemaBase",
     "ClusterTopicSchemaFull",
 
+    "CollectionSchemaBase",
+    "CollectionSchemaFull",
 ]

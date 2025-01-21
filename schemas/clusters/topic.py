@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Union
+from typing import List, Union
 from pydantic import BaseModel
 
 from schemas.clusters.publication_cluster import PublicationClusterSchemaBase, PublicationClusterSchemaFull
