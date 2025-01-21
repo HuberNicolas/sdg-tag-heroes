@@ -4,6 +4,7 @@ from datetime import datetime
 
 from models import Base
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
 
 

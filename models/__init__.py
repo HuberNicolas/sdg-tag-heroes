@@ -27,13 +27,13 @@ from .publications.faculty import  Faculty
 from .publications.dimensionality_reduction import DimensionalityReduction
 from .publications.publication import Publication
 
-from .sdg.sdg_goal import SDGGoal
-from .sdg.sdg_target import SDGTarget
+from .sdgs.goal import SDGGoal
+from .sdgs.target import SDGTarget
 
-from .sdg.clusters.group import ClusterGroup
-from .sdg.clusters.level import ClusterLevel
-from .sdg.clusters.topic import ClusterTopic
-from .sdg.clusters.publication_cluster import PublicationCluster
+from .clusters.group import ClusterGroup
+from .clusters.level import ClusterLevel
+from .clusters.topic import ClusterTopic
+from .clusters.publication_cluster import PublicationCluster
 
 
 from .inventory import Inventory

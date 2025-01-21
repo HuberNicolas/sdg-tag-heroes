@@ -4,6 +4,7 @@ from models.base import Base
 from datetime import datetime
 
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
 
 class SDGCoinWalletHistory(Base):

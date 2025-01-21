@@ -1,23 +1,29 @@
 from datetime import datetime
-from sqlalchemy import String, DateTime
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, String, DateTime, Integer
 
 from models.base import Base
 from settings.settings import TimeZoneSettings
 
+time_zone_settings = TimeZoneSettings()
 
-class SDGGoal(Base):
-    __tablename__ = "sdg_goals"
+
+class SDGTarget(Base):
+    __tablename__ = "sdg_targets"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    index: Mapped[int] = mapped_column(nullable=False, unique=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    color: Mapped[str] = mapped_column(String(7), nullable=False)  # Hex code color
+    index: Mapped[str] = mapped_column(String(10), nullable=False)
+    text: Mapped[str] = mapped_column(String(255), nullable=False)
+    color: Mapped[str] = mapped_column(String(7), nullable=False)
+    target_vector_index: Mapped[int] = mapped_column(Integer, nullable=False)
     icon: Mapped[str | None] = mapped_column(LONGTEXT)  # Base64 encoded SVG as LONGTEXT
 
-    # Relationship with SDGTarget
-    sdg_targets: Mapped[list["SDGTarget"]] = relationship("SDGTarget", back_populates="sdg_goal")
+    # Foreign key relationship to SDGGoal
+    sdg_goal_id: Mapped[int] = mapped_column(ForeignKey("sdg_goals.id"), nullable=False)
+
+    # Relationship with SDGGoal
+    sdg_goal: Mapped["SDGGoal"] = relationship("SDGGoal", back_populates="sdg_targets")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -32,4 +38,4 @@ class SDGGoal(Base):
     )
 
     def __repr__(self):
-        return f"<SDGGoal(index={self.index}, name={self.name}, color={self.color})>"
+        return f"<SDGTarget(index={self.index}, text={self.text}, SDGGoal={self.sdg_goal_id})>"

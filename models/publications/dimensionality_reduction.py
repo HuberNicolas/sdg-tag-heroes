@@ -1,10 +1,12 @@
 from datetime import datetime
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from settings.settings import TimeZoneSettings
+
 from models.base import Base
+from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
+
 
 class DimensionalityReduction(Base):
     __tablename__ = "dimensionality_reductions"

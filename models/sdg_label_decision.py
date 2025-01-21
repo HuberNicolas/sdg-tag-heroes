@@ -1,17 +1,14 @@
 from sqlalchemy import ForeignKey, DateTime, Text, Integer, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
 from models import Base
+from models.associations import sdg_label_decision_user_label_association
+from enums.enums import DecisionType
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
-from enums.enums import DecisionType
-
-
-
-# Association table for many-to-many relationship between SDGLabelDecision and SDGUserLabel
-from models.associations import sdg_label_decision_user_label_association
 
 class SDGLabelDecision(Base):
     """

@@ -9,6 +9,7 @@ from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
+
 class SDGXPBankHistory(Base):
     """
     Tracks incremental changes in the SDGXPBank over time.

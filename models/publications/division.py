@@ -1,17 +1,19 @@
 from datetime import datetime
-from sqlalchemy import String, DateTime, Integer
+from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
-from settings.settings import TimeZoneSettings
+
 from models.base import Base
+from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
-# setName Communities & Collections = 04 Faculty of Medicine: University Hospital Zurich: Division of Psychosocial Medicine (former)
-# setSpec	7375626A656374733D3130313730:3130313938:3130303539
-# Be aware: There can be up to 5 elements
-
 
 class Division(Base):
+    # setName Communities & Collections = 04 Faculty of Medicine: University Hospital Zurich: Division of Psychosocial Medicine (former)
+    # setSpec	7375626A656374733D3130313730:3130313938:3130303539
+    # Be aware: There can be up to 5 elements
+
+
     __tablename__ = "divisions"
 
     division_id: Mapped[int] = mapped_column(primary_key=True)

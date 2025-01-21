@@ -2,7 +2,6 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-
 from models.base import Base
 from settings.settings import TimeZoneSettings
 

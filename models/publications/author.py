@@ -1,11 +1,12 @@
 from datetime import datetime
-from sqlalchemy import String, DateTime, Integer, event
+from sqlalchemy import String, DateTime, event
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from settings.settings import TimeZoneSettings
-from models.base import Base
 
+from models.base import Base
+from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
+
 
 class Author(Base):
     __tablename__ = "authors"
