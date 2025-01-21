@@ -158,3 +158,36 @@ This schema can be used to validate data in `PATCH` or `PUT` requests, avoiding 
 - SQLAlchemy models interact with the database and define the schema for the tables.
 - Pydantic schemas handle API validation and data serialization, with minimal redundancy thanks to Pydantic’s `orm_mode`.
 - By following this approach, you ensure a clean, state-of-the-art architecture that minimizes redundancy while maintaining clear separation between database logic and API handling.
+
+
+## TypeScript Schema Generation
+
+### Prerequisites
+1. Install the `json-schema-to-typescript` package using `pnpm`:
+   ```bash
+   pnpm add -g json-schema-to-typescript
+   ```
+
+2. Ensure `pydantic-to-typescript` is installed via `poetry`:
+   ```bash
+   poetry add pydantic-to-typescript
+   ```
+
+### Generate Schemas
+Run the Python script to generate TypeScript schemas:
+```bash
+python generate_types.py
+```
+
+The generated `.ts` files will be saved in the `types` directory.
+
+## Models to Schemas.py to Schemas.ts
+
+Navigate to the `pipeline` directory, activate the appropriate environment, and run the following:
+```bash
+python generate_types.py
+```
+
+**Note**: Not all schemas may be generated due to potential circular imports.
+
+---

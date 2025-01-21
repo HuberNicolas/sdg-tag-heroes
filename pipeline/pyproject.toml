@@ -62,6 +62,7 @@ openai = "^1.57.0"
 
 # Orchestrator
 prefect = "<3.0"
+pydantic-to-typescript = "^2.0.0"
 
 [build-system]
 requires = ["poetry-core"]

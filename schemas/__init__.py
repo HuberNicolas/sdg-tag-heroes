@@ -1,3 +1,6 @@
+# Note: This was/should be deactivated as the circular imports are hard to handle for automatic schema generation via pydantic-to-typescript
+
+
 from .sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
 from .sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
 

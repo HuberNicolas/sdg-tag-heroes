@@ -1,6 +1,6 @@
 # Pydantic schemas (for inputs and responses)
 
-
+/schemas folder
 All validation and serialization logic (inputs and outputs) is centralized in /schemas.
 A single file per feature/domain contains both input and response schemas, making it easier to find related definitions.
 

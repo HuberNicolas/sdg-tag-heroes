@@ -3461,6 +3461,23 @@ toml = ["tomli (>=2.0.1)"]
 yaml = ["pyyaml (>=6.0.1)"]
 
 [[package]]
+name = "pydantic-to-typescript"
+version = "2.0.0"
+description = "Convert pydantic models to typescript interfaces"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pydantic_to_typescript-2.0.0-py3-none-any.whl", hash = "sha256:5bc5e1a940c1a39e4e3a6124bd3bda1b0fc6df85c673a4781b94a1f4150cae15"},
+    {file = "pydantic_to_typescript-2.0.0.tar.gz", hash = "sha256:06e92e8d10759ffebe3abdd4de14015bbf80809fa9960273be6041d8509662be"},
+]
+
+[package.dependencies]
+pydantic = "*"
+
+[package.extras]
+dev = ["coverage", "pytest", "pytest-cov", "ruff"]
+
+[[package]]
 name = "pygments"
 version = "2.18.0"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -5396,4 +5413,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.14"
-content-hash = "8fb45926ec39c1e0c0eb582547e8bc3c931f4c3119d08473da1bbfcd1a88c38b"
+content-hash = "1e3a184426f141e6b22cb3df5c021eff5c3d25481e26a8f600a88f462f0f384a"

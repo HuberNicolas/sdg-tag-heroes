@@ -1,5 +1,6 @@
 # Database interaction logic (query builders)
 
+/query folder
 Query logic, such as fetching from the database or applying filters, is centralized in /queries.
 These queries interact with models and abstract away database logic from the API layer.
 
