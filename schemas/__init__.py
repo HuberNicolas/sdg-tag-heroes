@@ -176,3 +176,8 @@ PublicationSchemaFull.model_rebuild()
 
 CollectionSchemaBase.model_rebuild()
 CollectionSchemaFull.model_rebuild()
+
+SDGGoalSchemaBase.model_rebuild()
+SDGGoalSchemaFull.model_rebuild()
+SDGTargetSchemaBase.model_rebuild()
+SDGTargetSchemaFull.model_rebuild()

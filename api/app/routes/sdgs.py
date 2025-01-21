@@ -1,28 +1,34 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
-
-from models.sdg.sdg_goal import SDGGoal
-
-from schemas.sdg.goal import SDGGoalSchemaFull
-
-from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
-
+from models.sdgs.goal import SDGGoal
+from schemas.sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
+from schemas.sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
 from settings.settings import SDGsRouterSettings
-sdgs_router_settings = SDGsRouterSettings()
-
-security = Security()
-# OAuth2 scheme for token authentication
-oauth2_scheme = security.oauth2_scheme
+from utils.logger import logger
 
 # Setup Logging
-from utils.logger import logger
+sdgs_router_settings = SDGsRouterSettings()
 logging = logger(sdgs_router_settings.SDGS_ROUTER_LOG_NAME)
 
+# OAuth2 scheme for token authentication
+security = Security()
+oauth2_scheme = security.oauth2_scheme
+
+# Create a session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
+
+# Dependency for getting DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 router = APIRouter(
     prefix="/sdgs",
@@ -33,19 +39,6 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
-
-# Create a session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
-
-
-# Dependency for getting DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 @router.get(
     "/{sdg_id}",
@@ -83,12 +76,12 @@ async def get_sdg(
         logging.error(f"Error fetching SDG goal with ID {sdg_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching the SDG goal",
+            detail=f"An error occurred while fetching the SDG goal {sdg_id}: {e}",
         )
 
 @router.get(
     "/",
-    response_model=Page[SDGGoalSchemaFull],
+    response_model=List[SDGGoalSchemaFull],
     description="Get all SDG goals with optional inclusion of targets"
 )
 async def get_sdgs(
@@ -102,27 +95,17 @@ async def get_sdgs(
     try:
         # Authenticate user
         user = verify_token(token, db)
-        logging.info("Fetching all SDG goals")
 
         # Base query for SDG goals
-        query = db.query(SDGGoal)
-
-        # Use FastAPI Pagination to fetch paginated data
-        paginated_query = sqlalchemy_paginate(query)
+        goals = db.query(SDGGoal).all()
 
         # Map the paginated items to Pydantic models
-        paginated_query.items = [SDGGoalSchemaFull.model_validate(goal) for goal in paginated_query.items]
+        return [SDGGoalSchemaFull.model_validate(goal) for goal in goals]
 
-        return paginated_query
 
     except Exception as e:
         logging.error(f"Error fetching SDG goals: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while fetching SDG goals",
+            detail=f"An error occurred while fetching SDG goals: {e}",
         )
-
-
-
-
-

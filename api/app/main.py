@@ -8,10 +8,10 @@ from api.app.routes import users
 from api.app.routes import sdg_xp_banks
 from api.app.routes import publications
 from api.app.routes import collections
+from api.app.routes import sdgs
 """
 
 from api.app.routes import authors
-from api.app.routes import authentication
 from api.app.routes import sdgs
 from api.app.routes import votes
 from api.app.routes import annotations
@@ -122,11 +122,12 @@ app.include_router(sdg_xp_banks.router)
 app.include_router(publications.router)
 app.include_router(collections.router)
 app.include_router(sdg_explanations.router)
+app.include_router(sdgs.router)
 
 """
 
 app.include_router(authors.router)
-app.include_router(sdgs.router)
+
 app.include_router(votes.router)
 app.include_router(annotations.router)
 app.include_router(sdg_user_labels.router)
