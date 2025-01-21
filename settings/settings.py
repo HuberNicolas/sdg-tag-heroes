@@ -240,3 +240,7 @@ class ExplainerSettings(BaseSettings):
 class UserAnnotationAssessmentSettings(BaseSettings):
     GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
     BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
+
+
+class FixturesSettings(BaseSettings):
+    FIXTURES_LOG_NAME: ClassVar[str] = "fixtures.log"

@@ -1,4 +1,3 @@
-import logging
 from random import choice, randint, uniform
 
 from sqlalchemy import text, func
@@ -18,14 +17,13 @@ from models import (
 )
 from db.mariadb_connector import engine as mariadb_engine
 from models.base import Base
-from models.sdg_label_decision import DecisionType
-from models.vote import VoteType
+from enums.enums import SDGType, DecisionType, VoteType
+from utils.logger import logger
+from settings.settings import FixturesSettings
 
-from enums.enums import SDGType
+fixtures_settings = FixturesSettings()
 
-# Logging setup
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging = logger(fixtures_settings.FIXTURES_LOG_NAME)
 
 # Faker instance
 faker = Faker()
@@ -36,13 +34,13 @@ def truncate_tables(session: Session, tables: list):
     """
     Truncate specified tables in the database.
     """
-    logger.info("Truncating tables...")
+    logging.info("Truncating tables...")
     session.execute(text(f"SET foreign_key_checks = 0;"))
     for table in tables:
         session.execute(text(f"TRUNCATE TABLE {table};"))
     session.execute(text(f"SET foreign_key_checks = 1;"))
     session.commit()
-    logger.info("Tables truncated successfully.")
+    logging.info("Tables truncated successfully.")
 
 
 def load_users(session: Session, max_users: int = 11):
@@ -51,7 +49,7 @@ def load_users(session: Session, max_users: int = 11):
     """
     users = session.query(User).limit(max_users).all()
     if not users:
-        logger.error("No users found in the database.")
+        logging.error("No users found in the database.")
     return users
 
 
@@ -61,7 +59,7 @@ def load_publications(session: Session, max_pubs: int = 10):
     """
     publications = session.query(Publication).limit(max_pubs).all()
     if not publications:
-        logger.error("No publications found in the database.")
+        logging.error("No publications found in the database.")
     return publications
 
 
@@ -71,7 +69,7 @@ def load_experts(session: Session):
     """
     experts = session.query(Expert).all()
     if not experts:
-        logger.error("No experts found in the database.")
+        logging.error("No experts found in the database.")
     return experts
 
 
@@ -79,7 +77,7 @@ def create_sdg_user_labels(session: Session, users: list[User], num_labels: int 
     """
     Create SDGUserLabels and store them in the database.
     """
-    logger.info("Creating SDGUserLabels...")
+    logging.info("Creating SDGUserLabels...")
     labels = []
     for _ in range(num_labels):
         label = SDGUserLabel(
@@ -95,7 +93,7 @@ def create_sdg_user_labels(session: Session, users: list[User], num_labels: int 
         session.add(label)
         labels.append(label)
     session.commit()
-    logger.info(f"Created {num_labels} SDGUserLabels.")
+    logging.info(f"Created {num_labels} SDGUserLabels.")
     return labels
 
 
@@ -103,20 +101,20 @@ def create_votes(session: Session, users: list[User], user_labels: list[SDGUserL
     """
     Create Votes and store them in the database.
     """
-    logger.info("Creating Votes...")
+    logging.info("Creating Votes...")
     votes = []
     for _ in range(num_votes):
         vote = Vote(
             user_id=choice(users).user_id,
             sdg_user_label_id=choice(user_labels).label_id,
-            vote_type=choice(["positive", "neutral", "negative"]),
+            vote_type=choice(list(VoteType)),
             score=round(uniform(0, 5), 2),
             created_at=faker.date_time_this_year(),
         )
         session.add(vote)
         votes.append(vote)
     session.commit()
-    logger.info(f"Created {num_votes} Votes.")
+    logging.info(f"Created {num_votes} Votes.")
     return votes
 
 
@@ -124,7 +122,7 @@ def create_annotations(session: Session, users: list[User], user_labels: list[SD
     """
     Create Annotations and store them in the database.
     """
-    logger.info("Creating Annotations...")
+    logging.info("Creating Annotations...")
     annotations = []
     for _ in range(num_annotations):
         annotation = Annotation(
@@ -138,7 +136,7 @@ def create_annotations(session: Session, users: list[User], user_labels: list[SD
         session.add(annotation)
         annotations.append(annotation)
     session.commit()
-    logger.info(f"Created {num_annotations} Annotations.")
+    logging.info(f"Created {num_annotations} Annotations.")
     return annotations
 
 
@@ -148,7 +146,7 @@ def create_sdg_label_decisions(
     """
     Create SDGLabelDecisions and store them in the database.
     """
-    logger.info("Creating SDGLabelDecisions...")
+    logging.info("Creating SDGLabelDecisions...")
     decisions = []
     for _ in range(num_decisions):
         history = choice(histories)
@@ -195,15 +193,15 @@ def create_sdg_label_decisions(
         unfinished_decisions.append(decision)
     session.commit()
 
-    logger.info(f"Created {num_decisions} SDGLabelDecisions.")
-    logger.info(f"Created {num_decisions} unfinished SDGLabelDecisions.")
+    logging.info(f"Created {num_decisions} SDGLabelDecisions.")
+    logging.info(f"Created {num_decisions} unfinished SDGLabelDecisions.")
     return decisions
 
 def create_wallets(session: Session, users: list[User]):
     """
     Create SDGCoinWallets for each user.
     """
-    logger.info("Creating SDGCoinWallets...")
+    logging.info("Creating SDGCoinWallets...")
     wallets = []
     for user in users:
         wallet = SDGCoinWallet(
@@ -215,14 +213,14 @@ def create_wallets(session: Session, users: list[User]):
         session.add(wallet)
         wallets.append(wallet)
     session.commit()
-    logger.info(f"Created {len(wallets)} SDGCoinWallets.")
+    logging.info(f"Created {len(wallets)} SDGCoinWallets.")
     return wallets
 
 def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_entries: int = 5):
     """
     Create incremental history entries for each wallet.
     """
-    logger.info("Creating SDGCoinWallet histories...")
+    logging.info("Creating SDGCoinWallet histories...")
     for wallet in wallets:
         for _ in range(num_entries):
             increment = round(uniform(-10, 50), 2)  # Random increment between -10 and +50
@@ -237,56 +235,56 @@ def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_
         # Update the wallet total after inserting histories
         wallet.total_coins = session.query(func.sum(SDGCoinWalletHistory.increment)).filter_by(wallet_id=wallet.sdg_coin_wallet_id).scalar() or 0.0
     session.commit()
-    logger.info("Created wallet histories.")
+    logging.info("Created wallet histories.")
 
 def create_xp_banks(session: Session, users: list[User]):
     """
     Create SDGXPBanks for each user with SDG-specific XP values.
     """
-    logger.info("Creating SDGXPBanks...")
+    logging.info("Creating SDGXPBanks...")
     xp_banks = []
     for user in users:
         xp_bank = SDGXPBank(
             user_id=user.user_id,
             total_xp=0.0,  # Initialize total XP to 0.0
-            sdg_1_xp=round(uniform(0, 500), 2),
-            sdg_2_xp=round(uniform(0, 500), 2),
-            sdg_3_xp=round(uniform(0, 500), 2),
-            sdg_4_xp=round(uniform(0, 500), 2),
-            sdg_5_xp=round(uniform(0, 500), 2),
-            sdg_6_xp=round(uniform(0, 500), 2),
-            sdg_7_xp=round(uniform(0, 500), 2),
-            sdg_8_xp=round(uniform(0, 500), 2),
-            sdg_9_xp=round(uniform(0, 500), 2),
-            sdg_10_xp=round(uniform(0, 500), 2),
-            sdg_11_xp=round(uniform(0, 500), 2),
-            sdg_12_xp=round(uniform(0, 500), 2),
-            sdg_13_xp=round(uniform(0, 500), 2),
-            sdg_14_xp=round(uniform(0, 500), 2),
-            sdg_15_xp=round(uniform(0, 500), 2),
-            sdg_16_xp=round(uniform(0, 500), 2),
-            sdg_17_xp=round(uniform(0, 500), 2),
+            sdg1_xp=round(uniform(0, 500), 2),
+            sdg2_xp=round(uniform(0, 500), 2),
+            sdg3_xp=round(uniform(0, 500), 2),
+            sdg4_xp=round(uniform(0, 500), 2),
+            sdg5_xp=round(uniform(0, 500), 2),
+            sdg6_xp=round(uniform(0, 500), 2),
+            sdg7_xp=round(uniform(0, 500), 2),
+            sdg8_xp=round(uniform(0, 500), 2),
+            sdg9_xp=round(uniform(0, 500), 2),
+            sdg10_xp=round(uniform(0, 500), 2),
+            sdg11_xp=round(uniform(0, 500), 2),
+            sdg12_xp=round(uniform(0, 500), 2),
+            sdg13_xp=round(uniform(0, 500), 2),
+            sdg14_xp=round(uniform(0, 500), 2),
+            sdg15_xp=round(uniform(0, 500), 2),
+            sdg16_xp=round(uniform(0, 500), 2),
+            sdg17_xp=round(uniform(0, 500), 2),
             created_at=faker.date_time_this_year(),
             updated_at=faker.date_time_this_year(),
         )
         # Calculate the total XP as the sum of SDG-specific XP values
         xp_bank.total_xp = sum(
-            getattr(xp_bank, f"sdg_{i}_xp") for i in range(1, 18)
+            getattr(xp_bank, f"sdg{i}_xp") for i in range(1, 18)
         )
         session.add(xp_bank)
         xp_banks.append(xp_bank)
     session.commit()
-    logger.info(f"Created {len(xp_banks)} SDGXPBanks.")
+    logging.info(f"Created {len(xp_banks)} SDGXPBanks.")
     return xp_banks
 
 def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_entries: int = 5):
     """
     Create incremental history entries for each XP bank with SDG-specific increments.
     """
-    logger.info("Creating SDGXPBank histories...")
+    logging.info("Creating SDGXPBank histories...")
     for xp_bank in xp_banks:
         for _ in range(num_entries):
-            sdg = choice(list(SDGEnum))  # Randomly choose an SDG to update
+            sdg = choice(list(SDGType))  # Randomly choose an SDG to update
             increment = round(uniform(10, 100), 2)  # Random increment between +10 and +100
             history = SDGXPBankHistory(
                 xp_bank_id=xp_bank.sdg_xp_bank_id,
@@ -304,16 +302,16 @@ def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_en
                 current_value = getattr(xp_bank, sdg_field, 0.0)
                 setattr(xp_bank, sdg_field, max(0.0, current_value + increment))  # Ensure no negative XP
             xp_bank.total_xp = sum(
-                getattr(xp_bank, f"sdg_{i}_xp") for i in range(1, 18)
+                getattr(xp_bank, f"sdg{i}_xp") for i in range(1, 18)
             )
     session.commit()
-    logger.info("Created XP bank histories.")
+    logging.info("Created XP bank histories.")
 
 def create_votes_for_annotations(session: Session, annotations: list[Annotation], users: list[User], num_votes: int = 20):
     """
     Create Votes attached to Annotations and store them in the database.
     """
-    logger.info("Creating Votes for Annotations...")
+    logging.info("Creating Votes for Annotations...")
     votes = []
     for _ in range(num_votes):
         annotation = choice(annotations)
@@ -336,7 +334,7 @@ def create_votes_for_annotations(session: Session, annotations: list[Annotation]
         session.add(vote)
         votes.append(vote)
     session.commit()
-    logger.info(f"Created {len(votes)} Votes for Annotations.")
+    logging.info(f"Created {len(votes)} Votes for Annotations.")
     return votes
 
 def populate_db(
@@ -365,13 +363,13 @@ def populate_db(
         experts = load_experts(session)
 
         if not users or not publications or not experts:
-            logger.error("Users, Publications, or Experts not found in the database. Exiting.")
+            logging.error("Users, Publications, or Experts not found in the database. Exiting.")
             return
 
         # Fetch existing SDGLabelHistories
         histories = session.query(SDGLabelHistory).all()
         if not histories:
-            logger.error("No SDGLabelHistories found in the database.")
+            logging.error("No SDGLabelHistories found in the database.")
             return
 
         # Create wallets and XP banks for each user
@@ -398,15 +396,15 @@ def populate_db(
         # Create SDGLabelDecisions
         create_sdg_label_decisions(session, histories, user_labels, experts, num_decisions)
 
-        logger.info("Database population completed successfully.")
+        logging.info("Database population completed successfully.")
 
     except IntegrityError as e:
         session.rollback()
-        logger.error(f"IntegrityError encountered: {e}")
+        logging.error(f"IntegrityError encountered: {e}")
 
     except Exception as e:
         session.rollback()
-        logger.error(f"An error occurred during database population: {e}")
+        logging.error(f"An error occurred during database population: {e}")
 
 
 if __name__ == "__main__":
