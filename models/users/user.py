@@ -141,3 +141,8 @@ class User(Base):
         Hash and set the user's password.
         """
         self.hashed_password = pwd_context.hash(password)
+
+    def __repr__(self):
+        return (f"<User(user_id={self.user_id}, email={self.email}, nickname={self.nickname}, "
+                f"roles={self.roles}, is_active={self.is_active},"
+                f"created_at={self.created_at}, updated_at={self.updated_at})>")

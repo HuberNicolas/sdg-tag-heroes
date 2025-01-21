@@ -4,6 +4,7 @@ from fastapi.openapi.utils import get_openapi
 from contextlib import asynccontextmanager
 
 from api.app.routes import authentication
+from api.app.routes import users
 """
 from api.app.routes import publications
 from api.app.routes import authors
@@ -13,7 +14,7 @@ from api.app.routes import votes
 from api.app.routes import annotations
 from api.app.routes import sdg_user_labels
 from api.app.routes import dimensionality_reductions
-from api.app.routes import users
+
 from api.app.routes import sdg_predictions
 from api.app.routes import profiles
 #from api.app.routes import summaries # Way to slow w/o ChatGPT
@@ -113,6 +114,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 add_pagination(app)  # important! add pagination to your app
 app.include_router(authentication.router)
+app.include_router(users.router)
 """
 app.include_router(publications.router)
 app.include_router(authors.router)

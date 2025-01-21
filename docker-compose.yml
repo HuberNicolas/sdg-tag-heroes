@@ -31,7 +31,7 @@ services:
       - ./schemas:/schemas
       - ./models:/models
       - ./enums:/enums
-      - ./queries:/queries
+      - ./requests_models:/requests_models
       - ./data/docker/logs:/logs
     ports:
       - "1002:8001"

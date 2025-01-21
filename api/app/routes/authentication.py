@@ -9,7 +9,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models.users.user import User
 from schemas import UserDataSchemaFull, TokenDataSchemaFull, LoginSchemaFull
-from queries import LoginRequest
+from requests_models import LoginRequest
 from settings.settings import AuthenticationRouterSettings
 
 # Create a session factory
@@ -116,7 +116,6 @@ async def protected_route(token: str = Depends(oauth2_scheme), db: Session = Dep
             Information about the authenticated user.
         """
     user_token = verify_token(token, db)
-    print(user_token)
     return UserDataSchemaFull(user_id=user_token.user_id, email=user_token.email, roles=user_token.roles)
 
 @router.post("/login")
