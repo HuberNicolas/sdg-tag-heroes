@@ -9,9 +9,9 @@ class InstituteSchemaBase(BaseModel):
         "from_attributes": True  # Enables ORM-style model validation
     }
 
+
 class InstituteSchemaFull(InstituteSchemaBase):
     institute_setSpec: str
-
     created_at: datetime
     updated_at: datetime
 

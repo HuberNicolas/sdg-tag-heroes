@@ -2,7 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
 
-
 class DimensionalityReductionSchemaBase(BaseModel):
     dim_red_id: int
     publication_id: int

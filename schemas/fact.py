@@ -2,7 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
 
-
 class FactSchemaBase(BaseModel):
     fact_id: int
     content: Optional[str]

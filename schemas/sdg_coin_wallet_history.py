@@ -2,7 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
 
-
 class SDGCoinWalletHistorySchemaBase(BaseModel):
     history_id: int
     wallet_id: int

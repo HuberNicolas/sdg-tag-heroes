@@ -1,19 +1,21 @@
 from datetime import datetime
-from typing import Optional, Union
+from typing import List, Union
 from pydantic import BaseModel
 
 from schemas.users.user import UserSchemaBase, UserSchemaFull
 
-class AdminSchemaBase(BaseModel):
-    admin_id: int
-    user: Optional[Union[UserSchemaBase, UserSchemaFull]]
+
+class GroupSchemaBase(BaseModel):
+    group_id: int
+    name: str
+    members: List[Union[UserSchemaBase, UserSchemaFull]]  # List of user objects as schemas
 
     model_config = {
         "from_attributes": True
     }
 
 
-class AdminSchemaFull(AdminSchemaBase):
+class GroupSchemaFull(GroupSchemaBase):
     created_at: datetime
     updated_at: datetime
 

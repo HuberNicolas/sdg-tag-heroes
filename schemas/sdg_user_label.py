@@ -6,7 +6,6 @@ from schemas import AnnotationSchemaBase, AnnotationSchemaFull
 from schemas import VoteSchemaBase, VoteSchemaFull
 from schemas import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
 
-
 class SDGUserLabelSchemaBase(BaseModel):
     label_id: int
     user_id: int

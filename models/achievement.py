@@ -1,6 +1,7 @@
 from sqlalchemy import String, DateTime
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
+
 from models.base import Base
 from settings.settings import TimeZoneSettings
 

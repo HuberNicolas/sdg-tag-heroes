@@ -1,10 +1,10 @@
 from datetime import datetime
-
 from sqlalchemy import DateTime, ForeignKey, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from models.base import Base
 
+from models.base import Base
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
 
 

@@ -9,6 +9,7 @@ class FacultySchemaBase(BaseModel):
         "from_attributes": True  # Enables ORM-style model validation
     }
 
+
 class FacultySchemaFull(FacultySchemaBase):
     faculty_setSpec: str
     created_at: datetime

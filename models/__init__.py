@@ -38,7 +38,7 @@ from .sdg.clusters.publication_cluster import PublicationCluster
 
 from .inventory import Inventory
 from .achievement import Achievement
-from .inventor_achievement_association import InventoryAchievementAssociation
+from .inventory_achievement_association import InventoryAchievementAssociation
 
 from .fact import Fact
 from .summary import Summary

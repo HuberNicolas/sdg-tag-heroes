@@ -2,7 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
 
-
 class SummarySchemaBase(BaseModel):
     summary_id: int
     content: Optional[str]

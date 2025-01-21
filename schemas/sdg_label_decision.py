@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from enums.enums import DecisionType
 from schemas import AnnotationSchemaBase, AnnotationSchemaFull
 
-
 class SDGLabelDecisionSchemaBase(BaseModel):
     decision_id: int
     suggested_label: int

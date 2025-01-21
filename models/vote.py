@@ -1,13 +1,12 @@
 from sqlalchemy import Enum, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
 from models import Base
+from enums.enums import VoteType
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
-
-
-from enums.enums import VoteType
 
 class Vote(Base):
     """

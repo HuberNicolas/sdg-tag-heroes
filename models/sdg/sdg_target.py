@@ -1,8 +1,8 @@
 from datetime import datetime
-
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String, DateTime, Integer
+
 from models.base import Base
 from settings.settings import TimeZoneSettings
 

@@ -10,7 +10,7 @@ class SDGGoalSchemaBase(BaseModel):
     name: str
     color: str
     icon: Optional[str] = None  # Default to None if missing
-    sdg_targets: Optional[List[Union[SDGTargetSchemaBase, SDGTargetSchemaFull]]] = Field(default_factory=list)
+    sdg_targets: Optional[List[Union[SDGTargetSchemaBase, SDGTargetSchemaFull]]] = Field(list) # Todo: Double check if Field(list) is fine
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation

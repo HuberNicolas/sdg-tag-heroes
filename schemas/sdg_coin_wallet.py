@@ -4,7 +4,6 @@ from typing import List, Union
 
 from schemas import SDGCoinWalletHistorySchemaBase, SDGCoinWalletHistorySchemaFull
 
-
 class SDGCoinWalletSchemaBase(BaseModel):
     sdg_coin_wallet_id: int
     user_id: int

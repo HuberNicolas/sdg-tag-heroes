@@ -17,6 +17,7 @@ class AnnotationSchemaBase(BaseModel):
         "from_attributes": True
     }
 
+
 class AnnotationSchemaFull(AnnotationSchemaBase):
     created_at: datetime
     updated_at: datetime

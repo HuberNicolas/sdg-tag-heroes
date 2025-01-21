@@ -4,7 +4,6 @@ from typing import List, Union
 
 from schemas import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
 
-
 class SDGXPBankSchemaBase(BaseModel):
     sdg_xp_bank_id: int
     user_id: int

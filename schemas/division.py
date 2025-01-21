@@ -9,6 +9,7 @@ class DivisionSchemaBase(BaseModel):
         "from_attributes": True  # Enables ORM-style model validation
     }
 
+
 class DivisionSchemaFull(DivisionSchemaBase):
     division_setSpec: str
     created_at: datetime

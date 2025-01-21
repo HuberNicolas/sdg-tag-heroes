@@ -1,7 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-
 class SDGLabelSummarySchemaBase(BaseModel):
     sdg_label_summary_id: int
     publication_id: int
@@ -30,7 +29,6 @@ class SDGLabelSummarySchemaBase(BaseModel):
 
 
 class SDGLabelSummarySchemaFull(SDGLabelSummarySchemaBase):
-
     created_at: datetime
     updated_at: datetime
 

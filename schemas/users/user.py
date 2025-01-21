@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr
-from enums.enums import UserRole
 
+from enums.enums import UserRole
 
 class UserSchemaBase(BaseModel):
     user_id: int

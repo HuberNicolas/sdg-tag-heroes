@@ -1,4 +1,5 @@
 from sqlalchemy import Table, Column, ForeignKey
+
 from models.base import Base
 
 # Association table for many-to-many relationship between SDGLabelDecision and SDGUserLabel

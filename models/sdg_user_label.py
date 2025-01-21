@@ -1,12 +1,14 @@
-from sqlalchemy import ForeignKey, DateTime, String, Integer, CheckConstraint, Text
+from sqlalchemy import ForeignKey, DateTime, Integer, CheckConstraint, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
 from models import Base
+from models.associations import sdg_label_decision_user_label_association
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
-from models.associations import sdg_label_decision_user_label_association
+
 class SDGUserLabel(Base):
     """
     Represents a user-defined label in the SDG system.

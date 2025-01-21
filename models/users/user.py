@@ -10,8 +10,8 @@ from passlib.context import CryptContext
 from models.associations import user_group_association
 from models.base import Base
 from enums.enums import UserRole
-
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
 
 # Password hashing context

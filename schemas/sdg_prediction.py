@@ -1,7 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-
 class SDGPredictionSchemaBase(BaseModel):
     prediction_id: int
     publication_id: int
@@ -24,6 +23,7 @@ class SDGPredictionSchemaBase(BaseModel):
     sdg16: float
     sdg17: float
     predicted: bool
+    last_predicted_goal: int
 
     model_config = {
         "from_attributes": True
@@ -31,7 +31,6 @@ class SDGPredictionSchemaBase(BaseModel):
 
 
 class SDGPredictionSchemaFull(SDGPredictionSchemaBase):
-    last_predicted_goal: int
     created_at: datetime
     updated_at: datetime
 
