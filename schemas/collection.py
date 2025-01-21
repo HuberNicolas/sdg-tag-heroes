@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class CollectionSchemaBase(BaseModel):
     collection_id: int
+    topic_id: int  # Unique topic_id
     count: int
     name: str
     short_name: str

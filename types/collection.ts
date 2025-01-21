@@ -1,5 +1,6 @@
 export interface CollectionSchemaBase {
   collectionId: number;
+  topicId: number; // Unique topic_id
   count: number;
   name: string;
   shortName: string;
