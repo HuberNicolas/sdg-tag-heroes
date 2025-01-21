@@ -32,5 +32,5 @@ class SDGType(PyEnum):
     SDG_13 = "sdg13"
     SDG_14 = "sdg14"
     SDG_15 = "sdg15"
-    SDG_16 = "sdg6"
+    SDG_16 = "sdg16"
     SDG_17 = "sdg17"

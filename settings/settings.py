@@ -125,6 +125,8 @@ class ReducerSettings(BaseSettings):
 
     MAP_PARTITION_SIZE: ClassVar[int] = 9
 
+class UsersRouterSettings(BaseSettings):
+    USERS_ROUTER_LOG_NAME: ClassVar[str] = "api_users.log"
 
 class PublicationsRouterSettings(BaseSettings):
     PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"

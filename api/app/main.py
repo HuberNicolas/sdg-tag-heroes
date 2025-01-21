@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from api.app.routes import authentication
 from api.app.routes import users
+from api.app.routes import sdg_xp_banks
 """
 from api.app.routes import publications
 from api.app.routes import authors
@@ -18,7 +19,7 @@ from api.app.routes import dimensionality_reductions
 from api.app.routes import sdg_predictions
 from api.app.routes import profiles
 #from api.app.routes import summaries # Way to slow w/o ChatGPT
-from api.app.routes import sdg_xp_banks
+
 from api.app.routes import sdg_coin_wallets
 from api.app.routes import sdg_explanations
 from api.app.routes import sdg_label_summaries
@@ -115,6 +116,7 @@ app = FastAPI(lifespan=lifespan)
 add_pagination(app)  # important! add pagination to your app
 app.include_router(authentication.router)
 app.include_router(users.router)
+app.include_router(sdg_xp_banks.router)
 """
 app.include_router(publications.router)
 app.include_router(authors.router)
@@ -127,7 +129,7 @@ app.include_router(users.router)
 app.include_router(sdg_predictions.router)
 app.include_router(profiles.router)
 #app.include_router(summaries.router)
-app.include_router(sdg_xp_banks.router)
+
 app.include_router(sdg_coin_wallets.router)
 app.include_router(sdg_explanations.router)
 app.include_router(sdg_label_summaries.router)
