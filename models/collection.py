@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from sqlalchemy import Integer, String, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -37,6 +38,25 @@ class Collection(Base):
         onupdate=lambda: datetime.now(TimeZoneSettings.ZURICH_TZ),
         nullable=False,
     )
+
+    def to_dict(self):
+        """
+        Converts the SQLAlchemy model instance to a dictionary for Pydantic validation.
+        """
+        return {
+            "collection_id": self.collection_id,
+            "topic_id": self.topic_id,
+            "count": self.count,
+            "name": self.name,
+            "short_name": self.short_name,
+            # Parse JSON string to list
+            "representation": json.loads(self.representation) if self.representation else [],
+            "aspect1": json.loads(self.aspect1) if self.aspect1 else [],
+            "aspect2": json.loads(self.aspect2) if self.aspect2 else [],
+            "aspect3": json.loads(self.aspect3) if self.aspect3 else [],
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
 
     def __repr__(self):
         return (

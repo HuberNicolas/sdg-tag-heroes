@@ -131,6 +131,8 @@ class UsersRouterSettings(BaseSettings):
 class PublicationsRouterSettings(BaseSettings):
     PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
 
+class CollectionsRouterSettings(BaseSettings):
+    COLLECTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_collections.log"
 
 class SummaryRouterSettings(BaseSettings):
     SUMMARY_ROUTER_LOG_NAME: ClassVar[str] = "api_summaries.log"

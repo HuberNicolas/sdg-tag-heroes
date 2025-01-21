@@ -164,9 +164,15 @@ __all__ = [
     "CollectionSchemaFull",
 ]
 
-# Resolve forward references for SDGXPBank and SDGXPBankHistory schemas
+# Resolve forward references for schemas
 # Rebuild models to resolve forward references
 SDGXPBankSchemaBase.model_rebuild()
 SDGXPBankSchemaFull.model_rebuild()
 SDGXPBankHistorySchemaBase.model_rebuild()
 SDGXPBankHistorySchemaFull.model_rebuild()
+
+PublicationSchemaBase.model_rebuild()
+PublicationSchemaFull.model_rebuild()
+
+CollectionSchemaBase.model_rebuild()
+CollectionSchemaFull.model_rebuild()

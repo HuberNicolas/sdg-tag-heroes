@@ -17,36 +17,36 @@ class PublicationSchemaBase(BaseModel):
     embedded: bool
     set_spec: Optional[str]
     is_dim_reduced: bool
-
     authors: Optional[List[Union["AuthorSchemaBase", "AuthorSchemaFull"]]]
-    sdg_label_summary: Optional[List[Union["SDGLabelSummarySchemaBase", "SDGLabelSummarySchemaFull"]]]
-    sdg_predictions: Optional[List[Union["SDGPredictionSchemaBase", "SDGPredictionSchemaFull"]]]
-    sdg_target_predictions: Optional[List[Union["SDGTargetPredictionSchemaBase", "SDGTargetPredictionSchemaFull"]]]
-    dimensionality_reductions: Optional[List[Union["DimensionalityReductionSchemaBase", "DimensionalityReductionSchemaFull"]]]
+    faculty_id: Optional[int]
+    faculty: Optional[Union["FacultySchemaBase", "FacultySchemaFull"]]
+    institute_id: Optional[int]
+    institute: Optional[Union["InstituteSchemaBase", "InstituteSchemaFull"]]
+    division_id: Optional[int]
+    division: Optional[Union["DivisionSchemaBase", "DivisionSchemaFull"]]
+    collection_id: Optional[int]
 
+    """
+    sdg_target_predictions: Optional[List[Union["SDGTargetPredictionSchemaBase", "SDGTargetPredictionSchemaFull"]]]
     clusters: Optional[List[Union["PublicationClusterSchemaBase", "PublicationClusterSchemaFull"]]]
     fact: Optional[Union["FactSchemaBase", "FactSchemaFull"]]
     summary: Optional[Union["SummarySchemaBase", "SummarySchemaFull"]]
-
-    faculty_id: Optional[int]
-    faculty: Optional[List[Union["FacultySchemaBase", "FacultySchemaFull"]]]
-    institute_id: Optional[int]
-    institute: Optional[List[Union["InstituteSchemaBase", "InstituteSchemaFull"]]]
-    division_id: Optional[int]
-    division: Optional[List[Union["DivisionSchemaBase", "DivisionSchemaFull"]]]
-
-    collection_id: Optional[int]
     collection: Optional[Union["CollectionSchemaBase", "CollectionSchemaFull"]]
+    """
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True,  # Enables ORM-style model validation
     }
 
 
 class PublicationSchemaFull(PublicationSchemaBase):
+    sdg_predictions: Optional[List[Union["SDGPredictionSchemaBase", "SDGPredictionSchemaFull"]]]
+    dimensionality_reductions: Optional[List[Union["DimensionalityReductionSchemaBase", "DimensionalityReductionSchemaFull"]]]
+    sdg_label_summary: Optional[Union["SDGLabelSummarySchemaBase", "SDGLabelSummarySchemaFull"]]
+
     created_at: datetime
     updated_at: datetime
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True, # Enables ORM-style model validation
     }

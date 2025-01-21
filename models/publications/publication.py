@@ -97,8 +97,8 @@ class Publication(Base):
             f"title={self.title}, "
             f"oai_identifier={self.oai_identifier}, "
             f"year={self.year}, "
-            f"publisher={self.publisher})>, ",
-            f"collection_id={self.collection_id}"
+            f"publisher={self.publisher}), "
+            f"collection_id={self.collection_id}>"
         )
 
 
