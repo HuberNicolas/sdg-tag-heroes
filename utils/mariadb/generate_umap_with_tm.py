@@ -32,7 +32,7 @@ LIMIT = 50000
 # Fetch publications matching the shorthand
 results = (
     db.query(Publication)
-    .limit(LIMIT)
+    # .limit(LIMIT)
     .all()
 )
 
