@@ -13,9 +13,9 @@ class CollectionSchemaBase(BaseModel):
     aspect2: List[str]
     aspect3: List[str]
 
-
-    class Config:
-        orm_mode = True  # Enables compatibility with SQLAlchemy objects
+    model_config = {
+        "from_attributes": True
+    }
 
 class CollectionSchemaFull(CollectionSchemaBase):
     created_at: datetime

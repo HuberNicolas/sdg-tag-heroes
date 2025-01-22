@@ -9,6 +9,7 @@ from api.app.routes import users
 from api.app.routes import sdg_xp_banks
 from api.app.routes import sdg_coin_wallets
 from api.app.routes import publications
+from api.app.routes import publications_gpt
 from api.app.routes import collections
 from api.app.routes import sdgs
 from api.app.routes import dimensionality_reductions
@@ -23,7 +24,6 @@ from api.app.routes import dimensionality_reductions
 
 from api.app.routes import sdg_predictions
 from api.app.routes import profiles
-#from api.app.routes import summaries # Way to slow w/o ChatGPT
 
 from api.app.routes import sdg_coin_wallets
 from api.app.routes import sdg_explanations
@@ -124,6 +124,7 @@ app.include_router(users.router)
 app.include_router(sdg_xp_banks.router)
 app.include_router(sdg_coin_wallets.router)
 app.include_router(publications.router)
+app.include_router(publications_gpt.router)
 app.include_router(collections.router)
 app.include_router(sdg_explanations.router)
 app.include_router(sdgs.router)
@@ -137,8 +138,6 @@ app.include_router(annotations.router)
 app.include_router(sdg_user_labels.router)
 app.include_router(sdg_predictions.router)
 app.include_router(profiles.router)
-#app.include_router(summaries.router)
-
 
 app.include_router(sdg_label_summaries.router)
 """

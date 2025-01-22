@@ -134,10 +134,6 @@ class PublicationsRouterSettings(BaseSettings):
 class CollectionsRouterSettings(BaseSettings):
     COLLECTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_collections.log"
 
-class SummaryRouterSettings(BaseSettings):
-    SUMMARY_ROUTER_LOG_NAME: ClassVar[str] = "api_summaries.log"
-
-
 class SDGsRouterSettings(BaseSettings):
     SDGS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdgs.log"
 
@@ -233,13 +229,11 @@ class EnvLoaderSettings(BaseSettings):
     ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
 
 
-class ExplainerSettings(BaseSettings):
+class GPTAssistantServiceSettings(BaseSettings):
     PROMPT_PATH: ClassVar[str] = "/prompts"
-
-    # smaller model (cheapest as of 06.2024) to keep the cost down
-    GPT_MODEL: ClassVar[str] = "gpt-3.5-turbo-0125"
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06" # o4 required for Instructor library
+    # smaller model (cheapest as of 06.2024) to keep the cost down: "gpt-3.5-turbo-0125"
     GPT_TEMPERATURE: ClassVar[float] = 0.2
-
 
 class UserAnnotationAssessmentSettings(BaseSettings):
     GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
