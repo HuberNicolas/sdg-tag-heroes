@@ -22,3 +22,9 @@ class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaBase):
     model_config = {
         "from_attributes": True
     }
+
+# Not directly derived from models
+class NoSDGCoinWalletHistorySchemaBase(BaseModel):
+    message: str = "No wallet history found for the user."
+    increment: float = 0.0
+    reason: Optional[str] = "No updates available."

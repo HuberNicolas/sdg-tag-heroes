@@ -143,7 +143,7 @@ async def add_bank_increment(
         db.commit()
         db.refresh(new_history)
 
-        return new_history
+        return SDGXPBankHistorySchemaFull.model_validate(new_history)
 
     except Exception as e:
         db.rollback()
@@ -154,13 +154,13 @@ async def add_bank_increment(
 
 
 @router.get("/personal", response_model=SDGXPBankSchemaFull,
-            description="Retrieve the personal bank user")
-async def get_user_bank(
+            description="Retrieve the personal bank for current user")
+async def get_personal_bank(
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme),
 ):
     """
-    Retrieve the bank (SDGXPBank) for a specific user by their ID.
+    Retrieve the bank (SDGXPBank) for current user by their ID.
     """
     try:
         user = verify_token(token, db)  # Ensure user is authenticated

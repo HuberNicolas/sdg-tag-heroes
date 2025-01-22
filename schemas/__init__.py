@@ -181,3 +181,9 @@ SDGGoalSchemaBase.model_rebuild()
 SDGGoalSchemaFull.model_rebuild()
 SDGTargetSchemaBase.model_rebuild()
 SDGTargetSchemaFull.model_rebuild()
+
+
+SDGCoinWalletSchemaBase.model_rebuild()
+SDGCoinWalletSchemaFull.model_rebuild()
+SDGXPBankHistorySchemaBase.model_rebuild()
+SDGXPBankHistorySchemaFull.model_rebuild()

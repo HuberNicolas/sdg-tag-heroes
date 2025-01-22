@@ -1,5 +1,3 @@
-import time
-
 from fastapi import APIRouter, Depends, HTTPException
 from pymongo.synchronous.database import Database
 from sqlalchemy.orm import Session, sessionmaker
@@ -76,7 +74,7 @@ async def get_sdg_explanation(
     explanation["oai_identifier"] = oai_identifier
     explanation["sql_id"] = publication_id
 
-    # Lifesaver
+    # Lifesaver for index creation, can also be done in Mongodb directly
     #indexes = explanations_collection.index_information()
     #explanations_collection.create_index("id", unique=True)
 
