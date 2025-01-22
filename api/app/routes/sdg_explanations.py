@@ -36,7 +36,7 @@ def get_db():
 
 router = APIRouter(
     prefix="/explanations",
-    tags=["explanations"],
+    tags=["Explanations"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

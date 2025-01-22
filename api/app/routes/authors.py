@@ -29,7 +29,7 @@ logging = logger(authors_router_settings.AUTHORS_ROUTER_LOG_NAME)
 
 router = APIRouter(
     prefix="/authors",
-    tags=["authors"],
+    tags=["Authors"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

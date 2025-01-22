@@ -33,19 +33,15 @@ def get_db():
 # Create the API router
 router = APIRouter(
     prefix="/users-profiles",
-    tags=["user-profiles"],
+    tags=["User Profiles"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},
         401: {"description": "Unauthorized"},
     },
 )
-
+# Use GPT assistant service
 assistant_service = GPTAssistantService()
-
-
-
-
 
 @router.post(
     "/skills",

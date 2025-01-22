@@ -44,7 +44,7 @@ oauth2_scheme = security.oauth2_scheme
 # Initialize the router
 router = APIRouter(
     prefix="/auth",
-    tags=["authentication"],
+    tags=["Authentication"],
     responses={404: {"description": "Not found"}},
 )
 

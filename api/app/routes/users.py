@@ -34,7 +34,7 @@ def get_db():
 # Create the API router
 router = APIRouter(
     prefix="/users",
-    tags=["users"],
+    tags=["Users"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

@@ -36,7 +36,7 @@ def get_db():
 # Create the API router
 router = APIRouter(
     prefix="/wallets",
-    tags=["wallets"],
+    tags=["Wallets"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

@@ -36,8 +36,8 @@ logging = logger(sdg_user_labels_router_settings.SDGUSERLABELS_ROUTER_LOG_NAME)
 
 
 router = APIRouter(
-    prefix="/sdg_user_labels",
-    tags=["sdg_user_labels"],
+    prefix="/sdg-user-labels",
+    tags=["SDG User Labels"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

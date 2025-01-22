@@ -42,7 +42,7 @@ def get_db():
 # Create the API Router
 router = APIRouter(
     prefix="/publications",
-    tags=["publications"],
+    tags=["Publications"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

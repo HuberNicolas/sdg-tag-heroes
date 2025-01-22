@@ -32,7 +32,7 @@ def get_db():
 
 router = APIRouter(
     prefix="/sdgs",
-    tags=["sdgs"],
+    tags=["SDGs"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

@@ -32,7 +32,7 @@ from utils.logger import logger
 logging = logger(sdg_predictions_router_settings.SDGPREDICTIONS_ROUTER_LOG_NAME)
 
 router = APIRouter(
-    prefix="/sdg_predictions",
+    prefix="/sdg-predictions",
     tags=["SDG Predictions"],
     responses={
         404: {"description": "Not found"},

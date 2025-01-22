@@ -44,7 +44,7 @@ umap_service = UMAPCoordinateService()
 
 router = APIRouter(
     prefix="/dimensionality-reductions",
-    tags=["dimensionality reductions"],
+    tags=["Dimensionality Reductions"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

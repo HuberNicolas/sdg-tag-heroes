@@ -32,7 +32,7 @@ def get_db():
 # Create the API Router
 router = APIRouter(
     prefix="/collections",
-    tags=["collections"],
+    tags=["Collections"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},

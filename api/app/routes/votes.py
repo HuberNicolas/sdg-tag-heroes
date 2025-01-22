@@ -30,7 +30,7 @@ logging = logger(votes_router_settings.VOTES_ROUTER_LOG_NAME)
 
 router = APIRouter(
     prefix="/votes",
-    tags=["votes"],
+    tags=["Votes"],
     responses={
         404: {"description": "Not found"},
         403: {"description": "Forbidden"},
