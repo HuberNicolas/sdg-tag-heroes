@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from api.app.routes import authentication
 from api.app.routes import sdg_explanations
 from api.app.routes import users
+from api.app.routes import user_profiles_gpt
 from api.app.routes import sdg_xp_banks
 from api.app.routes import sdg_coin_wallets
 from api.app.routes import publications
@@ -16,17 +17,13 @@ from api.app.routes import dimensionality_reductions
 """
 
 from api.app.routes import authors
-from api.app.routes import sdgs
 from api.app.routes import votes
 from api.app.routes import annotations
 from api.app.routes import sdg_user_labels
-from api.app.routes import dimensionality_reductions
 
 from api.app.routes import sdg_predictions
-from api.app.routes import profiles
 
 from api.app.routes import sdg_coin_wallets
-from api.app.routes import sdg_explanations
 from api.app.routes import sdg_label_summaries
 """
 
@@ -121,6 +118,7 @@ app = FastAPI(lifespan=lifespan)
 add_pagination(app)  # important! add pagination to your app
 app.include_router(authentication.router)
 app.include_router(users.router)
+app.include_router(user_profiles_gpt.router)
 app.include_router(sdg_xp_banks.router)
 app.include_router(sdg_coin_wallets.router)
 app.include_router(publications.router)

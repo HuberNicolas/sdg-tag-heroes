@@ -5,13 +5,15 @@ import instructor
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
-from schemas.gpt_assistant.gpt_assistant import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema
+from schemas.gpt_assistant.gpt_assistant import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
+    GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema
 from settings.settings import GPTAssistantServiceSettings
 from utils.env_loader import load_env, get_env_variable
 from .strategies.fact_generator import FactStrategy
 from .strategies.keyword_extractor import ExtractKeywordsStrategy
 from .strategies.sdg_explainer import GoalStrategy, TargetStrategy
 from .strategies.summarizer import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
+from .strategies.user_query_generator import SkillsQueryStrategy, InterestsQueryStrategy
 
 # Load the API environment variables
 load_env('api.env')
@@ -88,3 +90,16 @@ class GPTAssistantService:
                 summary=f"Error generating summary: {str(e)}",
                 keywords=[]
             )
+
+    def generate_skills_description(self, skills: str) -> GPTResponseSkillsQuerySchema:
+        """Generates an enriched description for the user's skills."""
+        strategy = SkillsQueryStrategy()
+        prompt_data = strategy.generate_prompt(skills)
+        return self._call_model(strategy.context, prompt_data, GPTResponseSkillsQuerySchema)
+
+    def generate_interests_description(self, interests: str) -> GPTResponseSkillsQuerySchema:
+        """Generates an enriched description for the user's interests."""
+        strategy = InterestsQueryStrategy()
+        prompt_data = strategy.generate_prompt(interests)
+        return self._call_model(strategy.context, prompt_data, GPTResponseSkillsQuerySchema)
+

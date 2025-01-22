@@ -11,6 +11,11 @@ from models.users.user import User
 from schemas import UserDataSchemaFull, TokenDataSchemaFull, LoginSchemaFull
 from requests_models import LoginRequest
 from settings.settings import AuthenticationRouterSettings
+from utils.logger import logger
+
+# Setup Logging
+authentication_router_settings = AuthenticationRouterSettings()
+logging = logger(authentication_router_settings.AUTHENTICATION_ROUTER_LOG_NAME)
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
@@ -36,18 +41,12 @@ pwd_context = security.pwd_context
 oauth2_scheme = security.oauth2_scheme
 
 
-# Setup Logging
-authentication_router_settings = AuthenticationRouterSettings()
-from utils.logger import logger
-logging = logger(authentication_router_settings.AUTHENTICATION_ROUTER_LOG_NAME)
-
 # Initialize the router
 router = APIRouter(
     prefix="/auth",
     tags=["authentication"],
     responses={404: {"description": "Not found"}},
 )
-
 
 # Function to verify JWT tokens and extract claims using PyJWT
 def verify_token(token: str, db: Session):
@@ -73,7 +72,7 @@ def verify_token(token: str, db: Session):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        logging.info(f"Verify token function: User {user} is authenticated")
+        logging.info(f"Verify token function: User {user.email} (ID: {user.user_id}) is authenticated")
 
         return TokenDataSchemaFull(user_id=user.user_id, email=user.email, roles=roles)
 

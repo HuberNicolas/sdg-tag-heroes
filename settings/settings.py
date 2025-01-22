@@ -37,8 +37,8 @@ class SimilaritySearchSettings(BaseSettings):
     SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
 
 
-class ProfileRouterSettings(BaseSettings):
-    PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_profiles_.log"
+class UserProfilesRouterSettings(BaseSettings):
+    USER_PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_user_profiles_.log"
 
 
 class LoaderSettings(BaseSettings):

@@ -1,6 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 
+
 class PublicationIdsRequest(BaseModel):
     publication_ids: List[int]
 

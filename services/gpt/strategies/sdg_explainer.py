@@ -1,7 +1,6 @@
 from .strategy import PromptStrategy
 
 class TargetStrategy(PromptStrategy):
-
     """Analyzes SDG relevance based on the provided target."""
 
     def __init__(self, target: str):
@@ -16,7 +15,6 @@ class TargetStrategy(PromptStrategy):
         }
 
 class GoalStrategy(PromptStrategy):
-
     """Analyzes SDG relevance based on the provided goal."""
 
     def __init__(self, goal: str):

@@ -23,6 +23,15 @@ class GPTResponseCollectiveSummarySchema(BaseModel):
     summary: str
     keywords: List[str]
 
+class GPTResponseSkillsQuerySchema(BaseModel):
+    skills: str
+    generated_query: str
+
+class GPTResponseInterestsQuerySchema(BaseModel):
+    interests: str
+    generated_query: str
+
+
 # API Response Schemas
 
 # GPT SDG relevance explanation
@@ -50,7 +59,6 @@ class PublicationsCollectiveSummarySchema(BaseModel):
     summary: str
     keywords: List[str]
 
-
 class Config:
         from_attributes = True  # Enables ORM-style model validation
 
@@ -58,6 +66,21 @@ class Config:
 class PublicationKeywordsSchema(BaseModel):
     publication_id: int
     keywords: List[str]
+
+    class Config:
+        from_attributes = True
+
+
+class UserEnrichedSkillsDescriptionSchema(BaseModel):
+    input_skills: str
+    enriched_description: str
+
+    class Config:
+        from_attributes = True
+
+class UserEnrichedInterestsDescriptionSchema(BaseModel):
+    input_interests: str
+    enriched_description: str
 
     class Config:
         from_attributes = True

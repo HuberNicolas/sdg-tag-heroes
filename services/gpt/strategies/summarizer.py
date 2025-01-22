@@ -4,11 +4,10 @@ from .strategy import PromptStrategy
 
 
 class SummarizeSinglePublicationStrategy(PromptStrategy):
+    """ Summarizes a publication."""
 
-    """
-    Summarizes a publication.
-    """
-    context = "You are a summarization expert. Create a concise and informative summary of the given publication."
+    def __init__(self):
+        self.context = "You are a summarization expert. Create a concise and informative summary of the given publication."
 
     def generate_prompt(self, title: str, abstract: str) -> dict:
         return {
@@ -21,12 +20,10 @@ class SummarizeSinglePublicationStrategy(PromptStrategy):
         }
 
 class SummarizeMultiplePublicationsStrategy(PromptStrategy):
+    """Summarizes a set of publications into a single sentence and extracts keywords."""
 
-    """
-    Summarizes a set of publications into a single sentence and extracts keywords.
-    """
-
-    context = "You are a summarization assistant. Generate a single cohesive summary and keywords for a group of publications."
+    def __init__(self):
+        self.context = "You are a summarization assistant. Generate a single cohesive summary and keywords for a group of publications."
 
     def generate_prompt(self, publications: List[Dict[str, str]]) -> dict:
         summaries = [

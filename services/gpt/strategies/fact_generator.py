@@ -3,7 +3,8 @@ from .strategy import PromptStrategy
 class FactStrategy(PromptStrategy):
     """Generates a 'Did-You-Know' fact from an abstract."""
 
-    context = "You are a fact-generation assistant specializing in creating engaging 'Did-You-Know' facts from text."
+    def __init__(self):
+        self.context = "You are a fact-generation assistant specializing in creating engaging 'Did-You-Know' facts from text."
 
     def generate_prompt(self, title: str, abstract: str) -> dict:
         return {
