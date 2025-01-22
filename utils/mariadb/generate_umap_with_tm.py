@@ -32,6 +32,7 @@ LIMIT = 50000
 # Fetch publications matching the shorthand
 results = (
     db.query(Publication)
+    .filter(Publication.faculty_id == 11)
     # .limit(LIMIT)
     .all()
 )
@@ -348,8 +349,8 @@ data_json = data.to_dict(orient="records")
 with open("topic_data.json", "w") as f:
     json.dump(data_json, f, indent=4)
 
-data.to_csv("topic_data.csv", index=False)
-topic_info.to_csv("topic_info.csv", index=False)
+data.to_csv("wwf_topic_data.csv", index=False)
+topic_info.to_csv("wwf_topic_info.csv", index=False)
 
 print("Data exported successfully!")
 
