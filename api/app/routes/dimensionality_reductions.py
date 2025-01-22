@@ -1,14 +1,12 @@
 from collections import defaultdict
-from typing import List, Optional, Dict, Tuple, Any, Union
+from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker
 
-
-from api.app.security import Security
 from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-
 from models import DimensionalityReduction, SDGPrediction
 from models.publications.publication import Publication
 from requests_models.dimensionality_reductions import UserCoordinatesRequest, \
@@ -40,6 +38,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Use the UMAP service to calculate coordinates
+umap_service = UMAPCoordinateService()
 
 router = APIRouter(
     prefix="/dimensionality-reductions",
@@ -156,20 +157,23 @@ async def get_dimensionality_reductions_for_publication(
         "Calculate dimensionality reduction using user coordinates."
     ),
 )
-async def get_dimensionality_reductions_by_sdg_values(
+async def get_user_coordinates(
     request: UserCoordinatesRequest,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
 ) -> UserCoordinatesSchema:
-    # Verify the token before proceeding
-    user = verify_token(token, db)
-
-    # Use the UMAP service to calculate coordinates
-    umap_service = UMAPCoordinateService()
-    coordinates = umap_service.get_coordinates(
-        query=request.user_query, sdg=request.sdg, level=request.level
-    )
-    return UserCoordinatesSchema.model_validate(coordinates)
+    try:
+        # Verify the token before proceeding
+        user = verify_token(token, db)
+        coordinates = umap_service.get_coordinates(
+            query=request.user_query, sdg=request.sdg, level=request.level
+        )
+        return UserCoordinatesSchema.model_validate(coordinates)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while calculating dimensionality reductions: {e}",
+        )
 
 
 @router.get(
@@ -212,8 +216,6 @@ async def get_filtered_dimensionality_reductions(
 
         query = query.order_by(getattr(SDGPrediction, sdg_attr).desc()).limit(limit)
         publications = query.all()
-        print(len(publications))
-        print(publications[0])
 
         retrieved_count = len(publications)
         min_pred = float('inf')
@@ -221,16 +223,16 @@ async def get_filtered_dimensionality_reductions(
         model_counts = defaultdict(int)
         dim_reductions = []
 
-        for pub in publications:
-            for pred in pub.sdg_predictions:
-                if model and pred.prediction_model != model:
+        for publication in publications:
+            for sdg_prediction in publication.sdg_predictions:
+                if model and sdg_prediction.prediction_model != model:
                     continue
-                pred_value = getattr(pred, sdg_attr)
+                pred_value = getattr(sdg_prediction, sdg_attr)
                 min_pred = min(min_pred, pred_value)
                 max_pred = max(max_pred, pred_value)
-                model_counts[pred.prediction_model] += 1
+                model_counts[sdg_prediction.prediction_model] += 1
 
-            for dim_reduction in pub.dimensionality_reductions:
+            for dim_reduction in publication.dimensionality_reductions:
                 if dim_reduction.sdg == sdg:
                     if level and dim_reduction.level not in level:
                         continue
@@ -313,4 +315,3 @@ async def get_grouped_dimensionality_reductions(
             sdg_breakdown=sdg_stats
         )
     )
-
