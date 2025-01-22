@@ -21,11 +21,6 @@ class SkillsRequest(BaseModel):
 class InterestsRequest(BaseModel):
     interests: str
 
-class UserCoordinatesRequest(BaseModel):
-    sdg: int # (1..17)
-    level: int # (1..3)
-    user_query: str
-
 
 class AnnotationScoreRequest(BaseModel):
     passage: str = Field(..., description="The marked passage.")

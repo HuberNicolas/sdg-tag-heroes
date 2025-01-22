@@ -3,8 +3,8 @@ import time
 
 import joblib
 from sentence_transformers import SentenceTransformer
-from typing import Dict
 
+from schemas.dimensionality_reduction import UserCoordinatesSchema
 from settings.settings import EmbeddingsSettings, ReducerSettings
 
 embeddings_settings = EmbeddingsSettings()
@@ -54,14 +54,14 @@ class UMAPCoordinateService:
 
         return joblib.load(model_path)
 
-    def get_coordinates(self, query: str, sdg: int, level: int) -> Dict[str, float]:
+    def get_coordinates(self, query: str, sdg: int, level: int) -> UserCoordinatesSchema:
         """
         Calculate UMAP coordinates for a user query.
 
         :param query: User query as a string.
         :param sdg: SDG identifier (1-17).
         :param level: Level identifier (1-3).
-        :return: Dictionary containing the x, y, and z coordinates.
+        :return: UserCoordinatesSchema instance containing the x, y, z coordinates and timing data.
         """
         try:
             start = time.time()
@@ -83,14 +83,15 @@ class UMAPCoordinateService:
             end = time.time()
             umap_reduction_transform_time = end - start
 
-            # Return coordinates in a structured format
-            return {"x": reduced_coordinates[0],
-                    "y": reduced_coordinates[1],
-                    "z": 0.0,
-                    "embedding_time": embedding_time,
-                    "model_loading_time": model_loading_time,
-                    "umap_reduction_transform_time": umap_reduction_transform_time,
-                    }
+            # Return coordinates as a structured schema
+            return UserCoordinatesSchema(
+                x_coord=reduced_coordinates[0],
+                y_coord=reduced_coordinates[1],
+                z_coord=0.0,
+                embedding_time=embedding_time,
+                model_loading_time=model_loading_time,
+                umap_reduction_transform_time=umap_reduction_transform_time
+            )
 
         except Exception as e:
             raise e

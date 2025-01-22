@@ -11,6 +11,7 @@ from api.app.routes import sdg_coin_wallets
 from api.app.routes import publications
 from api.app.routes import collections
 from api.app.routes import sdgs
+from api.app.routes import dimensionality_reductions
 """
 
 from api.app.routes import authors
@@ -126,7 +127,7 @@ app.include_router(publications.router)
 app.include_router(collections.router)
 app.include_router(sdg_explanations.router)
 app.include_router(sdgs.router)
-
+app.include_router(dimensionality_reductions.router)
 """
 
 app.include_router(authors.router)
@@ -134,7 +135,6 @@ app.include_router(authors.router)
 app.include_router(votes.router)
 app.include_router(annotations.router)
 app.include_router(sdg_user_labels.router)
-app.include_router(dimensionality_reductions.router)
 app.include_router(sdg_predictions.router)
 app.include_router(profiles.router)
 #app.include_router(summaries.router)

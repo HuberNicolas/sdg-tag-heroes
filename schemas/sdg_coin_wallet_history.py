@@ -24,6 +24,7 @@ class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaBase):
     }
 
 # Not directly derived from models
+# Todo: Generate TS type
 class NoSDGCoinWalletHistorySchemaBase(BaseModel):
     message: str = "No wallet history found for the user."
     increment: float = 0.0

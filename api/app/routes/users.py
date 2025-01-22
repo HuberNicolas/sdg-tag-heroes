@@ -56,7 +56,6 @@ async def get_users_by_role(
 
         # Fetch all users
         users = db.query(User).all()
-        print(role)
 
         # Filter users by role
         if role and role != UserRole.USER:

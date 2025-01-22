@@ -1,48 +1,37 @@
 from collections import defaultdict
 from typing import List, Optional, Dict, Tuple, Any, Union
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session, sessionmaker, joinedload, load_only
+from fastapi import APIRouter, Depends, Query, HTTPException, status
+from sqlalchemy.orm import Session, sessionmaker
 
-from api.app.models.query import PublicationQuery, UserCoordinatesRequest
+
 from api.app.security import Security
 from api.app.routes.authentication import verify_token
 from db.mariadb_connector import engine as mariadb_engine
 
-from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
-
 from models import DimensionalityReduction, SDGPrediction
 from models.publications.publication import Publication
+from requests_models.dimensionality_reductions import UserCoordinatesRequest, \
+    DimensionalityReductionPublicationIdsRequest
 from schemas import DimensionalityReductionSchemaFull
+from schemas.dimensionality_reduction import FilteredDimensionalityReductionStatisticsSchema, \
+    FilteredSDGStatisticsSchema, \
+    UserCoordinatesSchema, GroupedDimensionalityReductionResponseSchema, GroupedDimensionalityReductionStatisticsSchema, \
+    GroupedSDGStatisticsSchema
 from services.umap_coordinates_generator import UMAPCoordinateService
-
 from settings.settings import DimensionalityReductionsRouterSettings
-dimensionality_reductions_router_settings = DimensionalityReductionsRouterSettings()
-
-security = Security()
-# OAuth2 scheme for token authentication
-oauth2_scheme = security.oauth2_scheme
+from utils.logger import logger
 
 # Setup Logging
-from utils.logger import logger
+dimensionality_reductions_router_settings = DimensionalityReductionsRouterSettings()
 logging = logger(dimensionality_reductions_router_settings.DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME)
 
-router = APIRouter(
-    prefix="/dimensionality_reductions",
-    tags=["Dimensionality Reductions"],
-    responses={
-        404: {"description": "Not found"},
-        403: {"description": "Forbidden"},
-        401: {"description": "Unauthorized"},
-    },
-)
+# Setup OAuth2 and security
+security = Security()
+oauth2_scheme = security.oauth2_scheme
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
-
 
 # Dependency for getting DB session
 def get_db():
@@ -52,9 +41,117 @@ def get_db():
     finally:
         db.close()
 
+router = APIRouter(
+    prefix="/dimensionality-reductions",
+    tags=["dimensionality reductions"],
+    responses={
+        404: {"description": "Not found"},
+        403: {"description": "Forbidden"},
+        401: {"description": "Unauthorized"},
+    },
+)
+
+@router.get("/", response_model=List[DimensionalityReductionSchemaFull], description="Retrieve all dimensionality reduction results")
+async def get_dimensionality_reductions(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    """
+    Retrieve all dimensionality reduction.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        dimensionality_reductions = db.query(DimensionalityReduction).limit(1000).all()
+
+        return [DimensionalityReductionSchemaFull.model_validate(dimensionality_reduction) for dimensionality_reduction in dimensionality_reductions]
+
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching dimensionality reductions: {e}",
+        )
+
+@router.post(
+    "/publications/{reduction_shorthand}",
+    response_model=List[DimensionalityReductionSchemaFull],
+    description="Retrieve all dimensionality reduction results for specified publications."
+)
+async def get_dimensionality_reductions_for_publications_by_ids(
+    request: DimensionalityReductionPublicationIdsRequest,
+    reduction_shorthand: str = "UMAP-15-0.1-2",
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    """
+    Retrieve all dimensionality reductions for a specific set of publications.
+    """
+    try:
+        # Ensure user is authenticated
+        user = verify_token(token, db)
+
+        # Extract publication IDs from the request
+        publication_ids = request.publication_ids
+
+        # Fetch publications matching the provided IDs
+        publications = db.query(Publication).filter(
+            Publication.publication_id.in_(publication_ids)
+        ).all()
+
+        if not publications:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No publications found for the given IDs: {publication_ids}",
+            )
+
+        # Gather dimensionality reductions for each publication
+        dimensionality_reductions = db.query(DimensionalityReduction).filter(
+            DimensionalityReduction.publication_id.in_(publication_ids),
+            DimensionalityReduction.reduction_shorthand == reduction_shorthand
+        ).all()
+
+        # Validate and return dimensionality reductions
+        return [
+            DimensionalityReductionSchemaFull.model_validate(reduction)
+            for reduction in dimensionality_reductions
+        ]
+
+    except HTTPException:
+        raise  # Re-raise any HTTP exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching dimensionality reductions: {e}",
+        )
+
+@router.get("/publications/{publication_id}/{reduction_shorthand}", response_model=List[DimensionalityReductionSchemaFull], description="Retrieve all dimensionality reduction results")
+async def get_dimensionality_reductions_for_publication(
+    publication_id: int,
+    reduction_shorthand: str = "UMAP-15-0.1-2",
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    """
+    Retrieve all dimensionality reduction for a specific publication.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        dimensionality_reductions = db.query(DimensionalityReduction).filter(DimensionalityReduction.publication.has(publication_id=publication_id)).filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand).all()
+
+        return [DimensionalityReductionSchemaFull.model_validate(dimensionality_reduction) for dimensionality_reduction in dimensionality_reductions]
+
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching dimensionality reductions for publication {publication_id}: {e}",
+        )
+
 @router.post(
     "/user-coordinates",
-    response_model=Dict[str, float],
+    response_model=UserCoordinatesSchema,
     description=(
         "Calculate dimensionality reduction using user coordinates."
     ),
@@ -63,28 +160,24 @@ async def get_dimensionality_reductions_by_sdg_values(
     request: UserCoordinatesRequest,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-
-) -> Dict[str, float]:
+) -> UserCoordinatesSchema:
     # Verify the token before proceeding
-    user = verify_token(token, db)  # Raises HTTPException if the token is invalid or expired
+    user = verify_token(token, db)
 
+    # Use the UMAP service to calculate coordinates
     umap_service = UMAPCoordinateService()
-
-    coordinates = umap_service.get_coordinates(query=request.user_query, sdg=request.sdg, level=request.level)
-    return coordinates
-
-
+    coordinates = umap_service.get_coordinates(
+        query=request.user_query, sdg=request.sdg, level=request.level
+    )
+    return UserCoordinatesSchema.model_validate(coordinates)
 
 
 @router.get(
-    "/by-sdg-values",
-    response_model=Dict[str, Any],  # Returns both statistics and dimensionality reduction data
-    description=(
-        "Retrieve dimensionality reductions of publications filtered by SDG values within a specified range. "
-        "You can specify a fixed model, level, and reduction shorthand for additional filtering."
-    ),
+    "/filtered",
+    response_model=FilteredDimensionalityReductionStatisticsSchema,
+    description="Retrieve dimensionality reductions filtered by SDG values and optional parameters."
 )
-async def get_dimensionality_reductions_by_sdg_values(
+async def get_filtered_dimensionality_reductions(
     sdg_range: Tuple[float, float] = Query(..., description="Range for SDG values, e.g., (0.98, 0.99)"),
     limit: int = Query(10, description="Limit for the number of publications per SDG group"),
     sdgs: Optional[List[int]] = Query(None, description="List of specific SDGs to filter, e.g., [1, 3, 12]"),
@@ -93,119 +186,94 @@ async def get_dimensionality_reductions_by_sdg_values(
     reduction_shorthand: Optional[str] = Query(None, description="Filter by reduction shorthand, e.g., 'UMAP-15-0.1-2'"),
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> Dict[str, Any]:
+) -> FilteredDimensionalityReductionStatisticsSchema:
     """
-    Retrieve dimensionality reductions of publications filtered by SDG values within a specified range.
-    Includes additional filters for levels and reduction shorthand.
+    Retrieve dimensionality reductions filtered by SDG values within a specified range.
     """
-    # Verify the token before proceeding
-    user = verify_token(token, db)  # Raises HTTPException if the token is invalid or expired
+    verify_token(token, db)
 
-    # Unpack the range
     min_value, max_value = sdg_range
+    sdg_list = sdgs if sdgs else list(range(1, 18))
 
-    print(f"Raw SDGs Query Param: {sdgs}")
-
-    # Check if `sdgs` is provided and not empty; otherwise, use the default range
-    if sdgs is not None and len(sdgs) > 0:
-        sdg_list = sdgs
-    else:
-        sdg_list = list(range(1, 18))
-
-    # Result dictionary to store dimensionality reductions and statistics
-    result = {
-        "statistics": {
-            "general_range": {"min_value": min_value, "max_value": max_value},
-            "sdg_statistics": {}
-        },
-        "dimensionality_reductions": {}
-    }
+    result_statistics = {}
+    result_reductions = {}
 
     for sdg in sdg_list:
-        # Construct the base query for publications matching the SDG criteria
         sdg_attr = f"sdg{sdg}"
         query = db.query(Publication).join(SDGPrediction)
 
         if model:
-            # Filter by model and SDG value range
             query = query.filter(
                 SDGPrediction.prediction_model == model,
                 getattr(SDGPrediction, sdg_attr).between(min_value, max_value)
             )
         else:
-            # Filter by SDG value range only
             query = query.filter(getattr(SDGPrediction, sdg_attr).between(min_value, max_value))
 
-        # Order the query by the SDG value in descending order and limit the results
         query = query.order_by(getattr(SDGPrediction, sdg_attr).desc()).limit(limit)
-
-        # Fetch publications
         publications = query.all()
+        print(len(publications))
+        print(publications[0])
 
-        # Collect statistics
         retrieved_count = len(publications)
         min_pred = float('inf')
         max_pred = float('-inf')
         model_counts = defaultdict(int)
-
-        # Gather dimensionality reductions for the retrieved publications
         dim_reductions = []
-        for publication in publications:
-            for prediction in publication.sdg_predictions:
-                if model and prediction.prediction_model != model:
+
+        for pub in publications:
+            for pred in pub.sdg_predictions:
+                if model and pred.prediction_model != model:
                     continue
-                pred_value = getattr(prediction, sdg_attr)
+                pred_value = getattr(pred, sdg_attr)
                 min_pred = min(min_pred, pred_value)
                 max_pred = max(max_pred, pred_value)
-                model_counts[prediction.prediction_model] += 1
+                model_counts[pred.prediction_model] += 1
 
-            # Add dimensionality reductions associated with this publication and the current SDG
-            for dim_red in publication.dimensionality_reductions:
-                if dim_red.sdg == sdg:  # Ensure the dimensionality reduction matches the current SDG
-                    if level and dim_red.level not in level:
-                        continue  # Skip if the level does not match
-                    if reduction_shorthand and dim_red.reduction_shorthand != reduction_shorthand:
-                        continue  # Skip if the shorthand does not match
-                    dim_reductions.append(DimensionalityReductionSchemaFull.model_validate(dim_red))
+            for dim_reduction in pub.dimensionality_reductions:
+                if dim_reduction.sdg == sdg:
+                    if level and dim_reduction.level not in level:
+                        continue
+                    if reduction_shorthand and dim_reduction.reduction_shorthand != reduction_shorthand:
+                        continue
+                    dim_reductions.append(DimensionalityReductionSchemaFull.model_validate(dim_reduction))
 
-        # Prepare SDG-specific statistics
-        result["statistics"]["sdg_statistics"][f"sdg{sdg}"] = {
-            "limit": limit,
-            "retrieved_count": retrieved_count,
-            "min_pred": min_pred if min_pred != float('inf') else None,
-            "max_pred": max_pred if max_pred != float('-inf') else None,
-            "pubs_per_model": dict(model_counts)
-        }
+        result_statistics[f"sdg{sdg}"] = FilteredSDGStatisticsSchema(
+            limit=limit,
+            retrieved_count=retrieved_count,
+            min_prediction_value=min_pred if min_pred != float('inf') else None,
+            max_prediction_value=max_pred if max_pred != float('-inf') else None,
+            publications_per_model=dict(model_counts),
+        )
+        result_reductions[f"sdg{sdg}"] = dim_reductions
 
-        # Add dimensionality reductions to result
-        result["dimensionality_reductions"][f"sdg{sdg}"] = dim_reductions
-
-    return result
-
-
-
+    return FilteredDimensionalityReductionStatisticsSchema(
+        statistics=result_statistics,
+        dimensionality_reductions=result_reductions
+    )
 
 
 @router.get(
-    "/",
-    response_model=Dict[str, Any],
-    description="Retrieve dimensionality reductions for specific SDGs and levels with optional filters."
+    "/grouped",
+    response_model=GroupedDimensionalityReductionResponseSchema,
+    description="Retrieve dimensionality reductions grouped by specific SDGs and levels."
 )
-async def get_dimensionality_reductions(
+async def get_grouped_dimensionality_reductions(
     sdg: List[int] = Query(..., description="List of specific SDGs to filter, e.g., ?sdg=1&sdg=4&sdg=12"),
     level: List[int] = Query(..., description="List of levels to filter, e.g., ?level=1&level=2&level=3"),
     reduction_shorthand: Optional[str] = Query(None, description="Filter by reduction shorthand, e.g., 'UMAP-15-0.1-2'"),
     limit: int = Query(200, description="Limit the number of results per SDG and level"),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+    token: str = Depends(oauth2_scheme),
+) -> GroupedDimensionalityReductionResponseSchema:
     """
-    Retrieve dimensionality reductions filtered by SDGs, levels, and optional shorthand.
-    Returns grouped results for each SDG and level, along with stats.
+    Retrieve dimensionality reductions grouped by SDGs and levels, with optional shorthand filter.
     """
-    result = {"reductions": {}, "stats": {}}
+    verify_token(token, db)
 
-    total_reductions = 0
+    reductions = {}
     sdg_stats = {}
+    total_reductions = 0
 
     for sdg_value in sdg:
         sdg_reductions = {}
@@ -216,51 +284,33 @@ async def get_dimensionality_reductions(
                 DimensionalityReduction.sdg == sdg_value,
                 DimensionalityReduction.level == level_value
             )
-
             if reduction_shorthand:
                 query = query.filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand)
 
-            # Limit results per SDG and level
-            query = query.limit(limit)
+            dim_reductions = query.limit(limit).all()
 
-            # Fetch results
-            dim_reductions = query.all()
-
-            # Serialize results
-            reductions_data = [
-                {
-                    "dim_red_id": dr.dim_red_id,
-                    "publication_id": dr.publication_id,
-                    "reduction_technique": dr.reduction_technique,
-                    "reduction_shorthand": dr.reduction_shorthand,
-                    "x_coord": dr.x_coord,
-                    "y_coord": dr.y_coord,
-                    "z_coord": dr.z_coord,
-                    "sdg": dr.sdg,
-                    "level": dr.level,
-                    "created_at": dr.created_at,
-                    "updated_at": dr.updated_at,
-                }
-                for dr in dim_reductions
+            # Store results for current level
+            sdg_reductions[f"level{level_value}"] = [
+                DimensionalityReductionSchemaFull.model_validate(dim_reduction) for dim_reduction in dim_reductions
             ]
+            count = len(dim_reductions)
+            sdg_total += count
+            total_reductions += count
 
-            # Add results for the current level
-            sdg_reductions[f"level{level_value}"] = reductions_data
-            sdg_total += len(dim_reductions)
-            total_reductions += len(dim_reductions)
+        # Group reductions and stats for current SDG
+        reductions[f"sdg{sdg_value}"] = sdg_reductions
+        sdg_stats[f"sdg{sdg_value}"] = GroupedSDGStatisticsSchema(
+            total_levels=len(level),
+            total_reductions=sdg_total
+        )
 
-        # Add reductions grouped by SDG
-        result["reductions"][f"sdg{sdg_value}"] = sdg_reductions
-        sdg_stats[f"sdg{sdg_value}"] = {"total_levels": len(level), "total_reductions": sdg_total}
-
-    # Add stats
-    result["stats"] = {
-        "total_sdg_groups": len(sdg),
-        "total_levels": len(level),
-        "total_reductions": total_reductions,
-        "sdg_breakdown": sdg_stats,
-    }
-
-    return result
-
+    return GroupedDimensionalityReductionResponseSchema(
+        dimensionality_reductions=reductions,
+        stats=GroupedDimensionalityReductionStatisticsSchema(
+            total_sdg_groups=len(sdg),
+            total_levels=len(level),
+            total_dimensionality_reductions=total_reductions,
+            sdg_breakdown=sdg_stats
+        )
+    )
 

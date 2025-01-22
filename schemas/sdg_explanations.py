@@ -11,5 +11,6 @@ class ExplanationSchema(BaseModel):
     xai_method: str
     prediction_model: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }
