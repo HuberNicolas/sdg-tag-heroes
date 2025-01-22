@@ -1,3 +1,6 @@
+import copy
+
+import joblib
 import numpy as np
 import pandas as pd
 import json
@@ -133,6 +136,7 @@ class TopicModelPipeline:
         # Step 1: Embedding models
         # https://maartengr.github.io/BERTopic/getting_started/embeddings/embeddings.html
         self.embedding_model = embedding_model
+        self.dim_reduction_model = None # Instantiate a second UMAP to not interfere with the orig. pipeline
 
     def create_topic_model(self, **params):
         """
@@ -161,6 +165,18 @@ class TopicModelPipeline:
         # https://maartengr.github.io/BERTopic/getting_started/dim_reduction/dim_reduction.html
         dim_model = self._get_dim_model(**dim_reduction_params)
 
+
+        # Fit the dimensionality reduction model
+        dim_model_copy = copy.deepcopy(dim_model)
+        start = time.time()
+        dim_model_copy.fit(embeddings)
+        end = time.time()
+        print(f"Dimensionality reduction time: {end - start}")
+
+        # Save the fitted UMAP model
+        joblib_file = f"umap_model.joblib"
+        joblib.dump(dim_model, joblib_file)
+        print(f"Dimensionality reduction model saved to {joblib_file}")
 
         # Step 3: Clustering
         # https://maartengr.github.io/BERTopic/getting_started/clustering/clustering.html
@@ -304,7 +320,7 @@ seed_words = [word for sdg in sdgs for word in sdg.seed_words[:N]]
 print(seed_words)
 
 topic_model = tm_pipeline.create_topic_model(
-    dim_reduction_params={"n_neighbors": 10 , "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
+    dim_reduction_params={"n_neighbors": 10 , "n_components": 2, "min_dist": 0.0, "metric": "cosine", "random_state":31011997},
     cluster_method_params={"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
     vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
     ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
