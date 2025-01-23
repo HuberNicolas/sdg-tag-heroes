@@ -2,14 +2,19 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
+
 from sqlalchemy.orm import Session, sessionmaker
 
 from db.mariadb_connector import engine as mariadb_engine
+from db.qdrantdb_connector import client as qdrant_client
 from models.publications.publication import Publication
 from requests_models.publication import PublicationIdsRequest
+from requests_models.publication_similarity_query_service import PublicationSimilarityQueryRequest
 from schemas import PublicationSchemaBase, PublicationSchemaFull
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
+from schemas.services.publication_similarity_query_service import PublicationSimilaritySchema
+from services.publication_similarity_query_service import PublicationSimilarityQueryService
 from settings.settings import PublicationsRouterSettings
 from utils.logger import logger
 
@@ -141,3 +146,30 @@ async def get_publication(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching the publication with ID {publication_id}: {e}",
         )
+
+@router.post(
+    "/similar/{top_k}",
+    response_model=PublicationSimilaritySchema,
+    description="Retrieve publications similar to the user query along with their similarity scores."
+)
+async def get_similar_publications(
+    top_k: int,
+    request: PublicationSimilarityQueryRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> PublicationSimilaritySchema:
+    """
+    Retrieve publications similar to the user query based on vector similarity.
+    """
+    # Ensure user is authenticated
+    verify_token(token, db)
+
+    # Initialize the similarity service
+    similarity_service = PublicationSimilarityQueryService(qdrant_client, db)
+
+    # Call the service to get similar publications
+    return similarity_service.get_similar_publications(
+        user_query=request.user_query,
+        top_k=top_k,
+        publication_ids=request.publication_ids
+    )

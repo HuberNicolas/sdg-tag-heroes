@@ -4,6 +4,7 @@ from typing import ClassVar, List, Tuple
 import pytz
 from pydantic_settings import BaseSettings
 
+### Project Settings and Context
 
 class ProjectSettings(BaseSettings):
     APP_NAME: str = "iCoGaLa"
@@ -15,6 +16,59 @@ class SDGSettings(BaseSettings):
     SDTARGET_NUMBER: int = 169
 
 
+
+### General Settings
+
+class TimeZoneSettings(BaseSettings):
+    ZURICH_TZ_STRING: str = "Europe/Zurich"  # Specify the timezone for Zurich
+    ZURICH_TZ: ClassVar = pytz.timezone(ZURICH_TZ_STRING)
+
+
+class LoggingSettings(BaseSettings):
+    LOG_PATH: ClassVar[str] = "logs"
+    LOG_FORMAT: ClassVar[str] = "{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
+
+class EnvLoaderSettings(BaseSettings):
+    # Do not set this to True in prod as it will print secrets
+    ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
+
+class FixturesSettings(BaseSettings):
+    FIXTURES_LOG_NAME: ClassVar[str] = "fixtures.log"
+
+
+### DB-Settings
+class MariaDBSettings(BaseSettings):
+    MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
+    MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
+    SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
+    MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
+
+class QdrantDBSettings(BaseSettings):
+    QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
+    QDRANT_TIMEOUT: ClassVar[int] = 120
+    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt" #TODO: remove duplicate and leave here; do NOT remove here
+    PUBLICATIONS_CONTENT_VECTOR_NAME: ClassVar[str] = "content"
+    PUBLICATIONS_SQL_ID_PAYLOAD_FIELD_NAME: ClassVar[str] = "sql_id"
+
+class CouchDBSettings(BaseSettings):
+    COUCHDB_LOG_NAME: ClassVar[str] = "db_couchdb.log"
+
+class RedisDBSettings(BaseSettings):
+    REDIS_LOG_NAME: ClassVar[str] = "db_redis.log"
+
+class MongoDBSDGSettings(BaseSettings):
+    MONGODB_LOG_NAME: ClassVar[str] = "db_mongodb.log"
+    DB_NAME: ClassVar[str] = "sdg_database"
+    DB_COLLECTION_NAME: ClassVar[str] = "explanations"
+    SVG_ENCODING: ClassVar[str] = "utf-8"
+    GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
+    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = (
+        "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
+    )
+
+
+
+### Pipeline Settings
 class EmbeddingsSettings(BaseSettings):
     EMBEDDINGS_LOG_NAME: ClassVar[str] = "embeddings.log"
     VECTOR_SIZE: ClassVar[int] = 384
@@ -33,30 +87,8 @@ class EmbeddingsSettings(BaseSettings):
     ]
 
 
-class SimilaritySearchSettings(BaseSettings):
-    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
 
-
-class UserProfilesRouterSettings(BaseSettings):
-    USER_PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_user_profiles_.log"
-
-
-class LoaderSettings(BaseSettings):
-    LOADER_LOG_NAME: ClassVar[str] = "loader.log"
-    DEFAULT_BATCH_SIZE: ClassVar[int] = 64
-    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt"
-
-
-class TimeZoneSettings(BaseSettings):
-    ZURICH_TZ_STRING: str = "Europe/Zurich"  # Specify the timezone for Zurich
-    ZURICH_TZ: ClassVar = pytz.timezone(ZURICH_TZ_STRING)
-
-
-class LoggingSettings(BaseSettings):
-    LOG_PATH: ClassVar[str] = "logs"
-    LOG_FORMAT: ClassVar[str] = "{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
-
-
+# For Goals
 class PredictionSettings(BaseSettings):
     AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
@@ -80,8 +112,16 @@ class PredictionSettings(BaseSettings):
     DEFAULT_DVDBLK_BATCH_SIZE: ClassVar[int] = 16
 
 
+# For Targets
 class TargetPredictionSettings(PredictionSettings):
     AURORA_TARGET_PREDICTOR_LOG_NAME: ClassVar[str] = "target_predictor_aurora.log"
+
+class LoaderSettings(BaseSettings):
+    LOADER_LOG_NAME: ClassVar[str] = "loader.log"
+    DEFAULT_BATCH_SIZE: ClassVar[int] = 64
+    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt"
+
+
 
 
 class CollectorSettings(BaseSettings):
@@ -95,9 +135,6 @@ class CollectorSettings(BaseSettings):
     ZORA_SET_LIST_URL: ClassVar[str] = "https://www.zora.uzh.ch/cgi/oai2?verb=ListSets"
 
     PUBLICATION_LIMIT: ClassVar[int] = 300000
-
-class FastAPISettings(BaseSettings):
-    FASTAPI_LOG_NAME: ClassVar[str] = "api_.log"
 
 class ReducerSettings(BaseSettings):
     REDUCER_LOG_NAME: ClassVar[str] = "reducer.log"
@@ -124,6 +161,45 @@ class ReducerSettings(BaseSettings):
     ]  # SDG filter ranges
 
     MAP_PARTITION_SIZE: ClassVar[int] = 9
+
+class PrefectSettings(BaseSettings):
+    PREFECT_LOG_NAME: ClassVar[str] = "prefect.log"
+
+    DB_TYPE: ClassVar[str] = "mariadb"
+    COLLECTOR_BATCH_SIZE: ClassVar[int] = 10
+    COLLECTOR_RESET: ClassVar[str] = "true"
+    PREDICTOR_BATCH_SIZE: ClassVar[int] = 64
+    LOADER_BATCH_SIZE: ClassVar[int] = 64
+
+
+
+
+### Service Settings
+
+class GPTAssistantServiceSettings(BaseSettings):
+    PROMPT_PATH: ClassVar[str] = "/prompts"
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06" # o4 required for Instructor library
+    # smaller model (cheapest as of 06.2024) to keep the cost down: "gpt-3.5-turbo-0125"
+    GPT_TEMPERATURE: ClassVar[float] = 0.2
+
+class UserAnnotationAssessmentSettings(BaseSettings):
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
+    BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
+
+
+class SimilaritySearchSettings(BaseSettings):
+    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
+
+
+### Router Settings
+
+class FastAPISettings(BaseSettings):
+    FASTAPI_LOG_NAME: ClassVar[str] = "api_.log"
+
+
+class UserProfilesRouterSettings(BaseSettings):
+    USER_PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_user_profiles_.log"
+
 
 class UsersRouterSettings(BaseSettings):
     USERS_ROUTER_LOG_NAME: ClassVar[str] = "api_users.log"
@@ -186,60 +262,3 @@ class AuthenticationRouterSettings(BaseSettings):
     CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
     CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
     TOKEN_URL: ClassVar[str] = "auth/token"
-
-
-class MariaDBSettings(BaseSettings):
-    MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
-    MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
-    SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
-    MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
-
-class QdrantDBSettings(BaseSettings):
-    QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
-    QDRANT_TIMEOUT: ClassVar[int] = 120
-
-class CouchDBSettings(BaseSettings):
-    COUCHDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
-
-class RedisDBSettings(BaseSettings):
-    REDIS_LOG_NAME: ClassVar[str] = "db_redis.log"
-
-class PrefectSettings(BaseSettings):
-    PREFECT_LOG_NAME: ClassVar[str] = "prefect.log"
-
-    DB_TYPE: ClassVar[str] = "mariadb"
-    COLLECTOR_BATCH_SIZE: ClassVar[int] = 10
-    COLLECTOR_RESET: ClassVar[str] = "true"
-    PREDICTOR_BATCH_SIZE: ClassVar[int] = 64
-    LOADER_BATCH_SIZE: ClassVar[int] = 64
-
-
-class MongoDBSDGSettings(BaseSettings):
-    DB_NAME: ClassVar[str] = "sdg_database"
-    DB_COLLECTION_NAME: ClassVar[str] = "explanations"
-    SVG_ENCODING: ClassVar[str] = "utf-8"
-    GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
-    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = (
-        "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
-    )
-    MONGODB_LOG_NAME: ClassVar[str] = "db_mongodb.log"
-
-
-class EnvLoaderSettings(BaseSettings):
-    # Do not set this to True in prod as it will print secrets
-    ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
-
-
-class GPTAssistantServiceSettings(BaseSettings):
-    PROMPT_PATH: ClassVar[str] = "/prompts"
-    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06" # o4 required for Instructor library
-    # smaller model (cheapest as of 06.2024) to keep the cost down: "gpt-3.5-turbo-0125"
-    GPT_TEMPERATURE: ClassVar[float] = 0.2
-
-class UserAnnotationAssessmentSettings(BaseSettings):
-    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
-    BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
-
-
-class FixturesSettings(BaseSettings):
-    FIXTURES_LOG_NAME: ClassVar[str] = "fixtures.log"
