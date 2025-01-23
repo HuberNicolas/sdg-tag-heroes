@@ -162,6 +162,7 @@ class DimensionalityReductionsRouterSettings(BaseSettings):
 
 class SDGPredictionsRouterSettings(BaseSettings):
     SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
+    DEFAULT_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
 
 
 class XPBanksRouterSettings(BaseSettings):
