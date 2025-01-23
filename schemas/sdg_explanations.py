@@ -1,6 +1,9 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
+# Not directly derived from models
+# Todo: Generate TS type
+
 class ExplanationSchema(BaseModel):
     mongodb_id: str
     sql_id: int
