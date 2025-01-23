@@ -16,7 +16,7 @@ from schemas.dimensionality_reduction import FilteredDimensionalityReductionStat
     FilteredSDGStatisticsSchema, \
     UserCoordinatesSchema, GroupedDimensionalityReductionResponseSchema, GroupedDimensionalityReductionStatisticsSchema, \
     GroupedSDGStatisticsSchema
-from services.umap_coordinates_generator import UMAPCoordinateService
+from services.umap_coordinates_service import UMAPCoordinateService
 from settings.settings import DimensionalityReductionsRouterSettings
 from utils.logger import logger
 

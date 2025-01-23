@@ -1,4 +1,4 @@
-from .strategy import PromptStrategy
+from .base_strategy import PromptStrategy
 
 
 class SkillsQueryStrategy(PromptStrategy):

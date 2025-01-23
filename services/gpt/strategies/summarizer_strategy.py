@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from .strategy import PromptStrategy
+from .base_strategy import PromptStrategy
 
 
 class SummarizeSinglePublicationStrategy(PromptStrategy):

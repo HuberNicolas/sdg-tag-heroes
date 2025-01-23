@@ -1,4 +1,4 @@
-from .strategy import PromptStrategy
+from .base_strategy import PromptStrategy
 
 class FactStrategy(PromptStrategy):
     """Generates a 'Did-You-Know' fact from an abstract."""

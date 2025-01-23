@@ -11,12 +11,12 @@ from schemas.gpt_assistant.gpt_assistant import GPTResponseKeywordsSchema, GPTRe
     GPTResponseAnnotationScoreSchema
 from settings.settings import GPTAssistantServiceSettings
 from utils.env_loader import load_env, get_env_variable
-from .strategies.fact_generator import FactStrategy
-from .strategies.keyword_extractor import ExtractKeywordsStrategy
-from .strategies.sdg_explainer import GoalStrategy, TargetStrategy
-from .strategies.summarizer import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
-from .strategies.user_annotation_evaluator import AnnotationEvaluatorStrategy
-from .strategies.user_query_generator import SkillsQueryStrategy, InterestsQueryStrategy
+from .strategies.fact_generator_strategy import FactStrategy
+from .strategies.keyword_extractor_strategy import ExtractKeywordsStrategy
+from .strategies.sdg_explainer_strategy import GoalStrategy, TargetStrategy
+from .strategies.summarizer_strategy import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
+from .strategies.user_annotation_evaluator_strategy import AnnotationEvaluatorStrategy
+from .strategies.user_query_generator_strategy import SkillsQueryStrategy, InterestsQueryStrategy
 
 # Load the API environment variables
 load_env('api.env')

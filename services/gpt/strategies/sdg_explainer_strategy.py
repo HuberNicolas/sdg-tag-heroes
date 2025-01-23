@@ -1,4 +1,4 @@
-from .strategy import PromptStrategy
+from .base_strategy import PromptStrategy
 
 class TargetStrategy(PromptStrategy):
     """Analyzes SDG relevance based on the provided target."""

@@ -1,7 +1,7 @@
 from typing import Dict
 
 from enums import SDGType
-from .strategy import PromptStrategy
+from .base_strategy import PromptStrategy
 
 
 class AnnotationEvaluatorStrategy(PromptStrategy):
