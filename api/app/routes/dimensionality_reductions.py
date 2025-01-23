@@ -126,6 +126,49 @@ async def get_dimensionality_reductions_for_publications_by_ids(
             detail=f"An error occurred while fetching dimensionality reductions: {e}",
         )
 
+@router.get(
+    "/publications/{publication_id}",
+    response_model=List[DimensionalityReductionSchemaFull],
+    description="Retrieve all dimensionality reductions associated with a specific publication"
+)
+async def get_dimensionality_reductions(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    """
+    Retrieve all dimensionality reductions for a specific publication.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query the database for the publication and its dimensionality reductions
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        dimensionality_reductions = db.query(DimensionalityReduction).filter(
+            DimensionalityReduction.publication_id == publication_id,
+        ).all()
+        print(len(dimensionality_reductions))
+
+        # Return the list of dimensionality reductions associated with the publication
+        return [
+            DimensionalityReductionSchemaFull.model_validate(dim_red)
+            for dim_red in dimensionality_reductions
+        ]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching dimensionality reductions for the publication",
+        )
+
+
 @router.get("/publications/{publication_id}/{reduction_shorthand}", response_model=List[DimensionalityReductionSchemaFull], description="Retrieve all dimensionality reduction results")
 async def get_dimensionality_reductions_for_publication(
     publication_id: int,
