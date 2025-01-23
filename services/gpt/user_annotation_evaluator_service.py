@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer, AutoModel
 
 from enums import SDGType
-from schemas.gpt_assistant.gpt_assistant import GPTResponseAnnotationScoreSchema, AnnotationEvaluationSchema
+from schemas.gpt_assistant_service import GPTResponseAnnotationScoreSchema, AnnotationEvaluationSchema
 from settings.sdg_descriptions import sdgs
 import torch
 

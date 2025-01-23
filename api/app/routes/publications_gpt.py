@@ -11,7 +11,7 @@ from api.app.security import Security
 from settings.settings import PublicationsRouterSettings
 from requests_models.publications_gpt import PublicationIdsRequest
 from utils.logger import logger
-from schemas.gpt_assistant.gpt_assistant import (
+from schemas.gpt_assistant_service import (
     PublicationSummarySchema,
     PublicationsCollectiveSummarySchema,
     PublicationSDGAnalysisSchema,

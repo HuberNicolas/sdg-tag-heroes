@@ -6,7 +6,7 @@ from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
 from enums import SDGType
-from schemas.gpt_assistant.gpt_assistant import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
+from schemas.gpt_assistant_service import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
     GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema, \
     GPTResponseAnnotationScoreSchema
 from settings.settings import GPTAssistantServiceSettings

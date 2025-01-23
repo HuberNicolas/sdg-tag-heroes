@@ -13,7 +13,7 @@ from requests_models.annotations_gpt import AnnotationEvaluationRequest
 from requests_models.vote import VoteCreateRequest
 from schemas import VoteSchemaFull
 from schemas.annotation import AnnotationSchemaFull
-from schemas.gpt_assistant.gpt_assistant import AnnotationEvaluationSchema
+from schemas.gpt_assistant_service import AnnotationEvaluationSchema
 from services.gpt.gpt_assistant_service import GPTAssistantService
 from services.gpt.user_annotation_evaluator_service import UserAnnotationEvaluatorService
 from settings.settings import AnnotationsSettings
