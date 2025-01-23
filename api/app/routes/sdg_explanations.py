@@ -2,12 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pymongo.synchronous.database import Database
 from sqlalchemy.orm import Session, sessionmaker
 
-from api.app.security import Security
 from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from db.mongodb_connector import get_explanations_db
 from models.publications.publication import Publication
-
 from schemas.sdg_explanations import ExplanationSchema
 from settings.settings import ExplanationsRouterSettings, MongoDBSDGSettings
 from utils.logger import logger

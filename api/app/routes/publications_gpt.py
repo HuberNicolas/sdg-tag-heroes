@@ -1,16 +1,13 @@
-from typing import List, Dict
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker
 
+from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import Fact, Summary
 from models.publications.publication import Publication
-from schemas import FactSchemaFull
-from api.app.routes.authentication import verify_token
-from api.app.security import Security
-from settings.settings import PublicationsRouterSettings
 from requests_models.publications_gpt import PublicationIdsRequest
-from utils.logger import logger
+from schemas import FactSchemaFull
 from schemas.gpt_assistant_service import (
     PublicationSummarySchema,
     PublicationsCollectiveSummarySchema,
@@ -18,7 +15,8 @@ from schemas.gpt_assistant_service import (
     PublicationKeywordsSchema,
 )
 from services.gpt.gpt_assistant_service import GPTAssistantService
-
+from settings.settings import PublicationsRouterSettings
+from utils.logger import logger
 
 # Setup Logging
 publications_router_settings = PublicationsRouterSettings()

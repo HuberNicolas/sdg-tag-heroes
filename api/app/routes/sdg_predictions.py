@@ -1,17 +1,15 @@
-from typing import List, Optional, Dict, Tuple, Any, Union, Literal
+from typing import List, Dict, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
-from sqlalchemy.orm import Session, sessionmaker, joinedload, load_only
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session, sessionmaker
 
-from api.app.security import Security
 from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-
 from models import SDGPrediction
 from models.publications.publication import Publication
 from requests_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, SDGPredictionsIdsRequest
 from schemas import SDGPredictionSchemaFull
-
 from services.math_service import MathService
 from services.metrics_service import MetricsService
 from settings.settings import SDGPredictionsRouterSettings

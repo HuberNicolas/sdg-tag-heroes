@@ -1,12 +1,13 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker
 
+from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models.collection import Collection
 from schemas import CollectionSchemaFull
-from api.app.routes.authentication import verify_token
-from api.app.security import Security
 from settings.settings import CollectionsRouterSettings
 from utils.logger import logger
 

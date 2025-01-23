@@ -1,18 +1,18 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
-
 from sqlalchemy.orm import Session, sessionmaker
 
+from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qdrant_client
 from models.publications.publication import Publication
 from requests_models.publication import PublicationIdsRequest
 from requests_models.publication_similarity_query_service import PublicationSimilarityQueryRequest
 from schemas import PublicationSchemaBase, PublicationSchemaFull
-from api.app.routes.authentication import verify_token
-from api.app.security import Security
 from schemas.services.publication_similarity_query_service import PublicationSimilaritySchema
 from services.publication_similarity_query_service import PublicationSimilarityQueryService
 from settings.settings import PublicationsRouterSettings

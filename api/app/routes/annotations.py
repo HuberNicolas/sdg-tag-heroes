@@ -4,13 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
-from api.app.security import Security
 from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-
-from models import Annotation, SDGUserLabel, Vote
+from models import Annotation
 from requests_models.annotations_gpt import AnnotationEvaluationRequest
-from requests_models.vote import VoteCreateRequest
 from schemas import VoteSchemaFull
 from schemas.annotation import AnnotationSchemaFull
 from schemas.gpt_assistant_service import AnnotationEvaluationSchema

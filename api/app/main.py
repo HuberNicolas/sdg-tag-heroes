@@ -1,30 +1,29 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi_pagination import add_pagination
-from contextlib import asynccontextmanager
 
+from api.app.routes import annotations
 from api.app.routes import authentication
-from api.app.routes import sdg_explanations
-from api.app.routes import users
-from api.app.routes import user_profiles_gpt
-from api.app.routes import sdg_xp_banks
-from api.app.routes import sdg_coin_wallets
+from api.app.routes import authors
+from api.app.routes import collections
+from api.app.routes import dimensionality_reductions
 from api.app.routes import publications
 from api.app.routes import publications_gpt
-from api.app.routes import collections
-from api.app.routes import sdgs
-from api.app.routes import dimensionality_reductions
-from api.app.routes import sdg_label_summaries
-from api.app.routes import annotations
-from api.app.routes import votes
-from api.app.routes import sdg_predictions
-from api.app.routes import authors
+from api.app.routes import sdg_coin_wallets
+from api.app.routes import sdg_explanations
 from api.app.routes import sdg_label_decisions
 from api.app.routes import sdg_label_histories
-"""
+from api.app.routes import sdg_label_summaries
+from api.app.routes import sdg_predictions
 from api.app.routes import sdg_user_labels
-"""
+from api.app.routes import sdg_xp_banks
+from api.app.routes import sdgs
+from api.app.routes import user_profiles_gpt
+from api.app.routes import users
+from api.app.routes import votes
 
 from settings.settings import FastAPISettings
 fastapi_settings = FastAPISettings()
@@ -112,27 +111,37 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 add_pagination(app)  # important! add pagination to your app
+
+
+
 app.include_router(authentication.router)
+
 app.include_router(users.router)
 app.include_router(user_profiles_gpt.router)
-app.include_router(sdg_xp_banks.router)
-app.include_router(sdg_coin_wallets.router)
+
 app.include_router(publications.router)
 app.include_router(publications_gpt.router)
-app.include_router(collections.router)
+
+app.include_router(sdg_predictions.router)
 app.include_router(sdg_explanations.router)
-app.include_router(sdgs.router)
 app.include_router(dimensionality_reductions.router)
+app.include_router(collections.router)
+
+
 app.include_router(sdg_label_summaries.router)
+app.include_router(sdg_label_histories.router)
+app.include_router(sdg_label_decisions.router)
+app.include_router(sdg_user_labels.router)
+
 app.include_router(annotations.router)
 app.include_router(votes.router)
-app.include_router(sdg_predictions.router)
+
+app.include_router(sdg_xp_banks.router)
+app.include_router(sdg_coin_wallets.router)
+
 app.include_router(authors.router)
-app.include_router(sdg_label_decisions.router)
-app.include_router(sdg_label_histories.router)
-"""
-app.include_router(sdg_user_labels.router)
-"""
+app.include_router(sdgs.router)
+
 
 # CORS (development only)
 app.add_middleware(

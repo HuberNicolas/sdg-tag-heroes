@@ -1,20 +1,18 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, sessionmaker
-
-from api.app.security import Security
-from api.app.routes.authentication import verify_token
-from db.mariadb_connector import engine as mariadb_engine
-
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
+from sqlalchemy.orm import Session, sessionmaker
 
+from api.app.routes.authentication import verify_token
+from api.app.security import Security
+from db.mariadb_connector import engine as mariadb_engine
 from models.publications.author import Author
 from models.publications.publication import Publication
 from schemas import AuthorSchemaFull
-from utils.logger import logger
 from settings.settings import AuthorsRouterSettings
+from utils.logger import logger
 
 # Setup OAuth2 and security
 security = Security()

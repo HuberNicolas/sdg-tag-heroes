@@ -1,13 +1,13 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 
-from api.app.security import Security
 from api.app.routes.authentication import verify_token
+from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models.sdgs.goal import SDGGoal
-from schemas.sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
-from schemas.sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
+from schemas.sdgs.goal import SDGGoalSchemaFull
 from settings.settings import SDGsRouterSettings
 from utils.logger import logger
 
