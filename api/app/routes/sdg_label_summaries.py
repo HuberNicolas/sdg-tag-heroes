@@ -7,6 +7,7 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGLabelSummary
+from models.publications.publication import Publication
 from schemas.sdg_label_summary import SDGLabelSummarySchemaFull, SDGLabelSummarySchemaBase
 from settings.settings import SDGSLabelSummariesRouterSettings
 from utils.logger import logger
@@ -108,4 +109,38 @@ async def get_label_summary(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the SDGLabelSummary",
+        )
+
+@router.get(
+    "/publications/{publication_id}",
+    response_model=SDGLabelSummarySchemaFull,
+    description="Retrieve the SDGLabelSummary associated with a specific publication"
+)
+async def get_sdg_label_summary(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGLabelSummarySchemaFull:
+    """
+    Retrieve the SDGLabelSummary for a specific publication.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query the database for the publication and its SDGLabelSummary
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication or not publication.sdg_label_summary:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelSummary found for publication ID {publication_id}",
+            )
+
+        return SDGLabelSummarySchemaFull.model_validate(publication.sdg_label_summary)
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelSummary for publication ID {publication_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelSummary for the publication",
         )

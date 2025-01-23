@@ -200,3 +200,13 @@ AnnotationSchemaBase.model_rebuild()
 AnnotationSchemaFull.model_rebuild()
 VoteSchemaBase.model_rebuild()
 VoteSchemaFull.model_rebuild()
+
+
+SDGLabelSummarySchemaBase.model_rebuild()
+SDGLabelSummarySchemaFull.model_rebuild()
+SDGLabelHistorySchemaBase.model_rebuild()
+SDGLabelHistorySchemaFull.model_rebuild()
+SDGLabelDecisionSchemaBase.model_rebuild()
+SDGLabelDecisionSchemaFull.model_rebuild()
+SDGUserLabelSchemaBase.model_rebuild()
+SDGUserLabelSchemaFull.model_rebuild()

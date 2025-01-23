@@ -20,6 +20,8 @@ from api.app.routes import annotations
 from api.app.routes import votes
 from api.app.routes import sdg_predictions
 from api.app.routes import authors
+from api.app.routes import sdg_label_decisions
+from api.app.routes import sdg_label_histories
 """
 from api.app.routes import sdg_user_labels
 """
@@ -126,7 +128,8 @@ app.include_router(annotations.router)
 app.include_router(votes.router)
 app.include_router(sdg_predictions.router)
 app.include_router(authors.router)
-
+app.include_router(sdg_label_decisions.router)
+app.include_router(sdg_label_histories.router)
 """
 app.include_router(sdg_user_labels.router)
 """

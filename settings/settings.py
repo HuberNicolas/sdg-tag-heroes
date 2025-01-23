@@ -121,9 +121,6 @@ class LoaderSettings(BaseSettings):
     DEFAULT_BATCH_SIZE: ClassVar[int] = 64
     PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt"
 
-
-
-
 class CollectorSettings(BaseSettings):
     COLLECTOR_LOG_NAME: ClassVar[str] = "collector.log"
 
@@ -197,68 +194,69 @@ class FastAPISettings(BaseSettings):
     FASTAPI_LOG_NAME: ClassVar[str] = "api_.log"
 
 
-class UserProfilesRouterSettings(BaseSettings):
-    USER_PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_user_profiles_.log"
-
+class AuthenticationRouterSettings(BaseSettings):
+    AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
+    CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
+    CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
+    TOKEN_URL: ClassVar[str] = "auth/token"
 
 class UsersRouterSettings(BaseSettings):
     USERS_ROUTER_LOG_NAME: ClassVar[str] = "api_users.log"
 
-class PublicationsRouterSettings(BaseSettings):
-    PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
+class UserProfilesRouterSettings(BaseSettings):
+    USER_PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_user_profiles_.log"
 
-class CollectionsRouterSettings(BaseSettings):
-    COLLECTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_collections.log"
 
 class SDGsRouterSettings(BaseSettings):
     SDGS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdgs.log"
 
+class PublicationsRouterSettings(BaseSettings):
+    PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
 
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
 
+class CollectionsRouterSettings(BaseSettings):
+    COLLECTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_collections.log"
 
-class SDGUserLabelsSettings(BaseSettings):
-    SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
-
-
-class VotesSettings(BaseSettings):
-    VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
-
-
-class AnnotationsSettings(BaseSettings):
-    ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
-
+class SDGPredictionsRouterSettings(BaseSettings):
+    SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
+    DEFAULT_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
 
 class DimensionalityReductionsRouterSettings(BaseSettings):
     DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = (
         "api_dimensionality_reductions.log"
     )
 
-
-class SDGPredictionsRouterSettings(BaseSettings):
-    SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
-    DEFAULT_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
-
-
 class XPBanksRouterSettings(BaseSettings):
     XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"
-
 
 class CoinWalletsRouterSettings(BaseSettings):
     COIN_WALLETS_ROUTER_LOG_NAME: ClassVar[str] = "api_coin_wallets.log"
 
-
 class ExplanationsRouterSettings(BaseSettings):
     EXPLANATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_explanations.log"
-
 
 class SDGSLabelSummariesRouterSettings(BaseSettings):
     SDGLABELSUMMARIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_summaries.log"
 
 
-class AuthenticationRouterSettings(BaseSettings):
-    AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
-    CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
-    CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
-    TOKEN_URL: ClassVar[str] = "auth/token"
+class SDGSLabelHistoriesRouterSettings(BaseSettings):
+    SDGLABELHISTORIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_histories.log"
+
+class SDGSLabelDecisionsRouterSettings(BaseSettings):
+    SDGLABELDECISIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_decisions.log"
+
+class SDGUserLabelsSettings(BaseSettings):
+    SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
+
+
+class AnnotationsSettings(BaseSettings):
+    ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
+
+class VotesSettings(BaseSettings):
+    VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
+
+
+
+
