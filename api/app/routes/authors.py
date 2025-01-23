@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -9,6 +11,7 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 
 from models.publications.author import Author
+from models.publications.publication import Publication
 from schemas import AuthorSchemaFull
 from utils.logger import logger
 from settings.settings import AuthorsRouterSettings
@@ -105,3 +108,36 @@ async def get_author(
             detail="An error occurred while fetching the author",
         )
 
+@router.get(
+    "/publications/{publication_id}",
+    response_model=List[AuthorSchemaFull],
+    description="Retrieve all authors associated with a specific publication"
+)
+async def get_publication_authors(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[AuthorSchemaFull]:
+    """
+    Retrieve all authors for a specific publication.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query the database for the publication and its authors
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Return the list of authors associated with the publication
+        return [AuthorSchemaFull.model_validate(author) for author in publication.authors]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching authors for the publication",
+        )
