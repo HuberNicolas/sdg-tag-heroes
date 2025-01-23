@@ -1,12 +1,11 @@
+import os
+
+import torch
 from transformers import AutoTokenizer, AutoModel
 
 from enums import SDGType
 from schemas.gpt_assistant_service import GPTResponseAnnotationScoreSchema, AnnotationEvaluationSchema
 from settings.sdg_descriptions import sdgs
-import torch
-
-import os
-
 from settings.settings import UserAnnotationAssessmentSettings
 
 # OpenBLAS Warning : Detect OpenMP Loop and this application may hang. Please rebuild the library with USE_OPENMP=1 option.

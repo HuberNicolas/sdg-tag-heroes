@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from pydantic import BaseModel
+
 
 class FacultySchemaBase(BaseModel):
     faculty_id: int

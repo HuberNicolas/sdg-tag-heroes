@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import List
+
 from pydantic import BaseModel
+
 
 class CollectionSchemaBase(BaseModel):
     collection_id: int

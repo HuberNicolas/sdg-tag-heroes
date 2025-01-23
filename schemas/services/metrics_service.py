@@ -1,6 +1,8 @@
-from typing import List, Optional, Dict
-from pydantic import BaseModel
 from datetime import datetime
+from typing import List
+
+from pydantic import BaseModel
+
 
 # Not directly derived from models
 # Todo: Generate TS type

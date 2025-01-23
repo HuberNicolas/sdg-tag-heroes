@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, List
+
+from pydantic import BaseModel, Field
+
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()

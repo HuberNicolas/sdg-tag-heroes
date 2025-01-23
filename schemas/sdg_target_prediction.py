@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Dict
+
 from pydantic import BaseModel
+
 
 class SDGTargetPredictionSchemaBase(BaseModel):
     target_prediction_id: int

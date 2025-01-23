@@ -1,9 +1,10 @@
-from sqlalchemy import Enum, ForeignKey, DateTime, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
-from models import Base
+from sqlalchemy import Enum, ForeignKey, DateTime, CheckConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from enums.enums import VoteType
+from models import Base
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()

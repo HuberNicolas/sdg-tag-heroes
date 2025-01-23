@@ -1,15 +1,17 @@
 import time
 from typing import List, Optional, Dict
+
 from qdrant_client.http.models import Filter, FieldCondition, MatchAny
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import Session
-from settings.settings import EmbeddingsSettings, QdrantDBSettings
+
 from models.publications.publication import Publication
 from schemas.services.publication_similarity_query_service import (
     FunctionResponsePublicationSimilaritySchema,
-    FunctionResponsePublicationsSimilaritySchema,
     PublicationSimilaritySchema,
 )
+from settings.settings import EmbeddingsSettings, QdrantDBSettings
+
 
 class PublicationSimilarityQueryService:
     def __init__(self, qdrant_client, db: Session):

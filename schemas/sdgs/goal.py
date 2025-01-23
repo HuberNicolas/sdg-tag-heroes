@@ -1,6 +1,8 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
 from typing import List, Optional, Union
+
+from pydantic import BaseModel, Field
+
 
 class SDGGoalSchemaBase(BaseModel):
     id: int

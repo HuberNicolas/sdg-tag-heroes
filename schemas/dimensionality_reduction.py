@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Optional, Dict, List
+
 from pydantic import BaseModel
-from typing import Optional, Dict, List, Any
 
 
 class DimensionalityReductionSchemaBase(BaseModel):

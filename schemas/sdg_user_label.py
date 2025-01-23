@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional, List, Union
+
 from pydantic import BaseModel
+
 
 class SDGUserLabelSchemaBase(BaseModel):
     label_id: int

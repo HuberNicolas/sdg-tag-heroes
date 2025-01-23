@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional, Union, List
+
 from pydantic import BaseModel
+
 
 class PublicationSchemaBase(BaseModel):
     publication_id: int

@@ -1,6 +1,7 @@
-from typing import List, Optional, Dict
+from typing import Optional
+
 from pydantic import BaseModel
-from datetime import datetime
+
 
 class MetricsRequestSchema(BaseModel):
     publication_id: Optional[int] = None

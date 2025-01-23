@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel
 
 from enums.enums import VoteType
+
 
 class VoteSchemaBase(BaseModel):
     vote_id: int

@@ -4,6 +4,7 @@ from typing import ClassVar, List, Tuple
 import pytz
 from pydantic_settings import BaseSettings
 
+
 ### Project Settings and Context
 
 class ProjectSettings(BaseSettings):

@@ -1,8 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel
 from typing import Optional
 
+from pydantic import BaseModel
+
 from enums.enums import SDGType
+
 
 class SDGXPBankHistorySchemaBase(BaseModel):
     history_id: int

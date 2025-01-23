@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import Optional, List
+
 from pydantic import BaseModel
 
 from enums.enums import UserRole
+
 
 class UserSchemaBase(BaseModel):
     user_id: int

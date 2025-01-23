@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from pydantic import BaseModel
+
 
 class SDGLabelSummarySchemaBase(BaseModel):
     sdg_label_summary_id: int

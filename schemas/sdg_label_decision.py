@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import Optional, List, Union
+
 from pydantic import BaseModel
 
 from enums.enums import DecisionType
+
 
 class SDGLabelDecisionSchemaBase(BaseModel):
     decision_id: int

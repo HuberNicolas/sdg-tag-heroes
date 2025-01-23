@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from sqlalchemy import String, DateTime
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship

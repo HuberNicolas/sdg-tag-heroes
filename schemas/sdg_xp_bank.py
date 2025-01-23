@@ -1,6 +1,8 @@
 from datetime import datetime
-from pydantic import BaseModel
 from typing import List, Union
+
+from pydantic import BaseModel
+
 
 class SDGXPBankSchemaBase(BaseModel):
     sdg_xp_bank_id: int

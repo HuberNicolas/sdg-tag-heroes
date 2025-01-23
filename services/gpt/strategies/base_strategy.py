@@ -1,4 +1,3 @@
-
 # Strategy Implementation
 class PromptStrategy:
     """Base class for prompt strategies."""

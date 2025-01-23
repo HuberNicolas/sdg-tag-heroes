@@ -1,6 +1,8 @@
 from datetime import datetime
-from pydantic import BaseModel
 from typing import List, Union
+
+from pydantic import BaseModel
+
 
 class SDGCoinWalletSchemaBase(BaseModel):
     sdg_coin_wallet_id: int

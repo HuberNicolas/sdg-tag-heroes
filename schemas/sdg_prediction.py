@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from pydantic import BaseModel
+
 
 class SDGPredictionSchemaBase(BaseModel):
     prediction_id: int

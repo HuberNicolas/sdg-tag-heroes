@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+
 from enums.enums import SDGType
 
 

@@ -1,7 +1,8 @@
+import os
 import sys
 
 from loguru import logger as loguru_logger
-import os
+
 from settings.settings import LoggingSettings
 from utils.env_loader import is_running_in_docker
 

@@ -1,6 +1,7 @@
 import math
-from typing import List
 import statistics
+from typing import List
+
 
 class MathService:
     """

@@ -2,14 +2,14 @@ import json
 from datetime import datetime
 from typing import List
 
+from passlib.context import CryptContext
 from sqlalchemy import String, Boolean, DateTime, JSON
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from passlib.context import CryptContext
 
+from enums.enums import UserRole
 from models.associations import user_group_association
 from models.base import Base
-from enums.enums import UserRole
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()

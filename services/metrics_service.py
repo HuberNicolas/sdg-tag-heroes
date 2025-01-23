@@ -1,4 +1,5 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -7,6 +8,7 @@ from services.math_service import MathService
 from settings.settings import SDGPredictionsRouterSettings
 
 sdg_predictions_router_settings = SDGPredictionsRouterSettings()
+
 
 class MetricsService:
     def __init__(self, math_service: MathService):

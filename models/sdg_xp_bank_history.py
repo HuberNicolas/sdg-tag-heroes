@@ -1,10 +1,11 @@
+from datetime import datetime
+
+from sqlalchemy import Enum
 from sqlalchemy import ForeignKey, Float, DateTime, Boolean, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
-from sqlalchemy import Enum
 
-from models.base import Base
 from enums.enums import SDGType
+from models.base import Base
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
