@@ -25,7 +25,7 @@ class InterestsRequest(BaseModel):
 class AnnotationScoreRequest(BaseModel):
     passage: str = Field(..., description="The marked passage.")
     annotation: str = Field(..., description="The user's comment.")
-    sdg_label: int = Field(..., ge=1, le=17, description="The SDG label index (1 to 17).")
+    sdg_label: str = Field(..., description="The SDG label index (1 to 17).")
 
 
 

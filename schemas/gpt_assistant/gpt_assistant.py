@@ -1,6 +1,9 @@
 from typing import List
 from pydantic import BaseModel
 
+from enums import SDGType
+
+
 # Not directly derived from models
 # Todo: Generate TS type
 
@@ -30,6 +33,13 @@ class GPTResponseSkillsQuerySchema(BaseModel):
 class GPTResponseInterestsQuerySchema(BaseModel):
     interests: str
     generated_query: str
+
+class GPTResponseAnnotationScoreSchema(BaseModel):
+    relevance: float
+    depth: float
+    correctness: float
+    creativity: float
+    reasoning: str
 
 
 # API Response Schemas
@@ -81,6 +91,22 @@ class UserEnrichedSkillsDescriptionSchema(BaseModel):
 class UserEnrichedInterestsDescriptionSchema(BaseModel):
     input_interests: str
     enriched_description: str
+
+    class Config:
+        from_attributes = True
+
+class AnnotationEvaluationSchema(BaseModel):
+    passage: str
+    annotation: str
+    sdg_label: SDGType  # Use SDGType enum
+    relevance: float
+    depth: float
+    correctness: float
+    creativity: float
+    reasoning: str
+    llm_score: float
+    semantic_score: float
+    combined_score: float
 
     class Config:
         from_attributes = True

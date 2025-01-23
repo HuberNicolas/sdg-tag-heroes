@@ -5,14 +5,17 @@ import instructor
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
+from enums import SDGType
 from schemas.gpt_assistant.gpt_assistant import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
-    GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema
+    GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema, \
+    GPTResponseAnnotationScoreSchema
 from settings.settings import GPTAssistantServiceSettings
 from utils.env_loader import load_env, get_env_variable
 from .strategies.fact_generator import FactStrategy
 from .strategies.keyword_extractor import ExtractKeywordsStrategy
 from .strategies.sdg_explainer import GoalStrategy, TargetStrategy
 from .strategies.summarizer import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
+from .strategies.user_annotation_evaluator import AnnotationEvaluatorStrategy
 from .strategies.user_query_generator import SkillsQueryStrategy, InterestsQueryStrategy
 
 # Load the API environment variables
@@ -103,3 +106,10 @@ class GPTAssistantService:
         prompt_data = strategy.generate_prompt(interests)
         return self._call_model(strategy.context, prompt_data, GPTResponseSkillsQuerySchema)
 
+
+    def evaluate_annotation(self, passage: str, annotation: str, sdg_label: SDGType) -> GPTResponseAnnotationScoreSchema:
+        """Evaluates user annotations based on relevance, depth, correctness, and creativity."""
+        strategy = AnnotationEvaluatorStrategy()
+        prompt_data = strategy.generate_prompt(passage, annotation, sdg_label)
+        response = self._call_model(strategy.context, prompt_data, GPTResponseAnnotationScoreSchema)
+        return response
