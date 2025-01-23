@@ -19,7 +19,7 @@ class SDGLabelDecision(Base):
     decision_id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     suggested_label: Mapped[int] = mapped_column(Integer, nullable=False)
-    decided_label: Mapped[int] = mapped_column(Integer, default=-1, nullable=False)
+    decided_label: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # 0 not decided, 18 zero class
     decision_type: Mapped[DecisionType] = mapped_column(Enum(DecisionType), default=DecisionType.CONSENSUS_MAJORITY, nullable=False)
 
     # Many-to-Many relationship with SDGUserLabel

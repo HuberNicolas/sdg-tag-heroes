@@ -147,6 +147,7 @@ def create_sdg_label_decisions(
     Create SDGLabelDecisions and store them in the database.
     """
     logging.info("Creating SDGLabelDecisions...")
+
     decisions = []
     for _ in range(num_decisions):
         history = choice(histories)
@@ -154,9 +155,9 @@ def create_sdg_label_decisions(
         decision = SDGLabelDecision(
             history_id=history.history_id,
             expert_id=expert.expert_id,
-            suggested_label=randint(1, 17),  # Random SDG goal between 1 and 17
-            decided_label=randint(1, 17),  # Random SDG goal between 1 and 17
-            decision_type=choice(list(DecisionType)),  # Random decision type
+            suggested_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
+            decided_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
+            decision_type=choice(list(DecisionType)), # Random decision type
             comment=faker.text(max_nb_chars=200),
             decided_at=faker.date_time_this_year(),
             created_at=faker.date_time_this_year(),
@@ -170,15 +171,18 @@ def create_sdg_label_decisions(
         session.add(decision)
         decisions.append(decision)
     session.commit()
-    unfinished_decisions = []
 
+
+
+
+    unfinished_decisions = []
     for _ in range(num_decisions):
         history = choice(histories)
         expert = choice(experts)
         decision = SDGLabelDecision(
             history_id=history.history_id,
-            suggested_label=randint(1, 17),  # Random SDG goal between 1 and 17
-            decided_label=-1,
+            suggested_label=randint(1, 17), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
+            decided_label=0,  # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decision_type=choice(list(DecisionType)),  # Random decision type
             comment=choice(list(["Not decided yet", None])),
             created_at=faker.date_time_this_year(),

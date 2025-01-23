@@ -35,4 +35,8 @@ export enum SDGType {
   SDG_15 = "sdg15",
   SDG_16 = "sdg16",
   SDG_17 = "sdg17",
+
+  // In sdg_label decision:
+  SDG_0 = "sdg0",  // not defined
+  SDG_18 = "sdg18" // zero class
 }
