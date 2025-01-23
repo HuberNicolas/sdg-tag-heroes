@@ -164,6 +164,15 @@ __all__ = [
     "CollectionSchemaFull",
 ]
 
+# Black magic below:
+
+# Errors like:
+# api  |   File "/usr/local/lib/python3.10/site-packages/pydantic/_internal/_mock_val_ser.py", line 58, in _get_built
+# api  |     raise PydanticUserError(self._error_message, code=self._code)
+# api  | pydantic.errors.PydanticUserError: `TypeAdapter[typing.Annotated[schemas.annotation.AnnotationSchemaFull, FieldInfo(annotation=AnnotationSchemaFull, required=True)]]`
+# is not fully defined; you should define `typing.Annotated[schemas.annotation.AnnotationSchemaFull, FieldInfo(annotation=AnnotationSchemaFull, required=True)]`
+# and all referenced types, then call `.rebuild()` on the instance.
+
 # Resolve forward references for schemas
 # Rebuild models to resolve forward references
 SDGXPBankSchemaBase.model_rebuild()
@@ -182,8 +191,12 @@ SDGGoalSchemaFull.model_rebuild()
 SDGTargetSchemaBase.model_rebuild()
 SDGTargetSchemaFull.model_rebuild()
 
-
 SDGCoinWalletSchemaBase.model_rebuild()
 SDGCoinWalletSchemaFull.model_rebuild()
 SDGXPBankHistorySchemaBase.model_rebuild()
 SDGXPBankHistorySchemaFull.model_rebuild()
+
+AnnotationSchemaBase.model_rebuild()
+AnnotationSchemaFull.model_rebuild()
+VoteSchemaBase.model_rebuild()
+VoteSchemaFull.model_rebuild()

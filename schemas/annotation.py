@@ -10,7 +10,7 @@ class AnnotationSchemaBase(BaseModel):
     decision_id: Optional[int]
     labeler_score: float
     comment: str
-    votes: List[Union["VoteSchemaBase", "VoteSchemaFull"]]
+    votes: Optional[List[Union["VoteSchemaBase", "VoteSchemaFull"]]] = None # Todo: check for all entities
 
     model_config = {
         "from_attributes": True
