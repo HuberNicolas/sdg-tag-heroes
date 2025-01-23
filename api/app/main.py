@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from fastapi_pagination import add_pagination
 from contextlib import asynccontextmanager
 
 from api.app.routes import authentication
@@ -16,18 +17,13 @@ from api.app.routes import sdgs
 from api.app.routes import dimensionality_reductions
 from api.app.routes import sdg_label_summaries
 from api.app.routes import annotations
+from api.app.routes import votes
 """
 
 from api.app.routes import authors
-from api.app.routes import votes
-
 from api.app.routes import sdg_user_labels
-
 from api.app.routes import sdg_predictions
 """
-
-
-from fastapi_pagination import add_pagination
 
 from settings.settings import FastAPISettings
 fastapi_settings = FastAPISettings()
@@ -128,15 +124,12 @@ app.include_router(sdgs.router)
 app.include_router(dimensionality_reductions.router)
 app.include_router(sdg_label_summaries.router)
 app.include_router(annotations.router)
+app.include_router(votes.router)
 """
 
 app.include_router(authors.router)
-
-app.include_router(votes.router)
-app.include_router(annotations.router)
 app.include_router(sdg_user_labels.router)
 app.include_router(sdg_predictions.router)
-app.include_router(profiles.router)
 
 
 """
@@ -146,7 +139,6 @@ app.include_router(profiles.router)
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
-
 
 @app.get("/")
 def read_root():

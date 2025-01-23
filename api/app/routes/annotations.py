@@ -30,7 +30,6 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
-
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -49,88 +48,6 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
-
-@router.post(
-    "/votes",
-    response_model=VoteSchemaFull,
-    description="Create a new vote"
-)
-async def create_vote(
-    request: VoteCreateRequest,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-) -> VoteSchemaFull:
-    """
-    Create a new vote.
-    """
-    try:
-        # Authenticate the user
-        user = verify_token(token, db)
-
-        # Validate that either sdg_user_label_id or annotation_id is provided, but not both
-        if request.sdg_user_label_id and request.annotation_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only one of sdg_user_label_id or annotation_id can be provided.",
-            )
-        if not request.sdg_user_label_id and not request.annotation_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Either sdg_user_label_id or annotation_id must be provided.",
-            )
-
-        # Check if the SDGUserLabel or Annotation exists
-        if request.sdg_user_label_id:
-            sdg_user_label = db.query(SDGUserLabel).filter(
-                SDGUserLabel.label_id == request.sdg_user_label_id
-            ).first()
-            if not sdg_user_label:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"SDGUserLabel with ID {request.sdg_user_label_id} not found.",
-                )
-        elif request.annotation_id:
-            annotation = db.query(Annotation).filter(
-                Annotation.annotation_id == request.annotation_id
-            ).first()
-            if not annotation:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Annotation with ID {request.annotation_id} not found.",
-                )
-
-        # Create the new vote
-        new_vote = Vote(
-            user_id=request.user_id,
-            sdg_user_label_id=request.sdg_user_label_id,
-            annotation_id=request.annotation_id,
-            vote_type=request.vote_type,
-            score=request.score,
-        )
-
-        # Add the vote to the database
-        db.add(new_vote)
-        db.commit()
-        db.refresh(new_vote)
-
-        # Return the created vote
-        return VoteSchemaFull.model_validate(new_vote)
-
-    except ValidationError as ve:
-        logging.error(f"Validation error: {ve}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(ve),
-        )
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        logging.error(f"Error creating vote: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred while creating the vote.",
-        )
-
 
 @router.post(
     "/score",
