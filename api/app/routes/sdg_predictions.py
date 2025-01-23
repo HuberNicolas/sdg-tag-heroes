@@ -161,7 +161,7 @@ async def get_sdg_predictions_by_publication_id(
         )
 
 @router.get(
-    "/publications/default-model/{publication_id}",
+    "/publications/{publication_id}/default-model",
     response_model=List[SDGPredictionSchemaFull],
     description="Get all default model SDG predictions for a single publication ID"
 )
