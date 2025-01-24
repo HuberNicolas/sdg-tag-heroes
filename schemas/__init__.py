@@ -25,6 +25,7 @@ from .sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaF
 from .sdg_label_history import SDGLabelHistorySchemaBase, SDGLabelHistorySchemaFull
 from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
 from .sdg_user_label import SDGUserLabelSchemaBase, SDGUserLabelSchemaFull
+from .sdg_user_label import SDGLabelDistribution, UserVotingDetails, SDGUserLabelStatisticsSchema # NON-Entity-derived
 
 from .vote import VoteSchemaBase, VoteSchemaFull
 from .annotation import AnnotationSchemaBase, AnnotationSchemaFull
@@ -113,6 +114,10 @@ __all__ = [
 
     "SDGUserLabelSchemaBase",
     "SDGUserLabelSchemaFull",
+
+    "SDGLabelDistribution", # Non-entity-derived
+    "UserVotingDetails",  # Non-entity-derived
+    "SDGUserLabelStatisticsSchema",  # Non-entity-derived
 
 
     "VoteSchemaBase",
@@ -210,3 +215,6 @@ SDGLabelDecisionSchemaBase.model_rebuild()
 SDGLabelDecisionSchemaFull.model_rebuild()
 SDGUserLabelSchemaBase.model_rebuild()
 SDGUserLabelSchemaFull.model_rebuild()
+SDGLabelDistribution.model_rebuild()
+UserVotingDetails.model_rebuild()
+SDGUserLabelStatisticsSchema.model_rebuild()

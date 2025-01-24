@@ -3,7 +3,7 @@ from typing import Optional, List, Union
 
 from pydantic import BaseModel
 
-from enums.enums import DecisionType
+from enums.enums import DecisionType, ScenarioType
 
 
 class SDGLabelDecisionSchemaBase(BaseModel):
@@ -11,6 +11,7 @@ class SDGLabelDecisionSchemaBase(BaseModel):
     suggested_label: int
     decided_label: int
     decision_type: DecisionType
+    scenario_type: ScenarioType
     expert_id: Optional[int]
     history_id: Optional[int]
     comment: Optional[str]

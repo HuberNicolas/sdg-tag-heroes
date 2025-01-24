@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 
 from api.app.routes.authentication import verify_token
@@ -11,6 +12,7 @@ from models.publications.publication import Publication
 from models.sdg_label_summary import SDGLabelSummary
 from request_models.sdg_user_label import UserLabelRequest
 from schemas import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
+from schemas.sdg_user_label import SDGUserLabelStatisticsSchema, SDGLabelDistribution, UserVotingDetails
 from schemas.vote import VoteSchemaFull
 from services.label_service import LabelService
 from settings.settings import SDGUserLabelsSettings
@@ -363,4 +365,116 @@ async def create_sdg_user_label(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while creating or linking the SDG user label",
+        )
+@router.get(
+    "/label_decisions/{decision_id}/statistics/",
+    response_model=SDGUserLabelStatisticsSchema,
+    description="Retrieve statistics for SDGUserLabels, including label distribution, user voting details, and full entities."
+)
+async def get_sdg_user_labels_statistics_with_entities(
+    decision_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> SDGUserLabelStatisticsSchema:
+    """
+    Retrieve statistics for SDGUserLabels, including label distribution, user voting details, and full entities.
+    Only the last SDGUserLabel per decision per user is considered for the filtered distribution.
+    All votes are included in the user voting details.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query to get all SDGUserLabels for the specified decision_id
+        all_labels = (
+            db.query(SDGUserLabel)
+            .join(
+                sdg_label_decision_user_label_association,
+                sdg_label_decision_user_label_association.c.user_label_id == SDGUserLabel.label_id
+            )
+            .filter(sdg_label_decision_user_label_association.c.decision_id == decision_id)
+            .options(joinedload(SDGUserLabel.user))  # Eager load the user relationship
+            .all()
+        )
+
+        # Group labels by user_id and keep only the latest label per user (for filtered distribution)
+        latest_labels_by_user = {}
+        for label in all_labels:
+            user_id = label.user_id
+            if user_id not in latest_labels_by_user or label.labeled_at > latest_labels_by_user[user_id].labeled_at:
+                latest_labels_by_user[user_id] = label
+
+        # Extract the latest labels
+        latest_labels = list(latest_labels_by_user.values())
+
+        # Calculate raw label distribution (all votes)
+        raw_label_distribution = {}
+        for label in all_labels:
+            voted_label = label.voted_label
+            user_id = label.user_id
+            if voted_label in raw_label_distribution:
+                raw_label_distribution[voted_label]["count"] += 1
+                raw_label_distribution[voted_label]["user_ids"].append(user_id)
+            else:
+                raw_label_distribution[voted_label] = {"count": 1, "user_ids": [user_id]}
+
+        # Convert raw label distribution to the schema format
+        total_label_distribution_schema = [
+            SDGLabelDistribution(sdg_label=label, count=data["count"], user_ids=data["user_ids"])
+            for label, data in raw_label_distribution.items()
+        ]
+
+        # Calculate filtered label distribution (only latest votes)
+        filtered_label_distribution = {}
+        for label in latest_labels:
+            voted_label = label.voted_label
+            user_id = label.user_id
+            if voted_label in filtered_label_distribution:
+                filtered_label_distribution[voted_label]["count"] += 1
+                filtered_label_distribution[voted_label]["user_ids"].append(user_id)
+            else:
+                filtered_label_distribution[voted_label] = {"count": 1, "user_ids": [user_id]}
+
+        # Convert filtered label distribution to the schema format
+        label_distribution_schema = [
+            SDGLabelDistribution(sdg_label=label, count=data["count"], user_ids=data["user_ids"])
+            for label, data in filtered_label_distribution.items()
+        ]
+
+        # Calculate user voting details (all votes, not just the latest)
+        user_voting_details = {}
+        for label in all_labels:
+            user = label.user  # Get the complete user object
+            user_id = user.user_id
+            voted_label = label.voted_label
+            if user_id in user_voting_details:
+                user_voting_details[user_id].append(voted_label)
+            else:
+                user_voting_details[user_id] = [voted_label]
+
+        # Convert user voting details to the schema format
+        user_voting_details_schema = [
+            UserVotingDetails(user_id=user_id, voted_labels=labels)
+            for user_id, labels in user_voting_details.items()
+        ]
+
+        # Convert the latest labels to the schema format
+        sdg_user_labels_schema = [
+            SDGUserLabelSchemaFull.model_validate(label) for label in latest_labels
+        ]
+
+        # Return the statistics and full entities
+        return SDGUserLabelStatisticsSchema(
+            label_distribution=label_distribution_schema,
+            total_label_distribution=total_label_distribution_schema,
+            user_voting_details=user_voting_details_schema,
+            sdg_user_labels=sdg_user_labels_schema
+        )
+
+    except HTTPException as he:
+        raise he  # Re-raise HTTPException to return specific error responses
+    except Exception as e:
+        logging.error(f"Error fetching SDGUserLabel statistics with entities: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching SDGUserLabel statistics with entities",
         )
