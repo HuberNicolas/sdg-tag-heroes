@@ -39,3 +39,11 @@ class SDGType(PyEnum):
     SDG_0 = "sdg0"  # not defined
     SDG_18 = "sdg18" # zero class
 
+class ScenarioType(PyEnum):
+    CONFIRM = "Confirm" # Crown the Champion: 6, 4
+    TIEBREAKER = "Tiebreaker" # Tip the Scales: 5, 5
+    INVESTIGATE = "Investigate" # Unravel the Mystery: 3, 3, 3, 1
+    EXPLORE = "Explore" # Chart the Unknown: 1, 2, 2, 2, 1, 1, 1
+
+    NOT_ENOUGH_VOTES = "Not enough votes" # Gather the Troops
+    NO_SPECIFIC_SCENARIO = "No specific scenario" # Await the Signal

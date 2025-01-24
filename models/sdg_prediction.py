@@ -3,10 +3,12 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from enums import SDGType
 from models.base import Base
-from settings.settings import TimeZoneSettings
+from settings.settings import TimeZoneSettings, MariaDBSettings
 
 time_zone_settings = TimeZoneSettings()
+mariadb_settings = MariaDBSettings()
 
 
 class SDGPrediction(Base):
@@ -70,52 +72,27 @@ class SDGPrediction(Base):
     def get_highest_sdg(self):
         """
         Get the SDG with the highest prediction value for this instance.
-        Returns a tuple of (SDG key, value).
+        Returns a tuple of (SDG key, value). E.g, ('sdg1', 0.99)
         """
+        # Only include SDGs that exist in the SDGPrediction model (sdg1 to sdg17)
         sdg_values = {
-            "sdg1": self.sdg1,
-            "sdg2": self.sdg2,
-            "sdg3": self.sdg3,
-            "sdg4": self.sdg4,
-            "sdg5": self.sdg5,
-            "sdg6": self.sdg6,
-            "sdg7": self.sdg7,
-            "sdg8": self.sdg8,
-            "sdg9": self.sdg9,
-            "sdg10": self.sdg10,
-            "sdg11": self.sdg11,
-            "sdg12": self.sdg12,
-            "sdg13": self.sdg13,
-            "sdg14": self.sdg14,
-            "sdg15": self.sdg15,
-            "sdg16": self.sdg16,
-            "sdg17": self.sdg17,
+            sdg.value: getattr(self, sdg.value)
+            for sdg in SDGType
+            if sdg.value.startswith("sdg") and hasattr(self, sdg.value)
         }
         highest_sdg = max(sdg_values.items(), key=lambda item: item[1])
         return highest_sdg
 
-    def get_sdgs_above_threshold(self, threshold=0.98):
+
+    def get_sdgs_above_threshold(self, threshold=mariadb_settings.DEFAULT_PREDICTION_THRESHOLD):
         """
         Get all SDGs with a prediction value above the threshold for this instance.
-        Returns a dictionary of SDG keys and their respective values.
+        Returns a dictionary of SDG keys and their respective values. E.g,. {'sdg1': 0.99, 'sdg3': 0.99, 'sdg4': 0.98}
         """
+        # Only include SDGs that exist in the SDGPrediction model (sdg1 to sdg17)
         sdg_values = {
-            "sdg1": self.sdg1,
-            "sdg2": self.sdg2,
-            "sdg3": self.sdg3,
-            "sdg4": self.sdg4,
-            "sdg5": self.sdg5,
-            "sdg6": self.sdg6,
-            "sdg7": self.sdg7,
-            "sdg8": self.sdg8,
-            "sdg9": self.sdg9,
-            "sdg10": self.sdg10,
-            "sdg11": self.sdg11,
-            "sdg12": self.sdg12,
-            "sdg13": self.sdg13,
-            "sdg14": self.sdg14,
-            "sdg15": self.sdg15,
-            "sdg16": self.sdg16,
-            "sdg17": self.sdg17,
+            sdg.value: getattr(self, sdg.value)
+            for sdg in SDGType
+            if sdg.value.startswith("sdg") and hasattr(self, sdg.value)
         }
         return {key: value for key, value in sdg_values.items() if value >= threshold}

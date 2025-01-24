@@ -40,6 +40,7 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
+
 # Use GPT assistant service
 assistant_service = GPTAssistantService()
 

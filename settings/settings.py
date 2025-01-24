@@ -43,6 +43,8 @@ class MariaDBSettings(BaseSettings):
     MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
     SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
     MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
+    DEFAULT_PREDICTION_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
+    DEFAULT_PREDICTION_THRESHOLD: ClassVar[float] = 0.98
 
 class QdrantDBSettings(BaseSettings):
     QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
@@ -180,14 +182,21 @@ class GPTAssistantServiceSettings(BaseSettings):
     # smaller model (cheapest as of 06.2024) to keep the cost down: "gpt-3.5-turbo-0125"
     GPT_TEMPERATURE: ClassVar[float] = 0.2
 
-class UserAnnotationAssessmentSettings(BaseSettings):
+class UserAnnotationEvaluatorServiceSettings(BaseSettings):
     GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
     BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
 
+class DecisionServiceSettings(BaseSettings):
+    DECISION_SERVICE_LOG_NAME: ClassVar[str] = "service_decision.log"
+    DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
+    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = 3 # 10
+    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 5 # 15
 
-class SimilaritySearchSettings(BaseSettings):
-    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
+class LabelServiceSettings(BaseSettings):
+    LABEL_SERVICE_LOG_NAME: ClassVar[str] = "service_label.log"
 
+class RewardServiceSettings(BaseSettings):
+    REWARD_SERVICE_LOG_NAME: ClassVar[str] = "service_reward.log"
 
 ### Router Settings
 
@@ -222,7 +231,7 @@ class CollectionsRouterSettings(BaseSettings):
 
 class SDGPredictionsRouterSettings(BaseSettings):
     SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
-    DEFAULT_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
+    DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
 
 class DimensionalityReductionsRouterSettings(BaseSettings):
     DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = (

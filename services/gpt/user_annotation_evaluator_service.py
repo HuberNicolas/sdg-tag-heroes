@@ -6,18 +6,15 @@ from transformers import AutoTokenizer, AutoModel
 from enums import SDGType
 from schemas.gpt_assistant_service import GPTResponseAnnotationScoreSchema, AnnotationEvaluationSchema
 from settings.sdg_descriptions import sdgs
-from settings.settings import UserAnnotationAssessmentSettings
+from settings.settings import UserAnnotationEvaluatorServiceSettings
 
 # OpenBLAS Warning : Detect OpenMP Loop and this application may hang. Please rebuild the library with USE_OPENMP=1 option.
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
-
-user_annotation_assessment_settings = UserAnnotationAssessmentSettings()
-
-
 # Load Transformer Model
-tokenizer = AutoTokenizer.from_pretrained(user_annotation_assessment_settings.BERT_PRETRAINED_MODEL_NAME)
-model = AutoModel.from_pretrained(user_annotation_assessment_settings.BERT_PRETRAINED_MODEL_NAME)
+user_annotation_evaluator_service_settings = UserAnnotationEvaluatorServiceSettings()
+tokenizer = AutoTokenizer.from_pretrained(user_annotation_evaluator_service_settings.BERT_PRETRAINED_MODEL_NAME)
+model = AutoModel.from_pretrained(user_annotation_evaluator_service_settings.BERT_PRETRAINED_MODEL_NAME)
 
 class UserAnnotationEvaluatorService:
     """Service for evaluating annotations with semantic similarity and combined scoring."""
