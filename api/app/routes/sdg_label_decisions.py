@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
+from enums.enums import ScenarioType
+from models import SDGLabelDecision
 from models.publications.publication import Publication
 from schemas import SDGLabelDecisionSchemaFull
 from settings.settings import SDGSLabelDecisionsRouterSettings
@@ -135,4 +137,38 @@ async def get_sdg_label_decision(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the SDGLabelDecision for the publication",
+        )
+
+@router.get(
+    "/scenarios/{scenario}",
+    response_model=List[SDGLabelDecisionSchemaFull],
+    description="Retrieve all SDGLabelDecision entries associated with a specific scenario"
+)
+async def get_sdg_label_decisions_by_scenario(
+    scenario: ScenarioType,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGLabelDecisionSchemaFull]:
+    """
+    Retrieve all SDGLabelDecision entries for a specific scenario.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query the database for all SDGLabelDecisions with the specified scenario
+        decisions = db.query(SDGLabelDecision).filter(SDGLabelDecision.scenario_type == scenario).all()
+
+        if not decisions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelDecision entries found for scenario {scenario.value}",
+            )
+
+        return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in decisions]
+
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelDecisions for scenario {scenario.value}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the SDGLabelDecisions for the scenario",
         )
