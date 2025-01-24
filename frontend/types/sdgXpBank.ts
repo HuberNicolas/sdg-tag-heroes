@@ -1,4 +1,4 @@
-import { SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull } from "./sdgXPBankHistory";
+import type { SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull } from "./sdgXpBankHistory"
 
 export interface SDGXPBankSchemaBase {
   sdgXpBankId: number;

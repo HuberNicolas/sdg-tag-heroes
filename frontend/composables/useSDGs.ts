@@ -1,34 +1,42 @@
 import { useRuntimeConfig } from "nuxt/app";
-import type { SDGGoal } from "@/types/schemas";
+import type {
+  SDGGoalSchemaFull,
+} from "~/types/sdgs";
 
+export default function useSDGs() {
+  const config = useRuntimeConfig();
 
-export default class UseSDGGoals {
-  private config = useRuntimeConfig();
-
-  // Fetch SDG goals without targets
-  async getSDGGoals(): Promise<SDGGoal[]> {
+  // Fetch all SDG goals
+  async function getSDGs(): Promise<SDGGoalSchemaFull[]> {
     try {
-      // Retrieve the access token from localStorage
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-
-      // Construct the API URL
-      const url = `${this.config.public.apiUrl}sdgs?include_targets=false`;
-
-      // Make the API request using $fetch
-      const data = await $fetch<SDGGoal[]>(url, {
+      return await $fetch<SDGGoalSchemaFull[]>(`${config.public.apiUrl}/sdgs`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
-
-      // Return the data
-      return data;
     } catch (error) {
-      console.error("Failed to fetch SDG goals", error);
-      throw new Error("Failed to fetch SDG goals");
+      throw new Error(`Failed to fetch SDGs: ${error}`);
     }
   }
+
+  // Fetch a single SDG goal by ID
+  async function getSDGById(sdgId: number): Promise<SDGGoalSchemaFull> {
+    try {
+      return await $fetch<SDGGoalSchemaFull>(
+        `${config.public.apiUrl}/sdgs/${sdgId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+    } catch (error) {
+      throw new Error(`Failed to fetch SDG: ${error}`);
+    }
+  }
+
+  return {
+    getSDGs,
+    getSDGById,
+  };
 }

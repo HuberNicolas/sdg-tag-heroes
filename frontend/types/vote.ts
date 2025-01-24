@@ -1,4 +1,4 @@
-import { VoteType } from "../enums/enums";
+import { VoteType } from "./enums";
 
 export interface VoteSchemaBase {
   voteId: number;

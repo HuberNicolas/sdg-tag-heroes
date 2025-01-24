@@ -1,4 +1,4 @@
-import { SDGTargetSchemaBase, SDGTargetSchemaFull } from "./target";
+import type { SDGTargetSchemaBase, SDGTargetSchemaFull } from "./target";
 
 export interface SDGGoalSchemaBase {
   id: number;

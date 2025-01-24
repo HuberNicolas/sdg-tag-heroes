@@ -1,4 +1,4 @@
-import { UserSchemaBase, UserSchemaFull } from "./user";
+import type { UserSchemaBase, UserSchemaFull } from "./user";
 
 export interface LabelerSchemaBase {
   labelerId: number;

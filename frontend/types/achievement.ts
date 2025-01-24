@@ -1,4 +1,4 @@
-import {
+import type {
   InventoryAchievementAssociationSchemaBase,
   InventoryAchievementAssociationSchemaFull,
 } from "./inventoryAchievementAssociation";

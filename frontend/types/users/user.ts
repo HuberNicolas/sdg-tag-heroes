@@ -1,4 +1,4 @@
-import { UserRole } from "../../enums/enums";
+import type { UserRole } from "../enums";
 
 export interface UserSchemaBase {
   userId: number;

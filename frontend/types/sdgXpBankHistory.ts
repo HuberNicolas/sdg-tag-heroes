@@ -1,8 +1,8 @@
-import { SDGType } from "../enums/enums";
+import type { SDGType } from "./enums";
 
 export interface SDGXPBankHistorySchemaBase {
   historyId: number;
-  xpBankId: number;s
+  xpBankId: number;
   sdg: SDGType;
   increment: number;
   reason?: string | null;

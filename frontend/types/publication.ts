@@ -1,15 +1,15 @@
-import { AuthorSchemaBase, AuthorSchemaFull } from "./author";
-import { SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull } from "./sdgLabelSummary";
-import { SDGPredictionSchemaBase, SDGPredictionSchemaFull } from "./sdgPrediction";
-import { SDGTargetPredictionSchemaBase, SDGTargetPredictionSchemaFull } from "./sdgTargetPrediction";
-import { DimensionalityReductionSchemaBase } from "./dimensionalityReduction";
-import { PublicationClusterSchemaBase, PublicationClusterSchemaFull } from "./clusters/publicationCluster";
-import { FactSchemaBase, FactSchemaFull } from "./fact";
-import { SummarySchemaBase, SummarySchemaFull } from "./summary";
-import { FacultySchemaBase, FacultySchemaFull } from "./faculty";
-import { InstituteSchemaBase, InstituteSchemaFull } from "./institute";
-import { DivisionSchemaBase, DivisionSchemaFull } from "./division";
-import {CollectionSchemaBase, CollectionSchemaFull} from "./collection";
+import type { AuthorSchemaBase, AuthorSchemaFull } from "./author";
+import type { SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull } from "./sdgLabelSummary";
+import type { SDGPredictionSchemaBase, SDGPredictionSchemaFull } from "./sdgPrediction";
+import type { SDGTargetPredictionSchemaBase, SDGTargetPredictionSchemaFull } from "./sdgTargetPrediction";
+import type { DimensionalityReductionSchemaBase } from "./dimensionalityReduction";
+import type { PublicationClusterSchemaBase, PublicationClusterSchemaFull } from "./clusters/publicationCluster";
+import type { FactSchemaBase, FactSchemaFull } from "./fact";
+import type { SummarySchemaBase, SummarySchemaFull } from "./summary";
+import type { FacultySchemaBase, FacultySchemaFull } from "./faculty";
+import type { InstituteSchemaBase, InstituteSchemaFull } from "./institute";
+import type { DivisionSchemaBase, DivisionSchemaFull } from "./division";
+import type {CollectionSchemaBase, CollectionSchemaFull} from "./collection";
 
 export interface PublicationSchemaBase {
   publicationId: number;

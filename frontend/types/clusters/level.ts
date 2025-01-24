@@ -1,4 +1,4 @@
-import { ClusterTopicSchemaBase, ClusterTopicSchemaFull } from "./topic";
+import type { ClusterTopicSchemaBase, ClusterTopicSchemaFull } from "./topic";
 
 export interface ClusterLevelSchemaBase {
   id: number;

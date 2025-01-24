@@ -1,9 +1,9 @@
-import {
+import type {
   AnnotationSchemaBase,
   AnnotationSchemaFull,
 } from "./annotation";
-import { VoteSchemaBase, VoteSchemaFull } from "./vote";
-import {
+import type { VoteSchemaBase, VoteSchemaFull } from "./vote";
+import type {
   SDGLabelDecisionSchemaBase,
   SDGLabelDecisionSchemaFull,
 } from "./sdgLabelDecision";

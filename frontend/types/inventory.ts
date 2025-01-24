@@ -1,4 +1,4 @@
-import { AchievementSchemaBase, AchievementSchemaFull } from "./achievement";
+import type { AchievementSchemaBase, AchievementSchemaFull } from "./achievement";
 
 export interface InventorySchemaBase {
   inventoryId: number;

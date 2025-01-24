@@ -1,33 +1,21 @@
-import { ref, watchEffect } from 'vue';
+// composables/useAvatar.ts
 import { createAvatar } from '@dicebear/core';
 import { thumbs } from '@dicebear/collection';
 
 export default function useAvatar() {
-  const seed = ref('');
-  const avatar = ref('');
-
-  const generateAvatar = (options: { seed: string; size?: number }) => {
-    const { seed, size = 64 } = options;
-    if (seed) {
-      return createAvatar(thumbs, {
-        seed,
-        size,
-      });
-    }
-    return null;
+  // Generate an avatar for a given seed and size
+  const generateAvatar = (seed: string, size: number = 64): string => {
+    if (!seed) return ''; // Return an empty string if no seed is provided
+    const avatar = createAvatar(thumbs, {
+      seed,
+      size,
+    });
+    const dataUri = avatar.toDataUri();
+    console.log('Generated Avatar Data URI:', dataUri); // Debugging
+    return dataUri; // Return the data URI of the avatar
   };
-
-  watchEffect(() => {
-    if (seed.value) {
-      const avatarInstance = generateAvatar({ seed: seed.value });
-      avatar.value = avatarInstance?.toDataUri() || '';
-    }
-  });
 
   return {
-    avatar,
-    seed,
-    generateAvatar
+    generateAvatar,
   };
 }
-

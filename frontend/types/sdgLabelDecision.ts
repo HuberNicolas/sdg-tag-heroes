@@ -1,5 +1,5 @@
-import { DecisionType } from "../enums/enums";
-import {
+import { DecisionType } from "./enums";
+import type {
   AnnotationSchemaBase,
   AnnotationSchemaFull,
 } from "./annotation";

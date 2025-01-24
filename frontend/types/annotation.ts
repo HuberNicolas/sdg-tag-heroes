@@ -1,4 +1,4 @@
-import { VoteSchemaBase, VoteSchemaFull } from "./vote";
+import type { VoteSchemaBase, VoteSchemaFull } from "./vote";
 
 export interface AnnotationSchemaBase {
   annotationId: number;

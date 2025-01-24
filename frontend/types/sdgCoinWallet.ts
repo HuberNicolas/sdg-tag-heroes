@@ -1,4 +1,4 @@
-import {
+import type {
   SDGCoinWalletHistorySchemaBase,
   SDGCoinWalletHistorySchemaFull,
 } from "./sdgCoinWalletHistory";

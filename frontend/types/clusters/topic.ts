@@ -1,4 +1,4 @@
-import { PublicationClusterSchemaBase, PublicationClusterSchemaFull } from "./publicationCluster";
+import type { PublicationClusterSchemaBase, PublicationClusterSchemaFull } from "./publicationCluster";
 
 export interface ClusterTopicSchemaBase {
   topicId: number;

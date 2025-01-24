@@ -1,4 +1,4 @@
-import { ClusterLevelSchemaBase, ClusterLevelSchemaFull } from "./level";
+import type { ClusterLevelSchemaBase, ClusterLevelSchemaFull } from "./level";
 
 export interface ClusterGroupSchemaBase {
   id: number;
