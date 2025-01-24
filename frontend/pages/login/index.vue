@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import UseAuth from '~/composables/useAuth';
+import useAuthentication from '~/composables/useAuthentication';
 
 const email = ref('');
 const password = ref('');
@@ -28,14 +28,13 @@ const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    const authService = new UseAuth();
+    const authService = useAuthentication(); // Call as a function
     await authService.login({ email: email.value, password: password.value });
-    router.push('/profile');  // Navigate to profile page after login
+    await router.push('/profile'); // Navigate to profile page after login
   } catch (err) {
     error.value = 'Invalid email or password';
   }
 };
-
 </script>
 
 <style scoped>

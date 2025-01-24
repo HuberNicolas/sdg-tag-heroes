@@ -8,7 +8,7 @@
       chip-position="top-right"
       size="sm"
       :src="avatar"
-    alt="Avatar"
+      alt="Avatar"
     />
     <p>Your Roles:</p>
     <ul>
@@ -24,44 +24,39 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import UseAuth from '~/composables/useAuth';
+import useAuthentication from '~/composables/useAuthentication';
 import useAvatar from '@/composables/useAvatar';
 
-const user = ref<{ email: string, role: string } | null>(null);
+const user = ref<{ email: string; roles: string[] } | null>(null);
 const router = useRouter();
 
-// Initialize avatar with null or an empty string
+// Initialize avatar
 const { avatar, seed, generateAvatar } = useAvatar('');
 
+// Fetch user profile
 const fetchUserProfile = async () => {
   try {
-    const authService = new UseAuth();
-    user.value = await authService.getProfile();
-    seed.value = user.value?.email;
+    const authService = useAuthentication(); // Call as a function
+    const profile = await authService.getProfile();
+    user.value = profile;
+    seed.value = profile.email; // Generate avatar based on email
   } catch (error) {
-    router.push('/login');  // Redirect to login if token is invalid or expired
+    router.push('/login'); // Redirect to login if token is invalid or expired
   }
 };
 
-watch(user, (newValue) => {
-  // Regenerate avatar whenever user data changes
-  if (newValue?.email) {
-    generateAvatar(newValue.email);
-  }
-});
-
+// Logout
 const logout = () => {
-  const authService = new UseAuth();
+  const authService = useAuthentication(); // Call as a function
   authService.logout();
   router.push('/login');
 };
-definePageMeta({
-  layout: 'user'
-})
+
+// Fetch profile on mount
 onMounted(fetchUserProfile);
 
-
-const toast = useToast()
+// Toast
+const toast = useToast();
 </script>
 
 <style scoped>
