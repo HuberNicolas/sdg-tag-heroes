@@ -9,7 +9,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import DimensionalityReduction, SDGPrediction
 from models.publications.publication import Publication
-from requests_models.dimensionality_reductions import UserCoordinatesRequest, \
+from request_models.dimensionality_reductions import UserCoordinatesRequest, \
     DimensionalityReductionPublicationIdsRequest
 from schemas import DimensionalityReductionSchemaFull
 from schemas.dimensionality_reduction import FilteredDimensionalityReductionStatisticsSchema, \
@@ -39,8 +39,8 @@ def get_db():
     finally:
         db.close()
 
-# Use the UMAP service to calculate coordinates
-umap_service = UMAPCoordinateService()
+# Use the UMAP service to calculate coordinates TODO: reset when finished development
+# umap_service = UMAPCoordinateService()
 
 router = APIRouter(
     prefix="/dimensionality-reductions",
@@ -208,6 +208,9 @@ async def get_user_coordinates(
     try:
         # Verify the token before proceeding
         user = verify_token(token, db)
+
+        umap_service = UMAPCoordinateService() # Takes long to load
+
         coordinates = umap_service.get_coordinates(
             query=request.user_query, sdg=request.sdg, level=request.level
         )

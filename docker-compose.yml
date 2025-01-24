@@ -28,10 +28,14 @@ services:
       POETRY_HTTP_TIMEOUT: "300"
     volumes:
       - ./api:/api
-      - ./schemas:/schemas
       - ./models:/models
+      - ./db:/db
+      - ./request_models:/request_models
+      - ./schemas:/schemas
       - ./enums:/enums
-      - ./requests_models:/requests_models
+      - ./settings:/settings
+      - ./services:/services
+      - ./utils:/utils
       - ./data/docker/logs:/logs
     ports:
       - "1002:8001"

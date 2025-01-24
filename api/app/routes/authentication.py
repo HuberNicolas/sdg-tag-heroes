@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models.users.user import User
-from requests_models import LoginRequest
+from request_models import LoginRequest
 from schemas import UserDataSchemaFull, TokenDataSchemaFull, LoginSchemaFull
 from settings.settings import AuthenticationRouterSettings
 from utils.logger import logger

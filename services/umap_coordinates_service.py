@@ -95,9 +95,3 @@ class UMAPCoordinateService:
 
         except Exception as e:
             raise e
-
-# Usage Example
-# Initialize the service
-# umap_service = UMAPCoordinateService()
-# coordinates = umap_service.get_coordinates(query="Some user query", sdg=1, level=1)
-# print(coordinates)

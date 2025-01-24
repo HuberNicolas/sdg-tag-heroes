@@ -8,7 +8,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGPrediction
 from models.publications.publication import Publication
-from requests_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, SDGPredictionsIdsRequest
+from request_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, SDGPredictionsIdsRequest
 from schemas import SDGPredictionSchemaFull
 from services.math_service import MathService
 from services.metrics_service import MetricsService

@@ -7,7 +7,7 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGXPBank, SDGXPBankHistory
-from requests_models.sdg_xp_bank import BankIncrementRequest
+from request_models.sdg_xp_bank import BankIncrementRequest
 from schemas import SDGXPBankHistorySchemaFull, SDGXPBankSchemaFull
 from settings.settings import XPBanksRouterSettings
 from utils.logger import logger

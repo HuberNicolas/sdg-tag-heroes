@@ -6,7 +6,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import Fact, Summary
 from models.publications.publication import Publication
-from requests_models.publications_gpt import PublicationIdsRequest
+from request_models.publications_gpt import PublicationIdsRequest
 from schemas import FactSchemaFull
 from schemas.gpt_assistant_service import (
     PublicationSummarySchema,

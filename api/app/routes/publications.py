@@ -10,8 +10,8 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qdrant_client
 from models.publications.publication import Publication
-from requests_models.publication import PublicationIdsRequest
-from requests_models.publication_similarity_query_service import PublicationSimilarityQueryRequest
+from request_models.publication import PublicationIdsRequest
+from request_models.publication_similarity_query_service import PublicationSimilarityQueryRequest
 from schemas import PublicationSchemaBase, PublicationSchemaFull
 from schemas.services.publication_similarity_query_service import PublicationSimilaritySchema
 from services.publication_similarity_query_service import PublicationSimilarityQueryService

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-from requests_models.user_profiles_gpt import UserProfileInterestsRequest, UserProfileSkillsRequest
+from request_models.user_profiles_gpt import UserProfileInterestsRequest, UserProfileSkillsRequest
 from schemas.gpt_assistant_service import UserEnrichedInterestsDescriptionSchema, \
     UserEnrichedSkillsDescriptionSchema
 from services.gpt.gpt_assistant_service import GPTAssistantService

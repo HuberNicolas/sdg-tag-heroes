@@ -7,7 +7,7 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGCoinWallet, SDGCoinWalletHistory
-from requests_models.sdg_coin_wallet import WalletIncrementRequest
+from request_models.sdg_coin_wallet import WalletIncrementRequest
 from schemas.sdg_coin_wallet import SDGCoinWalletSchemaFull
 from schemas.sdg_coin_wallet_history import SDGCoinWalletHistorySchemaFull, NoSDGCoinWalletHistorySchemaBase
 from settings.settings import CoinWalletsRouterSettings

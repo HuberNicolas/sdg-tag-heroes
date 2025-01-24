@@ -7,7 +7,7 @@ from models import User
 from enums.enums import UserRole
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
-from requests_models.user import UserIdsRequest
+from request_models.user import UserIdsRequest
 from schemas.users.user import UserSchemaFull
 from settings.settings import UsersRouterSettings
 from utils.logger import logger
