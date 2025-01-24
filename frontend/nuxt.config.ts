@@ -42,7 +42,6 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      backendURL: process.env.BACKEND_URL, // Django, handles authentication and generates jwt
       apiUrl: process.env.API_URL // FastAPI, verifies jwt
     }
   },
