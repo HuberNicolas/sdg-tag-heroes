@@ -17,7 +17,7 @@ from models import (
 )
 from db.mariadb_connector import engine as mariadb_engine
 from models.base import Base
-from enums.enums import SDGType, DecisionType, VoteType
+from enums.enums import SDGType, DecisionType, VoteType, ScenarioType
 from utils.logger import logger
 from settings.settings import FixturesSettings
 
@@ -91,6 +91,7 @@ def create_sdg_user_labels(session: Session, users: list[User], num_labels: int 
             updated_at=faker.date_time_this_year(),
         )
         session.add(label)
+        logging.info(f"Created {label}.")
         labels.append(label)
     session.commit()
     logging.info(f"Created {num_labels} SDGUserLabels.")
@@ -112,6 +113,7 @@ def create_votes(session: Session, users: list[User], user_labels: list[SDGUserL
             created_at=faker.date_time_this_year(),
         )
         session.add(vote)
+        logging.info(f"Created {vote}.")
         votes.append(vote)
     session.commit()
     logging.info(f"Created {num_votes} Votes.")
@@ -134,6 +136,7 @@ def create_annotations(session: Session, users: list[User], user_labels: list[SD
             updated_at=faker.date_time_this_year(),
         )
         session.add(annotation)
+        logging.info(f"Created {annotation}.")
         annotations.append(annotation)
     session.commit()
     logging.info(f"Created {num_annotations} Annotations.")
@@ -157,7 +160,8 @@ def create_sdg_label_decisions(
             expert_id=expert.expert_id,
             suggested_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decided_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
-            decision_type=choice(list(DecisionType)), # Random decision type
+            decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
+            scenario_type=choice(list(ScenarioType)),
             comment=faker.text(max_nb_chars=200),
             decided_at=faker.date_time_this_year(),
             created_at=faker.date_time_this_year(),
@@ -169,6 +173,7 @@ def create_sdg_label_decisions(
         decision.user_labels.extend(unique_labels)
 
         session.add(decision)
+        logging.info(f"Created {decision}.")
         decisions.append(decision)
     session.commit()
 
@@ -183,7 +188,8 @@ def create_sdg_label_decisions(
             history_id=history.history_id,
             suggested_label=randint(1, 17), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decided_label=0,  # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
-            decision_type=choice(list(DecisionType)),  # Random decision type
+            decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
+            scenario_type=choice(list(ScenarioType)),
             comment=choice(list(["Not decided yet", None])),
             created_at=faker.date_time_this_year(),
             updated_at=faker.date_time_this_year(),
@@ -194,6 +200,7 @@ def create_sdg_label_decisions(
         decision.user_labels.extend(unique_labels)
 
         session.add(decision)
+        logging.info(f"Created {decision}.")
         unfinished_decisions.append(decision)
     session.commit()
 
@@ -215,6 +222,7 @@ def create_wallets(session: Session, users: list[User]):
             updated_at=faker.date_time_this_year(),
         )
         session.add(wallet)
+        logging.info(f"Created {wallet}.")
         wallets.append(wallet)
     session.commit()
     logging.info(f"Created {len(wallets)} SDGCoinWallets.")
@@ -236,6 +244,7 @@ def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_
                 timestamp=faker.date_time_this_year(),
             )
             session.add(history)
+            logging.info(f"Created {history}.")
         # Update the wallet total after inserting histories
         wallet.total_coins = session.query(func.sum(SDGCoinWalletHistory.increment)).filter_by(wallet_id=wallet.sdg_coin_wallet_id).scalar() or 0.0
     session.commit()
@@ -276,19 +285,27 @@ def create_xp_banks(session: Session, users: list[User]):
             getattr(xp_bank, f"sdg{i}_xp") for i in range(1, 18)
         )
         session.add(xp_bank)
+        logging.info(f"Created {xp_bank}.")
         xp_banks.append(xp_bank)
     session.commit()
     logging.info(f"Created {len(xp_banks)} SDGXPBanks.")
     return xp_banks
+
 
 def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_entries: int = 5):
     """
     Create incremental history entries for each XP bank with SDG-specific increments.
     """
     logging.info("Creating SDGXPBank histories...")
+
+    # Define valid SDG types (excluding SDG_0 and SDG_18)
+    valid_sdg_types = [sdg for sdg in SDGType if sdg.value not in {"sdg0", "sdg18"}]
+
     for xp_bank in xp_banks:
         for _ in range(num_entries):
-            sdg = choice(list(SDGType))  # Randomly choose an SDG to update
+            # Randomly choose a valid SDG to update
+            sdg = choice(valid_sdg_types)
+
             increment = round(uniform(10, 100), 2)  # Random increment between +10 and +100
             history = SDGXPBankHistory(
                 xp_bank_id=xp_bank.sdg_xp_bank_id,
@@ -299,7 +316,7 @@ def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_en
                 timestamp=faker.date_time_this_year(),
             )
             session.add(history)
-
+            logging.info(f"Created {history}.")
             # Update the specific SDG XP field and total XP
             sdg_field = f"{sdg.value.lower()}_xp"
             if hasattr(xp_bank, sdg_field):
@@ -336,6 +353,7 @@ def create_votes_for_annotations(session: Session, annotations: list[Annotation]
         )
 
         session.add(vote)
+        logging.info(f"Created {vote}.")
         votes.append(vote)
     session.commit()
     logging.info(f"Created {len(votes)} Votes for Annotations.")
