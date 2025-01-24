@@ -33,10 +33,6 @@ class EnvLoaderSettings(BaseSettings):
     # Do not set this to True in prod as it will print secrets
     ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
 
-class FixturesSettings(BaseSettings):
-    FIXTURES_LOG_NAME: ClassVar[str] = "fixtures.log"
-
-
 ### DB-Settings
 class MariaDBSettings(BaseSettings):
     MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
@@ -189,8 +185,8 @@ class UserAnnotationEvaluatorServiceSettings(BaseSettings):
 class DecisionServiceSettings(BaseSettings):
     DECISION_SERVICE_LOG_NAME: ClassVar[str] = "service_decision.log"
     DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
-    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = 3 # 10
-    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 5 # 15
+    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = 10 # 10
+    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 15 # 15
 
 class LabelServiceSettings(BaseSettings):
     LABEL_SERVICE_LOG_NAME: ClassVar[str] = "service_label.log"
@@ -268,5 +264,13 @@ class VotesSettings(BaseSettings):
     VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
 
 
+class FixturesSettings(BaseSettings):
+    FIXTURES_LOG_NAME: ClassVar[str] = "fixtures.log"
 
+    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = DecisionServiceSettings().VOTES_NEEDED_FOR_SCENARIO
+    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = DecisionServiceSettings().VOTES_NEEDED_FOR_CONSENSUS
 
+    CONFIRM_MAJORITY_RATIO: ClassVar[float] = 0.9  # 90% majority
+    TIEBREAKER_RATIO: ClassVar[float] = 0.5  # 50-50 split
+    INVESTIGATE_DISTRIBUTION: ClassVar[List[int]] = [3, 3, 3, 1]  # 3/3/3/1 distribution
+    EXPLORE_DISTRIBUTION: ClassVar[List[int]] = [1, 2, 2, 2, 1, 1, 1]  # 1/2/2/2/1/1/1 distribu

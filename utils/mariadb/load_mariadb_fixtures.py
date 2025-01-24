@@ -1,4 +1,6 @@
+import random
 from random import choice, randint, uniform
+from typing import List
 
 from sqlalchemy import text, func
 from sqlalchemy.orm import Session
@@ -13,7 +15,7 @@ from models import (
     Expert,
     SDGLabelHistory,
     Publication,
-    User, SDGCoinWallet, SDGXPBank, SDGCoinWalletHistory, SDGXPBankHistory,
+    User, SDGCoinWallet, SDGXPBank, SDGCoinWalletHistory, SDGXPBankHistory, SDGLabelSummary,
 )
 from db.mariadb_connector import engine as mariadb_engine
 from models.base import Base
@@ -28,7 +30,9 @@ logging = logger(fixtures_settings.FIXTURES_LOG_NAME)
 # Faker instance
 faker = Faker()
 # Set Seed
-faker.seed_instance(31011997)
+SEED = 31011997
+faker.seed_instance(SEED)
+random.seed(SEED)
 
 def truncate_tables(session: Session, tables: list):
     """
@@ -62,6 +66,38 @@ def load_publications(session: Session, max_pubs: int = 10):
         logging.error("No publications found in the database.")
     return publications
 
+def load_relevant_publications_with_sdg_labels(session: Session, max_pubs: int = 500) -> List[Publication]:
+    """
+    Load a subset of publications that have at least one SDG label set to 1 in their SDGLabelSummary.
+    """
+    publications = (
+        session.query(Publication)
+        .join(SDGLabelSummary)
+        .filter(
+            (SDGLabelSummary.sdg1 == 1) |
+            (SDGLabelSummary.sdg2 == 1) |
+            (SDGLabelSummary.sdg3 == 1) |
+            (SDGLabelSummary.sdg4 == 1) |
+            (SDGLabelSummary.sdg5 == 1) |
+            (SDGLabelSummary.sdg6 == 1) |
+            (SDGLabelSummary.sdg7 == 1) |
+            (SDGLabelSummary.sdg8 == 1) |
+            (SDGLabelSummary.sdg9 == 1) |
+            (SDGLabelSummary.sdg10 == 1) |
+            (SDGLabelSummary.sdg11 == 1) |
+            (SDGLabelSummary.sdg12 == 1) |
+            (SDGLabelSummary.sdg13 == 1) |
+            (SDGLabelSummary.sdg14 == 1) |
+            (SDGLabelSummary.sdg15 == 1) |
+            (SDGLabelSummary.sdg16 == 1) |
+            (SDGLabelSummary.sdg17 == 1)
+        )
+        .limit(max_pubs)
+        .all()
+    )
+    if not publications:
+        logging.error("No relevant publications found in the database.")
+    return publications
 
 def load_experts(session: Session):
     """
@@ -359,6 +395,145 @@ def create_votes_for_annotations(session: Session, annotations: list[Annotation]
     logging.info(f"Created {len(votes)} Votes for Annotations.")
     return votes
 
+def create_sdg_label_decisions_for_scenarios(
+    session: Session, publications: List[Publication], experts: List[Expert], users: List[User],
+):
+    """
+    Create SDGLabelDecisions for publications based on scenarios and ground truth data.
+    Ensure the label distribution is appropriate for each scenario.
+    """
+    logging.info("Creating SDGLabelDecisions for scenarios...")
+    decisions = []
+
+    # Define all possible SDGs (excluding SDG0 and SDG18)
+    all_sdgs = [f"SDG{i}" for i in range(1, 18)]
+
+    for publication in publications:
+        sdg_label_summary = publication.sdg_label_summary
+        if not sdg_label_summary:
+            logging.warning(f"No SDGLabelSummary found for publication ID {publication.publication_id}. Skipping.")
+            continue
+
+        # Determine the true SDG label (the one set to 1)
+        true_sdg = next((f"SDG{i}" for i in range(1, 18) if getattr(sdg_label_summary, f"sdg{i}") == 1), None)
+        if not true_sdg:
+            logging.warning(f"No true SDG label found for publication ID {publication.publication_id}. Skipping.")
+            continue
+
+        logging.info(f"True SDG for publication ID {publication.publication_id}: {true_sdg}")
+
+        # Define non-relevant SDGs (all SDGs except the true one)
+        non_relevant_sdgs = [sdg for sdg in all_sdgs if sdg != true_sdg]
+        logging.debug(f"Non-relevant SDGs for publication ID {publication.publication_id}: {non_relevant_sdgs}")
+
+        expert = choice(experts)
+        candidate_scenarios = list(ScenarioType)
+        del candidate_scenarios[-1] # Remove
+        del candidate_scenarios[-1]
+        scenario = choice(candidate_scenarios)
+
+
+
+        logging.debug(f"Selected scenario for publication ID {publication.publication_id}: {scenario}")
+
+        # Initialize labels list
+        labels = []
+
+        # Determine the label distribution based on the scenario
+        if scenario == ScenarioType.CONFIRM:
+            # Clear majority (e.g., 90% majority)
+            majority_count = int(fixtures_settings.VOTES_NEEDED_FOR_SCENARIO * fixtures_settings.CONFIRM_MAJORITY_RATIO)
+            minority_count = fixtures_settings.VOTES_NEEDED_FOR_SCENARIO - majority_count
+            majority_label = true_sdg  # Always use the true SDG as the majority label
+            minority_label = choice(non_relevant_sdgs)  # Choose a non-relevant SDG as the minority label
+            logging.debug(f"Majority Count: {majority_count}, Minority Count: {minority_count}")
+            logging.debug(f"Majority Label: {majority_label}, Minority Label: {minority_label}")
+            labels = [majority_label] * majority_count + [minority_label] * minority_count
+
+        elif scenario == ScenarioType.TIEBREAKER:
+            # Close split (e.g., 50-50)
+            split_count = int(fixtures_settings.VOTES_NEEDED_FOR_SCENARIO * fixtures_settings.TIEBREAKER_RATIO)
+            label1 = true_sdg  # Always include the true SDG
+            label2 = choice(non_relevant_sdgs)  # Choose a non-relevant SDG
+            logging.debug(f"Split Count: {split_count}")
+            logging.debug(f"Label 1: {label1}, Label 2: {label2}")
+            labels = [label1] * split_count + [label2] * split_count
+
+        elif scenario == ScenarioType.INVESTIGATE:
+            # Complex distribution (e.g., 3/3/3/1)
+            # Ensure the true SDG is always included
+            labels = [true_sdg] * fixtures_settings.INVESTIGATE_DISTRIBUTION[0]  # First group is the true SDG
+            # Add non-relevant SDGs for the remaining groups
+            for count in fixtures_settings.INVESTIGATE_DISTRIBUTION[1:]:
+                labels.extend([choice(non_relevant_sdgs)] * count)
+            logging.debug(f"Labels: {labels}")
+
+        elif scenario == ScenarioType.EXPLORE:
+            # Diverse distribution (e.g., 1/2/2/2/1/1/1)
+            # Ensure the true SDG is always included
+            labels = [true_sdg] * fixtures_settings.EXPLORE_DISTRIBUTION[0]  # First group is the true SDG
+            # Add non-relevant SDGs for the remaining groups
+            for count in fixtures_settings.EXPLORE_DISTRIBUTION[1:]:
+                labels.extend([choice(non_relevant_sdgs)] * count)
+            logging.debug(f"Labels: {labels}")
+
+        elif scenario == ScenarioType.NO_SPECIFIC_SCENARIO:
+            # Default to a random distribution, but always include the true SDG
+            labels = [true_sdg] * (fixtures_settings.VOTES_NEEDED_FOR_SCENARIO // 2)  # Half are the true SDG
+            labels.extend([choice(non_relevant_sdgs) for _ in range(fixtures_settings.VOTES_NEEDED_FOR_SCENARIO // 2)])
+            logging.debug(f"Labels: {labels}")
+
+        else:
+            logging.error(f"Unknown scenario type: {scenario}. Skipping.")
+            continue
+
+        logging.debug(f"Labels for publication ID {publication.publication_id} and scenario {scenario}: {labels}")
+
+        # Ensure labels list is not empty
+        if not labels:
+            logging.error(f"No labels generated for publication ID {publication.publication_id} and scenario {scenario}. Skipping.")
+            continue
+
+        # Extract the SDG number from the true_sdg (e.g., "SDG12" -> 12)
+        true_sdg_number = int(true_sdg[3:])  # Extract the number after "SDG"
+
+        # Create a decision based on the scenario and label distribution
+        decision = SDGLabelDecision(
+            history_id=sdg_label_summary.history_id,
+            expert_id=expert.expert_id,
+            suggested_label=true_sdg_number,  # Use the integer value of the true SDG
+            decided_label=0,  # Set decided label to 0 (not yet decided)
+            decision_type=DecisionType.CONSENSUS_MAJORITY,
+            scenario_type=scenario,
+            comment=faker.text(max_nb_chars=200),
+            decided_at=faker.date_time_this_year(),
+            created_at=faker.date_time_this_year(),
+            updated_at=faker.date_time_this_year(),
+        )
+
+        # Assign the labels to the decision
+        for label in labels:
+            # Extract the SDG number from the label (e.g., "SDG12" -> 12)
+            sdg_number = int(label[3:])  # Extract the number after "SDG"
+            decision.user_labels.append(SDGUserLabel(
+                user_id=choice(users).user_id,  # Fix: Use the passed `users` list
+                proposed_label=sdg_number,  # Use the extracted SDG number
+                voted_label=sdg_number,  # Use the extracted SDG number
+                abstract_section=faker.sentence(),
+                comment=faker.sentence(),
+                labeled_at=faker.date_time_this_year(),
+                created_at=faker.date_time_this_year(),
+                updated_at=faker.date_time_this_year(),
+            ))
+
+        session.add(decision)
+        logging.info(f"Created {decision} for scenario {scenario} with labels: {labels}.")
+        decisions.append(decision)
+
+    session.commit()
+    logging.info(f"Created {len(decisions)} SDGLabelDecisions for scenarios.")
+    return decisions
+
 def populate_db(
     session: Session,
     truncate: bool = False,
@@ -417,6 +592,17 @@ def populate_db(
 
         # Create SDGLabelDecisions
         create_sdg_label_decisions(session, histories, user_labels, experts, num_decisions)
+
+
+        # Create scenario-based decisions
+        relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=500)
+
+        create_sdg_label_decisions_for_scenarios(
+            session,
+            publications=relevant_publications,
+            experts=experts,
+            users=users,
+        )
 
         logging.info("Database population completed successfully.")
 
