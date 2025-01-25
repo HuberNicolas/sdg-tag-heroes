@@ -1,4 +1,3 @@
-// composables/useAvatar.ts
 import { createAvatar } from '@dicebear/core';
 import { thumbs } from '@dicebear/collection';
 
@@ -11,7 +10,6 @@ export default function useAvatar() {
       size,
     });
     const dataUri = avatar.toDataUri();
-    console.log('Generated Avatar Data URI:', dataUri); // Debugging
     return dataUri; // Return the data URI of the avatar
   };
 

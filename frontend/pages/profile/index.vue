@@ -1,67 +1,68 @@
 <template>
-  <div class="profile-container">
-    <h2>Welcome, {{ user?.email }}</h2>
-    <img :src="avatar" alt="User Avatar" />
-    <UAvatar
-      chip-color="primary"
-      chip-text=""
-      chip-position="top-right"
-      size="sm"
-      :src="avatar"
-      alt="Avatar"
-    />
-    <p>Your Roles:</p>
-    <ul>
-      <li v-for="role in user?.roles" :key="role">
-        {{ role }}
-      </li>
-    </ul>
-    <UButton label="Logout" @click="logout"></UButton>
-    <UButton label="Show toast" @click="toast.add({ title: 'Hello world!' })" />
+  <div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <!-- User Avatar -->
+      <div class="flex justify-center mb-6">
+        <img
+          :src="avatarUrl"
+          alt="User Avatar"
+          class="w-24 h-24 rounded-full"
+        />
+      </div>
+
+      <!-- User Email -->
+      <h2 class="text-2xl font-bold mb-6 text-center">Welcome, {{ authStore.userProfile?.email }}</h2>
+
+      <!-- User Roles -->
+      <p>Your Roles:</p>
+      <ul>
+        <li v-for="role in authStore.userProfile?.roles" :key="role">
+          {{ role }}
+        </li>
+      </ul>
+
+      <!-- Logout Button -->
+      <button
+        @click="logout"
+        class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mt-4"
+      >
+        Logout
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import useAuthentication from '~/composables/useAuthentication';
-import useAvatar from '@/composables/useAvatar';
+import { useAuthentication } from "#imports";
+import { onMounted, computed } from "vue";
+import { generateAvatar } from "~/utils/avatar"; // Import the avatar utility
 
-const user = ref<{ email: string; roles: string[] } | null>(null);
+const auth = useAuthentication();
+const authStore = useAuthStore();
 const router = useRouter();
 
-// Initialize avatar
-const { avatar, seed, generateAvatar } = useAvatar('');
-
-// Fetch user profile
-const fetchUserProfile = async () => {
+// Fetch user profile when the page is loaded
+onMounted(async () => {
   try {
-    const authService = useAuthentication(); // Call as a function
-    const profile = await authService.getProfile();
-    user.value = profile;
-    seed.value = profile.email; // Generate avatar based on email
+    // Fetch the user profile if a token exists
+    const profile = await auth.getProfile();
+    authStore.setUserProfile(profile);
   } catch (error) {
-    router.push('/login'); // Redirect to login if token is invalid or expired
+    console.error('Failed to fetch profile:', error);
+    // Redirect to login if fetching the profile fails (e.g., invalid token)
+    router.push('/login');
   }
-};
+});
 
-// Logout
+// Generate the avatar URL based on the user's email
+const avatarUrl = computed(() => {
+  const email = authStore.userProfile?.email || '';
+  return generateAvatar(email); // Use the generateAvatar utility
+});
+
 const logout = () => {
-  const authService = useAuthentication(); // Call as a function
-  authService.logout();
+  auth.logout();
+  authStore.clearUserProfile();
   router.push('/login');
 };
-
-// Fetch profile on mount
-onMounted(fetchUserProfile);
-
-// Toast
-const toast = useToast();
 </script>
-
-<style scoped>
-.profile-container {
-  max-width: 400px;
-  margin: 0 auto;
-}
-</style>

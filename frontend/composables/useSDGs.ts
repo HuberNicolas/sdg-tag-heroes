@@ -1,17 +1,18 @@
-import { useRuntimeConfig } from "nuxt/app";
+import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
   SDGGoalSchemaFull,
 } from "~/types/sdgs";
 
 export default function useSDGs() {
   const config = useRuntimeConfig();
+  const accessToken = useCookie('access_token');
 
   // Fetch all SDG goals
   async function getSDGs(): Promise<SDGGoalSchemaFull[]> {
     try {
       return await $fetch<SDGGoalSchemaFull[]>(`${config.public.apiUrl}/sdgs`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${accessToken.value}`,
         },
       });
     } catch (error) {
@@ -26,7 +27,7 @@ export default function useSDGs() {
         `${config.public.apiUrl}/sdgs/${sdgId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );

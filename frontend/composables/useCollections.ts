@@ -1,4 +1,4 @@
-import { useRuntimeConfig } from "nuxt/app";
+import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
   CollectionSchemaBase,
   CollectionSchemaFull,
@@ -6,13 +6,14 @@ import type {
 
 export default function useCollections() {
   const config = useRuntimeConfig();
+  const accessToken = useCookie('access_token');
 
   // Fetch all collections
   async function getCollections(): Promise<CollectionSchemaFull[]> {
     try {
       return await $fetch<CollectionSchemaFull[]>(`${config.public.apiUrl}/collections`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${accessToken.value}`,
         },
       });
     } catch (error) {
@@ -27,7 +28,7 @@ export default function useCollections() {
         `${config.public.apiUrl}/collections/${collectionId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );

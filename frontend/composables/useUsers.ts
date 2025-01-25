@@ -1,10 +1,11 @@
-import { useRuntimeConfig } from "nuxt/app";
+import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
   UserSchemaFull,
 } from "~/types/users";
 
 export default function useUsers() {
   const config = useRuntimeConfig();
+  const accessToken = useCookie('access_token');
 
   // Fetch all users
   async function getUsers(role?: string): Promise<UserSchemaFull[]> {
@@ -12,7 +13,7 @@ export default function useUsers() {
       return await $fetch<UserSchemaFull[]>(`${config.public.apiUrl}/users`, {
         query: { role },
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${accessToken.value}`,
         },
       });
     } catch (error) {
@@ -27,7 +28,7 @@ export default function useUsers() {
         `${config.public.apiUrl}/users/${userId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -43,7 +44,7 @@ export default function useUsers() {
         method: "POST",
         body: { user_ids: userIds },
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${accessToken.value}`,
         },
       });
     } catch (error) {

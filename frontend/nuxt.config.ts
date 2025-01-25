@@ -47,7 +47,7 @@ export default defineNuxtConfig({
   },
   // add the middleware globally by adding
   router: {
-    middleware: ["auth"]
+    middleware: ["authentication"]
   },
   ui: {
     icons: ["mdi", "simple-icons"]

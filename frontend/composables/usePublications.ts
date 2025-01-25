@@ -1,5 +1,5 @@
 
-import { useRuntimeConfig } from "nuxt/app";
+import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
   PublicationSchemaBase,
   PublicationSchemaFull,
@@ -14,6 +14,7 @@ import type {
 
 export default function usePublications() {
   const config = useRuntimeConfig();
+  const accessToken = useCookie('access_token');
 
   // Fetch publications by IDs
   async function getPublicationsByIds(
@@ -26,7 +27,7 @@ export default function usePublications() {
           method: "POST",
           body: { publication_ids: publicationIds } as PublicationIdsRequest,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -44,7 +45,7 @@ export default function usePublications() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -64,7 +65,7 @@ export default function usePublications() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -87,7 +88,7 @@ export default function usePublications() {
           method: "POST",
           body: { user_query: userQuery, publication_ids: publicationIds },
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -108,7 +109,7 @@ export default function usePublications() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -128,7 +129,7 @@ export default function usePublications() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -148,7 +149,7 @@ export default function usePublications() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -168,7 +169,7 @@ export default function usePublications() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -189,7 +190,7 @@ export default function usePublications() {
           method: "POST",
           body: { publication_ids: publicationIds },
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -210,7 +211,7 @@ export default function usePublications() {
         `${config.public.apiUrl}/dimensionality-reductions/${reductionShorthand}/${partNumber}/${totalParts}/publications`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );

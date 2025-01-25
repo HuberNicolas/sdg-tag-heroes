@@ -1,4 +1,4 @@
-import { useRuntimeConfig } from "nuxt/app";
+import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
   DimensionalityReductionSchemaFull,
   PublicationSchemaBase,
@@ -11,6 +11,7 @@ import type {
 
 export default function useDimensionalityReductions() {
   const config = useRuntimeConfig();
+  const accessToken = useCookie('access_token');
 
   // Fetch all dimensionality reductions
   async function getDimensionalityReductions(): Promise<DimensionalityReductionSchemaFull[]> {
@@ -19,7 +20,7 @@ export default function useDimensionalityReductions() {
         `${config.public.apiUrl}/dimensionality-reductions`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -40,7 +41,7 @@ export default function useDimensionalityReductions() {
           method: "POST",
           body: request,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -59,7 +60,7 @@ export default function useDimensionalityReductions() {
         `${config.public.apiUrl}/dimensionality-reductions/publications/${publicationId}/${reductionShorthand}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -90,7 +91,7 @@ export default function useDimensionalityReductions() {
             reduction_shorthand: reductionShorthand,
           },
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -117,7 +118,7 @@ export default function useDimensionalityReductions() {
             limit,
           },
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -137,7 +138,7 @@ export default function useDimensionalityReductions() {
           method: "POST",
           body: request,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
@@ -158,7 +159,7 @@ export default function useDimensionalityReductions() {
         `${config.public.apiUrl}/dimensionality-reductions/${reductionShorthand}/${partNumber}/${totalParts}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${accessToken.value}`,
           },
         }
       );
