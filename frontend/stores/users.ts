@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import type {
   UserSchemaFull,
-} from "~/types/users";
+} from "~/types/users/user";
 import useUsers from "~/composables/useUsers";
 
 export const useUsersStore = defineStore("users", {
