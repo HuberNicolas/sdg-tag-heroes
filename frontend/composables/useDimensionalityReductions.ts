@@ -1,12 +1,12 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
+import { snakeToCamel } from "../utils/snakeToCamel";
 import type {
-  DimensionalityReductionSchemaFull,
-  PublicationSchemaBase,
-  UserCoordinatesRequest,
   DimensionalityReductionPublicationIdsRequest,
+  DimensionalityReductionSchemaFull,
   FilteredDimensionalityReductionStatisticsSchema,
   GroupedDimensionalityReductionResponseSchema,
-  UserCoordinatesSchema,
+  UserCoordinatesRequest,
+  UserCoordinatesSchema
 } from "~/types/dimensionalityReduction";
 
 export default function useDimensionalityReductions() {
@@ -16,7 +16,7 @@ export default function useDimensionalityReductions() {
   // Fetch all dimensionality reductions
   async function getDimensionalityReductions(): Promise<DimensionalityReductionSchemaFull[]> {
     try {
-      return await $fetch<DimensionalityReductionSchemaFull[]>(
+      const response = await $fetch<DimensionalityReductionSchemaFull[]>(
         `${config.public.apiUrl}/dimensionality-reductions`,
         {
           headers: {
@@ -24,6 +24,7 @@ export default function useDimensionalityReductions() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch dimensionality reductions: ${error}`);
     }
@@ -35,7 +36,7 @@ export default function useDimensionalityReductions() {
     reductionShorthand: string = "UMAP-15-0.1-2"
   ): Promise<DimensionalityReductionSchemaFull[]> {
     try {
-      return await $fetch<DimensionalityReductionSchemaFull[]>(
+      const response = await $fetch<DimensionalityReductionSchemaFull[]>(
         `${config.public.apiUrl}/dimensionality-reductions/publications/${reductionShorthand}`,
         {
           method: "POST",
@@ -45,6 +46,7 @@ export default function useDimensionalityReductions() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch dimensionality reductions for publications: ${error}`);
     }
@@ -56,7 +58,7 @@ export default function useDimensionalityReductions() {
     reductionShorthand: string = "UMAP-15-0.1-2"
   ): Promise<DimensionalityReductionSchemaFull[]> {
     try {
-      return await $fetch<DimensionalityReductionSchemaFull[]>(
+      const response = await $fetch<DimensionalityReductionSchemaFull[]>(
         `${config.public.apiUrl}/dimensionality-reductions/publications/${publicationId}/${reductionShorthand}`,
         {
           headers: {
@@ -64,6 +66,7 @@ export default function useDimensionalityReductions() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch dimensionality reductions for publication: ${error}`);
     }
@@ -79,7 +82,7 @@ export default function useDimensionalityReductions() {
     reductionShorthand?: string
   ): Promise<FilteredDimensionalityReductionStatisticsSchema> {
     try {
-      return await $fetch<FilteredDimensionalityReductionStatisticsSchema>(
+      const response = await $fetch<FilteredDimensionalityReductionStatisticsSchema>(
         `${config.public.apiUrl}/dimensionality-reductions/filtered`,
         {
           query: {
@@ -95,6 +98,7 @@ export default function useDimensionalityReductions() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch filtered dimensionality reductions: ${error}`);
     }
@@ -108,7 +112,7 @@ export default function useDimensionalityReductions() {
     limit: number = 200
   ): Promise<GroupedDimensionalityReductionResponseSchema> {
     try {
-      return await $fetch<GroupedDimensionalityReductionResponseSchema>(
+      const response = await $fetch<GroupedDimensionalityReductionResponseSchema>(
         `${config.public.apiUrl}/dimensionality-reductions/grouped`,
         {
           query: {
@@ -122,6 +126,7 @@ export default function useDimensionalityReductions() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch grouped dimensionality reductions: ${error}`);
     }
@@ -132,7 +137,7 @@ export default function useDimensionalityReductions() {
     request: UserCoordinatesRequest
   ): Promise<UserCoordinatesSchema> {
     try {
-      return await $fetch<UserCoordinatesSchema>(
+      const response = await $fetch<UserCoordinatesSchema>(
         `${config.public.apiUrl}/dimensionality-reductions/user-coordinates`,
         {
           method: "POST",
@@ -142,6 +147,7 @@ export default function useDimensionalityReductions() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to calculate user coordinates: ${error}`);
     }
@@ -155,7 +161,7 @@ export default function useDimensionalityReductions() {
     totalParts: number
   ): Promise<DimensionalityReductionSchemaFull[]> {
     try {
-      return await $fetch<DimensionalityReductionSchemaFull[]>(
+      const response = await $fetch<DimensionalityReductionSchemaFull[]>(
         `${config.public.apiUrl}/dimensionality-reductions/${reductionShorthand}/${partNumber}/${totalParts}`,
         {
           headers: {
@@ -163,6 +169,7 @@ export default function useDimensionalityReductions() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch partitioned dimensionality reductions: ${error}`);
     }

@@ -1,8 +1,6 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type {
-  CollectionSchemaBase,
-  CollectionSchemaFull,
-} from "~/types/collections";
+import { snakeToCamel } from "../utils/snakeToCamel";
+import type { CollectionSchemaFull } from "~/types/collections";
 
 export default function useCollections() {
   const config = useRuntimeConfig();
@@ -11,11 +9,12 @@ export default function useCollections() {
   // Fetch all collections
   async function getCollections(): Promise<CollectionSchemaFull[]> {
     try {
-      return await $fetch<CollectionSchemaFull[]>(`${config.public.apiUrl}/collections`, {
+      const response=  await $fetch<CollectionSchemaFull[]>(`${config.public.apiUrl}/collections`, {
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
         },
       });
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch collections: ${error}`);
     }
@@ -24,7 +23,7 @@ export default function useCollections() {
   // Fetch a single collection by ID
   async function getCollectionById(collectionId: number): Promise<CollectionSchemaFull> {
     try {
-      return await $fetch<CollectionSchemaFull>(
+      const response = await $fetch<CollectionSchemaFull>(
         `${config.public.apiUrl}/collections/${collectionId}`,
         {
           headers: {
@@ -32,6 +31,7 @@ export default function useCollections() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch collection: ${error}`);
     }

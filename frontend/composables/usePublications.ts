@@ -1,15 +1,15 @@
-
+import { snakeToCamel } from "../utils/snakeToCamel";
 import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
+  FactSchemaFull,
+  PublicationIdsRequest,
+  PublicationKeywordsSchema,
   PublicationSchemaBase,
   PublicationSchemaFull,
-  PublicationIdsRequest,
-  PublicationSimilaritySchema,
-  PublicationSDGAnalysisSchema,
-  PublicationKeywordsSchema,
-  FactSchemaFull,
-  PublicationSummarySchema,
   PublicationsCollectiveSummarySchema,
+  PublicationSDGAnalysisSchema,
+  PublicationSimilaritySchema,
+  PublicationSummarySchema
 } from "~/types/publication";
 
 export default function usePublications() {
@@ -31,7 +31,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch publications: ${error}`);
     }
@@ -49,7 +49,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch publications: ${error}`);
     }
@@ -69,7 +69,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch publication: ${error}`);
     }
@@ -92,7 +92,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch similar publications: ${error}`);
     }
@@ -113,7 +113,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch SDG analysis: ${error}`);
     }
@@ -133,7 +133,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch keywords: ${error}`);
     }
@@ -153,7 +153,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch fact: ${error}`);
     }
@@ -173,7 +173,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch summary: ${error}`);
     }
@@ -194,7 +194,7 @@ export default function usePublications() {
           },
         }
       );
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch collective summary: ${error}`);
     }

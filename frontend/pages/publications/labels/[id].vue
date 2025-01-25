@@ -62,13 +62,13 @@
       <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">SDG Scores:</h2>
       <ul class="grid grid-cols-2 gap-4">
         <li
-          v-for="(score, index) in sdgScores"
-          :key="index"
+          v-for="i in 17"
+          :key="i"
           class="bg-gray-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
         >
           <div class="flex items-center space-x-2">
-            <strong class="text-gray-700">SDG {{ index + 1 }}:</strong>
-            <span class="text-gray-900">{{ score }}</span>
+            <strong class="text-gray-700">SDG {{ i }}:</strong>
+            <span class="text-gray-900">{{ sdgLabelSummary[`sdg${i}`] }}</span>
           </div>
         </li>
       </ul>
@@ -100,33 +100,5 @@ onMounted(async () => {
 // Computed properties
 const isLoading = computed(() => sdgLabelSummariesStore.isLoading);
 const error = computed(() => sdgLabelSummariesStore.error);
-const sdgLabelSummary = computed(() => {
-  console.log("SDG Label Summary in computed:", sdgLabelSummariesStore.sdgLabelSummaryForPublication);
-  return sdgLabelSummariesStore.sdgLabelSummaryForPublication;
-});
-
-
-// Extract SDG scores dynamically
-const sdgScores = computed(() => {
-  if (!sdgLabelSummary.value) return [];
-  return [
-    sdgLabelSummary.value.sdg1,
-    sdgLabelSummary.value.sdg2,
-    sdgLabelSummary.value.sdg3,
-    sdgLabelSummary.value.sdg4,
-    sdgLabelSummary.value.sdg5,
-    sdgLabelSummary.value.sdg6,
-    sdgLabelSummary.value.sdg7,
-    sdgLabelSummary.value.sdg8,
-    sdgLabelSummary.value.sdg9,
-    sdgLabelSummary.value.sdg10,
-    sdgLabelSummary.value.sdg11,
-    sdgLabelSummary.value.sdg12,
-    sdgLabelSummary.value.sdg13,
-    sdgLabelSummary.value.sdg14,
-    sdgLabelSummary.value.sdg15,
-    sdgLabelSummary.value.sdg16,
-    sdgLabelSummary.value.sdg17,
-  ];
-});
+const sdgLabelSummary = computed(() => sdgLabelSummariesStore.sdgLabelSummaryForPublication);
 </script>

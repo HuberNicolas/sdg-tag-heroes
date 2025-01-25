@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { useAuthentication } from "#imports";
 import { onMounted, computed } from "vue";
-import { generateAvatar } from "~/utils/avatar"; // Import the avatar utility
+import { generateAvatar } from "~/utils/avatar";
 
 const auth = useAuthentication();
 const authStore = useAuthStore();
@@ -57,7 +57,7 @@ onMounted(async () => {
 // Generate the avatar URL based on the user's email
 const avatarUrl = computed(() => {
   const email = authStore.userProfile?.email || '';
-  return generateAvatar(email); // Use the generateAvatar utility
+  return generateAvatar(email);
 });
 
 const logout = () => {

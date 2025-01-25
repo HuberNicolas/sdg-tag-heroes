@@ -2,6 +2,7 @@ import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
   UserSchemaFull,
 } from "~/types/users";
+import { snakeToCamel } from "../utils/snakeToCamel";
 
 export default function useUsers() {
   const config = useRuntimeConfig();
@@ -10,12 +11,13 @@ export default function useUsers() {
   // Fetch all users
   async function getUsers(role?: string): Promise<UserSchemaFull[]> {
     try {
-      return await $fetch<UserSchemaFull[]>(`${config.public.apiUrl}/users`, {
+      const response = await $fetch<UserSchemaFull[]>(`${config.public.apiUrl}/users`, {
         query: { role },
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
         },
       });
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch users: ${error}`);
     }
@@ -24,7 +26,7 @@ export default function useUsers() {
   // Fetch a single user by ID
   async function getUserById(userId: number): Promise<UserSchemaFull> {
     try {
-      return await $fetch<UserSchemaFull>(
+      const response = await $fetch<UserSchemaFull>(
         `${config.public.apiUrl}/users/${userId}`,
         {
           headers: {
@@ -32,6 +34,7 @@ export default function useUsers() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch user: ${error}`);
     }
@@ -40,13 +43,14 @@ export default function useUsers() {
   // Fetch users by IDs
   async function getUsersByIds(userIds: number[]): Promise<UserSchemaFull[]> {
     try {
-      return await $fetch<UserSchemaFull[]>(`${config.public.apiUrl}/users`, {
+      const response =  await $fetch<UserSchemaFull[]>(`${config.public.apiUrl}/users`, {
         method: "POST",
         body: { user_ids: userIds },
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
         },
       });
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch users by IDs: ${error}`);
     }

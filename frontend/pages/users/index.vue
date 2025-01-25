@@ -42,11 +42,11 @@
                 Status:
                 <span
                   :class="{
-                    'text-green-500 font-semibold': user.is_active,
-                    'text-red-500 font-semibold': !user.is_active
+                    'text-green-500 font-semibold': user.isActive,
+                    'text-red-500 font-semibold': !user.isActive
                   }"
                 >
-                  {{ user.is_active ? "Active" : "Inactive" }}
+                  {{ user.isActive ? "Active" : "Inactive" }}
                 </span>
               </p>
             </div>
