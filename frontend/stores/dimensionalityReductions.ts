@@ -14,6 +14,7 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
     groupedReductions: null as GroupedDimensionalityReductionResponseSchema | null,
     userCoordinates: null as UserCoordinatesSchema | null,
     partitionedReductions: [] as DimensionalityReductionSchemaFull[],
+    selectedPartitionedReductions: [] as DimensionalityReductionSchemaFull[],
     isLoading: false,
     error: null as string | null,
   }),
@@ -98,7 +99,6 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
         this.isLoading = false;
       }
     },
-
 
     // Fetch a specific part of dimensionality reductions
     async fetchDimensionalityReductionsPartitioned(

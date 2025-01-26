@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import createGlyph from "@/composables/PredictionGlyph";
+import createGlyph from "@/composables/glyph/predictionGlyph";
 
 const props = defineProps({
   values: {

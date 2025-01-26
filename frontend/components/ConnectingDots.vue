@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import useConnect from '@/composables/connect';
+import useConnect from '@/composables/plots/connect';
 
 export default {
   setup() {

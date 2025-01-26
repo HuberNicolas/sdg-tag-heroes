@@ -1,74 +1,65 @@
 <template>
-  <table class="table-auto">
+  <table class="w-full border-collapse">
     <thead>
-    <tr>
-      <th>Title</th>
-      <th>Glyph</th>
-      <th>XP</th>
-      <th>Coins</th>
-      <th>Top SDG</th>
-      <th>Year</th>
+    <tr class="bg-gray-100">
+      <th class="border border-gray-300 p-2">Title</th>
+      <th class="border border-gray-300 p-2">Glyph</th>
+      <th class="border border-gray-300 p-2">XP</th>
+      <th class="border border-gray-300 p-2">Coins</th>
+      <th class="border border-gray-300 p-2">Top SDG</th>
+      <th class="border border-gray-300 p-2">Year</th>
     </tr>
     </thead>
     <tbody>
-    <tr v-for="(item, index) in data" :key="index">
-      <td>{{ item.title }}</td>
-      <td class="glyph-cell">
-        <HexGlyph  :values=item.values :height="100" :width="80" />
+    <tr v-for="(item, index) in tableData" :key="index" class="hover:bg-gray-50">
+      <td class="border border-gray-300 p-2">{{ item.title }}</td>
+      <td class="border border-gray-300 p-2 flex items-center justify-center">
+        <HexGlyph :values="item.values" :height="100" :width="80" />
       </td>
-      <td>{{ item.xp }}</td>
-      <td>{{ item.coins }}</td>
-      <td>{{ item.topSdg }}</td>
-      <td>{{ item.year }}</td>
+      <td class="border border-gray-300 p-2">{{ item.xp }}</td>
+      <td class="border border-gray-300 p-2">{{ item.coins }}</td>
+      <td class="border border-gray-300 p-2">{{ item.topSdg }}</td>
+      <td class="border border-gray-300 p-2">{{ item.year }}</td>
     </tr>
     </tbody>
   </table>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { usePublicationsStore } from '~/stores/publications';
+import { useSDGPredictionsStore } from '~/stores/sdgPredictions';
 import HexGlyph from '@/components/PredictionGlyph.vue';
 
-const data = [
-  {
-    title: 'Example 1',
-    values: [0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 0.8, 0.6, 0.4, 0.2, 0.1, 0.3, 0.5],
-    xp: 100,
-    coins: 50,
-    topSdg: 'SDG 5',
-    year: 2023,
-  },
-  {
-    title: 'Example 2',
-    values: [0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 0.8, 0.6, 0.4, 0.2, 0.1, 0.3, 0.5],
-    xp: 100,
-    coins: 50,
-    topSdg: 'SDG 5',
-    year: 2023,
-  },
-];
+const publicationsStore = usePublicationsStore();
+const sdgPredictionsStore = useSDGPredictionsStore();
+
+// Map selected publications and predictions to table data
+const tableData = computed(() => {
+  return publicationsStore.selectedPartitionedPublications.map((pub, index) => {
+    const prediction = sdgPredictionsStore.selectedPartitionedSDGPredictions[index];
+
+    // Extract SDG values from the prediction
+    const values = Object.values(prediction).filter((value) => typeof value === 'number') as number[];
+
+    // Find the top SDG
+    const topSdgKey = Object.keys(prediction).reduce((a, b) =>
+      prediction[a] > prediction[b] ? a : b
+    );
+    const topSdg = `SDG ${topSdgKey.replace('sdg', '')}`;
+
+    // Dummy data for XP and coins
+    const xp = Math.floor(Math.random() * 100); // Random XP between 0 and 100
+    const coins = Math.floor(Math.random() * 50); // Random coins between 0 and 50
+
+    return {
+      title: pub.title,
+      values,
+      xp,
+      coins,
+      topSdg,
+      year: pub.year, // Assuming the publication has a `year` field
+    };
+  });
+});
 </script>
-
-<style>
-.table-auto {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
-
-th {
-  background-color: #f4f4f4;
-}
-
-.glyph-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-</style>

@@ -80,7 +80,4 @@ async def get_sdg_explanation(
     if not explanation:
         raise HTTPException(status_code=404, detail="Explanation not found for the given publication.")
 
-    return explanation
-
-
-
+    return ExplanationSchema.model_validate(explanation)

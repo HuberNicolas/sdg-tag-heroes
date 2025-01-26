@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { createBarPlot } from '@/composables/barPlot';
+import { createBarPlot } from '@/composables/plots/barPlot';
 
 const props = defineProps({
   width: {
@@ -17,23 +17,19 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-  data: {
-    type: Array as () => { x: string[]; y: number[]; }[],
-    required: true,
-  },
 });
 
 const barPlotContainer = ref<HTMLDivElement | null>(null);
 
 onMounted(() => {
   if (barPlotContainer.value) {
-    createBarPlot(barPlotContainer.value, props.width, props.height, props.data);
+    createBarPlot(barPlotContainer.value, props.width, props.height);
   }
 });
 
-watch([() => props.width, () => props.height, () => props.data,], ([newWidth, newHeight, newData,]) => {
+watch([() => props.width, () => props.height,], ([newWidth, newHeight,]) => {
   if (barPlotContainer.value) {
-    createBarPlot(barPlotContainer.value, newWidth, newHeight, newData,);
+    createBarPlot(barPlotContainer.value, newWidth, newHeight,);
   }
 });
 </script>

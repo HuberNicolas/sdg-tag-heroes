@@ -2,7 +2,7 @@
   <div class="flex flex-col h-screen">
     <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
       <div class="row-span-4 col-span-4 bg-red-400">
-        <ScatterPlot :width="scatterPlotWidth" :height="scatterPlotHeight" />
+        <ScatterPlot :width="scatterPlotWidth" :height="scatterPlotHeight"/>
       </div>
       <div class="row-span-2 col-span-4 bg-blue-400">
         Options Level {{selectedLevel}}
@@ -11,11 +11,13 @@
             <BarPlot
             :width="barPlotWidth"
             :height="barPlotHeight"
-            :data="barPlotData"
             />
           </div>
           <div class="col-span-1">
-            <RainPlot :width="rainPlotWidth" :height="rainPlotHeight" :data="[10, 20, 15, 25, 18, 30]" />
+            <RainPlot
+              :width="rainPlotWidth"
+              :height="rainPlotHeight"
+            />
           </div>
         </div>
       </div>
@@ -49,9 +51,9 @@
 </template>
 
 <script setup lang="ts">
-import ScatterPlot from '@/components/ScatterPlot.vue';
-import RainPlot from '@/components/RainPlot.vue';
-import BarPlot from '@/components/BarPlot.vue';
+import ScatterPlot from '@/components/plots/ScatterPlot.vue';
+import RainPlot from '@/components/plots/RainPlot.vue';
+import BarPlot from '@/components/plots/BarPlot.vue';
 import { ref, onMounted } from 'vue';
 
 const route = useRoute();
@@ -66,13 +68,6 @@ const rainPlotHeight = ref(0);
 
 const barPlotWidth = ref(0);
 const barPlotHeight = ref(0);
-
-const barPlotData = ref([
-  {
-    x: Array.from({ length: 17 }, (_, i) => `SDG${i + 1}`),
-    y: Array.from({ length: 17 }, () => Math.floor(Math.random() * 100) + 1),
-  },
-]);
 
 onMounted(() => {
   const mapContainer = document.querySelector('.row-span-4.col-span-4');

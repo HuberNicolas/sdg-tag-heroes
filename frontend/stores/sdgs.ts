@@ -1,17 +1,22 @@
 import { defineStore } from "pinia";
 import type {
   SDGGoalSchemaFull,
-} from "~/types/sdgs";
+} from "~/types/sdgs/goal";
 import useSDGs from "~/composables/useSDGs";
 
 export const useSDGsStore = defineStore("sdgs", {
   state: () => ({
     sdgs: [] as SDGGoalSchemaFull[],
     sdgDetails: null as SDGGoalSchemaFull | null,
+    selectedSDG: 0, // 0: no SDG selected
     isLoading: false,
     error: null as string | null,
   }),
   actions: {
+    setSelectedSDG(selectedSDG: number) {
+      this.selectedSDG = selectedSDG;
+    },
+
     // Fetch all SDGs
     async fetchSDGs() {
       this.isLoading = true;
@@ -42,6 +47,16 @@ export const useSDGsStore = defineStore("sdgs", {
       } finally {
         this.isLoading = false;
       }
+    },
+
+    getColorBySDG(sdgId: number) {
+      const sdg = this.sdgs.find((goal) => goal.id === sdgId);
+      return sdg ? sdg.color : null;
+    },
+  },
+  getters: {
+    selectedSDG(state) {
+      return state.selectedSDG;
     },
   },
 });

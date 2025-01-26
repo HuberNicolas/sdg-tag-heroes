@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { createRaincloudPlot } from '@/composables/rainPlot';
+import { createRaincloudPlot } from '@/composables/plots/rainPlot';
 
 const props = defineProps({
   width: {
@@ -17,26 +17,19 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-  data: {
-    type: Array,
-    required: true,
-  },
 });
 
 const rainPlotContainer = ref<HTMLDivElement | null>(null);
 
 onMounted(() => {
   if (rainPlotContainer.value) {
-    createRaincloudPlot(rainPlotContainer.value, props.data, {
-      width: props.width,
-      height: props.height,
-    });
+    createRaincloudPlot(rainPlotContainer.value, props.width, props.height,)
   }
 });
 
-watch([() => props.width, () => props.height, () => props.data], ([newWidth, newHeight, newData]) => {
+watch([() => props.width, () => props.height,], ([newWidth, newHeight]) => {
   if (rainPlotContainer.value) {
-    createRaincloudPlot(rainPlotContainer.value, newData, {
+    createRaincloudPlot(rainPlotContainer.value, {
       width: newWidth,
       height: newHeight,
     });

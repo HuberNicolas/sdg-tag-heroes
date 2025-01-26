@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { createScatterPlot } from '@/composables/scatterPlot2';
+import { createScatterPlot } from '@/composables/plots/scatterPlot2';
 
 const props = defineProps({
   width: {
@@ -33,10 +33,3 @@ watch([() => props.width, () => props.height], ([newWidth, newHeight]) => {
   }
 });
 </script>
-
-<style scoped>
-.scatter-plot {
-  width: 100%;
-  height: 100%;
-}
-</style>

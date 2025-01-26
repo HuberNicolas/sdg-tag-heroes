@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { SDGPredictionSchemaFull } from "~/types/sdgPredictions";
+import type { SDGPredictionSchemaFull } from "~/types/sdgPrediction";
 import useSDGPredictions from "~/composables/useSDGPredictions";
 
 export const useSDGPredictionsStore = defineStore("sdgPredictions", {
@@ -11,6 +11,8 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
     distributionMetrics: [] as any[],
     publicationMetrics: null as any | null,
     topPublications: [] as any[],
+    partitionedSDGPredictions: [] as SDGPredictionSchemaFull[],
+    selectedPartitionedSDGPredictions: [] as SDGPredictionSchemaFull[],
   }),
   actions: {
     // Fetch SDG predictions by IDs
@@ -119,6 +121,30 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
         this.topPublications = await getPublicationsByMetric(metricType, order, topN);
       } catch (error) {
         this.error = `Failed to fetch publications by metric: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // Fetch SDG predictions for a specific part of dimensionality reductions
+    async fetchSDGPredictionsForDimensionalityReductionsPartitioned(
+      reductionShorthand: string,
+      partNumber: number,
+      totalParts: number
+    ) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGPredictionsForDimensionalityReductionsPartitioned } = useSDGPredictions();
+        this.partitionedSDGPredictions = await getSDGPredictionsForDimensionalityReductionsPartitioned(
+          reductionShorthand,
+          partNumber,
+          totalParts
+        );
+      } catch (error) {
+        this.error = `Failed to fetch partitioned SDG predictions: ${error}`;
         throw error;
       } finally {
         this.isLoading = false;

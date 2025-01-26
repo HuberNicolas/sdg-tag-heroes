@@ -22,6 +22,7 @@ export const usePublicationsStore = defineStore("publications", {
     summary: null as PublicationSummarySchema | null,
     collectiveSummary: null as PublicationsCollectiveSummarySchema | null,
     partitionedPublications: [] as PublicationSchemaBase[],
+    selectedPartitionedPublications: [] as PublicationSchemaBase[],
     isLoading: false,
     error: null as string | null,
   }),

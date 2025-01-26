@@ -181,7 +181,7 @@ export default function useDimensionalityReductions() {
     getDimensionalityReductionsForPublication,
     getFilteredDimensionalityReductions,
     getGroupedDimensionalityReductions,
-    getDimensionalityReductionsPartitioned,
     calculateUserCoordinates,
+    getDimensionalityReductionsPartitioned,
   };
 }

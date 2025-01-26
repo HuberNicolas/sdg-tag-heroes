@@ -82,7 +82,7 @@ export default function useSDGPredictions() {
           publications_ids: publicationIds,
         },
       });
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch distribution metrics: ${error}`);
     }
@@ -96,7 +96,7 @@ export default function useSDGPredictions() {
           Authorization: `Bearer ${accessToken.value}`,
         },
       });
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch metrics for publication ID ${publicationId}: ${error}`);
     }
@@ -110,9 +110,30 @@ export default function useSDGPredictions() {
           Authorization: `Bearer ${accessToken.value}`,
         },
       });
-      return response;
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch publications by metric: ${error}`);
+    }
+  }
+
+  // Fetch SDG predictions for a specific part of dimensionality reductions
+  async function getSDGPredictionsForDimensionalityReductionsPartitioned(
+    reductionShorthand: string,
+    partNumber: number,
+    totalParts: number
+  ): Promise<SDGPredictionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGPredictionSchemaFull[]>(
+        `${config.public.apiUrl}/sdg-predictions/dimensionality-reductions/${reductionShorthand}/${partNumber}/${totalParts}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch partitioned SDG predictions: ${error}`);
     }
   }
 
@@ -124,5 +145,6 @@ export default function useSDGPredictions() {
     getDistributionMetricsByPublicationIds,
     getPublicationMetricsById,
     getPublicationsByMetric,
+    getSDGPredictionsForDimensionalityReductionsPartitioned,
   };
 }

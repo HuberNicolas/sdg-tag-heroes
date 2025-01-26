@@ -1,4 +1,4 @@
-import { snakeToCamel } from "../utils/snakeToCamel";
+import { snakeToCamel } from "~/utils/snakeToCamel";
 import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
   FactSchemaFull,
@@ -208,7 +208,7 @@ export default function usePublications() {
   ): Promise<PublicationSchemaBase[]> {
     try {
       return await $fetch<PublicationSchemaBase[]>(
-        `${config.public.apiUrl}/dimensionality-reductions/${reductionShorthand}/${partNumber}/${totalParts}/publications`,
+        `${config.public.apiUrl}/publications/dimensionality-reductions/${reductionShorthand}/${partNumber}/${totalParts}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken.value}`,

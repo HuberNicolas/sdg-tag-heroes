@@ -1,7 +1,76 @@
 import * as d3 from 'd3';
+import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
+import {calculateEntropy} from "~/utils/entropy";
 
-// Function to create a raincloud plot in a specified container
-export function createRaincloudPlot(container: HTMLElement, data: number[], options: { width: number; height: number }) {
+export function createRaincloudPlot(container, width, height) {
+  const sdgPredictionsStore = useSDGPredictionsStore();
+
+  // Watch for changes in the selected SDG predictions
+  sdgPredictionsStore.$subscribe((mutation, state) => {
+    if (state.selectedPartitionedSDGPredictions.length > 0) {
+      const entropyData = state.selectedPartitionedSDGPredictions.map(prediction => calculateEntropy(prediction));
+      console.log('Entropy Data:', entropyData);
+      const data = [.7366446386322718,
+        0.7387157977482597,
+        0.7400738914539258,
+        0.7401703224921555,
+        0.7404814200304325,
+        0.7410372190350227,
+        0.741477573873482,
+        0.7416552157206302,
+        0.7417461464461744,
+        0.7418582665634947,
+        0.7419897165568368,
+        0.7421795045357829,
+        0.7421900826689936,
+        0.7423637489991363,
+        0.7424334751055818,
+        0.7426400401363393,
+        0.7427048765170757,
+        0.7427522060582389,
+        0.7428367237598106,
+        0.7430543201612637,
+        0.7431874703939103,
+        0.7434887433383461,
+        0.7436633026965467,]
+
+      renderRaincloudPlot(container, data, { width, height });
+    }
+  });
+
+  // Initial render (optional)
+  if (sdgPredictionsStore.selectedPartitionedSDGPredictions.length > 0) {
+    const entropyData = sdgPredictionsStore.selectedPartitionedSDGPredictions.map(prediction => calculateEntropy(prediction));
+    console.log('Entropy Data:', entropyData);
+    const data = [.7366446386322718,
+      0.7387157977482597,
+      0.7400738914539258,
+      0.7401703224921555,
+      0.7404814200304325,
+      0.7410372190350227,
+      0.741477573873482,
+      0.7416552157206302,
+      0.7417461464461744,
+      0.7418582665634947,
+      0.7419897165568368,
+      0.7421795045357829,
+      0.7421900826689936,
+      0.7423637489991363,
+      0.7424334751055818,
+      0.7426400401363393,
+      0.7427048765170757,
+      0.7427522060582389,
+      0.7428367237598106,
+      0.7430543201612637,
+      0.7431874703939103,
+      0.7434887433383461,
+      0.7436633026965467,]
+
+    renderRaincloudPlot(container, data, { width, height });
+  }
+}
+
+function renderRaincloudPlot(container, data, options) {
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
   const totalWidth = options.width - margin.left - margin.right;
   const totalHeight = options.height - margin.top - margin.bottom;

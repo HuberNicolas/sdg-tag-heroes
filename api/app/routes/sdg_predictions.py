@@ -7,6 +7,7 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGPrediction
+from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from request_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, SDGPredictionsIdsRequest
 from schemas import SDGPredictionSchemaFull
@@ -211,6 +212,96 @@ async def get_default_model_sdg_predictions_by_publication_id(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching SDG predictions for the publication.",
+        )
+
+@router.get(
+    "/dimensionality-reductions/{reduction_shorthand}/{part_number}/{total_parts}/",
+    response_model=List[SDGPredictionSchemaFull],
+    description="Retrieve the corresponding SDG predictions for a specific part of dimensionality reductions."
+)
+async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
+    reduction_shorthand: str,
+    part_number: int,
+    total_parts: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGPredictionSchemaFull]:
+    """
+    Retrieve the corresponding SDG predictions for a specific part of dimensionality reductions.
+    The dimensionality reductions are divided into `total_parts` parts, and the `part_number` specifies which part to retrieve.
+    """
+    try:
+        # Ensure user is authenticated
+        user = verify_token(token, db)
+
+        # Validate part_number and total_parts
+        if part_number < 1 or part_number > total_parts:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"part_number must be between 1 and {total_parts}",
+            )
+
+        # Query the total number of dimensionality reductions for the given shorthand
+        total_count = db.query(DimensionalityReduction).filter(
+            DimensionalityReduction.reduction_shorthand == reduction_shorthand
+        ).count()
+
+        logging.debug(f"SDG - Total Count (Dimensionality Reductions): {total_count}")
+
+        if total_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No dimensionality reductions found for shorthand: {reduction_shorthand}",
+            )
+
+        # Calculate the start and end indices for the requested part
+        part_size = total_count // total_parts
+        remainder = total_count % total_parts
+
+        start_index = (part_number - 1) * part_size
+        end_index = start_index + part_size
+
+        logging.debug(
+            f"SDG - Part Size: {part_size}, Remainder: {remainder}, Start Index: {start_index}, End Index: {end_index}"
+        )
+
+        # Adjust for the remainder in the last part
+        if part_number == total_parts:
+            end_index += remainder
+
+        # Fetch the specific part of dimensionality reductions
+        dimensionality_reductions = db.query(DimensionalityReduction).filter(
+            DimensionalityReduction.reduction_shorthand == reduction_shorthand
+        ).order_by(DimensionalityReduction.dim_red_id).offset(start_index).limit(end_index - start_index).all()
+
+        logging.debug(f"SDG - Dimensionality Reductions: {len(dimensionality_reductions)}")
+
+        # Extract publication IDs from the dimensionality reductions
+        publication_ids = [dim_red.publication_id for dim_red in dimensionality_reductions]
+
+        logging.debug(f"SDG - Publications: {len(publication_ids)}")
+
+        if not publication_ids:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No publications found for the specified part of dimensionality reductions.",
+            )
+
+        # Fetch the corresponding SDG predictions
+        sdg_predictions = db.query(SDGPrediction).filter(
+            SDGPrediction.publication_id.in_(publication_ids)
+        ).filter(SDGPrediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL).all()
+
+        logging.debug(f"SDG - SDG Predictions: {len(sdg_predictions)}")
+        return sdg_predictions
+        # return [SDGPredictionSchemaFull.model_validate(pred) for pred in sdg_predictions] # slows it down very hard
+
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching SDG predictions: {e}",
         )
 
 @router.post(

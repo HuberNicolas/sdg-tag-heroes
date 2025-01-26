@@ -1,79 +1,132 @@
 import Plotly from 'plotly.js-dist';
-
-import {baseSdgColors} from "~/constants/sdgs";
-
-const sdgColors = baseSdgColors
+import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
+import { usePublicationsStore } from "~/stores/publications";
+import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
+import { useGameStore } from "~/stores/game";
+import { useSDGsStore} from "~/stores/sdgs";
 
 export function createScatterPlot(container, width, height, mode = 'top1') {
-  // Generate fake data
-  const data = Array.from({ length: 1000 }, () => ({
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    z: Math.random() * 100,
-    entropy: Math.random() * 5,
-    predictions: Array.from({ length: 17 }, () => Math.random())
-  }));
+  const dimensionalityReductionsStore = useDimensionalityReductionsStore();
+  const publicationsStore = usePublicationsStore();
+  const sdgPredictionsStore = useSDGPredictionsStore();
+  const gameStore = useGameStore();
+  const sdgsStore = useSDGsStore();
 
-  // Prepare plot data
-  const scatterData = {
-    x: data.map(d => d.x),
-    y: data.map(d => d.y),
-    mode: 'markers',
-    type: 'scatter',
-    marker: {
-      size: data.map(d => (mode === 'entropy' ? d.entropy * 5 : 10)), // Adjust size for entropy mode
-      color: data.map(d => {
-        if (mode === 'normal') return 'steelblue';
-        if (mode === 'top1') {
-          const topIdx = d.predictions.indexOf(Math.max(...d.predictions));
-          return sdgColors[topIdx];
-        }
-        return 'steelblue';
-      }),
-      opacity: 0.7
-    },
-    text: data.map(d => `X: ${d.x.toFixed(2)}<br>Y: ${d.y.toFixed(2)}`), // Tooltip content
-    hoverinfo: 'text' // Show custom tooltip text
+  const level = gameStore.getLevel;
+
+  // Fetch partitioned data from all stores
+  const fetchData = async () => {
+    const reductionShorthand = 'TM-UMAP-10-0.0-2';
+    const partNumber = level;
+    const totalParts = 100;
+
+    await Promise.all([
+      dimensionalityReductionsStore.fetchDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
+      publicationsStore.fetchPublicationsForDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
+      sdgPredictionsStore.fetchSDGPredictionsForDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
+      sdgsStore.fetchSDGs()
+    ]);
   };
 
-  // Define layout
-  const layout = {
-    title: 'Scatter Plot',
-    width: width,
-    height: height,
-    margin: { t: 40, r: 20, b: 40, l: 40 },
-    "xaxis": {
-      "visible": false
-    },
-    "yaxis": {
-      "visible": false
-    },
-    dragmode: 'lasso', // Enable lasso selection for brushing
-    showlegend: false,
-    // Transparent background
-    paper_bgcolor:'rgba(0,0,0,0)',
-    plot_bgcolor:'rgba(0,0,0,0)'
-  };
+  fetchData().then(() => {
+    const dimensionalityReductionsData = dimensionalityReductionsStore.partitionedReductions;
+    const publicationsData = publicationsStore.partitionedPublications;
+    const sdgPredictionsData = sdgPredictionsStore.partitionedSDGPredictions;
 
-  // Render plot
-  Plotly.newPlot(container, [scatterData], layout);
+    const combinedData = dimensionalityReductionsData.map((reduction, index) => ({
+      dimensionalityReduction: reduction,
+      publication: publicationsData[index],
+      sdgPrediction: sdgPredictionsData[index]
+    }));
+    // console.log(combinedData); // DEBUG
 
-  // Handle brushing and zooming
-  container.on('plotly_selected', function (eventData) {
-    if (eventData && eventData.points) {
-      const selectedPoints = eventData.points.map(pt => ({
-        x: pt.x,
-        y: pt.y
-      }));
-      console.log('Selected Points:', selectedPoints);
-    }
-  });
 
-  // Double-click to reset zoom
-  container.on('plotly_doubleclick', function () {
-    Plotly.relayout(container, {
-      'xaxis.range': [0, 100],
-      'yaxis.range': [0, 100]
+    // Update selected data in the stores, initially set all
+    dimensionalityReductionsStore.selectedPartitionedReductions = dimensionalityReductionsStore.partitionedReductions;
+    publicationsStore.selectedPartitionedPublications = publicationsStore.partitionedPublications;
+    sdgPredictionsStore.selectedPartitionedSDGPredictions = sdgPredictionsStore.partitionedSDGPredictions;
+
+
+
+    const scatterData = {
+      x: combinedData.map(d => d.dimensionalityReduction.xCoord),
+      y: combinedData.map(d => d.dimensionalityReduction.yCoord),
+      mode: 'markers',
+      type: 'scatter',
+      marker: {
+        size: combinedData.map(d => (mode === 'entropy' ? d.entropy * 5 : 10)),
+        color: combinedData.map(d => {
+          if (mode === 'normal') return 'steelblue';
+
+          if (mode === 'top1') {
+            if (d.sdgPrediction) {
+              // Find the max SDG prediction dynamically
+              // TODO: Refactor, very ugly, but works :)
+              const maxSDG = Object.entries(d.sdgPrediction)
+                .filter(([key]) => key.startsWith('sdg')) // Only include SDG keys
+                .reduce((max, [key, value]) => {
+                  return value > max.value ? { key, value } : max;
+                }, { key: null, value: -Infinity });
+
+              if (maxSDG.key) {
+                // Extract the SDG number from the key and pass it to getColorBySDG
+                const sdgId = parseInt(maxSDG.key.replace('sdg', ''), 10);
+                return sdgsStore.getColorBySDG(sdgId);
+              }
+            }
+            return 'steelblue';
+          }
+          return 'steelblue';
+        }),
+        opacity: 0.7
+      },
+      text: combinedData.map(d =>
+        ` Title: ${d.publication.title} <br>
+          X: ${d.dimensionalityReduction.xCoord.toFixed(2)} <br>
+          Y: ${d.dimensionalityReduction.yCoord.toFixed(2)}
+`),
+      hoverinfo: 'text'
+    };
+
+    const layout = {
+      title: `Scatter Plot for Level ${level}`,
+      width: width,
+      height: height,
+      margin: { t: 40, r: 20, b: 40, l: 40 },
+      xaxis: {
+        visible: false
+      },
+      yaxis: {
+        visible: false
+      },
+      dragmode: 'lasso',
+      showlegend: false,
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)'
+    };
+
+    Plotly.newPlot(container, [scatterData], layout);
+
+    container.on('plotly_selected', function (eventData) {
+      if (eventData && eventData.points) {
+        const selectedIndices = eventData.points.map(pt => pt.pointNumber);
+
+        // Update selected data in the stores
+        const selectedSDGPredictions = selectedIndices.map(index => combinedData[index].sdgPrediction);
+        const selectedPublications = selectedIndices.map(index => combinedData[index].publication);
+        const selectedReductions = selectedIndices.map(index => combinedData[index].dimensionalityReduction);
+
+        sdgPredictionsStore.selectedPartitionedSDGPredictions = selectedSDGPredictions;
+        publicationsStore.selectedPartitionedPublications = selectedPublications;
+        dimensionalityReductionsStore.selectedPartitionedReductions = selectedReductions;
+      }
+    });
+
+    container.on('plotly_doubleclick', function () {
+      Plotly.relayout(container, {
+        'xaxis.range': [0, 100],
+        'yaxis.range': [0, 100]
+      });
     });
   });
 }

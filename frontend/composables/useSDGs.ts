@@ -1,5 +1,5 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type { SDGGoalSchemaFull } from "~/types/sdgs";
+import type { SDGGoalSchemaFull } from "~/types/sdgs/goal";
 import { snakeToCamel } from "../utils/snakeToCamel";
 
 export default function useSDGs() {
