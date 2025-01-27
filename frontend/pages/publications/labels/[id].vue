@@ -1,82 +1,89 @@
 <template>
   <div class="min-h-screen bg-gray-50 p-6">
-    <!-- Debugging: Log current state -->
-    <div class="hidden">
-      <p>isLoading: {{ isLoading }}</p>
-      <p>error: {{ error }}</p>
-      <p>sdgLabelSummary: {{ sdgLabelSummary }}</p>
-    </div>
+    <!-- Header -->
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      SDG Label Summary for Publication ID: {{ $route.params.id }}
+    </h1>
 
-    <!-- Loading State with Skeleton -->
-    <div v-if="isLoading" class="max-w-2xl mx-auto space-y-6">
-      <div class="animate-pulse">
-        <div class="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-        <div class="space-y-4">
-          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-          <div class="h-4 bg-gray-200 rounded w-3/5"></div>
-          <div class="h-4 bg-gray-200 rounded w-4/5"></div>
-        </div>
-        <div class="mt-6">
-          <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div class="grid grid-cols-2 gap-4">
-            <div v-for="i in 17" :key="i" class="h-10 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
+    <!-- Loading State -->
+    <div v-if="isLoading" class="text-center py-6">
+      <p class="text-gray-500">Loading SDG data...</p>
     </div>
 
     <!-- Error State -->
-    <div v-if="error" class="max-w-2xl mx-auto bg-red-50 p-4 rounded-md text-red-600 text-center">
+    <div v-if="error" class="bg-red-50 p-4 rounded-md text-red-600 text-center">
       <p>{{ error }}</p>
     </div>
 
     <!-- Display SDG Label Summary -->
-    <div v-if="sdgLabelSummary" class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h1 class="text-2xl font-bold text-gray-800 mb-6">
-        SDG Label Summary for Publication ID: {{ $route.params.id }}
-      </h1>
-      <div class="space-y-4">
-        <div class="flex items-center space-x-2">
-          <strong class="text-gray-700 w-32">Summary ID:</strong>
-          <span class="text-gray-900">{{ sdgLabelSummary.sdgLabelSummaryId }}</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <strong class="text-gray-700 w-32">Publication ID:</strong>
-          <span class="text-gray-900">{{ sdgLabelSummary.publicationId }}</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <strong class="text-gray-700 w-32">History ID:</strong>
-          <span class="text-gray-900">{{ sdgLabelSummary.historyId }}</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <strong class="text-gray-700 w-32">Created At:</strong>
-          <span class="text-gray-900">{{ sdgLabelSummary.createdAt }}</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <strong class="text-gray-700 w-32">Updated At:</strong>
-          <span class="text-gray-900">{{ sdgLabelSummary.updatedAt }}</span>
-        </div>
+    <div v-if="sdgLabelSummary" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <div class="flex items-center space-x-2">
+        <strong class="text-gray-700 w-32">Summary ID:</strong>
+        <span class="text-gray-900">{{ sdgLabelSummary.sdgLabelSummaryId }}</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <strong class="text-gray-700 w-32">Publication ID:</strong>
+        <span class="text-gray-900">{{ sdgLabelSummary.publicationId }}</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <strong class="text-gray-700 w-32">History ID:</strong>
+        <span class="text-gray-900">{{ sdgLabelSummary.historyId }}</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <strong class="text-gray-700 w-32">Created At:</strong>
+        <span class="text-gray-900">{{ sdgLabelSummary.createdAt }}</span>
       </div>
 
-      <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">SDG Scores:</h2>
-      <ul class="grid grid-cols-2 gap-4">
-        <li
-          v-for="i in 17"
-          :key="i"
-          class="bg-gray-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+      <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">SDG Labels:</h2>
+      <!-- SDG Goals Grid -->
+      <div v-if="!isLoading && sdgs.length" class="grid grid-cols-4 gap-4">
+        <div
+          v-for="sdg in sdgs"
+          :key="sdg.id"
+          class="flex flex-col items-center justify-center border rounded-lg p-4 shadow-md transition-opacity"
+          :class="{
+            'opacity-100': sdg.label === 1,
+            'bg-gray-200': sdg.label === 0,
+            'bg-red-200 opacity-80': sdg.label === -1,
+          }"
+          :style="sdg.label === 1 ? { backgroundColor: sdg.color } : {}"
         >
-          <div class="flex items-center space-x-2">
-            <strong class="text-gray-700">SDG {{ i }}:</strong>
-            <span class="text-gray-900">{{ sdgLabelSummary[`sdg${i}`] }}</span>
+          <!-- SDG Icon -->
+          <img
+            v-if="sdg.icon && sdg.label === 1"
+            :src="`data:image/svg+xml;base64,${sdg.icon}`"
+            :alt="`SDG ${sdg.id} Icon`"
+            class="w-8 h-8 object-contain"
+          />
+          <!-- Placeholder for Not Defined -->
+          <div
+            v-else-if="sdg.label === 0"
+            class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center"
+          >
+            <span class="text-sm text-gray-800">?</span>
           </div>
-        </li>
-      </ul>
+          <!-- Placeholder for Definitely Not Related -->
+          <div
+            v-else-if="sdg.label === -1"
+            class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center"
+          >
+            <span class="text-sm text-white">X</span>
+          </div>
+
+          <!-- SDG Title -->
+          <p
+            class="mt-2 text-center font-semibold"
+            :class="sdg.label === 1 ? 'text-white' : 'text-gray-600'"
+          >
+            SDG {{ sdg.id }}
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- No Data State -->
-    <div v-if="!isLoading && !sdgLabelSummary && !error" class="max-w-2xl mx-auto text-center text-gray-600">
-      <p>No SDG Label Summary found for this publication.</p>
+    <div v-if="!isLoading && !sdgs.length && !error" class="text-center text-gray-600">
+      <p>No SDG data available.</p>
     </div>
   </div>
 </template>
@@ -85,20 +92,38 @@
 import { onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSDGLabelSummariesStore } from '~/stores/sdgLabelSummaries';
+import { useSDGsStore } from '~/stores/sdgs';
 
 const route = useRoute();
 const sdgLabelSummariesStore = useSDGLabelSummariesStore();
+const sdgsStore = useSDGsStore();
 
-// Fetch SDG Label Summary on component mount
+// Fetch SDG Label Summary and SDGs on component mount
 onMounted(async () => {
   const publicationId = Number(route.params.id);
   if (!isNaN(publicationId)) {
     await sdgLabelSummariesStore.fetchSDGLabelSummaryByPublicationId(publicationId);
   }
+  if (!sdgsStore.sdgs.length) {
+    await sdgsStore.fetchSDGs();
+  }
 });
 
-// Computed properties
-const isLoading = computed(() => sdgLabelSummariesStore.isLoading);
-const error = computed(() => sdgLabelSummariesStore.error);
+// Computed properties for reactive data
+const isLoading = computed(() => sdgLabelSummariesStore.isLoading || sdgsStore.isLoading);
+const error = computed(() => sdgLabelSummariesStore.error || sdgsStore.error);
 const sdgLabelSummary = computed(() => sdgLabelSummariesStore.sdgLabelSummaryForPublication);
+
+const sdgs = computed(() => {
+  if (!sdgLabelSummary.value || !sdgsStore.sdgs.length) return [];
+
+  // Map SDGs and determine their label state
+  return sdgsStore.sdgs.map((sdg, index) => {
+    const sdgKey = `sdg${sdg.id}`; // Match SDG key (e.g., sdg1, sdg2)
+    return {
+      ...sdg,
+      label: sdgLabelSummary.value[sdgKey], // 1, 0, or -1
+    };
+  });
+});
 </script>
