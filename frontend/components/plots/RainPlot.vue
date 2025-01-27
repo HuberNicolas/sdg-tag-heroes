@@ -29,17 +29,7 @@ onMounted(() => {
 
 watch([() => props.width, () => props.height,], ([newWidth, newHeight]) => {
   if (rainPlotContainer.value) {
-    createRaincloudPlot(rainPlotContainer.value, {
-      width: newWidth,
-      height: newHeight,
-    });
+    createRaincloudPlot(rainPlotContainer.value, newWidth, newHeight,);
   }
 });
 </script>
-
-<style scoped>
-.rain-plot {
-  width: 100%;
-  height: 100%;
-}
-</style>

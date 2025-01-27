@@ -6,18 +6,20 @@
       </div>
       <div class="row-span-2 col-span-4 bg-blue-400">
         Options Level {{selectedLevel}}
-        <div class="grid grid-cols-2 gap-4">
-          <div class="col-span-1">
+        <div class="grid grid-cols-2 h-full"> <!-- Add h-full to ensure the grid takes full height -->
+          <div class="col-span-1 bg-purple-400">
             <BarPlot
-            :width="barPlotWidth"
-            :height="barPlotHeight"
+              :width="barPlotWidth"
+              :height="barPlotHeight"
             />
           </div>
-          <div class="col-span-1">
-            <RainPlot
-              :width="rainPlotWidth"
-              :height="rainPlotHeight"
-            />
+          <div class="col-span-1 bg-orange-400">
+            <div class="flex justify-center">
+              <RainPlot
+                :width="rainPlotWidth"
+                :height="rainPlotHeight"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -87,3 +89,7 @@ onMounted(() => {
   }
 });
 </script>
+
+<style scoped>
+
+</style>

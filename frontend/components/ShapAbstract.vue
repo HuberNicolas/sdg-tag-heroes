@@ -62,7 +62,7 @@ const showShap = ref(true); // Toggle for SHAP highlights
 
 // Use the selected SDG from the store
 const selectedSDG = computed({
-  get: () => sdgsStore.selectedSDG,
+  get: () => sdgsStore.getSelectedSDG,
   set: (value) => sdgsStore.setSelectedSDG(value),
 });
 

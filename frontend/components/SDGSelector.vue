@@ -41,7 +41,7 @@ import { useSDGsStore } from "~/stores/sdgs";
 import { baseSdgShortTitles } from "~/constants/sdgs";
 
 const sdgsStore = useSDGsStore();
-const selectedSDG = computed(() => sdgsStore.selectedSDG);
+const selectedSDG = computed(() => sdgsStore.getSelectedSDG);
 
 // Fetch SDGs on mount
 onMounted(async () => {

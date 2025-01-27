@@ -55,7 +55,7 @@ export const useSDGsStore = defineStore("sdgs", {
     },
   },
   getters: {
-    selectedSDG(state) {
+    getSelectedSDG(state) {
       return state.selectedSDG;
     },
   },

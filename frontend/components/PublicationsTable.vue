@@ -40,13 +40,33 @@ const tableData = computed(() => {
     const prediction = sdgPredictionsStore.selectedPartitionedSDGPredictions[index];
 
     // Extract SDG values from the prediction
-    const values = Object.values(prediction).filter((value) => typeof value === 'number') as number[];
+    const values = [
+      prediction.sdg1,
+      prediction.sdg2,
+      prediction.sdg3,
+      prediction.sdg4,
+      prediction.sdg5,
+      prediction.sdg6,
+      prediction.sdg7,
+      prediction.sdg8,
+      prediction.sdg9,
+      prediction.sdg10,
+      prediction.sdg11,
+      prediction.sdg12,
+      prediction.sdg13,
+      prediction.sdg14,
+      prediction.sdg15,
+      prediction.sdg16,
+      prediction.sdg17,
+    ];
 
-    // Find the top SDG
-    const topSdgKey = Object.keys(prediction).reduce((a, b) =>
+    // Find the top SDG by only considering sdg1 to sdg17
+    const sdgKeys = Array.from({ length: 17 }, (_, i) => `sdg${i + 1}`);
+    const topSdgKey = sdgKeys.reduce((a, b) =>
       prediction[a] > prediction[b] ? a : b
     );
     const topSdg = `SDG ${topSdgKey.replace('sdg', '')}`;
+
 
     // Dummy data for XP and coins
     const xp = Math.floor(Math.random() * 100); // Random XP between 0 and 100
