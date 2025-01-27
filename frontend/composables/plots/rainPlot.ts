@@ -24,12 +24,9 @@ function renderRaincloudPlot(container, data, width, height) {
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
   const totalWidth = width - margin.left - margin.right;
   const totalHeight = height - margin.top - margin.bottom;
-  console.log(width, height, totalWidth, totalHeight);
 
   const segment = totalHeight * 0.25; // y-position density plot
   const size = segment * 0.8; // for density plot
-
-  console.log(`Rendering raincloud plot for container`);
 
   // Verify and sort the data
   if (!data || data.length === 0) {
@@ -38,7 +35,6 @@ function renderRaincloudPlot(container, data, width, height) {
   }
 
   const sortedData = data.sort(d3.ascending);
-  console.log('Data passed to the plot:', sortedData);
 
   const q1 = d3.quantile(sortedData, 0.25) ?? 0;
   const median = d3.quantile(sortedData, 0.5) ?? 0;
@@ -88,7 +84,7 @@ function renderRaincloudPlot(container, data, width, height) {
       .append('path')
       .datum(histogram)
       .attr('d', area)
-      .style('fill', 'steelblue')
+      .style('fill', 'grey')
       .style('opacity', 0.6);
   };
 
@@ -124,6 +120,21 @@ function renderRaincloudPlot(container, data, width, height) {
           .attr('y2', 0)
           .attr('stroke', 'black');
 
+        // Add labels for whiskers
+        g.append('text')
+          .attr('x', x(min))
+          .attr('y', -boxHeight)
+          .text(`Min: ${min.toFixed(2)}`)
+          .attr('font-size', '10px')
+          .attr('text-anchor', 'middle');
+
+        g.append('text')
+          .attr('x', x(max))
+          .attr('y', -boxHeight)
+          .text(`Max: ${max.toFixed(2)}`)
+          .attr('font-size', '10px')
+          .attr('text-anchor', 'middle');
+
         // Box
         const width = Math.max(0, x(q3) - x(q1));
         g.append('rect')
@@ -131,7 +142,7 @@ function renderRaincloudPlot(container, data, width, height) {
           .attr('y', -boxHeight / 2)
           .attr('width', width)
           .attr('height', boxHeight)
-          .attr('fill', 'steelblue')
+          .attr('fill', 'grey')
           .attr('opacity', 0.6);
 
         // Median line
@@ -141,12 +152,29 @@ function renderRaincloudPlot(container, data, width, height) {
           .attr('y1', -boxHeight / 2)
           .attr('y2', boxHeight / 2)
           .attr('stroke', 'black');
+
+        // Add median label
+        g.append('text')
+          .attr('x', x(median))
+          .attr('y', boxHeight + 10)
+          .text(`Median: ${median.toFixed(2)}`)
+          .attr('font-size', '10px')
+          .attr('text-anchor', 'middle');
       });
   };
 
-  // Dots (Raw Data Points)
+// Dots (Updated with tooltips for data points)
   const dots = (selection, data) => {
     const jitterHeight = 40; // Controls vertical jitter
+    const tooltip = d3.select(container).append('div') // Create tooltip
+      .style('position', 'absolute')
+      .style('background', 'white')
+      .style('border', '1px solid black')
+      .style('padding', '5px')
+      .style('border-radius', '5px')
+      .style('opacity', 0)
+      .style('pointer-events', 'none');
+
     selection
       .append('g')
       .classed('dots', true)
@@ -157,10 +185,23 @@ function renderRaincloudPlot(container, data, width, height) {
       .attr('r', 5)
       .attr('cx', (d) => x(d)) // Keep x-axis alignment consistent with boxplot and density
       .attr('cy', () => totalHeight * 0.75 + (Math.random() - 0.5) * jitterHeight) // Add random vertical jitter only
-      .style('fill', 'steelblue')
+      .style('fill', 'grey')
       .style('opacity', 0.6)
-      .attr('stroke', 'none');
+      .attr('stroke', 'none')
+      .on('mouseover', function (event, d) { // Tooltip behavior
+        tooltip
+          .style('opacity', 1)
+          .html(`Value: ${d.toFixed(2)}`)
+          .style('left', `${event.pageX + 10}px`)
+          .style('top', `${event.pageY}px`);
+        d3.select(this).attr('stroke', 'black').attr('stroke-width', 1);
+      })
+      .on('mouseout', function () {
+        tooltip.style('opacity', 0);
+        d3.select(this).attr('stroke', 'none');
+      });
   };
+
 
   // Call the raincloud rendering function
   svg.append('g').call(raincloud, sortedData);

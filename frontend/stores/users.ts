@@ -10,6 +10,7 @@ export const useUsersStore = defineStore("users", {
     userDetails: null as UserSchemaFull | null,
     isLoading: false,
     error: null as string | null,
+    user: null as UserSchemaFull,
   }),
   actions: {
     // Fetch all users
@@ -59,5 +60,21 @@ export const useUsersStore = defineStore("users", {
         this.isLoading = false;
       }
     },
+
+    // Fetch personal user
+    async fetchPersonalUser() {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getPersonalUser } = useUsers();
+        this.user = getPersonalUser;
+      } catch (error) {
+        this.error = `Failed to fetch users by IDs: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    }
   },
 });

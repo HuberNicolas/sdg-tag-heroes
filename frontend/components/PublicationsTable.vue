@@ -1,28 +1,32 @@
 <template>
-  <table class="w-full border-collapse">
-    <thead>
-    <tr class="bg-gray-100">
-      <th class="border border-gray-300 p-2">Title</th>
-      <th class="border border-gray-300 p-2">Glyph</th>
-      <th class="border border-gray-300 p-2">XP</th>
-      <th class="border border-gray-300 p-2">Coins</th>
-      <th class="border border-gray-300 p-2">Top SDG</th>
-      <th class="border border-gray-300 p-2">Year</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr v-for="(item, index) in tableData" :key="index" class="hover:bg-gray-50">
-      <td class="border border-gray-300 p-2">{{ item.title }}</td>
-      <td class="border border-gray-300 p-2 flex items-center justify-center">
-        <HexGlyph :values="item.values" :height="100" :width="80" />
-      </td>
-      <td class="border border-gray-300 p-2">{{ item.xp }}</td>
-      <td class="border border-gray-300 p-2">{{ item.coins }}</td>
-      <td class="border border-gray-300 p-2">{{ item.topSdg }}</td>
-      <td class="border border-gray-300 p-2">{{ item.year }}</td>
-    </tr>
-    </tbody>
-  </table>
+  <div class="overflow-auto h-full"> <!-- Scrollable container -->
+    <table class="w-full border-collapse">
+      <thead>
+      <tr class="bg-gray-100">
+        <th class="border border-gray-300 p-2">Title</th>
+        <th class="border border-gray-300 p-2">Glyph</th>
+        <th class="border border-gray-300 p-2">Top SDGs</th>
+        <th class="border border-gray-300 p-2">XP</th>
+        <th class="border border-gray-300 p-2">Coins</th>
+        <th class="border border-gray-300 p-2">Year</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="(item, index) in tableData" :key="index" class="hover:bg-gray-50">
+        <td class="border border-gray-300 p-2">{{ item.title }}</td>
+        <td class="border border-gray-300 p-2 flex items-center justify-center">
+          <HexGlyph :values="item.values" :height="100" :width="80" />
+        </td>
+        <td class="border border-gray-300 p-2">
+          <BarPredictionPlot :values="item.values" :width="100" :height="80" />
+        </td>
+        <td class="border border-gray-300 p-2">{{ item.xp }}</td>
+        <td class="border border-gray-300 p-2">{{ item.coins }}</td>
+        <td class="border border-gray-300 p-2">{{ item.year }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -30,6 +34,7 @@ import { computed } from 'vue';
 import { usePublicationsStore } from '~/stores/publications';
 import { useSDGPredictionsStore } from '~/stores/sdgPredictions';
 import HexGlyph from '@/components/PredictionGlyph.vue';
+import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
 
 const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();

@@ -56,9 +56,25 @@ export default function useUsers() {
     }
   }
 
+  // Fetch personal user
+  async function getPersonalUser(): Promise<UserSchemaFull[]> {
+    try {
+      const response =  await $fetch<UserSchemaFull[]>(`${config.public.apiUrl}/users/personal`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+        },
+      });
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch users by IDs: ${error}`);
+    }
+  }
+
   return {
     getUsers,
     getUserById,
     getUsersByIds,
+    getPersonalUser
   };
 }

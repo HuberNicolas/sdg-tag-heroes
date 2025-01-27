@@ -123,3 +123,28 @@ async def get_publications_by_ids(
     else:
         users = db.query(User).all()
         return [UserSchemaFull.model_validate(user) for user in users]
+
+@router.get("/personal", response_model=UserSchemaFull, description="Retrieve a own user")
+async def get_personal_user(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+        user_id = user.user_id
+        # Query for the user by ID
+        user = db.query(User).filter(User.user_id == user_id).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {user_id} not found",
+            )
+
+        return UserSchemaFull.model_validate(user)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the user",
+        )

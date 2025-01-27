@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
 import { ref, onMounted } from "vue";
-import UseAuth from "~/composables/useAuth";
+import UseAuth from "~/composables/useAuthentication";
 
 // Route and router setup
 const route = useRoute();
