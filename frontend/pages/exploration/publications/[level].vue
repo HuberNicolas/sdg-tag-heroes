@@ -24,24 +24,15 @@
         </div>
       </div>
       <div class="row-span-1 col-span-2 bg-green-400 p-4">
-        <div class="grid grid-cols-3 gap-4">
-          <!-- Title -->
-          <div class="col-span-3 grid grid-cols-1 gap-4">
-            <p>Quests</p>
-          </div>
-
-          <!-- Left side (2x2 grid for buttons 1-4) -->
-          <div class="col-span-2 grid grid-cols-2 gap-4">
-            <ButtonsQuestButton :mode="'1'" />
-            <ButtonsQuestButton :mode="'2'" />
-            <ButtonsQuestButton :mode="'3'" />
-            <ButtonsQuestButton :mode="'4'" />
-          </div>
-
-          <!-- Right side (button 5) -->
-          <div class="flex items-center justify-center">
-            <ButtonsQuestButton :mode="'5'" />
-          </div>
+        <div class="flex items-center justify-center">
+          <h1>Quests</h1>
+        </div>
+        <div class="flex items-center justify-between">
+          <ButtonsQuestButton :mode="'1'" />
+          <ButtonsQuestButton :mode="'2'" />
+          <ButtonsQuestButton :mode="'3'" />
+          <ButtonsQuestButton :mode="'4'" />
+          <ButtonsQuestButton :mode="'5'" />
         </div>
 
       </div>

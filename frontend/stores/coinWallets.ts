@@ -5,7 +5,8 @@ import type { SDGCoinWalletSchemaFull, SDGCoinWalletHistorySchemaFull } from '~/
 export const useCoinWalletsStore = defineStore('coinWallets', {
   state: () => ({
     sdgCoinWallets: [] as SDGCoinWalletSchemaFull[],
-    currentSDGCoinWallet: null as SDGCoinWalletSchemaFull | null,
+    userSDGCoinWallet: null as SDGCoinWalletSchemaFull | null,
+    sdgCoinWalletHistory: null as SDGCoinWalletHistorySchemaFull | null,
   }),
 
   actions: {
@@ -18,13 +19,13 @@ export const useCoinWalletsStore = defineStore('coinWallets', {
     // Fetch a single SDG coin wallet by user ID
     async fetchSDGCoinWalletByUserId(userId: number) {
       const { getSDGCoinWalletByUserId } = useCoinWallets();
-      this.currentSDGCoinWallet = await getSDGCoinWalletByUserId(userId);
+      this.userSDGCoinWallet = await getSDGCoinWalletByUserId(userId);
     },
 
     // Fetch the personal SDG coin wallet for the current user
     async fetchPersonalSDGCoinWallet() {
       const { getPersonalSDGCoinWallet } = useCoinWallets();
-      this.currentSDGCoinWallet = await getPersonalSDGCoinWallet();
+      this.userSDGCoinWallet = await getPersonalSDGCoinWallet();
     },
 
     // Fetch SDG coin wallet history for a specific user
@@ -38,8 +39,8 @@ export const useCoinWalletsStore = defineStore('coinWallets', {
       const { addSDGCoinWalletIncrement } = useCoinWallets();
       const newHistory = await addSDGCoinWalletIncrement(userId, incrementData);
       this.sdgCoinWalletHistory.unshift(newHistory); // Add the new history entry to the top of the list
-      if (this.currentSDGCoinWallet) {
-        this.currentSDGCoinWallet.totalCoins += incrementData.increment; // Update the total coins
+      if (this.userSDGCoinWallet) {
+        this.userSDGCoinWallet.totalCoins += incrementData.increment; // Update the total coins
       }
     },
   },
@@ -49,7 +50,7 @@ export const useCoinWalletsStore = defineStore('coinWallets', {
     getAllSDGCoinWallets: (state) => state.sdgCoinWallets,
 
     // Get the current SDG coin wallet
-    getCurrentSDGCoinWallet: (state) => state.currentSDGCoinWallet,
+    getUserSDGCoinWallet: (state) => state.userSDGCoinWallet,
 
     // Get SDG coin wallet history
     getSDGCoinWalletHistory: (state) => state.sdgCoinWalletHistory,

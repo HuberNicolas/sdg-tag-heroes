@@ -3,9 +3,9 @@
     <!-- Shared Navbar -->
 
     <!-- <p class="bg-gray-200 p-4 flex-none">Some default layout content shared across all pages</p> -->
-    <p class="bg-gray-200 p-4 flex-none">Some default layout content shared across all pages</p>
-    <!--<NavigationBar></NavigationBar> -->
 
+    <!--<NavigationBar></NavigationBar> -->
+    <NavigationBar></NavigationBar>
 
     <!-- Slot Content -->
     <div class="flex-1 overflow-hidden">

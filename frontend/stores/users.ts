@@ -10,7 +10,7 @@ export const useUsersStore = defineStore("users", {
     userDetails: null as UserSchemaFull | null,
     isLoading: false,
     error: null as string | null,
-    user: null as UserSchemaFull,
+    user: null as UserSchemaFull | null,
   }),
   actions: {
     // Fetch all users
@@ -68,7 +68,7 @@ export const useUsersStore = defineStore("users", {
 
       try {
         const { getPersonalUser } = useUsers();
-        this.user = getPersonalUser;
+        this.user = await getPersonalUser();
       } catch (error) {
         this.error = `Failed to fetch users by IDs: ${error}`;
         throw error;
@@ -76,5 +76,9 @@ export const useUsersStore = defineStore("users", {
         this.isLoading = false;
       }
     }
+  },
+  getters: {
+    // Get current User
+    getCurrentUser: (state) => state.user,
   },
 });

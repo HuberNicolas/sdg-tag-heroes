@@ -3,36 +3,34 @@ import { ref, onMounted } from 'vue';
 import { useUsersStore } from '~/stores/users';
 import { useXPBanksStore } from '~/stores/xpBanks';
 import { useCoinWalletsStore } from '~/stores/coinWallets';
-import useAvatar from '~/composables/useAvatar';
+import { generateAvatar } from '~/utils/avatar'; // Import the synchronous generateAvatar funct
 import { sdgGlyphs } from '~/constants/constants';
 
 // Pinia stores
 const userStore = useUsersStore();
-const xpBanksStore = useXPBanksStore();
+const banksStore = useXPBanksStore();
 const walletsStore = useCoinWalletsStore();
 
 // State
 const loading = ref(true);
-const avatarSrc = ref<string | null>(null);
 const links = ref<Array<any>>([]);
 
-const { generateAvatar } = useAvatar();
 
-// Fetch user data
-const fetchUserData = async () => {
+// Fetch all required data
+const fetchData = async () => {
   try {
-    const [user, coins, xpBank] = await Promise.all([
+    await Promise.all([
       userStore.fetchPersonalUser(),
       walletsStore.fetchPersonalSDGCoinWallet(),
-      xpBanksStore.fetchPersonalXPBank(),
+      banksStore.fetchPersonalXPBank(),
     ]);
-    console.log(user, coins, xpBank);
 
-    if (user?.email) {
-      avatarSrc.value = generateAvatar({ seed: user.email, size: 64 }).toDataUri();
-    }
+    const user = userStore.getCurrentUser;
+    const userWallet = walletsStore.getUserSDGCoinWallet;
+    const userBank = banksStore.getUserXPBank;
 
-    updateLinks(coins.totalCoins, xpBank);
+    // Update links with fetched data
+    updateLinks(userWallet?.totalCoins || 0, userBank || { totalXp: 0 });
   } catch (error) {
     console.error('Error fetching user data:', error);
     updateLinks(0, { totalXp: 0 }); // Fallback values
@@ -44,13 +42,11 @@ const fetchUserData = async () => {
 // Update links with user data
 const updateLinks = (coins: number, xpData: any) => {
   const { totalXp, ...sdgXpFields } = xpData;
-
-  // Log XP data for debugging
-  console.log('XP Data:', xpData);
+  console.log(totalXp, sdgXpFields);
 
   // Extract and sort top 3 SDGs by XP
   const top3SDGs = Object.entries(sdgXpFields)
-    .filter(([key]) => key.startsWith('sdg_') && key.endsWith('_xp'))
+    .filter(([key]) => key.startsWith('sdg') && key.endsWith('Xp'))
     .map(([key, xp]) => ({
       sdg: key.replace('_xp', ''),
       xp: xp as number,
@@ -58,7 +54,7 @@ const updateLinks = (coins: number, xpData: any) => {
     .sort((a, b) => b.xp - a.xp)
     .slice(0, 3)
     .map((sdgData) => ({
-      label: `${sdgData.sdg.replace('sdg_', 'SDG ')}: ${sdgData.xp.toFixed(0)} XP`,
+      label: `${sdgData.sdg.replace('sdg', 'SDG ')}: ${sdgData.xp.toFixed(0)}`,
       icon: sdgGlyphs[sdgData.sdg],
     }));
 
@@ -77,16 +73,12 @@ const updateLinks = (coins: number, xpData: any) => {
       label: `SDG Coins: ${coins.toFixed(0)}`,
       icon: 'i-heroicons-currency-dollar',
     },
-    ...top3SDGs,
-    {
-      label: 'Profile',
-      avatar: avatarSrc.value,
-      to: '/profile',
-    },
+    ...top3SDGs
   ];
 };
 
-onMounted(fetchUserData);
+// Fetch data on component mount
+onMounted(fetchData);
 </script>
 
 <template>
@@ -126,13 +118,22 @@ onMounted(fetchUserData);
 
       <!-- Right Section: Avatar -->
       <NuxtLink to="/profile" class="flex items-center space-x-2">
-        <img
-          v-if="links[6]?.avatar"
-          :src="links[6].avatar"
-          alt="User Avatar"
-          class="w-10 h-10 rounded-full border-2 border-primary"
-        />
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Profile</span>
+        <div class="user-avatar">
+          <!-- Generate avatar directly in the template -->
+          <UAvatar
+            v-if="userStore.getCurrentUser?.email"
+            chip-color="primary"
+            chip-text=""
+            chip-position="top-right"
+            size="lg"
+            :src="generateAvatar(userStore.getCurrentUser.email)"
+            alt="Avatar"
+          />
+          <!-- Fallback if no email is available -->
+          <div v-else class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+            <span class="text-gray-500">No Avatar</span>
+          </div>
+        </div>
       </NuxtLink>
     </div>
   </nav>

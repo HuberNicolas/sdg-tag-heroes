@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useUserStore } from "~/stores/user"; // Import SDG store
-import UseAuth from '~/composables/useAuth';
+import { useUsersStore } from "~/stores/users"; // Import SDG store
+import UseAuth from '~/composables/useAuthentication';
 import useAvatar from '@/composables/useAvatar';
 import IconSDGXP from '~/assets/average_sdg_predction_glyph.svg';
 import IconSDG1XP from '~/assets/sdg_01_glyph.svg';
@@ -52,7 +52,7 @@ const loading = ref(true); // Loading state
 const links = ref([]); // Reactive links array
 
 
-const userStore = useUserStore();
+const userStore = useUsersStore();
 
 // Initialize avatar generator
 const { generateAvatar } = useAvatar();

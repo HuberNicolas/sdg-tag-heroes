@@ -5,7 +5,7 @@ import type { SDGXPBankSchemaFull, SDGXPBankHistorySchemaFull } from '~/types/sd
 export const useXPBanksStore = defineStore('xpBanks', {
   state: () => ({
     xpBanks: [] as SDGXPBankSchemaFull[],
-    currentXPBank: null as SDGXPBankSchemaFull | null,
+    userXPBank: null as SDGXPBankSchemaFull | null,
     xpBankHistory: [] as SDGXPBankHistorySchemaFull[],
   }),
 
@@ -19,13 +19,13 @@ export const useXPBanksStore = defineStore('xpBanks', {
     // Fetch a single XP bank by user ID
     async fetchXPBankByUserId(userId: number) {
       const { getXPBankByUserId } = useXPBanks();
-      this.currentXPBank = await getXPBankByUserId(userId);
+      this.userXPBank = await getXPBankByUserId(userId);
     },
 
     // Fetch the personal XP bank for the current user
     async fetchPersonalXPBank() {
       const { getPersonalXPBank } = useXPBanks();
-      this.currentXPBank = await getPersonalXPBank();
+      this.userXPBank = await getPersonalXPBank();
     },
 
     // Fetch XP bank history for a specific user
@@ -39,7 +39,7 @@ export const useXPBanksStore = defineStore('xpBanks', {
       const { addXPBankIncrement } = useXPBanks();
       const newHistory = await addXPBankIncrement(userId, incrementData);
       this.xpBankHistory.unshift(newHistory); // Add the new history entry to the top of the list
-      if (this.currentXPBank) {
+      if (this.userXPBank) {
         this.currentXPBank.totalXp += incrementData.increment; // Update the total XP
       }
     },
@@ -50,7 +50,7 @@ export const useXPBanksStore = defineStore('xpBanks', {
     getAllXPBanks: (state) => state.xpBanks,
 
     // Get the current XP bank
-    getCurrentXPBank: (state) => state.currentXPBank,
+    getUserXPBank: (state) => state.userXPBank,
 
     // Get XP bank history
     getXPBankHistory: (state) => state.xpBankHistory,

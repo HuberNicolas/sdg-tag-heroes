@@ -18,7 +18,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const fetchData = async () => {
     const reductionShorthand = 'TM-UMAP-10-0.0-2';
     const partNumber = level;
-    const totalParts = 100;
+    const totalParts = 10000;
 
     await Promise.all([
       dimensionalityReductionsStore.fetchDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
