@@ -1,6 +1,5 @@
 <template>
   <div class="max-w-4xl mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Publication Comments</h1>
 
     <div v-if="isLoading" class="text-blue-500">Loading...</div>
     <div v-if="error" class="text-red-500">Error: {{ error }}</div>
@@ -10,8 +9,8 @@
       <div class="flex items-start gap-4">
         <!-- User Avatar -->
         <img
-          v-if="label.userId && label.userId.email"
-          :src="generateAvatar(label.userId.email)"
+          v-if="usersStore.users.find(user => user.userId === label.userId)?.email"
+          :src="generateAvatar(usersStore.users.find(user => user.userId === label.userId)?.email)"
           alt="User Avatar"
           class="w-10 h-10 rounded-full flex-shrink-0"
         />
@@ -20,7 +19,11 @@
         <div class="flex-1">
           <!-- User Nickname and Voted Label -->
           <div class="flex items-center gap-2">
-            <p class="font-semibold">{{ label.userId?.nickname || 'Unknown User' }}</p>
+            <p class="font-semibold">
+              {{
+                usersStore.users.find(user => user.userId === label.userId)?.nickname || 'Unknown User'
+              }}
+            </p>
             <div class="flex items-center gap-2">
               <!-- SDG Icon -->
               <img
@@ -48,32 +51,57 @@
             <span class="font-medium">Date:</span> {{ label.createdAt }}
           </p>
 
+          <!-- Votes for the Label -->
+          <div class="flex items-center gap-2 mt-2">
+            <button @click="voteLabel(label.labelId, 'positive')" class="text-green-500">
+              👍 {{ getLabelVotes(label.labelId).positive }}
+            </button>
+            <button @click="voteLabel(label.labelId, 'neutral')" class="text-gray-500">
+              😐 {{ getLabelVotes(label.labelId).neutral }}
+            </button>
+            <button @click="voteLabel(label.labelId, 'negative')" class="text-red-500">
+              👎 {{ getLabelVotes(label.labelId).negative }}
+            </button>
+          </div>
+
+          <!-- Toggle Annotations Button -->
+          <button
+            @click="toggleAnnotations(label.labelId)"
+            class="text-blue-500 mt-2"
+          >
+            {{ expandedLabels.includes(label.labelId) ? 'Hide Annotations' : 'Show Annotations' }}
+          </button>
+
           <!-- Annotations for the User Label -->
-          <div v-for="annotation in label.annotations" :key="annotation.annotationId" class="mt-4 ml-6">
-            <div class="flex items-start gap-4">
-              <!-- Annotation User Avatar -->
-              <img
-                v-if="annotation.user && annotation.user.email"
-                :src="generateAvatar(annotation.user.email)"
-                alt="Annotation User Avatar"
-                class="w-8 h-8 rounded-full flex-shrink-0"
-              />
-              <div v-else class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+          <div v-if="expandedLabels.includes(label.labelId)" class="mt-4 ml-6">
+            <div v-for="annotation in label.annotations" :key="annotation.annotationId" class="mb-4">
+              <div class="flex items-start gap-4">
+                <!-- Annotation User Avatar -->
+                <img
+                  v-if="annotation.user && annotation.user.email"
+                  :src="generateAvatar(annotation.user.email)"
+                  alt="Annotation User Avatar"
+                  class="w-8 h-8 rounded-full flex-shrink-0"
+                />
+                <div v-else class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
 
-              <div class="flex-1">
-                <p class="font-medium">Annotation by {{ annotation.user?.email || 'Unknown User' }}</p>
-                <p class="text-sm text-gray-700">{{ annotation.comment }}</p>
+                <div class="flex-1">
+                  <p class="font-medium">Annotation by {{ annotation.user?.email || 'Unknown User' }}</p>
+                  <p class="text-sm text-gray-700">{{ annotation.comment }}</p>
 
-                <!-- Votes for the Annotation -->
-                <ul class="mt-2 ml-4">
-                  <li
-                    v-for="vote in annotation.votes"
-                    :key="vote.voteId"
-                    class="text-sm text-gray-600"
-                  >
-                    User {{ vote.user?.email || 'Unknown User' }} voted {{ vote.voteType }} with score {{ vote.score }}
-                  </li>
-                </ul>
+                  <!-- Votes for the Label -->
+                  <div class="flex items-center gap-2 mt-2">
+                    <button @click="voteLabel(label.labelId, 'positive')" class="text-green-500">
+                      👍 {{ getLabelVotes(label.labelId).positive }}
+                    </button>
+                    <button @click="voteLabel(label.labelId, 'neutral')" class="text-gray-500">
+                      😐 {{ getLabelVotes(label.labelId).neutral }}
+                    </button>
+                    <button @click="voteLabel(label.labelId, 'negative')" class="text-red-500">
+                      👎 {{ getLabelVotes(label.labelId).negative }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -89,20 +117,21 @@ import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
 import { useSDGsStore } from "~/stores/sdgs";
 import { generateAvatar } from "~/utils/avatar";
+import { VoteType } from "~/types/enums";
 
 const labelDecisionsStore = useLabelDecisionsStore();
 const usersStore = useUsersStore();
 const sdgsStore = useSDGsStore();
 
-const userLabels = computed(() => useLabelDecisionsStore.userLabels);
-const isLoading = computed(() => useLabelDecisionsStore.isLoading);
-const error = computed(() => useLabelDecisionsStore.error);
+const userLabels = computed(() => labelDecisionsStore.userLabels);
+const isLoading = computed(() => labelDecisionsStore.isLoading);
+const error = computed(() => labelDecisionsStore.error);
 
 // Track expanded labels
 const expandedLabels = ref<number[]>([]);
 
 // Fetch user labels for a publication on component mount
-const publicationId = 88466//30310// 88466;
+const publicationId = 88466; // Example publication ID
 onMounted(async () => {
   await labelDecisionsStore.fetchUserLabelsByPublicationId(publicationId);
   await labelDecisionsStore.fetchSDGLabelDecisionByPublicationId(publicationId);
@@ -123,5 +152,41 @@ const toggleAnnotations = (labelId: number) => {
 const getSDGIcon = (sdgId: number) => {
   const sdg = sdgsStore.sdgs.find((sdg) => sdg.id === sdgId);
   return sdg ? `data:image/svg+xml;base64,${sdg.icon}` : null;
+};
+
+// Get votes for a label
+const getLabelVotes = (labelId: number) => {
+  const label = userLabels.value.find((label) => label.labelId === labelId);
+  if (!label) return { positive: 0, neutral: 0, negative: 0 };
+  return {
+    positive: label.votes.filter((vote) => vote.voteType === VoteType.POSITIVE).length,
+    neutral: label.votes.filter((vote) => vote.voteType === VoteType.NEUTRAL).length,
+    negative: label.votes.filter((vote) => vote.voteType === VoteType.NEGATIVE).length,
+  };
+};
+
+// Get votes for an annotation
+const getAnnotationVotes = (annotationId: number) => {
+  const annotation = userLabels.value
+    .flatMap((label) => label.annotations)
+    .find((annotation) => annotation.annotationId === annotationId);
+  if (!annotation) return { positive: 0, neutral: 0, negative: 0 };
+  return {
+    positive: annotation.votes.filter((vote) => vote.voteType === VoteType.POSITIVE).length,
+    neutral: annotation.votes.filter((vote) => vote.voteType === VoteType.NEUTRAL).length,
+    negative: annotation.votes.filter((vote) => vote.voteType === VoteType.NEGATIVE).length,
+  };
+};
+
+// Vote for a label
+const voteLabel = async (labelId: number, voteType: VoteType.POSITIVE | VoteType.NEGATIVE) => {
+  // Implement vote logic here
+  console.log(`Voted ${voteType} on label ${labelId}`);
+};
+
+// Vote for an annotation
+const voteAnnotation = async (annotationId: number, voteType: VoteType.POSITIVE | VoteType.NEGATIVE) => {
+  // Implement vote logic here
+  console.log(`Voted ${voteType} on annotation ${annotationId}`);
 };
 </script>

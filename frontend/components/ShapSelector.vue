@@ -33,6 +33,8 @@
       </select>
     </div>
 
+    <UButton>Submit</UButton>
+
   </div>
 </template>
 

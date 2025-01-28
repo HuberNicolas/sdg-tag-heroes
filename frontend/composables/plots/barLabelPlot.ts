@@ -47,9 +47,10 @@ function updateLabelDistributionBarPlot(container, labelDistribution, width, hei
   const sortedCounts = sortedIndices.map(i => counts[i]);
 
   const colors = sortedLabels.map(label => {
-    if (label === -1) return '#000000';
+    if (label === -1) return '#CCCCCC';
     if (label >= 1 && label <= 17) return sdgsStore.getColorBySDG(label) || '#CCCCCC';
-    return '#CCCCCC';
+    if (label === 18 ) return '#000000';
+    return '#FFFFFF';
   });
 
   const filteredLabels = sortedLabels.filter((_, i) => sortedCounts[i] > 0);
@@ -57,7 +58,7 @@ function updateLabelDistributionBarPlot(container, labelDistribution, width, hei
   const filteredColors = colors.filter((_, i) => sortedCounts[i] > 0);
 
   const data = [{
-    x: filteredLabels.map(label => (label === -1 ? 'Undefined' : `SDG ${label}`)),
+    x: filteredLabels.map(label => (label === -1 ? 'Not relevant' : `SDG ${label}`)),
     y: filteredCounts,
     type: 'bar',
     marker: { color: filteredColors },
