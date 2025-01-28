@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4">
+  <div class="container mx-auto p-4">
     <!-- Display the marked text -->
 
     <div v-if="markedText" class="p-4 bg-gray-100 rounded-lg">
@@ -21,17 +21,18 @@
         placeholder="Add your comment here..."
       ></textarea>
     </div>
-  </div>
 
-  <!-- SDG Selection TODO: maybe remove -->
-  <div class="mb-6">
-    <label class="block text-sm font-medium text-gray-700 mb-2">Select SDG</label>
-    <select
-      v-model="selectedSDG"
-      class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-    >
-      <option v-for="sdg in sdgs" :key="sdg" :value="sdg">SDG {{ sdg }}</option>
-    </select>
+    <!-- SDG Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Select SDG</label>
+      <select
+        v-model="selectedSDG"
+        class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+      >
+        <option v-for="sdg in sdgs" :key="sdg" :value="sdg">SDG {{ sdg }}</option>
+      </select>
+    </div>
+
   </div>
 </template>
 

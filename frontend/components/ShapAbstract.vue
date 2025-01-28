@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-4">
-    <!-- SDG Selection -->
-    <SDGSelector></SDGSelector>
+    <!-- Publication Title -->
+    <h1 class="text-2xl font-bold mb-4">{{ publication?.title }}</h1>
 
     <!-- Toggle for SHAP/Plain Text -->
     <div class="mb-6">
@@ -14,9 +14,6 @@
         <span class="ml-2 text-gray-700">Show SHAP Highlights</span>
       </label>
     </div>
-
-    <!-- Publication Title -->
-    <h1 class="text-2xl font-bold mb-4">{{ publication?.title }}</h1>
 
     <!-- Abstract Display -->
     <div class="bg-white p-6 rounded-lg shadow-md">

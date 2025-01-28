@@ -8,12 +8,13 @@ from pydantic import BaseModel, ValidationError
 from enums import SDGType
 from schemas.gpt_assistant_service import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
     GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema, \
-    GPTResponseAnnotationScoreSchema
+    GPTResponseAnnotationScoreSchema, GPTResponseCommentSummarySchema
 from settings.settings import GPTAssistantServiceSettings
 from utils.env_loader import load_env, get_env_variable
 from .strategies.fact_generator_strategy import FactStrategy
 from .strategies.keyword_extractor_strategy import ExtractKeywordsStrategy
 from .strategies.sdg_explainer_strategy import GoalStrategy, TargetStrategy
+from .strategies.summarize_sdg_user_label_comments import SummarizeSDGUserLabelCommentsStrategy
 from .strategies.summarizer_strategy import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
 from .strategies.user_annotation_evaluator_strategy import AnnotationEvaluatorStrategy
 from .strategies.user_query_generator_strategy import SkillsQueryStrategy, InterestsQueryStrategy
@@ -87,6 +88,20 @@ class GPTAssistantService:
 
         try:
             response = self._call_model(strategy.context, prompt_data, GPTResponseCollectiveSummarySchema)
+            return response
+        except Exception as e:
+            return GPTResponseCollectiveSummarySchema(
+                summary=f"Error generating summary: {str(e)}",
+                keywords=[]
+            )
+
+    def summarize_comments(self, user_labels: List[Dict[str, str]]) -> GPTResponseCommentSummarySchema:
+        """Summarizes a set comments form sdg_user_labels into a single comment."""
+        strategy = SummarizeSDGUserLabelCommentsStrategy()
+        prompt_data = strategy.generate_prompt(user_labels)
+
+        try:
+            response = self._call_model(strategy.context, prompt_data, GPTResponseCommentSummarySchema)
             return response
         except Exception as e:
             return GPTResponseCollectiveSummarySchema(

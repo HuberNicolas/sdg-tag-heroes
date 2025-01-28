@@ -27,6 +27,9 @@ class GPTResponseCollectiveSummarySchema(BaseModel):
     summary: str
     keywords: List[str]
 
+class GPTResponseCommentSummarySchema(BaseModel):
+    summary: str
+
 class GPTResponseSkillsQuerySchema(BaseModel):
     skills: str
     generated_query: str
@@ -80,6 +83,14 @@ class PublicationKeywordsSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Summary for multiple SDG User Labels
+class SDGUserLabelsCommentSummarySchema(BaseModel):
+    user_labels_ids: List[int]
+    summary: str
+
+class Config:
+        from_attributes = True  # Enables ORM-style model validation
 
 
 class UserEnrichedSkillsDescriptionSchema(BaseModel):

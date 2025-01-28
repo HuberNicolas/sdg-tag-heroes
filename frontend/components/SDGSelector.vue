@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- SDG Cards -->
-    <div class="flex flex-wrap gap-2 p-2">
+    <div class="flex flex-wrap gap-1 p-1">
       <div
         v-for="sdg in sdgs"
         :key="sdg.id"
@@ -16,7 +16,7 @@
           v-if="sdg.icon"
           :src="`data:image/svg+xml;base64,${sdg.icon}`"
           :alt="`SDG ${sdg.id} Icon`"
-          class="w-8 h-8 object-contain"
+          class="w-6 h-6 object-contain"
         />
 
         <!-- SDG Short Title -->
@@ -24,14 +24,15 @@
           {{ sdg.shortTitle }}
         </span>
       </div>
+
+      <!-- Reset Button -->
+      <button
+        @click="resetSelection"
+        class="mb-1 px-1 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600 transition-colors"
+      >
+        Reset
+      </button>
     </div>
-    <!-- Reset Button -->
-    <button
-      @click="resetSelection"
-      class="mb-2 px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600 transition-colors"
-    >
-      Reset SDG Selection
-    </button>
   </div>
 </template>
 

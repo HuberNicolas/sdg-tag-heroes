@@ -24,3 +24,10 @@ export interface SDGUserLabelSchemaFull extends SDGUserLabelSchemaBase {
   createdAt: string;
   updatedAt: string;
 }
+
+
+// Not derived from model
+export interface SDGUserLabelsCommentSummarySchema {
+  userLabelsIds: number[];
+  summary: string;
+}

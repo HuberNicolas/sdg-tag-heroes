@@ -10,10 +10,12 @@ from db.mariadb_connector import engine as mariadb_engine
 from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, Vote
 from models.publications.publication import Publication
 from models.sdg_label_summary import SDGLabelSummary
-from request_models.sdg_user_label import UserLabelRequest
+from request_models.sdg_user_label import UserLabelRequest, UserLabelIdsRequest
 from schemas import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
+from schemas.gpt_assistant_service import GPTResponseCommentSummarySchema, SDGUserLabelsCommentSummarySchema
 from schemas.sdg_user_label import SDGUserLabelStatisticsSchema, SDGLabelDistribution, UserVotingDetails
 from schemas.vote import VoteSchemaFull
+from services.gpt.gpt_assistant_service import GPTAssistantService
 from services.label_service import LabelService
 from settings.settings import SDGUserLabelsSettings
 from utils.logger import logger
@@ -47,6 +49,9 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
+
+# Use the GPT Assistant service for user-label-centred operations
+assistant = GPTAssistantService()
 
 @router.get(
     "/{label_id}",
@@ -106,6 +111,53 @@ async def get_all_sdg_user_labels(
             detail="An error occurred while fetching SDG user labels",
         )
 
+@router.post(
+    "/summary",
+    response_model=SDGUserLabelsCommentSummarySchema,
+    description="Summarize a collection of SDG user comments into a cohesive summary."
+)
+async def create_comment_summary(
+    request: UserLabelIdsRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> SDGUserLabelsCommentSummarySchema:
+    """
+    Given a list of SDG user label IDs, retrieve their comments and generate a summary.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+        user_labels_ids = request.user_labels_ids
+
+        # Fetch the user labels based on the provided label IDs
+        user_labels = db.query(SDGUserLabel).filter(SDGUserLabel.label_id.in_(user_labels_ids)).all()
+
+        if not user_labels:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No SDG user labels found for the given IDs."
+            )
+
+        # Prepare data for summarization (just the comment field)
+        user_labels_data = [
+            {"comment": label.comment or "No comment provided"} for label in user_labels
+        ]
+
+        # Call the assistant to generate the summary and keywords
+        summary_response = assistant.summarize_comments(user_labels=user_labels_data)
+
+        return SDGUserLabelsCommentSummarySchema(
+            user_labels_ids = user_labels_ids,
+            summary=summary_response.summary,
+        )
+
+    except HTTPException as he:
+        raise he  # Re-raise HTTPException to return specific error responses
+    except Exception as e:
+        logging.error(f"Error creating summary for user labels: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while generating the comment summary.",
+        )
 
 @router.get(
     "/publications/{publication_id}/",
@@ -245,7 +297,7 @@ async def get_votes_for_sdg_user_label(
         )
 
 @router.get(
-    "/label_decisions/{decision_id}/",
+    "/label-decisions/{decision_id}/",
     response_model=List[SDGUserLabelSchemaBase],
     description="Retrieve all SDGUserLabel entries associated with a specific SDGLabelDecision"
 )
@@ -287,7 +339,7 @@ async def get_sdg_user_labels(
         )
 
 @router.get(
-    "/label_decisions/{decision_id}/{label_id}",
+    "/label-decisions/{decision_id}/{label_id}",
     response_model=SDGUserLabelSchemaFull,
     description="Retrieve a specific SDGUserLabel entry associated with a specific SDGLabelDecision"
 )
@@ -368,7 +420,7 @@ async def create_sdg_user_label(
         )
 
 @router.get(
-    "/label_decisions/{decision_id}/statistics/",
+    "/label-decisions/{decision_id}/statistics/",
     response_model=SDGUserLabelStatisticsSchema,
     description="Retrieve statistics for SDGUserLabels, including label distribution, user voting details, and full entities.",
 )

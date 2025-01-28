@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 import type { AnnotationSchemaBase, AnnotationSchemaFull } from "~/types/annotation";
 import type { SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull } from "~/types/sdgLabelDecision";
-import type { SDGUserLabelSchemaBase, SDGUserLabelSchemaFull } from "~/types/sdgUserLabel";
+import type { SDGUserLabelSchemaBase, SDGUserLabelSchemaFull, SDGUserLabelsCommentSummarySchema } from "~/types/sdgUserLabel";
 import type { VoteSchemaBase, VoteSchemaFull } from "~/types/vote";
 
 import useAnnotations from "~/composables/useAnnotations";
@@ -10,19 +10,39 @@ import useSDGLabelDecisions from "~/composables/useSDGLabelDecisions";
 import useUserLabels from "~/composables/useUserLabels";
 import useVotes from "~/composables/useVotes";
 
-export const useSDGUserDecisionsStore = defineStore("userDecisions", {
+export const useLabelDecisionsStore = defineStore("labelDecisions", {
   state: () => ({
-    sdgLabelDecision: null as SDGLabelDecisionSchemaFull | null,
+    sdgLabelDecisions: null as SDGLabelDecisionSchemaFull[] | null,
+
+    selectedSDGLabelDecision: null as SDGLabelDecisionSchemaFull | null,
     userLabels: [] as SDGUserLabelSchemaFull[],
     annotations: [] as AnnotationSchemaFull[],
     votes: [] as VoteSchemaFull[],
+    commentSummary: null as SDGUserLabelsCommentSummarySchema | null,
 
-    selectedUserLabel: null as SDGUserLabelSchemaFull | null,
     isLoading: false,
     error: null as string | null,
   }),
   actions: {
     // Fetch SDG Label Decision by Publication ID
+    async fetchSDGLabelDecisionsByPublicationId(publicationId: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGLabelDecisionsByPublicationId } = useSDGLabelDecisions();
+        const decisions = await getSDGLabelDecisionsByPublicationId(publicationId);
+        this.sdgLabelDecisions = decisions || null;
+      } catch (error) {
+        this.error = `Failed to fetch SDG label decision: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // TODO: fix, as we currently return all
+    // Fetch single SDG Label Decision by Publication ID
     async fetchSDGLabelDecisionByPublicationId(publicationId: number) {
       this.isLoading = true;
       this.error = null;
@@ -30,7 +50,7 @@ export const useSDGUserDecisionsStore = defineStore("userDecisions", {
       try {
         const { getSDGLabelDecisionsByPublicationId } = useSDGLabelDecisions();
         const decisions = await getSDGLabelDecisionsByPublicationId(publicationId);
-        this.sdgLabelDecision = decisions[0] || null; // Assuming only one decision per publication
+        this.selectedSDGLabelDecision = decisions[0] || null;
       } catch (error) {
         this.error = `Failed to fetch SDG label decision: ${error}`;
         throw error;
@@ -81,6 +101,23 @@ export const useSDGUserDecisionsStore = defineStore("userDecisions", {
         this.votes = await getVotes(); // Filter votes by annotationId if needed
       } catch (error) {
         this.error = `Failed to fetch votes: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // Fetch Comment Summary by User Label IDs
+    async fetchCommentSummary(userLabelIds: number[]) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { createCommentSummary } = useSDGLabelDecisions();
+        const summary = await createCommentSummary(userLabelIds);
+        this.commentSummary = summary || null;
+      } catch (error) {
+        this.error = `Failed to fetch comment summary: ${error}`;
         throw error;
       } finally {
         this.isLoading = false;

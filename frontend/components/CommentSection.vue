@@ -85,18 +85,18 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useSDGUserDecisionsStore } from "~/stores/sdgLabelDecisions";
+import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
 import { useSDGsStore } from "~/stores/sdgs";
 import { generateAvatar } from "~/utils/avatar";
 
-const userDecisionsStore = useSDGUserDecisionsStore();
+const labelDecisionsStore = useLabelDecisionsStore();
 const usersStore = useUsersStore();
 const sdgsStore = useSDGsStore();
 
-const userLabels = computed(() => userDecisionsStore.userLabels);
-const isLoading = computed(() => userDecisionsStore.isLoading);
-const error = computed(() => userDecisionsStore.error);
+const userLabels = computed(() => useLabelDecisionsStore.userLabels);
+const isLoading = computed(() => useLabelDecisionsStore.isLoading);
+const error = computed(() => useLabelDecisionsStore.error);
 
 // Track expanded labels
 const expandedLabels = ref<number[]>([]);
@@ -104,7 +104,8 @@ const expandedLabels = ref<number[]>([]);
 // Fetch user labels for a publication on component mount
 const publicationId = 88466//30310// 88466;
 onMounted(async () => {
-  await userDecisionsStore.fetchUserLabelsByPublicationId(publicationId);
+  await labelDecisionsStore.fetchUserLabelsByPublicationId(publicationId);
+  await labelDecisionsStore.fetchSDGLabelDecisionByPublicationId(publicationId);
   await usersStore.fetchUsers(); // Fetch users for avatars
   await sdgsStore.fetchSDGs(); // Fetch SDGs for icons
 });

@@ -2,6 +2,7 @@
   <div>
     <div id="glyph-container"></div>
     <div id="target-box" class="decision-box"></div>
+    <UButton>Submit Label</UButton>
   </div>
 </template>
 

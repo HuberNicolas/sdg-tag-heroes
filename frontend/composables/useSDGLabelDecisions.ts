@@ -10,7 +10,7 @@ export default function useSDGLabelDecisions() {
   async function getSDGLabelDecisionsByPublicationId(publicationId: number): Promise<SDGLabelDecisionSchemaFull[]> {
     try {
       const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
-        `${config.public.apiUrl}/label_decisions/publications/${publicationId}`,
+        `${config.public.apiUrl}/label-decisions/publications/${publicationId}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken.value}`,
@@ -23,7 +23,28 @@ export default function useSDGLabelDecisions() {
     }
   }
 
+  async function createCommentSummary(userLabelIds: number[]): Promise<SDGUserLabelsCommentSummarySchema> {
+    try {
+      const response = await $fetch<SDGUserLabelsCommentSummarySchema>(
+        `${config.public.apiUrl}/user-labels/summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+          body: {
+            user_labels_ids: userLabelIds,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch comment summary: ${error}`);
+    }
+  }
+
   return {
     getSDGLabelDecisionsByPublicationId,
+    createCommentSummary,
   };
 }
