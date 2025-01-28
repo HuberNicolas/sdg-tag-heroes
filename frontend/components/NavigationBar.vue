@@ -29,7 +29,6 @@
         >
           <NuxtLink :to="{ name: 'worlds-id', params: { id: link.to } }">
             <!-- Dynamic SDG Icon -->
-
             <!-- Title -->
             <div class="w-8 h-8 flex items-center justify-center">
               <img
@@ -134,11 +133,10 @@ const updateLinks = (coins: number, xpData: any) => {
     .map((sdgData) => ({
       // title: `${sdgData.sdg.replace('sdg', '')}`,
       // label: `${sdgData.sdg.replace('sdg', 'SDG ')}: ${sdgData.xp.toFixed(0)}`,
-      label: `${sdgData.xp.toFixed(0)}`,
+      label: `${sdgData.xp.toFixed(0)} XP`,
       icon: sdgData.icon, // Use the SDG icon from the store
       to: sdgData.to,
     }));
-  console.log(top3SDGs)
 
   // Populate links
   links.value = [

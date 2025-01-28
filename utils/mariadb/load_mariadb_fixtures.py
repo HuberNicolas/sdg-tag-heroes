@@ -497,6 +497,7 @@ def create_sdg_label_decisions_for_scenarios(
         # Extract the SDG number from the true_sdg (e.g., "SDG12" -> 12)
         true_sdg_number = int(true_sdg[3:])  # Extract the number after "SDG"
 
+        # Step 1: Create SDGLabelDecision
         # Create a decision based on the scenario and label distribution
         decision = SDGLabelDecision(
             history_id=sdg_label_summary.history_id,
@@ -511,27 +512,87 @@ def create_sdg_label_decisions_for_scenarios(
             updated_at=faker.date_time_this_year(),
         )
 
-        # Assign the labels to the decision
+        session.add(decision)
+        session.commit()  # Commit the decision
+        logging.info(f"Created SDGLabelDecision {decision} for scenario {scenario}.")
+
+        # Step 2: Create SDGUserLabels
+        user_labels = []
         for label in labels:
-            # Extract the SDG number from the label (e.g., "SDG12" -> 12)
-            sdg_number = int(label[3:])  # Extract the number after "SDG"
-            decision.user_labels.append(SDGUserLabel(
-                user_id=choice(users).user_id,  # Fix: Use the passed `users` list
-                proposed_label=sdg_number,  # Use the extracted SDG number
-                voted_label=sdg_number,  # Use the extracted SDG number
+            sdg_number = int(label[3:])
+            user_label = SDGUserLabel(
+                user_id=choice(users).user_id,
+                proposed_label=sdg_number,
+                voted_label=sdg_number,
                 abstract_section=faker.sentence(),
                 comment=faker.sentence(),
                 labeled_at=faker.date_time_this_year(),
                 created_at=faker.date_time_this_year(),
                 updated_at=faker.date_time_this_year(),
-            ))
+            )
+            decision.user_labels.append(user_label)
+            session.add(user_label)
+            user_labels.append(user_label)
+        session.commit()  # Commit the labels
+        logging.info(f"Created {len(user_labels)} SDGUserLabels for decision {decision.decision_id}.")
 
-        session.add(decision)
-        logging.info(f"Created {decision} for scenario {scenario} with labels: {labels}.")
-        decisions.append(decision)
+        # Step 3: Create Annotations
+        annotations = []
+        for user_label in user_labels:
+            for _ in range(randint(1, 3)):  # 1-3 annotations per label
+                annotation = Annotation(
+                    user_id=user_label.user_id,
+                    sdg_user_label_id=user_label.label_id,  # Link to SDGUserLabel
+                    decision_id=None,  # Not linked directly to a decision
+                    labeler_score=round(uniform(1.0, 100.0), 2),
+                    comment=faker.paragraph(),
+                    created_at=faker.date_time_this_year(),
+                    updated_at=faker.date_time_this_year(),
+                )
+                session.add(annotation)
+                annotations.append(annotation)
+        for _ in range(randint(1, 3)):  # Add annotations linked to the decision
+            annotation = Annotation(
+                user_id=choice(users).user_id,
+                sdg_user_label_id=None,  # Not linked to SDGUserLabel
+                decision_id=decision.decision_id,  # Link to decision
+                labeler_score=round(uniform(1.0, 100.0), 2),
+                comment=faker.paragraph(),
+                created_at=faker.date_time_this_year(),
+                updated_at=faker.date_time_this_year(),
+            )
+            session.add(annotation)
+            annotations.append(annotation)
+        session.commit()  # Commit the annotations
+        logging.info(f"Created {len(annotations)} Annotations for decision {decision.decision_id}.")
 
-    session.commit()
-    logging.info(f"Created {len(decisions)} SDGLabelDecisions for scenarios.")
+        # Step 4: Create Votes
+        for user_label in user_labels:
+            for _ in range(randint(1, 5)):  # 1-5 votes per label
+                vote = Vote(
+                    user_id=choice(users).user_id,
+                    sdg_user_label_id=user_label.label_id,  # Link to SDGUserLabel
+                    annotation_id=None,  # Not linked to Annotation
+                    vote_type=choice(list(VoteType)),
+                    score=round(uniform(0, 5), 2),
+                    created_at=faker.date_time_this_year(),
+                )
+                session.add(vote)
+        for annotation in annotations:
+            for _ in range(randint(1, 5)):  # 1-5 votes per annotation
+                vote = Vote(
+                    user_id=choice(users).user_id,
+                    sdg_user_label_id=None,  # Not linked to SDGUserLabel
+                    annotation_id=annotation.annotation_id,  # Link to Annotation
+                    vote_type=choice(list(VoteType)),
+                    score=round(uniform(0, 5), 2),
+                    created_at=faker.date_time_this_year(),
+                )
+                session.add(vote)
+        session.commit()  # Commit the votes
+        logging.info(f"Created Votes for user_labels and annotations for decision {decision.decision_id}.")
+
+    logging.info(f"Completed creating SDGLabelDecisions for scenarios.")
     return decisions
 
 def populate_db(

@@ -18,9 +18,9 @@ export const baseSdgTitles = [
 
 export const baseSdgShortTitles = [
   'Poverty', 'Hunger', 'Health',
-  'Education', 'Gender', 'Water', 'Energy',
-  'Work', 'Industry', 'Inequality', 'City',
-  'Consumption', 'Climate', 'Ocean',
+  'Study', 'Gender', 'Water', 'Energy', // Education -> Study
+  'Work', 'Industry', 'Equity', 'City', // Inequality -> Equity
+  'Use', 'Climate', 'Ocean', // Consumption -> Use
   'Land', 'Justice', 'Partner',
 ];
 
