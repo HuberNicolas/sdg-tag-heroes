@@ -3,17 +3,6 @@
     <!-- SDG Selection -->
     <SDGSelector></SDGSelector>
 
-    <!-- SDG Selection TODO: maybe remove -->
-    <div class="mb-6">
-      <label class="block text-sm font-medium text-gray-700 mb-2">Select SDG</label>
-      <select
-        v-model="selectedSDG"
-        class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-      >
-        <option v-for="sdg in sdgs" :key="sdg" :value="sdg">SDG {{ sdg }}</option>
-      </select>
-    </div>
-
     <!-- Toggle for SHAP/Plain Text -->
     <div class="mb-6">
       <label class="inline-flex items-center">
@@ -32,7 +21,10 @@
     <!-- Abstract Display -->
     <div class="bg-white p-6 rounded-lg shadow-md">
       <h2 class="text-xl font-semibold mb-4">Abstract</h2>
-      <div v-if="showShap && explanation" class="text-justify" v-html="shapHighlightedAbstract"></div>
+      <div v-if="showShap && explanation" class="text-justify"
+           v-html="shapHighlightedAbstract"
+           @mouseup="handleAbstractSelection">
+      </div>
       <div v-else class="text-justify text-gray-700">
         {{ publication?.description || "No abstract available." }}
       </div>
@@ -152,5 +144,13 @@ const rgbToHex = (rgb: string) => {
     const hex = component.toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   }).join('');
+};
+
+const handleAbstractSelection = () => {
+  const selection = window.getSelection();
+  if (selection && selection.toString().trim() !== "") {
+    const selectedText = selection.toString().trim();
+    explanationStore.setMarkedText(selectedText); // Update the store
+  }
 };
 </script>

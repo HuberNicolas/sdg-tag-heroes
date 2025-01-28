@@ -18,7 +18,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const fetchData = async () => {
     const reductionShorthand = 'TM-UMAP-10-0.0-2';
     const partNumber = level;
-    const totalParts = 10000;
+    const totalParts = 1000;
 
     await Promise.all([
       dimensionalityReductionsStore.fetchDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
@@ -90,7 +90,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
 
     const layout = {
       title: `Scatter Plot for Level ${level}`,
-      type: "scattergl",
+      type: 'scattergl',
       width: width,
       height: height,
       margin: { t: 40, r: 20, b: 40, l: 40 },

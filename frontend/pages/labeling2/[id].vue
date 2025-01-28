@@ -5,7 +5,10 @@
         SHAP from Publication {{publicationId}}
         <ShapAbstract></ShapAbstract>
       </div>
-      <div class="row-span-6 col-span-1 bg-blue-400">Annotations</div>
+      <div class="row-span-6 col-span-1 bg-blue-400">
+        Annotations
+        <ShapSelector></ShapSelector>
+      </div>
       <div class="row-span-2 col-span-1 bg-yellow-400">Comment Summary</div>
       <div class="row-span-4 col-span-1 bg-orange-400">
         <CommentSection></CommentSection>
@@ -20,6 +23,7 @@
 <script setup lang="ts">
 
 import CommentSection from "~/components/CommentSection.vue";
+import ShapSelector from "~/components/ShapSelector.vue";
 
 const route = useRoute()
 
