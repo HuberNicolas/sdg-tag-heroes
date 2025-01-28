@@ -1,12 +1,13 @@
 <template>
   <div class="flex flex-col h-screen">
-    <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
-      <div class="row-span-4 col-span-4 bg-red-400">
+    <div class="grid grid-rows-8 grid-cols-6 grid-flow-col h-full">
+      <div class="row-span-6 col-span-4 bg-red-400">
         <ScatterPlot :width="scatterPlotWidth" :height="scatterPlotHeight"/>
       </div>
       <div class="row-span-2 col-span-4 bg-blue-400">
         Options Level {{selectedLevel}}
-        <div class="grid grid-cols-2 h-full"> <!-- Add h-full to ensure the grid takes full height -->
+        <!-- Add h-full to ensure the grid takes full height -->
+        <div class="grid grid-cols-3 h-full">
           <div class="col-span-1 bg-purple-400">
             <BarPlot
               :width="barPlotWidth"
@@ -19,6 +20,11 @@
                 :width="rainPlotWidth"
                 :height="rainPlotHeight"
               />
+            </div>
+          </div>
+          <div class="col-span-1 bg-purple-400">
+            <div class="flex justify-center">
+              <div>Queries</div>
             </div>
           </div>
         </div>
@@ -36,7 +42,7 @@
         </div>
 
       </div>
-      <div class="row-span-5 col-span-2 bg-yellow-400">
+      <div class="row-span-7 col-span-2 bg-yellow-400">
         <PublicationsTable></PublicationsTable>
       </div>
     </div>
@@ -71,8 +77,8 @@ onMounted(() => {
 
   const optionContainer = document.querySelector('.row-span-2.col-span-4');
   if (optionContainer) {
-    barPlotWidth.value = optionContainer.clientWidth / 3;
-    barPlotHeight.value = optionContainer.clientHeight / 2;
+    barPlotWidth.value = optionContainer.clientWidth / 6;
+    barPlotHeight.value = optionContainer.clientHeight / 6;
 
     rainPlotWidth.value = optionContainer.clientWidth / 3; // 1/3 of container width
     rainPlotHeight.value = optionContainer.clientHeight / 3; // 1/3 of container height

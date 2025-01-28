@@ -1,84 +1,133 @@
-import * as d3 from 'd3';
-import * as fc from 'd3fc';
+import Plotly from 'plotly.js-dist';
+import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
+import { usePublicationsStore } from "~/stores/publications";
+import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
+import { useGameStore } from "~/stores/game";
+import { useSDGsStore} from "~/stores/sdgs";
 
-// https://d3fc.io/examples/brush-zoom/
+export function createScatterPlot(container, width, height, mode = 'top1') {
+  const dimensionalityReductionsStore = useDimensionalityReductionsStore();
+  const publicationsStore = usePublicationsStore();
+  const sdgPredictionsStore = useSDGPredictionsStore();
+  const gameStore = useGameStore();
+  const sdgsStore = useSDGsStore();
 
-export function createScatterPlot() {
-  const random = d3.randomNormal(0, 0.2);
-  const sqrt3 = Math.sqrt(3);
-  const points0 = d3.range(30).map(() => [random() + sqrt3, random() + 1, 0]);
-  const points1 = d3.range(30).map(() => [random() - sqrt3, random() + 1, 1]);
-  const points2 = d3.range(30).map(() => [random(), random() - 1, 2]);
-  const data = d3.merge([points0, points1, points2]).map(d => ({
-    ...d,
-      score: Math.floor(Math.random() * 100)
-  }));
+  const level = gameStore.getLevel;
 
-  const yExtent = fc
-    .extentLinear()
-    .accessors([d => d[1]])
-    .pad([0.1, 0.1]);
+  // Fetch partitioned data from all stores
+  const fetchData = async () => {
+    const reductionShorthand = 'TM-UMAP-10-0.0-2';
+    const partNumber = level;
+    const totalParts = 10000;
 
-  const xExtent = fc
-    .extentLinear()
-    .accessors([d => d[0]])
-    .pad([0.1, 0.1]);
+    await Promise.all([
+      dimensionalityReductionsStore.fetchDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
+      publicationsStore.fetchPublicationsForDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
+      sdgPredictionsStore.fetchSDGPredictionsForDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),
+      sdgsStore.fetchSDGs()
+    ]);
+  };
 
-  const x = d3.scaleLinear().domain(xExtent(data));
-  const y = d3.scaleLinear().domain(yExtent(data));
-  const color = d3.scaleOrdinal(d3.schemeCategory10);
+  fetchData().then(() => {
+    const dimensionalityReductionsData = dimensionalityReductionsStore.partitionedReductions;
+    const publicationsData = publicationsStore.partitionedPublications;
+    const sdgPredictionsData = sdgPredictionsStore.partitionedSDGPredictions;
 
-  const pointSeries = fc
-    .seriesSvgPoint()
-    .crossValue(d => d[0])
-    .mainValue(d => d[1])
-    .size(15)
-    .decorate(selection => {
-      selection.enter()
-        .style('fill', d => color(d[2]))
+    const combinedData = dimensionalityReductionsData.map((reduction, index) => ({
+      dimensionalityReduction: reduction,
+      publication: publicationsData[index],
+      sdgPrediction: sdgPredictionsData[index]
+    }));
+    // console.log(combinedData); // DEBUG
+
+
+    // Update selected data in the stores, initially set all
+    dimensionalityReductionsStore.selectedPartitionedReductions = dimensionalityReductionsStore.partitionedReductions;
+    publicationsStore.selectedPartitionedPublications = publicationsStore.partitionedPublications;
+    sdgPredictionsStore.selectedPartitionedSDGPredictions = sdgPredictionsStore.partitionedSDGPredictions;
+
+
+
+    const scatterData = {
+      x: combinedData.map(d => d.dimensionalityReduction.xCoord),
+      y: combinedData.map(d => d.dimensionalityReduction.yCoord),
+      mode: 'markers',
+      type: 'scatter',
+      marker: {
+        size: combinedData.map(d => (mode === 'entropy' ? d.entropy * 5 : 10)),
+        color: combinedData.map(d => {
+          if (mode === 'normal') return 'steelblue';
+
+          if (mode === 'top1') {
+            if (d.sdgPrediction) {
+              // Find the max SDG prediction dynamically
+              // TODO: Refactor, very ugly, but works :)
+              const maxSDG = Object.entries(d.sdgPrediction)
+                .filter(([key]) => key.startsWith('sdg')) // Only include SDG keys
+                .reduce((max, [key, value]) => {
+                  return value > max.value ? { key, value } : max;
+                }, { key: null, value: -Infinity });
+
+              if (maxSDG.key) {
+                // Extract the SDG number from the key and pass it to getColorBySDG
+                const sdgId = parseInt(maxSDG.key.replace('sdg', ''), 10);
+                return sdgsStore.getColorBySDG(sdgId);
+              }
+            }
+            return 'steelblue';
+          }
+          return 'steelblue';
+        }),
+        opacity: 0.7
+      },
+      text: combinedData.map(d =>
+        ` Title: ${d.publication.title} <br>
+          X: ${d.dimensionalityReduction.xCoord.toFixed(2)} <br>
+          Y: ${d.dimensionalityReduction.yCoord.toFixed(2)}
+`),
+      hoverinfo: 'text'
+    };
+
+    const layout = {
+      title: `Scatter Plot for Level ${level}`,
+      type: "scattergl",
+      width: width,
+      height: height,
+      margin: { t: 40, r: 20, b: 40, l: 40 },
+      xaxis: {
+        visible: false
+      },
+      yaxis: {
+        visible: false
+      },
+      dragmode: 'lasso',
+      showlegend: false,
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)'
+    };
+
+    Plotly.newPlot(container, [scatterData], layout);
+
+    container.on('plotly_selected', function (eventData) {
+      if (eventData && eventData.points) {
+        const selectedIndices = eventData.points.map(pt => pt.pointNumber);
+
+        // Update selected data in the stores
+        const selectedSDGPredictions = selectedIndices.map(index => combinedData[index].sdgPrediction);
+        const selectedPublications = selectedIndices.map(index => combinedData[index].publication);
+        const selectedReductions = selectedIndices.map(index => combinedData[index].dimensionalityReduction);
+
+        sdgPredictionsStore.selectedPartitionedSDGPredictions = selectedSDGPredictions;
+        publicationsStore.selectedPartitionedPublications = selectedPublications;
+        dimensionalityReductionsStore.selectedPartitionedReductions = selectedReductions;
+      }
     });
 
-  let idleTimeout;
-  const idleDelay = 350;
-
-  const brush = fc.brush().on('end', e => {
-    if (!e.selection) {
-      if (!idleTimeout) {
-        // detect double clicks
-        idleTimeout = setTimeout(() => (idleTimeout = null), idleDelay);
-      } else {
-        x.domain(xExtent(data));
-        y.domain(yExtent(data));
-        render();
-      }
-    } else {
-      x.domain(e.xDomain);
-      y.domain(e.yDomain);
-      render();
-    }
+    container.on('plotly_doubleclick', function () {
+      Plotly.relayout(container, {
+        'xaxis.range': [0, 100],
+        'yaxis.range': [0, 100]
+      });
+    });
   });
-
-  const multi = fc
-    .seriesSvgMulti()
-    .series([pointSeries, brush])
-    .mapping((data, index, series) => {
-      switch (series[index]) {
-        case pointSeries:
-          return data;
-        case brush:
-          // the brush is transient, so always has null data
-          return null;
-      }
-    });
-
-  const scatterPlot = fc.chartCartesian(x, y).svgPlotArea(multi);
-
-  function render() {
-    d3.select('#scatter-plot')
-      .datum(data)
-      .transition()
-      .call(scatterPlot);
-  }
-
-  render();
 }

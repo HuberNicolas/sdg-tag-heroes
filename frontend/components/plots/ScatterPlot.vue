@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { createScatterPlot } from '@/composables/plots/scatterPlot2';
+import { createScatterPlot } from '@/composables/plots/scatterPlot';
 
 const props = defineProps({
   width: {

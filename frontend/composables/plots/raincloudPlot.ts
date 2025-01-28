@@ -1,43 +1,40 @@
 import * as d3 from 'd3';
+import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
+import { calculateEntropy } from "~/utils/entropy";
 
-// Function to create a raincloud plot in a specified container
-export function createRaincloudPlot(containerId: string, data: number[], options: { width: number; height: number }) {
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
-  const total_width = options.width - margin.left - margin.right;
-  const height = options.height - margin.top - margin.bottom;
+export function createRaincloudPlot(container, width, height) {
+  const sdgPredictionsStore = useSDGPredictionsStore();
 
-  const width = total_width - margin.left - margin.right
-  const segment = height * 0.25 // y-position density plot
-  const size = segment * 0.8 // for density plot
+  // Watch for changes in the selected SDG predictions
+  sdgPredictionsStore.$subscribe((mutation, state) => {
+    if (state.selectedPartitionedSDGPredictions.length > 0) {
+      const entropyData = state.selectedPartitionedSDGPredictions.map(prediction => calculateEntropy(prediction));
+      renderRaincloudPlot(container, entropyData, 400, 200);
+    }
+  });
 
-  console.log(`Rendering raincloud plot for container: #${containerId}`);
+  // Initial render (optional)
+  //if (sdgPredictionsStore.selectedPartitionedSDGPredictions.length > 0) {
+    //const entropyData = sdgPredictionsStore.selectedPartitionedSDGPredictions.map(prediction => calculateEntropy(prediction));
+    //renderRaincloudPlot(container, entropyData, width, height );
+  //}
+}
 
-  // Verify container existence
-  const container = d3.select(`#${containerId}`);
-  if (container.empty()) {
-    console.error(`Container #${containerId} does not exist.`);
-    return;
-  }
+function renderRaincloudPlot(container, data, width, height) {
+  const margin = { top: 0, right: 0, bottom: 0, left: 0 };
+  const totalWidth = width - margin.left - margin.right;
+  const totalHeight = height - margin.top - margin.bottom;
 
-  // Remove any previous SVG in the container
-  container.selectAll('*').remove();
-
-  // Append the SVG object to the container
-  const svg = container
-    .append('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-    .append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
+  const segment = totalHeight * 0.25; // y-position density plot
+  const size = segment * 0.8; // for density plot
 
   // Verify and sort the data
   if (!data || data.length === 0) {
-    console.error(`No data provided for container: #${containerId}`);
+    console.error('No data provided for raincloud plot.');
     return;
   }
 
   const sortedData = data.sort(d3.ascending);
-  console.log('Data passed to the plot:', sortedData);
 
   const q1 = d3.quantile(sortedData, 0.25) ?? 0;
   const median = d3.quantile(sortedData, 0.5) ?? 0;
@@ -47,7 +44,16 @@ export function createRaincloudPlot(containerId: string, data: number[], options
   const max = Math.min(d3.max(sortedData) ?? 0, q3 + 1.5 * iqr);
 
   // Create scales
-  const x = d3.scaleLinear().domain(d3.extent(sortedData) as [number, number]).range([0, width]);
+  const x = d3.scaleLinear().domain(d3.extent(sortedData) as [number, number]).range([0, totalWidth]);
+
+  // Clear container and append SVG
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container)
+    .append('svg')
+    .attr('width', totalWidth + margin.left + margin.right)
+    .attr('height', totalHeight + margin.top + margin.bottom)
+    .append('g')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
 
   // Raincloud structure: combine curve, dots, and boxplot
   const raincloud = (selection, data) => {
@@ -59,40 +65,39 @@ export function createRaincloudPlot(containerId: string, data: number[], options
 
   // Curve (Density Histogram)
   const curve = (selection, data) => {
-    const histogram = d3.histogram()
-      .thresholds(20)
-      (data)
-      .map(bin => bin.length)
-    const x = d3.scaleLinear()
-      .domain([0, histogram.length])
-      .range([0, width])
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(histogram)])
-      .range([size, 0])
-    const area = d3.area()
-      .y0(y)
-      .y1(size)
-      .x((d, i) => x(i))
-      .curve(d3.curveBasis)
-    selection.append('g')
-      .classed('curve', true)
-      .datum(histogram)
+    const histogram = d3
+      .bin()
+      .thresholds(20)(data)
+      .map((bin) => bin.length);
+
+    const xScale = d3.scaleLinear().domain([0, histogram.length]).range([0, totalWidth]);
+    const yScale = d3.scaleLinear().domain([0, d3.max(histogram)]).range([size, 0]);
+
+    const area = d3
+      .area()
+      .x((_, i) => xScale(i))
+      .y0(yScale(0))
+      .y1((d) => yScale(d))
+      .curve(d3.curveBasis);
+
+    selection
       .append('path')
+      .datum(histogram)
       .attr('d', area)
-      .style('fill', 'steelblue')
-      .style('opacity', 0.6)
-  }
+      .style('fill', 'grey')
+      .style('opacity', 0.6);
+  };
 
   // Boxplot
   const boxplot = (selection, data) => {
-    const y = height * 0.5;
-    const boxHeight = height / 12;
+    const y = totalHeight * 0.5;
+    const boxHeight = Math.max(0, totalHeight / 12); // Ensure boxHeight is always positive
 
     selection
       .append('g')
       .classed('boxplot', true)
       .attr('transform', `translate(0, ${y})`)
-      .call(g => {
+      .call((g) => {
         // Min/Max lines (Whiskers)
         g.append('line')
           .attr('x1', x(min))
@@ -115,13 +120,29 @@ export function createRaincloudPlot(containerId: string, data: number[], options
           .attr('y2', 0)
           .attr('stroke', 'black');
 
+        // Add labels for whiskers
+        g.append('text')
+          .attr('x', x(min))
+          .attr('y', -boxHeight)
+          .text(`Min: ${min.toFixed(2)}`)
+          .attr('font-size', '10px')
+          .attr('text-anchor', 'middle');
+
+        g.append('text')
+          .attr('x', x(max))
+          .attr('y', -boxHeight)
+          .text(`Max: ${max.toFixed(2)}`)
+          .attr('font-size', '10px')
+          .attr('text-anchor', 'middle');
+
         // Box
+        const width = Math.max(0, x(q3) - x(q1));
         g.append('rect')
           .attr('x', x(q1))
           .attr('y', -boxHeight / 2)
-          .attr('width', x(q3) - x(q1))
+          .attr('width', width)
           .attr('height', boxHeight)
-          .attr('fill', 'steelblue')
+          .attr('fill', 'grey')
           .attr('opacity', 0.6);
 
         // Median line
@@ -131,12 +152,29 @@ export function createRaincloudPlot(containerId: string, data: number[], options
           .attr('y1', -boxHeight / 2)
           .attr('y2', boxHeight / 2)
           .attr('stroke', 'black');
+
+        // Add median label
+        g.append('text')
+          .attr('x', x(median))
+          .attr('y', boxHeight + 10)
+          .text(`Median: ${median.toFixed(2)}`)
+          .attr('font-size', '10px')
+          .attr('text-anchor', 'middle');
       });
   };
 
-  // Dots (Raw Data Points)
+// Dots (Updated with tooltips for data points)
   const dots = (selection, data) => {
     const jitterHeight = 40; // Controls vertical jitter
+    const tooltip = d3.select(container).append('div') // Create tooltip
+      .style('position', 'absolute')
+      .style('background', 'white')
+      .style('border', '1px solid black')
+      .style('padding', '5px')
+      .style('border-radius', '5px')
+      .style('opacity', 0)
+      .style('pointer-events', 'none');
+
     selection
       .append('g')
       .classed('dots', true)
@@ -144,15 +182,25 @@ export function createRaincloudPlot(containerId: string, data: number[], options
       .data(data)
       .enter()
       .append('circle')
-      .attr('r', 2)
-      .attr('cx', d => x(d)) // Keep x-axis alignment consistent with boxplot and density
-      .attr('cy', () => height * 0.75 + (Math.random() - 0.5) * jitterHeight) // Add random vertical jitter only
-      .style('fill', 'steelblue')
+      .attr('r', 5)
+      .attr('cx', (d) => x(d)) // Keep x-axis alignment consistent with boxplot and density
+      .attr('cy', () => totalHeight * 0.75 + (Math.random() - 0.5) * jitterHeight) // Add random vertical jitter only
+      .style('fill', 'grey')
       .style('opacity', 0.6)
-      .attr('stroke', 'none');
+      .attr('stroke', 'none')
+      .on('mouseover', function (event, d) { // Tooltip behavior
+        tooltip
+          .style('opacity', 1)
+          .html(`Value: ${d.toFixed(2)}`)
+          .style('left', `${event.pageX + 10}px`)
+          .style('top', `${event.pageY}px`);
+        d3.select(this).attr('stroke', 'black').attr('stroke-width', 1);
+      })
+      .on('mouseout', function () {
+        tooltip.style('opacity', 0);
+        d3.select(this).attr('stroke', 'none');
+      });
   };
-
-
 
 
   // Call the raincloud rendering function

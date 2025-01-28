@@ -60,7 +60,7 @@ function updateBarPlot(container, sdgDistribution, width, height, sdgsStore) {
   }];
 
   const layout = {
-    title: 'SDG Distribution for Selected Points',
+    // title: 'SDG Distribution for Selected Points', // Save some space
     barmode: 'group',
     width: width,
     height: height,

@@ -67,6 +67,7 @@ import IconSDG17XP from '~/assets/sdg_17_glyph.svg';
 
 
 export const sdgGlyphs = {
+  sdg_xp: IconSDGXP,
   sdg_1: IconSDG1XP,
   sdg_2: IconSDG2XP,
   sdg_3: IconSDG3XP,

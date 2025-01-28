@@ -7,7 +7,7 @@
         :key="sdg.id"
         @click="selectSDG(sdg.id)"
         :class="[
-          'cursor-pointer flex flex-col items-center justify-center border-2 rounded-lg p-2 w-24 h-24',
+          'cursor-pointer flex flex-col items-center justify-center border-2 rounded-lg p-1 w-18 h-18',
           selectedSDG === sdg.id ? 'border-black bg-gray-100' : 'border-gray-200 hover:border-gray-400',
         ]"
       >
@@ -16,7 +16,7 @@
           v-if="sdg.icon"
           :src="`data:image/svg+xml;base64,${sdg.icon}`"
           :alt="`SDG ${sdg.id} Icon`"
-          class="w-12 h-12 object-contain"
+          class="w-8 h-8 object-contain"
         />
 
         <!-- SDG Short Title -->

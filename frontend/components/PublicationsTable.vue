@@ -13,12 +13,12 @@
       </thead>
       <tbody>
       <tr v-for="(item, index) in tableData" :key="index" class="hover:bg-gray-50">
-        <td class="border border-gray-300 p-2">{{ item.title }}</td>
+        <td class="border border-gray-300 p-2 text-xs">{{ item.title }}</td>
         <td class="border border-gray-300 p-2 flex items-center justify-center">
-          <HexGlyph :values="item.values" :height="100" :width="80" />
+          <HexGlyph :values="item.values" :height="80" :width="60" />
         </td>
         <td class="border border-gray-300 p-2">
-          <BarPredictionPlot :values="item.values" :width="100" :height="80" />
+          <BarPredictionPlot :values="item.values" :width="80" :height="60" />
         </td>
         <td class="border border-gray-300 p-2">{{ item.xp }}</td>
         <td class="border border-gray-300 p-2">{{ item.coins }}</td>

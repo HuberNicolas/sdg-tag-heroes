@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { createRaincloudPlot } from '@/composables/plots/rainPlot';
+import { createRaincloudPlot } from '@/composables/plots/raincloudPlot';
 
 const props = defineProps({
   width: {
