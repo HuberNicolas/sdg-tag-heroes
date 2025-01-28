@@ -39,7 +39,7 @@ import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
 
 const route = useRoute()
 
-const publicationId = route.params.id
+const publicationId = route.params.publicationId
 
 </script>
 

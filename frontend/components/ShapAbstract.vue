@@ -42,7 +42,7 @@ const explanationStore = useExplanationsStore();
 const publicationsStore = usePublicationsStore();
 const sdgsStore = useSDGsStore();
 
-const publicationId = computed(() => Number(route.params.id));
+const publicationId = computed(() => Number(route.params.publicationId));
 const publication = computed(() => publicationsStore.publicationDetails);
 const explanation = computed(() => explanationStore.explanation);
 
