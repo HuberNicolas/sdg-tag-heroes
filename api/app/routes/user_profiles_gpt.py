@@ -7,7 +7,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from request_models.user_profiles_gpt import UserProfileInterestsRequest, UserProfileSkillsRequest
 from schemas.gpt_assistant_service import UserEnrichedInterestsDescriptionSchema, \
-    UserEnrichedSkillsDescriptionSchema
+    UserEnrichedSkillsDescriptionSchema, SDGPredictionSchema
 from services.gpt.gpt_assistant_service import GPTAssistantService
 from settings.settings import UserProfilesRouterSettings
 from utils.logger import logger
@@ -43,6 +43,67 @@ router = APIRouter(
 
 # Use GPT assistant service
 assistant_service = GPTAssistantService()
+
+@router.post(
+    "/skills/sdgs",
+    response_model=SDGPredictionSchema,
+    description="Propose the most suitable SDG based on the user's skills."
+)
+async def propose_sdg_based_on_skills(
+    request: UserProfileSkillsRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> SDGPredictionSchema:
+    """
+    Propose the most suitable SDG based on the user's skills.
+    """
+    user = verify_token(token, db)  # Ensure user is authenticated
+
+    try:
+        # Propose the SDG based on skills
+        proposed_sdg = assistant_service.propose_sdg_from_skills(request.skills)
+
+        return SDGPredictionSchema(
+            input=request.skills,
+            proposed_sdg_id=proposed_sdg.proposed_sdg_id,
+            reasoning=proposed_sdg.reasoning
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to propose SDG based on skills: {str(e)}"
+        )
+
+
+@router.post(
+    "/interests/sdgs",
+    response_model=SDGPredictionSchema,
+    description="Propose the most suitable SDG based on the user's interests."
+)
+async def propose_sdg_based_on_interests(
+    request: UserProfileInterestsRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+) -> SDGPredictionSchema:
+    """
+    Propose the most suitable SDG based on the user's interests.
+    """
+    user = verify_token(token, db)  # Ensure user is authenticated
+
+    try:
+        # Propose the SDG based on interests
+        proposed_sdg = assistant_service.propose_sdg_from_interests(request.interests)
+
+        return SDGPredictionSchema(
+            input=request.interests,
+            proposed_sdg_id=proposed_sdg.proposed_sdg_id,
+            reasoning=proposed_sdg.reasoning
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to propose SDG based on interests: {str(e)}"
+        )
 
 @router.post(
     "/skills",
@@ -84,7 +145,7 @@ async def generate_interests_query(
     request: UserProfileInterestsRequest,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
-) -> BaseModel:
+) -> UserEnrichedInterestsDescriptionSchema:
     """
     Generate a user query based on the user's interests or aspirations.
     """

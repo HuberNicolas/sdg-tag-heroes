@@ -37,8 +37,8 @@ const glyphStyles = computed(() => {
     height: `${props.height}px`,
     width: `${props.width}px`,
     position: 'absolute',
-    top: '35%',
-    left: '50%',
+    top: '25%',
+    left: '25%',
     transform: 'translate(-50%, -50%)',
   };
 });

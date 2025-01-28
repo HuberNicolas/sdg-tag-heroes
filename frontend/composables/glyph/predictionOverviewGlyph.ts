@@ -54,6 +54,7 @@ export default function createGlyph(values: number[]) {
       .style('z-index', '1000');
 
     let selectedHexagon: d3.Selection<SVGPolygonElement, unknown, null, undefined> | null = null;
+    const sdgsStore = useSDGsStore();
 
     coords.forEach(([x, y], i) => {
       const color = d3.color(sdgColors[i % sdgColors.length]);
@@ -133,6 +134,7 @@ export default function createGlyph(values: number[]) {
             // Deselect if already selected
             selectedHexagon.attr('stroke', 'black').attr('stroke-width', 1);
             selectedHexagon = null;
+            sdgsStore.setSelectedSDG(null);
           } else {
             // Deselect previous selection
             if (selectedHexagon) {
@@ -140,7 +142,8 @@ export default function createGlyph(values: number[]) {
             }
             // Select the new hexagon
             selectedHexagon = hexagon;
-            hexagon.attr('stroke', 'blue').attr('stroke-width', 3);
+            hexagon.attr('stroke', 'black').attr('stroke-width', 3);
+            sdgsStore.setSelectedSDG(i+1);
           }
         });
     });

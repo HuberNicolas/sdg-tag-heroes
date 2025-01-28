@@ -107,6 +107,15 @@ class UserEnrichedInterestsDescriptionSchema(BaseModel):
     class Config:
         from_attributes = True
 
+class SDGPredictionSchema(BaseModel):
+    input: str
+    proposed_sdg_id: int
+    reasoning: str
+
+    class Config:
+        from_attributes = True
+
+
 class AnnotationEvaluationSchema(BaseModel):
     passage: str
     annotation: str

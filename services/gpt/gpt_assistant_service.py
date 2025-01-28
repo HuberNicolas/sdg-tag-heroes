@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError
 from enums import SDGType
 from schemas.gpt_assistant_service import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
     GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema, \
-    GPTResponseAnnotationScoreSchema, GPTResponseCommentSummarySchema
+    GPTResponseAnnotationScoreSchema, GPTResponseCommentSummarySchema, SDGPredictionSchema
 from settings.settings import GPTAssistantServiceSettings
 from utils.env_loader import load_env, get_env_variable
 from .strategies.fact_generator_strategy import FactStrategy
@@ -17,7 +17,8 @@ from .strategies.sdg_explainer_strategy import GoalStrategy, TargetStrategy
 from .strategies.summarize_sdg_user_label_comments import SummarizeSDGUserLabelCommentsStrategy
 from .strategies.summarizer_strategy import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
 from .strategies.user_annotation_evaluator_strategy import AnnotationEvaluatorStrategy
-from .strategies.user_query_generator_strategy import SkillsQueryStrategy, InterestsQueryStrategy
+from .strategies.user_query_generator_strategy import SkillsQueryStrategy, InterestsQueryStrategy, SDGSkillsStrategy, \
+    SDGInterestsStrategy
 
 # Load the API environment variables
 load_env('api.env')
@@ -120,6 +121,18 @@ class GPTAssistantService:
         strategy = InterestsQueryStrategy()
         prompt_data = strategy.generate_prompt(interests)
         return self._call_model(strategy.context, prompt_data, GPTResponseSkillsQuerySchema)
+
+    def propose_sdg_from_skills(self, skills: str) -> SDGPredictionSchema:
+        """Propose the most suitable SDG based on the user's skills."""
+        strategy = SDGSkillsStrategy()
+        prompt_data = strategy.generate_prompt(skills)
+        return self._call_model(strategy.context, prompt_data, SDGPredictionSchema)
+
+    def propose_sdg_from_interests(self, interests: str) -> SDGPredictionSchema:
+        """Propose the most suitable SDG based on the user's interests."""
+        strategy = SDGInterestsStrategy()
+        prompt_data = strategy.generate_prompt(interests)
+        return self._call_model(strategy.context, prompt_data, SDGPredictionSchema)
 
 
     def evaluate_annotation(self, passage: str, annotation: str, sdg_label: SDGType) -> GPTResponseAnnotationScoreSchema:

@@ -39,3 +39,43 @@ class InterestsQueryStrategy(PromptStrategy):
             ),
             "interests": interests,
         }
+
+class SDGSkillsStrategy(PromptStrategy):
+    """Strategy for proposing an SDG based on skills."""
+
+    def __init__(self):
+        self.context = (
+            "You are a helpful assistant that proposes the most relevant Sustainable Development Goal (SDG) "
+            "based on the user's skills. Be precise and provide clear reasoning."
+        )
+
+    def generate_prompt(self, skills: str) -> dict:
+        return {
+            "instruction": (
+                "Analyze the following skills and propose the most relevant Sustainable Development Goal (SDG). "
+                "Provide the id (1-17) of a single SDG and a concise reasoning for your choice. "
+                "Your answer is straightforward, easy to understand and has max 2 sentences. "
+                "Your answer makes the non-sustainable expert curious and want to explore. "
+            ),
+            "skills": skills,
+        }
+
+class SDGInterestsStrategy(PromptStrategy):
+    """Strategy for proposing an SDG based on interests."""
+
+    def __init__(self):
+        self.context = (
+            "You are a helpful assistant that proposes the most relevant Sustainable Development Goal (SDG) "
+            "based on the user's interests. Be precise and provide clear reasoning."
+        )
+
+    def generate_prompt(self, interests: str) -> dict:
+        return {
+            "instruction": (
+                "Analyze the following interests and propose the most relevant Sustainable Development Goal (SDG). "
+                "Provide the id (1-17) of a single SDG and a concise reasoning for your choice."
+                "Your answer is straightforward, easy to understand and has max 2 sentences. "
+                "Your answer makes the non-sustainable expert curious and want to explore. "
+            ),
+            "interests": interests,
+        }
