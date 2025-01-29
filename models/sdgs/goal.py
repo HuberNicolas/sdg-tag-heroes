@@ -18,6 +18,9 @@ class SDGGoal(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     color: Mapped[str] = mapped_column(String(7), nullable=False)  # Hex code color
     icon: Mapped[str | None] = mapped_column(LONGTEXT)  # Base64 encoded SVG as LONGTEXT
+    short_title: Mapped[str] = mapped_column(String(100), nullable=False)
+    keywords: Mapped[str] = mapped_column(String(255), nullable=False)
+    explanation: Mapped[str] = mapped_column(LONGTEXT)
 
     # Relationship with SDGTarget
     sdg_targets: Mapped[list["SDGTarget"]] = relationship("SDGTarget", back_populates="sdg_goal")
