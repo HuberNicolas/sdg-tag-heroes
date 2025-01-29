@@ -44,6 +44,9 @@ class SDGPrediction(Base):
     predicted: Mapped[bool] = mapped_column(Boolean, default=False)
     last_predicted_goal: Mapped[int] = mapped_column(default=0)
 
+    entropy: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+    std: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
