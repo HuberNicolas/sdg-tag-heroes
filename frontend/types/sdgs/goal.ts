@@ -6,6 +6,9 @@ export interface SDGGoalSchemaBase {
   name: string;
   color: string;
   icon?: string | null;
+  shortTitle: string;
+  keywords: string;
+  explanation: string;
   sdgTargets?: (SDGTargetSchemaBase | SDGTargetSchemaFull)[];
 }
 

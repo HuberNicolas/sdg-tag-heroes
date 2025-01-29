@@ -9,6 +9,9 @@ class SDGGoalSchemaBase(BaseModel):
     index: int
     name: str
     color: str
+    short_title: str
+    keywords: str
+    explanation: str
     icon: Optional[str] = None  # Default to None if missing
     sdg_targets: Optional[List[Union["SDGTargetSchemaBase", "SDGTargetSchemaFull"]]] = Field(list) # Todo: Double check if Field(list) is fine
 
@@ -18,7 +21,6 @@ class SDGGoalSchemaBase(BaseModel):
 
 
 class SDGGoalSchemaFull(SDGGoalSchemaBase):
-
     created_at: datetime
     updated_at: datetime
 

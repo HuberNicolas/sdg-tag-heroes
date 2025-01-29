@@ -26,6 +26,8 @@ class SDGPredictionSchemaBase(BaseModel):
     sdg17: float
     predicted: bool
     last_predicted_goal: int
+    entropy: float
+    std: float
 
     model_config = {
         "from_attributes": True

@@ -21,6 +21,8 @@ export interface SDGPredictionSchemaBase {
   sdg17: number;
   predicted: boolean;
   lastPredictedGoal: number;
+  entropy: number;
+  std: number;
 }
 
 export interface SDGPredictionSchemaFull extends SDGPredictionSchemaBase {

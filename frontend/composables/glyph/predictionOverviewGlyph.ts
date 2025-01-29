@@ -114,21 +114,6 @@ export default function createGlyph(values: number[]) {
         .style('fill', 'black');
 
       hexagonGroup
-        .on('mouseover', () => {
-          tooltip
-            .style('visibility', 'visible')
-            .style('background', color?.toString() || 'gray')
-            .style('color', '#fff')
-            .html(`<strong>${sdgTitles[i]}</strong><br>Value: ${value.toFixed(2)}`);
-        })
-        .on('mousemove', (event) => {
-          tooltip
-            .style('top', `${event.pageY + 10}px`)
-            .style('left', `${event.pageX + 10}px`);
-        })
-        .on('mouseout', () => {
-          tooltip.style('visibility', 'hidden');
-        })
         .on('click', () => {
           if (selectedHexagon === hexagon) {
             // Deselect if already selected
