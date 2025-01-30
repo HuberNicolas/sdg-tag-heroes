@@ -1,11 +1,13 @@
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, sessionmaker, aliased
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
+from enums.enums import LevelType
 from models import SDGPrediction
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
@@ -13,11 +15,12 @@ from request_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, 
 from schemas import SDGPredictionSchemaFull
 from services.math_service import MathService
 from services.metrics_service import MetricsService
-from settings.settings import SDGPredictionsRouterSettings
+from settings.settings import SDGPredictionsRouterSettings, MariaDBSettings
 from utils.logger import logger
 
 # Setup Logging
 sdg_predictions_router_settings = SDGPredictionsRouterSettings()
+mariadb_settings = MariaDBSettings()
 logging = logger(sdg_predictions_router_settings.SDGPREDICTIONS_ROUTER_LOG_NAME)
 logging.info(f"Default model: {sdg_predictions_router_settings.DEFAULT_MODEL}")
 
@@ -213,6 +216,87 @@ async def get_default_model_sdg_predictions_by_publication_id(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching SDG predictions for the publication.",
         )
+
+@router.get(
+    "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
+    response_model=List[SDGPredictionSchemaFull],
+    description="Retrieve SDG predictions for a given SDG, reduction shorthand, and level."
+)
+async def get_sdg_predictions_for_dimensionality_reductions(
+    sdg: int,
+    reduction_shorthand: str,
+    level: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGPredictionSchemaFull]:
+    """
+    Retrieve SDG predictions for a given SDG, reduction shorthand, and level.
+    The data is filtered based on the SDG Prediction attribute and the specified level.
+    """
+    try:
+        # Ensure user is authenticated
+        user = verify_token(token, db)
+
+        # Map the level input (1, 2, or 3) to the corresponding LevelType
+        level_type = {
+            1: LevelType.LEVEL_1,
+            2: LevelType.LEVEL_2,
+            3: LevelType.LEVEL_3
+        }.get(level)
+
+        if not level_type:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid level. Level must be 1, 2, or 3.",
+            )
+
+        # Get the filter range for the specified level
+        min_value, max_value = level_type.min_value, level_type.max_value
+
+        # Alias the SDGPrediction table for use in the join
+        sdg_prediction = aliased(SDGPrediction)
+
+        # Query the dimensionality reductions for the given shorthand and SDG
+        dimensionality_reductions = db.query(DimensionalityReduction).join(
+            sdg_prediction,
+            and_(
+                DimensionalityReduction.publication_id == sdg_prediction.publication_id,
+                getattr(sdg_prediction, f"sdg{sdg}").between(min_value, max_value)
+            )
+        ).filter(
+            DimensionalityReduction.reduction_shorthand == reduction_shorthand
+        ).order_by(DimensionalityReduction.dim_red_id).limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE).all()
+
+        logging.debug(f"SDG - Dimensionality Reductions: {len(dimensionality_reductions)}")
+
+        # Extract publication IDs from the dimensionality reductions
+        publication_ids = [dim_red.publication_id for dim_red in dimensionality_reductions]
+
+        logging.debug(f"SDG - Publications: {len(publication_ids)}")
+
+        if not publication_ids:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No publications found for SDG {sdg}, reduction shorthand '{reduction_shorthand}', and level {level}.",
+            )
+
+        # Fetch the corresponding SDG predictions
+        sdg_predictions = db.query(SDGPrediction).filter(
+            SDGPrediction.publication_id.in_(publication_ids)
+        ).filter(SDGPrediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL).all()
+
+        logging.debug(f"SDG - SDG Predictions: {len(sdg_predictions)}")
+        return sdg_predictions
+        # return [SDGPredictionSchemaFull.model_validate(pred) for pred in sdg_predictions] # slows it down very hard
+
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching SDG predictions: {e}",
+        )
+
 
 @router.get(
     "/dimensionality-reductions/{reduction_shorthand}/{part_number}/{total_parts}/",

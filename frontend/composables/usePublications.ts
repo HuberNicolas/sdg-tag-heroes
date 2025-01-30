@@ -220,6 +220,28 @@ export default function usePublications() {
     }
   }
 
+  // Fetch publications for a specific SDG, reduction shorthand, and level
+  async function getPublicationsForDimensionalityReductions(
+    sdg: number,
+    reductionShorthand: string,
+    level: number
+  ): Promise<PublicationSchemaBase[]> {
+    try {
+      const response = await $fetch<PublicationSchemaBase[]>(
+        `${config.public.apiUrl}/publications/dimensionality-reductions/sdgs/${sdg}/${reductionShorthand}/${level}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch publications for SDG ${sdg}, level ${level}: ${error}`);
+    }
+  }
+
+
 
   return {
     getPublicationsByIds,
@@ -232,5 +254,6 @@ export default function usePublications() {
     getPublicationSummary,
     getCollectiveSummary,
     getPublicationsForDimensionalityReductionsPartitioned,
+    getPublicationsForDimensionalityReductions,
   };
 }

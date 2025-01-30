@@ -8,7 +8,7 @@ export const useSDGsStore = defineStore("sdgs", {
   state: () => ({
     sdgs: [] as SDGGoalSchemaFull[],
     sdgDetails: null as SDGGoalSchemaFull | null,
-    selectedSDG: 0, // 0: no SDG selected
+    selectedSDG: 17, // 0: no SDG selected
     isLoading: false,
     error: null as string | null,
   }),

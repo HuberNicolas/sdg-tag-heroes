@@ -175,6 +175,29 @@ export default function useDimensionalityReductions() {
     }
   }
 
+  // Fetch SDG predictions for a specific SDG and level
+  async function getSDGPredictionsByLevel(
+    sdg: number,
+    reductionShorthand: string,
+    level: number
+  ): Promise<SDGPredictionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGPredictionSchemaFull[]>(
+        `${config.public.apiUrl}/dimensionality-reductions/sdgs/${sdg}/${reductionShorthand}/${level}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch SDG predictions for SDG ${sdg}, level ${level}: ${error}`);
+    }
+  }
+
+
+
   return {
     getDimensionalityReductions,
     getDimensionalityReductionsForPublications,
@@ -183,5 +206,6 @@ export default function useDimensionalityReductions() {
     getGroupedDimensionalityReductions,
     calculateUserCoordinates,
     getDimensionalityReductionsPartitioned,
+    getSDGPredictionsByLevel
   };
 }

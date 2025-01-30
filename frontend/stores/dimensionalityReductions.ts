@@ -13,7 +13,10 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
     filteredReductions: null as FilteredDimensionalityReductionStatisticsSchema | null,
     groupedReductions: null as GroupedDimensionalityReductionResponseSchema | null,
     userCoordinates: null as UserCoordinatesSchema | null,
-    partitionedReductions: [] as DimensionalityReductionSchemaFull[],
+
+    partitionedReductions: [] as DimensionalityReductionSchemaFull[], // All SDGs
+    sdgLevelReductions: [] as DimensionalityReductionSchemaFull[], // 1 SDG
+
     selectedPartitionedReductions: [] as DimensionalityReductionSchemaFull[],
     isLoading: false,
     error: null as string | null,
@@ -123,5 +126,26 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
         this.isLoading = false;
       }
     },
+
+    // Fetch dimensionality reductions by SDG and level
+    async fetchDimensionalityReductionsBySDGAndLevel(
+      sdg: number,
+      reductionShorthand: string,
+      level: number
+    ) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGPredictionsByLevel } = useDimensionalityReductions();
+        this.sdgLevelReductions = await getSDGPredictionsByLevel(sdg, reductionShorthand, level);
+      } catch (error) {
+        this.error = `Failed to fetch dimensionality reductions for SDG ${sdg}, level ${level}: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    }
+
   },
 });

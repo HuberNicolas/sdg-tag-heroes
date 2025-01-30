@@ -11,7 +11,11 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
     distributionMetrics: [] as any[],
     publicationMetrics: null as any | null,
     topPublications: [] as any[],
-    partitionedSDGPredictions: [] as SDGPredictionSchemaFull[],
+
+    partitionedSDGPredictions: [] as SDGPredictionSchemaFull[], // All SDGs
+    sdgLevelSDGPredictions: [] as SDGPredictionSchemaFull[], // 1 SDG
+
+
     selectedPartitionedSDGPredictions: [] as SDGPredictionSchemaFull[],
   }),
   actions: {
@@ -150,5 +154,21 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
         this.isLoading = false;
       }
     },
+
+    // Fetch SDG predictions by SDG and level
+    async fetchSDGPredictionsByLevel(sdg: number, reductionShorthand: string, level: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGPredictionsByLevel } = useSDGPredictions();
+        this.sdgLevelSDGPredictions = await getSDGPredictionsByLevel(sdg, reductionShorthand, level);
+      } catch (error) {
+        this.error = `Failed to fetch SDG predictions for SDG ${sdg}, level ${level}: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    }
   },
 });

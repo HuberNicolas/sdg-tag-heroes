@@ -2,11 +2,13 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, sessionmaker, aliased
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
+from enums.enums import LevelType
 from models import DimensionalityReduction, SDGPrediction
 from models.publications.publication import Publication
 from request_models.dimensionality_reductions import UserCoordinatesRequest, \
@@ -17,11 +19,12 @@ from schemas.dimensionality_reduction import FilteredDimensionalityReductionStat
     UserCoordinatesSchema, GroupedDimensionalityReductionResponseSchema, GroupedDimensionalityReductionStatisticsSchema, \
     GroupedSDGStatisticsSchema
 from services.umap_coordinates_service import UMAPCoordinateService
-from settings.settings import DimensionalityReductionsRouterSettings
+from settings.settings import DimensionalityReductionsRouterSettings, MariaDBSettings
 from utils.logger import logger
 
 # Setup Logging
 dimensionality_reductions_router_settings = DimensionalityReductionsRouterSettings()
+mariadb_settings = MariaDBSettings()
 logging = logger(dimensionality_reductions_router_settings.DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME)
 
 # Setup OAuth2 and security
@@ -250,6 +253,60 @@ async def get_dimensionality_reductions_partitioned(
         dimensionality_reductions = db.query(DimensionalityReduction).filter(
             DimensionalityReduction.reduction_shorthand == reduction_shorthand
         ).order_by(DimensionalityReduction.dim_red_id).offset(start_index).limit(end_index - start_index).all()
+
+        logging.debug(f"Dimensionality Reductions: {len(dimensionality_reductions)}")
+        return dimensionality_reductions
+        # return [DimensionalityReductionSchemaFull.model_validate(dim_red) for dim_red in dimensionality_reductions] # slows it down very hard
+
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching dimensionality reductions: {e}",
+        )
+
+@router.get(
+    "/sdgs/{sdg}/{reduction_shorthand}/{level}/",
+    response_model=List[DimensionalityReductionSchemaFull],
+    description="Retrieve dimensionality reductions for a given reduction shorthand, SDG, and level."
+)
+async def get_dimensionality_reductions_by_sdg_and_level(
+    reduction_shorthand: str,
+    sdg: int,
+    level: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    """
+    Retrieve dimensionality reductions for a given reduction shorthand, SDG, and level.
+    The data is filtered based on the SDG Prediction attribute and the specified level.
+    """
+    try:
+        # Ensure user is authenticated
+        user = verify_token(token, db)
+
+        # Map the level input (1, 2, or 3) to the corresponding LevelType
+        level_type = {
+            1: LevelType.LEVEL_1,
+            2: LevelType.LEVEL_2,
+            3: LevelType.LEVEL_3
+        }.get(level)
+
+        # Get the filter range for the specified level
+        min_value, max_value = level_type.min_value, level_type.max_value
+
+        # Alias the SDGPrediction table for use in the join
+        sdg_prediction = aliased(SDGPrediction)
+
+        # Query the dimensionality reductions for the given shorthand
+        dimensionality_reductions = db.query(DimensionalityReduction).select_from(DimensionalityReduction).join(sdg_prediction,
+            and_(
+                DimensionalityReduction.publication_id == sdg_prediction.publication_id,
+                getattr(sdg_prediction, f"sdg{sdg}").between(min_value, max_value)
+            )
+        ).filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand).order_by(
+            DimensionalityReduction.dim_red_id).limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE).all()
 
         logging.debug(f"Dimensionality Reductions: {len(dimensionality_reductions)}")
         return dimensionality_reductions

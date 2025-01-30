@@ -21,7 +21,10 @@ export const usePublicationsStore = defineStore("publications", {
     fact: null as FactSchemaFull | null,
     summary: null as PublicationSummarySchema | null,
     collectiveSummary: null as PublicationsCollectiveSummarySchema | null,
-    partitionedPublications: [] as PublicationSchemaBase[],
+
+    partitionedPublications: [] as PublicationSchemaBase[], // All SDGs
+    sdgLevelPublications: [] as PublicationSchemaBase[], // 1 SDG
+
     selectedPartitionedPublications: [] as PublicationSchemaBase[],
     isLoading: false,
     error: null as string | null,
@@ -197,5 +200,25 @@ export const usePublicationsStore = defineStore("publications", {
         this.isLoading = false;
       }
     },
+
+    // Fetch publications by SDG, reduction shorthand, and level
+    async fetchPublicationsForDimensionalityReductions(
+      sdg: number,
+      reductionShorthand: string,
+      level: number
+    ) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getPublicationsForDimensionalityReductions } = usePublications();
+        this.sdgLevelPublications = await getPublicationsForDimensionalityReductions(sdg, reductionShorthand, level);
+      } catch (error) {
+        this.error = `Failed to fetch publications for SDG ${sdg}, level ${level}: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    }
   },
 });

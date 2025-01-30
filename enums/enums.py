@@ -47,3 +47,16 @@ class ScenarioType(PyEnum):
 
     NOT_ENOUGH_VOTES = "Not enough votes" # Gather the Troops
     NO_SPECIFIC_SCENARIO = "No specific scenario" # Await the Signal
+
+class LevelType(PyEnum):
+    LEVEL_1 = (0.9, 1.0)  # Level 1
+    LEVEL_2 = (0.8, 0.9)  # Level 2
+    LEVEL_3 = (0.5, 0.8)  # Level 3
+
+    @property
+    def min_value(self):
+        return self.value[0]
+
+    @property
+    def max_value(self):
+        return self.value[1]
