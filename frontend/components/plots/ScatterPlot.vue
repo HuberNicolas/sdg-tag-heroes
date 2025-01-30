@@ -33,3 +33,10 @@ watch([() => props.width, () => props.height], ([newWidth, newHeight]) => {
   }
 });
 </script>
+
+<style scoped>
+.scatter-plot {
+  width: 100%;
+  height: 100%;
+}
+</style>

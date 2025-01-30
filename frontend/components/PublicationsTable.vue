@@ -1,12 +1,13 @@
 <template>
-  <div class="overflow-auto h-full"> <!-- Scrollable container -->
+  <div class="overflow-auto h-full">
+    <!-- Scrollable container -->
     <table class="w-full border-collapse">
       <thead>
       <tr class="bg-gray-100">
         <th class="border border-gray-300 p-2">Title</th>
         <th class="border border-gray-300 p-2">Glyph</th>
         <th class="border border-gray-300 p-2">Top SDGs</th>
-        <th class="border border-gray-300 p-2">XP</th>
+        <!--<th class="border border-gray-300 p-2">XP</th>--->
         <th class="border border-gray-300 p-2">Coins</th>
         <th class="border border-gray-300 p-2">Year</th>
       </tr>
@@ -20,7 +21,7 @@
         <td class="border border-gray-300 p-2">
           <BarPredictionPlot :values="item.values" :width="80" :height="60" />
         </td>
-        <td class="border border-gray-300 p-2">{{ item.xp }}</td>
+        <!--<td class="border border-gray-300 p-2">{{ item.xp }}</td>--->
         <td class="border border-gray-300 p-2">{{ item.coins }}</td>
         <td class="border border-gray-300 p-2">{{ item.year }}</td>
       </tr>
@@ -74,13 +75,13 @@ const tableData = computed(() => {
 
 
     // Dummy data for XP and coins
-    const xp = Math.floor(Math.random() * 100); // Random XP between 0 and 100
-    const coins = Math.floor(Math.random() * 50); // Random coins between 0 and 50
+    //const xp = Math.round(prediction.entropy*100)
+    const coins = Math.round(prediction.entropy*100)
 
     return {
       title: pub.title,
       values,
-      xp,
+      //xp,
       coins,
       topSdg,
       year: pub.year, // Assuming the publication has a `year` field

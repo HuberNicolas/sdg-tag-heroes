@@ -38,7 +38,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       publication: publicationsData[index],
       sdgPrediction: sdgPredictionsData[index]
     }));
-    // console.log(combinedData); // DEBUG
+    console.log(combinedData); // DEBUG
 
 
     // Update selected data in the stores, initially set all
@@ -54,7 +54,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       mode: 'markers',
       type: 'scatter',
       marker: {
-        size: combinedData.map(d => (mode === 'entropy' ? d.entropy * 5 : 10)),
+        size: combinedData.map(d => (mode === 'top1' ? d.sdgPrediction.entropy * 10 : 10)),
         color: combinedData.map(d => {
           if (mode === 'normal') return 'steelblue';
 

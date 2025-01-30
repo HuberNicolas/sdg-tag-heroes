@@ -1,4 +1,4 @@
-import { DecisionType } from "./enums";
+import { DecisionType, ScenarioType } from "./enums";
 import type {
   AnnotationSchemaBase,
   AnnotationSchemaFull,
@@ -9,6 +9,7 @@ export interface SDGLabelDecisionSchemaBase {
   suggestedLabel: number;
   decidedLabel: number;
   decisionType: DecisionType;
+  scenarioType: ScenarioType;
   expertId?: number | null;
   historyId?: number | null;
   comment?: string | null;
