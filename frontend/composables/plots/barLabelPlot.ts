@@ -1,4 +1,4 @@
-import Plotly from 'plotly.js-dist';
+import * as d3 from 'd3';
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useSDGsStore } from "~/stores/sdgs";
 
@@ -6,73 +6,74 @@ export function createBarLabelPlot(container, width, height) {
   const labelDecisionsStore = useLabelDecisionsStore();
   const sdgsStore = useSDGsStore();
 
-  // Watch for changes in the selected SDG label decision and user labels
   labelDecisionsStore.$subscribe((mutation, state) => {
     if (state.selectedSDGLabelDecision && state.userLabels) {
       const labelDistribution = aggregateUserVotes(state.userLabels);
+      console.log(labelDistribution);
       updateLabelDistributionBarPlot(container, labelDistribution, width, height, sdgsStore);
     }
   });
 
-  // Initial render
   if (labelDecisionsStore.selectedSDGLabelDecision && labelDecisionsStore.userLabels) {
     const labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels);
+    console.log(labelDistribution);
     updateLabelDistributionBarPlot(container, labelDistribution, width, height, sdgsStore);
   }
 }
 
 function aggregateUserVotes(userLabels) {
   const voteCounts = {};
-
   userLabels.forEach(label => {
     const votedLabel = label.votedLabel;
     if ((votedLabel >= 1 && votedLabel <= 17) || votedLabel === -1) {
       voteCounts[votedLabel] = (voteCounts[votedLabel] || 0) + 1;
     }
   });
-
-  return voteCounts;
+  return Object.entries(voteCounts).map(([label, count]) => ({ label: Number(label), count }));
 }
 
 function updateLabelDistributionBarPlot(container, labelDistribution, width, height, sdgsStore) {
-  const labels = Object.keys(labelDistribution).map(Number);
-  const counts = Object.values(labelDistribution);
+  d3.select(container).selectAll('*').remove();
 
-  const sortedIndices = counts
-    .map((count, index) => ({ count, index }))
-    .sort((a, b) => b.count - a.count)
-    .map(({ index }) => index);
+  const svg = d3.select(container)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
-  const sortedLabels = sortedIndices.map(i => labels[i]);
-  const sortedCounts = sortedIndices.map(i => counts[i]);
+  const margin = { top: 20, right: 20, bottom: 40, left: 50 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
 
-  const colors = sortedLabels.map(label => {
-    if (label === -1) return '#CCCCCC';
-    if (label >= 1 && label <= 17) return sdgsStore.getColorBySDG(label) || '#CCCCCC';
-    if (label === 18 ) return '#000000';
-    return '#FFFFFF';
-  });
+  const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const filteredLabels = sortedLabels.filter((_, i) => sortedCounts[i] > 0);
-  const filteredCounts = sortedCounts.filter(count => count > 0);
-  const filteredColors = colors.filter((_, i) => sortedCounts[i] > 0);
+  const x = d3.scaleBand()
+    .domain(labelDistribution.map(d => d.label === -1 ? 'Not relevant' : `SDG ${d.label}`))
+    .range([0, chartWidth])
+    .padding(0.3);
 
-  const data = [{
-    x: filteredLabels.map(label => (label === -1 ? 'Not relevant' : `SDG ${label}`)),
-    y: filteredCounts,
-    type: 'bar',
-    marker: { color: filteredColors },
-  }];
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(labelDistribution, d => d.count)])
+    .nice()
+    .range([chartHeight, 0]);
 
-  const layout = {
-    barmode: 'group',
-    width,
-    height,
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    xaxis: { showgrid: false, zeroline: false, title: '' },
-    yaxis: { showgrid: true, zeroline: false, title: '' },
-  };
+  g.append("g")
+    .attr("transform", `translate(0,${chartHeight})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .style("text-anchor", "middle");
 
-  Plotly.newPlot(container, data, layout);
+  g.append("g")
+    .call(d3.axisLeft(y).ticks(d3.max(labelDistribution, d => d.count)).tickFormat(d3.format("d")));
+
+  g.selectAll(".bar")
+    .data(labelDistribution)
+    .enter().append("rect")
+    .attr("class", "bar")
+    .attr("x", d => x(d.label === -1 ? 'Not relevant' : `SDG ${d.label}`))
+    .attr("y", d => y(d.count))
+    .attr("width", x.bandwidth())
+    .attr("height", d => chartHeight - y(d.count))
+    .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
+      .append("title")
+      .text(d => `${d.count} votes`);
 }

@@ -18,6 +18,20 @@
           <option value="nickname">Nickname</option>
           <option value="positiveVotes">Positive Votes</option>
           <option value="negativeVotes">Negative Votes</option>
+          <option value="votedLabel">Voted Label</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <label for="filter" class="text-sm font-medium">Filter by SDG:</label>
+        <select
+          id="filter"
+          v-model="filterBy"
+          class="p-2 border rounded"
+        >
+          <option value="all">All</option>
+          <option v-for="sdg in sdgsStore.sdgs" :key="sdg.id" :value="sdg.id">
+            SDG {{ sdg.id }}
+          </option>
         </select>
       </div>
     </div>
@@ -25,7 +39,7 @@
     <!-- Scrollable List -->
     <div class="max-h-[600px] overflow-y-auto border rounded p-4">
       <div
-        v-for="label in sortedUserLabels"
+        v-for="label in filteredAndSortedUserLabels"
         :key="label.labelId"
         class="mb-6 border-b pb-4"
       >
@@ -70,10 +84,11 @@
 
             <!-- Label Date -->
             <p class="text-xs text-gray-500 mt-1">
-              <span class="font-medium">Date:</span> {{ label.createdAt }}
+              <span class="font-medium">Date:</span> {{ formatDate(label.createdAt) }}
             </p>
 
             <!-- Votes for the Label -->
+            <BarVotePlot :width="150" :height="50" :votesData="getLabelVotes(label.labelId)" />
             <div class="flex items-center gap-2 mt-2">
               <button @click="voteLabel(label.labelId, 'positive')" class="text-green-500">
                 👍 {{ getLabelVotes(label.labelId).positive }}
@@ -156,7 +171,9 @@ import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
 import { useSDGsStore } from "~/stores/sdgs";
 import { generateAvatar } from "~/utils/avatar";
+import { formatDate } from "~/utils/formatDate";
 import { VoteType } from "~/types/enums";
+import BarVotePlot from "~/components/plots/BarVotePlot.vue";
 
 const labelDecisionsStore = useLabelDecisionsStore();
 const usersStore = useUsersStore();
@@ -169,6 +186,7 @@ const error = computed(() => labelDecisionsStore.error);
 // Track expanded labels
 const expandedLabels = ref<number[]>([]);
 const sortBy = ref("date"); // Default sorting criteria
+const filterBy = ref("all"); // Default: Show all labels
 
 // Fetch user labels for a publication on component mount
 const route = useRoute();
@@ -232,9 +250,16 @@ const voteAnnotation = async (annotationId: number, voteType: VoteType.POSITIVE 
   console.log(`Voted ${voteType} on annotation ${annotationId}`);
 };
 
-// Computed property for sorted user labels
-const sortedUserLabels = computed(() => {
-  return [...userLabels.value].sort((a, b) => {
+const filteredAndSortedUserLabels = computed(() => {
+  let filteredLabels = userLabels.value;
+
+  // Apply filtering based on selected criteria
+  if (filterBy.value !== "all") {
+    filteredLabels = filteredLabels.filter((label) => label.votedLabel === Number(filterBy.value));
+  }
+
+  // Apply sorting after filtering
+  return [...filteredLabels].sort((a, b) => {
     switch (sortBy.value) {
       case "nickname":
         const nicknameA =
@@ -255,11 +280,15 @@ const sortedUserLabels = computed(() => {
           getLabelVotes(b.labelId).negative - getLabelVotes(a.labelId).negative
         );
 
+      case "votedLabel":
+        return a.votedLabel - b.votedLabel;
+
       case "date":
       default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
   });
 });
+
 
 </script>

@@ -165,14 +165,14 @@ export default function useConnect() {
       line.hide();
       line.visible = false;
       currentHex.value = null;
-      renderDecisionHex('#target-box', 150, 150, 'whitesmoke', 'Publication');
+      renderDecisionHex('#target-box', 100, 100, 'whitesmoke', 'Publication');
     } else {
       arrowLines.value.forEach((arrow) => arrow.hide());
       line.show();
       line.visible = true;
       currentHex.value = hex;
       const hexColor = hex.getAttribute('data-color');
-      renderDecisionHex('#target-box', 150, 150, hexColor, hex.getAttribute('data-id'));
+      renderDecisionHex('#target-box', 100, 100, hexColor, hex.getAttribute('data-id'));
     }
   };
 
@@ -185,8 +185,8 @@ export default function useConnect() {
   };
 
   onMounted(() => {
-    renderHexGrid('#glyph-container', 500, 500);
-    renderDecisionHex('#target-box', 150, 150, 'whitesmoke', 'Publication');
+    renderHexGrid('#glyph-container', 450, 450);
+    renderDecisionHex('#target-box', 100, 100, 'whitesmoke', 'Publication');
     initArrows();
     initHoverAndClick();
   });
