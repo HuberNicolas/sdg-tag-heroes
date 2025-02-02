@@ -12,8 +12,8 @@ from db.mariadb_connector import engine
 Session = sessionmaker(bind=engine)
 
 # Paths to CSV files
-TOPIC_INFO_PATH = "./data/pipeline/collections/wwf_topic_info_simplified.csv"
-TOPIC_DATA_PATH = "./data/pipeline/collections/wwf_topic_data.csv"
+TOPIC_INFO_PATH = "./data/pipeline/collections/uzh_topic_info_simplified.csv"
+TOPIC_DATA_PATH = "./data/pipeline/collections/uzh_topic_data.csv"
 
 BATCH_SIZE = 1000  # Process entities in batches
 
@@ -33,7 +33,7 @@ def create_collections_and_reductions():
 
         collections_to_add = [
             Collection(
-                topic_id=int(row["Topic"]) + WWF_TOPIC_ID_OFFSET,  # Unique topic_id
+                topic_id=int(row["Topic"]), #  + WWF_TOPIC_ID_OFFSET,  # Unique topic_id
                 count=int(row["Count"]),
                 name=row["Name"].strip(),
                 short_name=row["GPT_Name"].strip(),
@@ -86,9 +86,9 @@ def create_collections_and_reductions():
             # cluster_method_params = {"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
 
             reduction_details = (
-                f"TM for WWF subset using UMAP with n_neighbors=10, min_dist=0.0, n_components=2, metric=cosine"
+                f"TM for UZH set using UMAP with n_neighbors=15, min_dist=0.0, n_components=2, metric=cosine"
             )
-            reduction_shorthand = "TM-WWF-UMAP-10-0.0-2"
+            reduction_shorthand = "TM-UZH-UMAP-15-0.0-2"
 
             dim_reduction = DimensionalityReduction(
                 publication_id=publication.publication_id,

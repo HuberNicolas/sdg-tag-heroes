@@ -43,8 +43,29 @@ export default function useSDGLabelDecisions() {
     }
   }
 
+  async function getSDGLabelDecisionsForReduction(
+    sdg: number,
+    reductionShorthand: string,
+    level: number
+  ): Promise<SDGLabelDecisionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
+        `${config.public.apiUrl}/label-decisions/dimensionality-reductions/sdgs/${sdg}/${reductionShorthand}/${level}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch newest SDG Label Decisions: ${error}`);
+    }
+  }
+
   return {
     getSDGLabelDecisionsByPublicationId,
     createCommentSummary,
+    getSDGLabelDecisionsForReduction,
   };
 }

@@ -35,7 +35,7 @@ LIMIT = 50000
 # Fetch publications matching the shorthand
 results = (
     db.query(Publication)
-    .filter(Publication.faculty_id == 11)
+    # .filter(Publication.faculty_id == 11)
     # .limit(LIMIT)
     .all()
 )
@@ -319,8 +319,18 @@ N = 3  # Set the limit for seed words per SDG
 seed_words = [word for sdg in sdgs for word in sdg.seed_words[:N]]
 print(seed_words)
 
+from settings.settings import ReducerSettings
+
+dim_reduction_params = {
+    "n_neighbors": ReducerSettings.UMAP_N_NEIGHBORS,
+    "n_components": ReducerSettings.UMAP_N_COMPONENTS,
+    "min_dist": ReducerSettings.UMAP_MIN_DIST,
+    "metric": "cosine",
+    "random_state": 31011997,
+}
+
 topic_model = tm_pipeline.create_topic_model(
-    dim_reduction_params={"n_neighbors": 10 , "n_components": 2, "min_dist": 0.0, "metric": "cosine", "random_state":31011997},
+    dim_reduction_params=dim_reduction_params,
     cluster_method_params={"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
     vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
     ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
@@ -365,8 +375,8 @@ data_json = data.to_dict(orient="records")
 with open("topic_data.json", "w") as f:
     json.dump(data_json, f, indent=4)
 
-data.to_csv("wwf_topic_data.csv", index=False)
-topic_info.to_csv("wwf_topic_info.csv", index=False)
+data.to_csv("uzh_topic_data.csv", index=False)
+topic_info.to_csv("uzh_topic_info.csv", index=False)
 
 print("Data exported successfully!")
 

@@ -149,7 +149,6 @@ onMounted(() => {
 
     rainPlotWidth.value = optionContainer.clientWidth / 3; // 1/3 of container width
     rainPlotHeight.value = optionContainer.clientHeight / 3; // 1/3 of container height
-    console.log(barPlotWidth.value, barPlotHeight.value);
   }
 });
 </script>

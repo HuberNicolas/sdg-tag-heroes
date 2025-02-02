@@ -8,6 +8,7 @@ from enums.enums import DecisionType, ScenarioType
 
 class SDGLabelDecisionSchemaBase(BaseModel):
     decision_id: int
+    publication_id: int
     suggested_label: int
     decided_label: int
     decision_type: DecisionType

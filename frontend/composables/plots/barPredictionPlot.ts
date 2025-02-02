@@ -12,7 +12,7 @@ export function createBarPlot(container: HTMLElement, values: number[], width: n
   // Extract the top 3 SDG predictions
   const top3Predictions = values
     .map((value, index) => ({
-      key: `${index}`, // SDG number (e.g., "1", "2", "3")
+      key: `${index+1}`, // SDG number (e.g., "1", "2", "3")
       value,
       color: sdgsStore.getColorBySDG(index + 1) || '#CCCCCC', // Fetch color from the store or fallback to gray
     }))

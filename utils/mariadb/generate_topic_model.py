@@ -299,7 +299,7 @@ seed_words = [word for sdg in sdgs for word in sdg.seed_words[:N]]
 print(seed_words)
 
 topic_model = tm_pipeline.create_topic_model(
-    dim_reduction_params={"n_neighbors": 10 , "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
+    dim_reduction_params={"n_neighbors": 15 , "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
     # reduced_dimensions=dimreds,
     cluster_method_params={"min_cluster_size": 15, "metric": "euclidean", "prediction_data": True},
     vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},

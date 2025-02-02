@@ -191,72 +191,38 @@ async def get_publications_for_dimensionality_reductions(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
 ) -> List[PublicationSchemaBase]:
-    """
-    Retrieve the corresponding publications for a given SDG, reduction shorthand, and level.
-    The data is filtered based on the SDG Prediction attribute and the specified level.
-    """
     try:
-        # Ensure user is authenticated
         user = verify_token(token, db)
 
-        # Validate level input and map it to LevelType
-        level_type = {
-            1: LevelType.LEVEL_1,
-            2: LevelType.LEVEL_2,
-            3: LevelType.LEVEL_3
-        }.get(level)
-
+        level_type = {1: LevelType.LEVEL_1, 2: LevelType.LEVEL_2, 3: LevelType.LEVEL_3}.get(level)
         if not level_type:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid level. Level must be 1, 2, or 3.",
-            )
+            raise HTTPException(status_code=400, detail="Invalid level. Must be 1, 2, or 3.")
 
-        # Get min and max values for the specified level
         min_value, max_value = level_type.min_value, level_type.max_value
 
-        # Alias SDGPrediction table for joining
-        sdg_prediction = aliased(SDGPrediction)
-
-        # Query the dimensionality reductions for the given SDG and reduction shorthand
-        dimensionality_reductions = db.query(DimensionalityReduction).join(
-            sdg_prediction,
-            and_(
-                DimensionalityReduction.publication_id == sdg_prediction.publication_id,
-                getattr(sdg_prediction, f"sdg{sdg}").between(min_value, max_value)
+        publications = (
+            db.query(Publication)
+            .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
+            .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
+            .filter(
+                DimensionalityReduction.reduction_shorthand == reduction_shorthand,
+                getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
+                SDGPrediction.prediction_model == "Aurora"
             )
-        ).filter(
-            DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).order_by(DimensionalityReduction.dim_red_id).limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE).all()
-
-        logging.debug(f"P - Dimensionality Reductions: {len(dimensionality_reductions)}")
-
-        # Extract publication IDs from dimensionality reductions
-        publication_ids = [dim_red.publication_id for dim_red in dimensionality_reductions]
-
-        logging.debug(f"P - Publications: {len(publication_ids)}")
-
-        if not publication_ids:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No publications found for SDG {sdg}, reduction shorthand '{reduction_shorthand}', and level {level}.",
-            )
-
-        # Fetch corresponding publications
-        publications = db.query(Publication).filter(
-            Publication.publication_id.in_(publication_ids)
-        ).all()
-
-        return publications
-        # return [PublicationSchemaBase.model_validate(pub) for pub in publications] # slows it down very hard
-
-    except HTTPException:
-        raise  # Re-raise HTTP exceptions
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while fetching publications: {e}",
+            .order_by(Publication.publication_id)
+            #.limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE) # THIS DID NO work, much less pubs, idk why
+            .all()
         )
+
+        logging.info(f"Retrieved {len(publications)} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(f"Returning {len(publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+
+        return publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching publications: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching publications: {e}")
 
 @router.get(
     "/dimensionality-reductions/{reduction_shorthand}/{part_number}/{total_parts}/",

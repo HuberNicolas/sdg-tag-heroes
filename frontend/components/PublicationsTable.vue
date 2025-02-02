@@ -10,6 +10,7 @@
         <!--<th class="border border-gray-300 p-2">XP</th>--->
         <th class="border border-gray-300 p-2">Coins</th>
         <th class="border border-gray-300 p-2">Year</th>
+        <th class="border border-gray-300 p-2">Scenario</th>
       </tr>
       </thead>
       <tbody>
@@ -24,6 +25,13 @@
         <!--<td class="border border-gray-300 p-2">{{ item.xp }}</td>--->
         <td class="border border-gray-300 p-2">{{ item.coins }}</td>
         <td class="border border-gray-300 p-2">{{ item.year }}</td>
+        <td v-if="item.scenarioType">
+          <!-- Render the ScenarioChip with mapped props -->
+          <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
+        </td>
+        <td v-else>
+          No Scenario
+        </td>
       </tr>
       </tbody>
     </table>
@@ -34,16 +42,63 @@
 import { computed } from 'vue';
 import { usePublicationsStore } from '~/stores/publications';
 import { useSDGPredictionsStore } from '~/stores/sdgPredictions';
+import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import HexGlyph from '@/components/PredictionGlyph.vue';
 import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
 
 const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
+const labelDecisionsStore = useLabelDecisionsStore();
+
+// Check if any SDGLabelDecision has a scenarioType
+const hasScenarioType = computed(() => {
+  return labelDecisionsStore.sdgLevelSDGLabelDecisions.some(decision => decision.scenarioType);
+});
+
+function getScenarioProps(scenarioType: string) {
+  // Return the mapping or a fallback if not found
+  return scenarioMapping[scenarioType] || { icon: '', name: '', tooltip: '' };
+}
+
+
+// Mapping for scenario types to chip properties
+const scenarioMapping: Record<string, { icon: string; name: string; tooltip: string }> = {
+  'Confirm': {
+    icon: 'i-heroicons-check-badge',
+    name: 'Confirm the King',
+    tooltip: 'Crown the most prominent instance'
+  },
+  'Explore': {
+    icon: 'i-heroicons-map',
+    name: 'Explore',
+    tooltip: 'Look at a variety of predictions to explore uncertainty'
+  },
+  'Investment': {
+    icon: 'i-heroicons-magnifying-glass',
+    name: 'Investigate',
+    tooltip: 'Analyze and investigate data'
+  },
+  'Tiebreaker': {
+    icon: 'i-heroicons-scale',
+    name: 'Tiebreaker',
+    tooltip: 'Resolve conflicts with a balanced approach'
+  },
+  'Not enough votes': {
+    icon: 'question-mark-circle',
+    name: 'Not enough votes',
+    tooltip: 'Not enough votes'
+  }
+};
+
 
 // Map selected publications and predictions to table data
 const tableData = computed(() => {
   return publicationsStore.selectedPartitionedPublications.map((pub, index) => {
     const prediction = sdgPredictionsStore.selectedPartitionedSDGPredictions[index];
+    const decision = labelDecisionsStore.sdgLevelSDGLabelDecisions.find(d => {
+      // console.log("Comparing", d.publicationId, "with", pub.publicationId);
+      return d.publicationId === pub.publicationId;
+    });
 
     // Extract SDG values from the prediction
     const values = [
@@ -85,6 +140,7 @@ const tableData = computed(() => {
       coins,
       topSdg,
       year: pub.year, // Assuming the publication has a `year` field
+      scenarioType: decision?.scenarioType || null
     };
   });
 });

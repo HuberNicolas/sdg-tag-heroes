@@ -255,6 +255,7 @@ async def get_dimensionality_reductions_partitioned(
         ).order_by(DimensionalityReduction.dim_red_id).offset(start_index).limit(end_index - start_index).all()
 
         logging.debug(f"Dimensionality Reductions: {len(dimensionality_reductions)}")
+
         return dimensionality_reductions
         # return [DimensionalityReductionSchemaFull.model_validate(dim_red) for dim_red in dimensionality_reductions] # slows it down very hard
 
@@ -272,49 +273,59 @@ async def get_dimensionality_reductions_partitioned(
     description="Retrieve dimensionality reductions for a given reduction shorthand, SDG, and level."
 )
 async def get_dimensionality_reductions_by_sdg_and_level(
-    reduction_shorthand: str,
     sdg: int,
+    reduction_shorthand: str,
     level: int,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
 ) -> List[DimensionalityReductionSchemaFull]:
-    """
-    Retrieve dimensionality reductions for a given reduction shorthand, SDG, and level.
-    The data is filtered based on the SDG Prediction attribute and the specified level.
-    """
     try:
         # Ensure user is authenticated
         user = verify_token(token, db)
 
-        # Map the level input (1, 2, or 3) to the corresponding LevelType
+        # Map level input to LevelType
         level_type = {
             1: LevelType.LEVEL_1,
             2: LevelType.LEVEL_2,
             3: LevelType.LEVEL_3
         }.get(level)
 
+        if not level_type:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid level. Level must be 1, 2, or 3.",
+            )
+
         # Get the filter range for the specified level
         min_value, max_value = level_type.min_value, level_type.max_value
 
-        # Alias the SDGPrediction table for use in the join
-        sdg_prediction = aliased(SDGPrediction)
-
-        # Query the dimensionality reductions for the given shorthand
-        dimensionality_reductions = db.query(DimensionalityReduction).select_from(DimensionalityReduction).join(sdg_prediction,
-            and_(
-                DimensionalityReduction.publication_id == sdg_prediction.publication_id,
-                getattr(sdg_prediction, f"sdg{sdg}").between(min_value, max_value)
+        # Fetch Dimensionality Reductions with filtered join conditions
+        dimensionality_reductions = (
+            db.query(DimensionalityReduction)
+            .join(Publication, DimensionalityReduction.publication_id == Publication.publication_id)
+            .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
+            .filter(
+                DimensionalityReduction.reduction_shorthand == reduction_shorthand,
+                DimensionalityReduction.level == level,
+                DimensionalityReduction.sdg == sdg,
+                SDGPrediction.prediction_model == "Aurora",
+                getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value)
             )
-        ).filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand).order_by(
-            DimensionalityReduction.dim_red_id).limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE).all()
+            .order_by(DimensionalityReduction.dim_red_id)
+            #.limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
+            .all()
+        )
 
-        logging.debug(f"Dimensionality Reductions: {len(dimensionality_reductions)}")
-        return dimensionality_reductions
-        # return [DimensionalityReductionSchemaFull.model_validate(dim_red) for dim_red in dimensionality_reductions] # slows it down very hard
+        logging.info(f"Retrieved {len(dimensionality_reductions)} dimensionality reductions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(f"Returning {len(dimensionality_reductions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} dimensionality reductions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+
+        return dimensionality_reductions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+
 
     except HTTPException:
-        raise  # Re-raise HTTP exceptions
+        raise
     except Exception as e:
+        logging.error(f"Error fetching dimensionality reductions: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching dimensionality reductions: {e}",

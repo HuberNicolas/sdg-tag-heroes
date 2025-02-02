@@ -26,7 +26,7 @@
         <CommentSection></CommentSection>
       </div>
       <div class="row-span-1 col-span-2 bg-green-400">
-        <div>Placeholder</div>
+        <QuestIndicator></QuestIndicator>
         <UToggle
           on-icon="i-heroicons-check-20-solid"
           off-icon="i-heroicons-x-mark-20-solid"

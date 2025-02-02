@@ -8,6 +8,7 @@ export interface SDGLabelDecisionSchemaBase {
   decisionId: number;
   suggestedLabel: number;
   decidedLabel: number;
+  publicationId: number;
   decisionType: DecisionType;
   scenarioType: ScenarioType;
   expertId?: number | null;

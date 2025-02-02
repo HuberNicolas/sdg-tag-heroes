@@ -11,6 +11,7 @@ import type {
 export interface SDGUserLabelSchemaBase {
   labelId: number;
   userId: number;
+  publicationId: number;
   proposedLabel?: number | null;
   votedLabel: number;
   abstractSection?: string | null;

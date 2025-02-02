@@ -20,6 +20,9 @@ class SDGSettings(BaseSettings):
 
 ### General Settings
 
+class SeedSettings(BaseSettings):
+    SEED: ClassVar[int] = 31011997
+
 class TimeZoneSettings(BaseSettings):
     ZURICH_TZ_STRING: str = "Europe/Zurich"  # Specify the timezone for Zurich
     ZURICH_TZ: ClassVar = pytz.timezone(ZURICH_TZ_STRING)
@@ -41,7 +44,7 @@ class MariaDBSettings(BaseSettings):
     MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
     DEFAULT_PREDICTION_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
     DEFAULT_PREDICTION_THRESHOLD: ClassVar[float] = 0.98
-    DEFAULT_SDG_EXPLORATION_SIZE: ClassVar[int] = 1000
+    DEFAULT_SDG_EXPLORATION_SIZE: ClassVar[int] = 10
 
 class QdrantDBSettings(BaseSettings):
     QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
@@ -139,22 +142,23 @@ class ReducerSettings(BaseSettings):
     DEFAULT_MARIADB_BATCH_SIZE: ClassVar[int] = 500
 
     UMAP_N_NEIGHBORS: ClassVar[int] = 15
-    UMAP_MIN_DIST: ClassVar[float] = 0.1
     UMAP_N_COMPONENTS: ClassVar[int] = 2
+    UMAP_MIN_DIST: ClassVar[float] = 0.0
 
     # Arrays for UMAP parameter combinations
-    UMAP_N_NEIGHBORS_ARRAY: ClassVar[List[int]] = [15, 30]
-    UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.1]
+    UMAP_N_NEIGHBORS_ARRAY: ClassVar[List[int]] = [15]
     UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
+    UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.0]
+
 
     # Model path
     UMAP_MODEL_PATH: ClassVar[str] = os.path.join("data", "api", "umap_model")
 
     # Filter ranges
     FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [
-        (1.0, 0.9),
-        (0.9, 0.8),
-        (0.9, 0.5),
+        (1.0, 0.98),
+        (0.98, 0.9),
+        (0.9, 0.7),
     ]  # SDG filter ranges
 
     MAP_PARTITION_SIZE: ClassVar[int] = 9
@@ -231,9 +235,7 @@ class SDGPredictionsRouterSettings(BaseSettings):
     DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
 
 class DimensionalityReductionsRouterSettings(BaseSettings):
-    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = (
-        "api_dimensionality_reductions.log"
-    )
+    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = ("api_dimensionality_reductions.log")
 
 class XPBanksRouterSettings(BaseSettings):
     XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"

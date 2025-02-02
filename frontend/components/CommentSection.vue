@@ -1,7 +1,10 @@
 <template>
   <div class="max-w-4xl mx-auto p-4">
     <div v-if="isLoading" class="text-blue-500">Loading...</div>
-    <div v-if="error" class="text-red-500">Error: {{ error }}</div>
+    <div v-if="error" class="text-red-500">
+      No Label Decision Yet
+      Error: {{ error }}
+    </div>
 
     <!-- Sorting Controls -->
     <div class="flex justify-between items-center mb-4">

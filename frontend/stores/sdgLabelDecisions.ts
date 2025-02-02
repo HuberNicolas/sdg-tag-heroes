@@ -14,6 +14,9 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
   state: () => ({
     sdgLabelDecisions: null as SDGLabelDecisionSchemaFull[] | null,
 
+    partitionedSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[], // All SDGs
+    sdgLevelSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[], // 1 SDG
+
     selectedSDGLabelDecision: null as SDGLabelDecisionSchemaFull | null,
     userLabels: [] as SDGUserLabelSchemaFull[],
     annotations: [] as AnnotationSchemaFull[],
@@ -118,6 +121,24 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
         this.commentSummary = summary || null;
       } catch (error) {
         this.error = `Failed to fetch comment summary: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // Fetch Newest SDG Label Decisions for Reduction
+    async fetchSDGLabelDecisionsForReduction(sdg: number, reductionShorthand: string, level: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGLabelDecisionsForReduction } = useSDGLabelDecisions();
+        const decisions = await getSDGLabelDecisionsForReduction(sdg, reductionShorthand, level);
+        this.sdgLevelSDGLabelDecisions = decisions || [];
+
+      } catch (error) {
+        this.error = `Failed to fetch newest SDG Label Decisions: ${error}`;
         throw error;
       } finally {
         this.isLoading = false;

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class SDGUserLabelSchemaBase(BaseModel):
     label_id: int
     user_id: int
+    publication_id: int
     proposed_label: Optional[int]
     voted_label: int
     abstract_section: Optional[str]

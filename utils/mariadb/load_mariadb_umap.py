@@ -72,7 +72,7 @@ def create_dimensionality_reductions():
                         getattr(SDGPrediction, sdg_column) > lower,
                     )
                     .order_by(desc(getattr(SDGPrediction, sdg_column)))
-                    .limit(1000)
+                    # .limit(1000)
                     .all()
                 )
                 end = time.time()

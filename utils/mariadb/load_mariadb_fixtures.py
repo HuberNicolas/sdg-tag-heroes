@@ -109,7 +109,7 @@ def load_experts(session: Session):
     return experts
 
 
-def create_sdg_user_labels(session: Session, users: list[User], num_labels: int = 10):
+def create_sdg_user_labels(session: Session, users: list[User], publications: list[Publication], num_labels: int = 10):
     """
     Create SDGUserLabels and store them in the database.
     """
@@ -118,6 +118,7 @@ def create_sdg_user_labels(session: Session, users: list[User], num_labels: int 
     for _ in range(num_labels):
         label = SDGUserLabel(
             user_id=choice(users).user_id,
+            publication_id=choice(publications).publication_id,
             proposed_label=randint(0, 17),
             voted_label=randint(0, 17),
             abstract_section=faker.sentence(),
@@ -180,7 +181,7 @@ def create_annotations(session: Session, users: list[User], user_labels: list[SD
 
 
 def create_sdg_label_decisions(
-    session: Session, histories: list[SDGLabelHistory], user_labels: list[SDGUserLabel], experts: list[Expert], num_decisions: int = 10
+    session: Session, histories: list[SDGLabelHistory], user_labels: list[SDGUserLabel], experts: list[Expert], publications: list[Publication], num_decisions: int = 10
 ):
     """
     Create SDGLabelDecisions and store them in the database.
@@ -194,6 +195,7 @@ def create_sdg_label_decisions(
         decision = SDGLabelDecision(
             history_id=history.history_id,
             expert_id=expert.expert_id,
+            publication_id=choice(publications).publication_id, # Ensure decision is linked to a publication
             suggested_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decided_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
@@ -222,6 +224,7 @@ def create_sdg_label_decisions(
         expert = choice(experts)
         decision = SDGLabelDecision(
             history_id=history.history_id,
+            publication_id=choice(publications).publication_id,  # Ensure decision is linked to a publication
             suggested_label=randint(1, 17), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decided_label=0,  # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
@@ -409,6 +412,10 @@ def create_sdg_label_decisions_for_scenarios(
     all_sdgs = [f"SDG{i}" for i in range(1, 18)]
 
     for publication in publications:
+        if not publication or publication.publication_id is None:
+            logging.error(f"No valid publication found! Skipping this scenario.")
+            continue  # Skip if no valid publication
+
         sdg_label_summary = publication.sdg_label_summary
         if not sdg_label_summary:
             logging.warning(f"No SDGLabelSummary found for publication ID {publication.publication_id}. Skipping.")
@@ -502,6 +509,7 @@ def create_sdg_label_decisions_for_scenarios(
         decision = SDGLabelDecision(
             history_id=sdg_label_summary.history_id,
             expert_id=expert.expert_id,
+            publication_id=publication.publication_id,
             suggested_label=true_sdg_number,  # Use the integer value of the true SDG
             decided_label=0,  # Set decided label to 0 (not yet decided)
             decision_type=DecisionType.CONSENSUS_MAJORITY,
@@ -524,6 +532,7 @@ def create_sdg_label_decisions_for_scenarios(
                 user_id=choice(users).user_id,
                 proposed_label=sdg_number,
                 voted_label=sdg_number,
+                publication_id=publication.publication_id,
                 abstract_section=faker.sentence(),
                 comment=faker.sentence(),
                 labeled_at=faker.date_time_this_year(),
@@ -639,7 +648,7 @@ def populate_db(
         create_xp_bank_histories(session, xp_banks, num_entries=history_entries_per_user)
 
         # Create SDGUserLabels
-        user_labels = create_sdg_user_labels(session, users, num_labels)
+        user_labels = create_sdg_user_labels(session, users, publications, num_labels)
 
         # Create Votes
         create_votes(session, users, user_labels, num_votes)
@@ -652,7 +661,7 @@ def populate_db(
         create_votes_for_annotations(session, annotations, users, num_votes)
 
         # Create SDGLabelDecisions
-        create_sdg_label_decisions(session, histories, user_labels, experts, num_decisions)
+        create_sdg_label_decisions(session, histories, user_labels, experts, publications, num_decisions)
 
 
         # Create scenario-based decisions

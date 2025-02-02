@@ -16,9 +16,9 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
 
   // Fetch partitioned data from all stores
   const fetchData = async () => {
-    const reductionShorthand = 'TM-UMAP-10-0.0-2';
+    const reductionShorthand = 'TM-UZH-UMAP-15-0.0-2';
     const partNumber = level;
-    const totalParts = 1000;
+    const totalParts = 10000;
 
     await Promise.all([
       dimensionalityReductionsStore.fetchDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),

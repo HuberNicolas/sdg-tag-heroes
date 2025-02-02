@@ -49,14 +49,14 @@ class ScenarioType(PyEnum):
     NO_SPECIFIC_SCENARIO = "No specific scenario" # Await the Signal
 
 class LevelType(PyEnum):
-    LEVEL_1 = (0.9, 1.0)  # Level 1
-    LEVEL_2 = (0.8, 0.9)  # Level 2
-    LEVEL_3 = (0.5, 0.8)  # Level 3
-
-    @property
-    def min_value(self):
-        return self.value[0]
+    LEVEL_1 = (1, 0.98)  # Level 1
+    LEVEL_2 = (0.98, 0.9)  # Level 2
+    LEVEL_3 = (0.9, 0.7)  # Level 3
 
     @property
     def max_value(self):
+        return self.value[0]
+
+    @property
+    def min_value(self):
         return self.value[1]

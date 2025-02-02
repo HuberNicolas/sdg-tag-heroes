@@ -84,10 +84,6 @@
           </div>
         </div>
 
-
-
-
-
       </div>
       <div class="row-span-7 col-span-2 bg-yellow-400">
         <PublicationsTable></PublicationsTable>

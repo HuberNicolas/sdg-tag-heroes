@@ -6,8 +6,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-from enums.enums import ScenarioType
-from models import SDGLabelDecision
+from enums.enums import ScenarioType, LevelType
+from models import SDGLabelDecision, SDGPrediction, SDGLabelSummary
+from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from schemas import SDGLabelDecisionSchemaFull
 from settings.settings import SDGSLabelDecisionsRouterSettings
@@ -42,6 +43,60 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
+
+@router.get(
+    "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
+    response_model=List[SDGLabelDecisionSchemaFull],
+    description="Retrieve the newest SDG Label Decisions corresponding to the publications selected by dimensionality reduction."
+)
+async def get_newest_sdg_label_decisions_for_reduction(
+    sdg: int,
+    reduction_shorthand: str,
+    level: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGLabelDecisionSchemaFull]:
+    try:
+        user = verify_token(token, db)
+
+        level_type = {1: LevelType.LEVEL_1, 2: LevelType.LEVEL_2, 3: LevelType.LEVEL_3}.get(level)
+        if not level_type:
+            raise HTTPException(status_code=400, detail="Invalid level. Must be 1, 2, or 3.")
+
+        min_value, max_value = level_type.min_value, level_type.max_value
+
+        publications = (
+            db.query(Publication)
+            .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
+            .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
+            .filter(
+                DimensionalityReduction.reduction_shorthand == reduction_shorthand,
+                getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
+                SDGPrediction.prediction_model == "Aurora"
+            )
+            .order_by(Publication.publication_id)
+            .all()
+        )
+
+        publication_ids = [pub.publication_id for pub in publications]
+
+        decisions = (
+            db.query(SDGLabelDecision)
+            .join(SDGLabelSummary, SDGLabelDecision.history_id == SDGLabelSummary.history_id)
+            .filter(SDGLabelSummary.publication_id.in_(publication_ids),
+                    SDGLabelDecision.decided_label == 0)
+            .all()
+        )
+
+        logging.info(f"Retrieved {len(decisions)} newest SDGLabelDecisions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+
+        return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in decisions]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching newest SDGLabelDecisions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching newest SDGLabelDecisions: {e}")
+
 
 @router.get(
     "/publications/{publication_id}",

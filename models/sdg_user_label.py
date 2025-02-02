@@ -46,6 +46,12 @@ class SDGUserLabel(Base):
     abstract_section: Mapped[str] = mapped_column(Text, nullable=True)
     comment: Mapped[str] = mapped_column(Text, nullable=True)
 
+    # ForeignKey
+    publication_id: Mapped[int] = mapped_column(ForeignKey("publications.publication_id"), nullable=False)
+
+    # Relationship to Publication
+    publication: Mapped["Publication"] = relationship("Publication", back_populates="user_labels")
+
 
     labeled_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

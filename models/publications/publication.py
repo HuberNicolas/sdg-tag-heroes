@@ -80,6 +80,16 @@ class Publication(Base):
     collection_id: Mapped[int | None] = mapped_column(ForeignKey("collections.collection_id"), nullable=True)
     collection: Mapped["Collection | None"] = relationship("Collection", back_populates="publications")
 
+    # Relationship to SDGLabelDecision
+    label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
+        "SDGLabelDecision", back_populates="publication", cascade="all, delete-orphan"
+    )
+
+    # Relationship to SDGUserLabel
+    user_labels: Mapped[list["SDGUserLabel"]] = relationship(
+        "SDGUserLabel", back_populates="publication", cascade="all, delete-orphan"
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(TimeZoneSettings.ZURICH_TZ),

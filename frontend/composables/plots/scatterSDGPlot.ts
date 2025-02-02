@@ -2,6 +2,7 @@ import Plotly from 'plotly.js-dist';
 import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
 import { usePublicationsStore } from "~/stores/publications";
 import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
+import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useGameStore } from "~/stores/game";
 import { useSDGsStore} from "~/stores/sdgs";
 
@@ -9,6 +10,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const dimensionalityReductionsStore = useDimensionalityReductionsStore();
   const publicationsStore = usePublicationsStore();
   const sdgPredictionsStore = useSDGPredictionsStore();
+  const labelDecisionsStore = useLabelDecisionsStore();
   const gameStore = useGameStore();
   const sdgsStore = useSDGsStore();
 
@@ -17,13 +19,14 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
 
   // Fetch partitioned data from all stores
   const fetchData = async () => {
-    const reductionShorthand = 'UMAP-15-0.1-2';
+    const reductionShorthand = 'UMAP-15-0.0-2';
 
     await Promise.all([
-      dimensionalityReductionsStore.fetchDimensionalityReductionsBySDGAndLevel(sdg, reductionShorthand, level),
-      publicationsStore.fetchPublicationsForDimensionalityReductions(sdg, reductionShorthand, level),
-      sdgPredictionsStore.fetchSDGPredictionsByLevel(sdg, reductionShorthand, level),
-      sdgsStore.fetchSDGs()
+      dimensionalityReductionsStore.fetchDimensionalityReductionsBySDGAndLevel(10, reductionShorthand, level),
+      publicationsStore.fetchPublicationsForDimensionalityReductions(10, reductionShorthand, level),
+      sdgPredictionsStore.fetchSDGPredictionsByLevel(10, reductionShorthand, level),
+      sdgsStore.fetchSDGs(),
+      labelDecisionsStore.fetchSDGLabelDecisionsForReduction(10, reductionShorthand, level),
   ]);
   }
 

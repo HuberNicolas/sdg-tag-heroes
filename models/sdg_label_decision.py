@@ -51,6 +51,11 @@ class SDGLabelDecision(Base):
 
     comment: Mapped[str] = mapped_column(Text(), nullable=True)
 
+    # Add publication_id ForeignKey
+    publication_id: Mapped[int] = mapped_column(ForeignKey("publications.publication_id"), nullable=False)
+
+    # Relationship to Publication
+    publication: Mapped["Publication"] = relationship("Publication", back_populates="label_decisions")
 
     decided_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
