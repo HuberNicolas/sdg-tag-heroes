@@ -8,11 +8,13 @@ from pydantic import BaseModel, ValidationError
 from enums import SDGType
 from schemas.gpt_assistant_service import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
     GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema, \
-    GPTResponseAnnotationScoreSchema, GPTResponseCommentSummarySchema, SDGPredictionSchema
+    GPTResponseAnnotationScoreSchema, GPTResponseCommentSummarySchema, SDGPredictionSchema, \
+    GPTPersonaResponseAnnotationSchema
 from settings.settings import GPTAssistantServiceSettings
 from utils.env_loader import load_env, get_env_variable
 from .strategies.fact_generator_strategy import FactStrategy
 from .strategies.keyword_extractor_strategy import ExtractKeywordsStrategy
+from .strategies.persona_annotation_generator_strategy import GenerateAnnotationStrategy
 from .strategies.sdg_explainer_strategy import GoalStrategy, TargetStrategy
 from .strategies.summarize_sdg_user_label_comments import SummarizeSDGUserLabelCommentsStrategy
 from .strategies.summarizer_strategy import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
@@ -141,3 +143,12 @@ class GPTAssistantService:
         prompt_data = strategy.generate_prompt(passage, annotation, sdg_label)
         response = self._call_model(strategy.context, prompt_data, GPTResponseAnnotationScoreSchema)
         return response
+
+    def generate_annotation(self, abstract: str, persona: str, interest: str, skill: str,
+                            trust_score: float) -> GPTPersonaResponseAnnotationSchema:
+        """Generates an annotation tailored to the user's persona and expertise level."""
+        strategy = GenerateAnnotationStrategy()
+        prompt_data = strategy.generate_prompt(abstract, persona, interest, skill, trust_score)
+        response = self._call_model(strategy.context, prompt_data, GPTPersonaResponseAnnotationSchema)
+        return response
+

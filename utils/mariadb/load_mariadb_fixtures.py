@@ -20,12 +20,16 @@ from models import (
 from db.mariadb_connector import engine as mariadb_engine
 from models.base import Base
 from enums.enums import SDGType, DecisionType, VoteType, ScenarioType
+from services.gpt.gpt_assistant_service import GPTAssistantService
+from services.gpt.strategies.persona_annotation_generator_strategy import GenerateAnnotationStrategy
 from utils.logger import logger
 from settings.settings import FixturesSettings
+from utils.personas.personas_generator import assign_personas
 
 fixtures_settings = FixturesSettings()
 
 logging = logger(fixtures_settings.FIXTURES_LOG_NAME)
+
 
 # Faker instance
 faker = Faker()
@@ -33,6 +37,9 @@ faker = Faker()
 SEED = 31011997
 faker.seed_instance(SEED)
 random.seed(SEED)
+
+# Initialize GPT Service
+gpt_service = GPTAssistantService()
 
 def truncate_tables(session: Session, tables: list):
     """
@@ -408,6 +415,9 @@ def create_sdg_label_decisions_for_scenarios(
     logging.info("Creating SDGLabelDecisions for scenarios...")
     decisions = []
 
+    # Assign temporary personas
+    user_personas = assign_personas(users)  # In-memory mapping, no DB change
+
     # Define all possible SDGs (excluding SDG0 and SDG18)
     all_sdgs = [f"SDG{i}" for i in range(1, 18)]
 
@@ -434,12 +444,7 @@ def create_sdg_label_decisions_for_scenarios(
         logging.debug(f"Non-relevant SDGs for publication ID {publication.publication_id}: {non_relevant_sdgs}")
 
         expert = choice(experts)
-        candidate_scenarios = list(ScenarioType)
-        del candidate_scenarios[-1] # Remove
-        del candidate_scenarios[-1]
-        scenario = choice(candidate_scenarios)
-
-
+        scenario = choice(list(ScenarioType)[:-2])  # Exclude last two scenarios
 
         logging.debug(f"Selected scenario for publication ID {publication.publication_id}: {scenario}")
 
@@ -506,15 +511,39 @@ def create_sdg_label_decisions_for_scenarios(
 
         # Step 1: Create SDGLabelDecision
         # Create a decision based on the scenario and label distribution
+
+        user = choice(users)
+        persona_data = user_personas.get(user.user_id, {})
+
+        if not persona_data:
+            logging.warning(f"No persona found for user {user.user_id}, using default decision comment.")
+            decision_comment = "This decision is based on majority consensus and current SDG alignment."
+        else:
+            try:
+                # Generate Persona-Based Decision Comment using GPT Service
+                response = gpt_service.generate_annotation(
+                    abstract=publication.description,  # Ensure publication has a valid description
+                    persona=persona_data["persona"].value,
+                    interest=persona_data["interest"],
+                    skill=persona_data["skill"],
+                    trust_score=persona_data["trust_score"]
+                )
+                decision_comment = response.annotation_text  # Use AI-generated comment
+
+            except Exception as e:
+                logging.error(f"Error generating SDGLabelDecision comment for user {user.user_id}: {e}")
+                decision_comment = "This decision is based on majority consensus and current SDG alignment."
+
+        # Create a decision based on the scenario and label distribution
         decision = SDGLabelDecision(
             history_id=sdg_label_summary.history_id,
-            expert_id=expert.expert_id,
+            expert_id=None,  # No expert, only users are used
             publication_id=publication.publication_id,
             suggested_label=true_sdg_number,  # Use the integer value of the true SDG
             decided_label=0,  # Set decided label to 0 (not yet decided)
             decision_type=DecisionType.CONSENSUS_MAJORITY,
             scenario_type=scenario,
-            comment=faker.text(max_nb_chars=200),
+            comment=decision_comment,  # Use AI-generated comment
             decided_at=faker.date_time_this_year(),
             created_at=faker.date_time_this_year(),
             updated_at=faker.date_time_this_year(),
@@ -528,13 +557,40 @@ def create_sdg_label_decisions_for_scenarios(
         user_labels = []
         for label in labels:
             sdg_number = int(label[3:])
+            user = choice(users)
+            persona_data = user_personas.get(user.user_id, {})
+
+            if not persona_data:
+                logging.warning(f"No persona found for user {user.user_id}, using default values.")
+                abstract_section = "General observation on SDG impact."
+                comment = "No specific insights provided."
+            else:
+                try:
+                    # Generate Persona-Based Abstract Section & Comment using GPT Service
+                    response = gpt_service.generate_annotation(
+                        abstract=publication.description,  # Ensure publication has a valid description
+                        persona=persona_data["persona"].value,
+                        interest=persona_data["interest"],
+                        skill=persona_data["skill"],
+                        trust_score=persona_data["trust_score"]
+                    )
+                    logging.debug(response)
+
+                    abstract_section = f"{persona_data['persona'].value} perspective: {persona_data['interest']} in relation to this SDG."
+                    comment = response.annotation_text  # Use AI-generated comment
+
+                except Exception as e:
+                    logging.error(f"Error generating SDGUserLabel content for user {user.user_id}: {e}")
+                    abstract_section = "General observation on SDG impact."
+                    comment = "No specific insights provided."
+
             user_label = SDGUserLabel(
-                user_id=choice(users).user_id,
+                user_id=user.user_id,
                 proposed_label=sdg_number,
                 voted_label=sdg_number,
                 publication_id=publication.publication_id,
-                abstract_section=faker.sentence(),
-                comment=faker.sentence(),
+                abstract_section=abstract_section,
+                comment=comment,
                 labeled_at=faker.date_time_this_year(),
                 created_at=faker.date_time_this_year(),
                 updated_at=faker.date_time_this_year(),
@@ -542,67 +598,106 @@ def create_sdg_label_decisions_for_scenarios(
             decision.user_labels.append(user_label)
             session.add(user_label)
             user_labels.append(user_label)
-        session.commit()  # Commit the labels
+
+        session.commit()
         logging.info(f"Created {len(user_labels)} SDGUserLabels for decision {decision.decision_id}.")
 
-        # Step 3: Create Annotations
+        # Step 3: Generate Persona-Based Annotations using Temporary Personas
         annotations = []
+
         for user_label in user_labels:
-            for _ in range(randint(1, 3)):  # 1-3 annotations per label
+            persona_data = user_personas.get(user_label.user_id, {})
+
+            if not persona_data:
+                continue
+
+            try:
+                response = gpt_service.generate_annotation(
+                    abstract=publication.description,
+                    persona=persona_data["persona"].value,
+                    interest=persona_data["interest"],
+                    skill=persona_data["skill"],
+                    trust_score=persona_data["trust_score"]
+                )
+
                 annotation = Annotation(
                     user_id=user_label.user_id,
-                    sdg_user_label_id=user_label.label_id,  # Link to SDGUserLabel
-                    decision_id=None,  # Not linked directly to a decision
+                    sdg_user_label_id=user_label.label_id,
+                    decision_id=None,
                     labeler_score=round(uniform(1.0, 100.0), 2),
-                    comment=faker.paragraph(),
+                    comment=response.annotation_text,
                     created_at=faker.date_time_this_year(),
                     updated_at=faker.date_time_this_year(),
                 )
                 session.add(annotation)
                 annotations.append(annotation)
-        for _ in range(randint(1, 3)):  # Add annotations linked to the decision
-            annotation = Annotation(
-                user_id=choice(users).user_id,
-                sdg_user_label_id=None,  # Not linked to SDGUserLabel
-                decision_id=decision.decision_id,  # Link to decision
-                labeler_score=round(uniform(1.0, 100.0), 2),
-                comment=faker.paragraph(),
-                created_at=faker.date_time_this_year(),
-                updated_at=faker.date_time_this_year(),
-            )
-            session.add(annotation)
-            annotations.append(annotation)
-        session.commit()  # Commit the annotations
-        logging.info(f"Created {len(annotations)} Annotations for decision {decision.decision_id}.")
+
+            except Exception as e:
+                logging.error(f"Error generating annotation for user {user_label.user_id}: {e}")
+
+        # Step 3B: Generate Annotations Linked to Decision
+        for _ in range(randint(1, 3)):
+            user = choice(users)
+            persona_data = user_personas.get(user.user_id, {})
+
+            if not persona_data:
+                continue
+
+            try:
+                response = gpt_service.generate_annotation(
+                    abstract=publication.description,
+                    persona=persona_data["persona"].value,
+                    interest=persona_data["interest"],
+                    skill=persona_data["skill"],
+                    trust_score=persona_data["trust_score"]
+                )
+
+                annotation = Annotation(
+                    user_id=user.user_id,
+                    sdg_user_label_id=None,
+                    decision_id=decision.decision_id,
+                    labeler_score=round(uniform(1.0, 100.0), 2),
+                    comment=response.annotation_text,
+                    created_at=faker.date_time_this_year(),
+                    updated_at=faker.date_time_this_year(),
+                )
+                session.add(annotation)
+                annotations.append(annotation)
+
+            except Exception as e:
+                logging.error(f"Error generating annotation for decision {decision.decision_id}: {e}")
+
+        session.commit()
+        logging.info(f"Created {len(annotations)} persona-based annotations for decision {decision.decision_id}.")
 
         # Step 4: Create Votes
         for user_label in user_labels:
-            for _ in range(randint(1, 5)):  # 1-5 votes per label
+            for _ in range(randint(1, 5)):
                 vote = Vote(
                     user_id=choice(users).user_id,
-                    sdg_user_label_id=user_label.label_id,  # Link to SDGUserLabel
-                    annotation_id=None,  # Not linked to Annotation
+                    sdg_user_label_id=user_label.label_id,
+                    annotation_id=None,
                     vote_type=choice(list(VoteType)),
                     score=round(uniform(0, 5), 2),
                     created_at=faker.date_time_this_year(),
                 )
                 session.add(vote)
         for annotation in annotations:
-            for _ in range(randint(1, 5)):  # 1-5 votes per annotation
+            for _ in range(randint(1, 5)):
                 vote = Vote(
                     user_id=choice(users).user_id,
-                    sdg_user_label_id=None,  # Not linked to SDGUserLabel
-                    annotation_id=annotation.annotation_id,  # Link to Annotation
+                    sdg_user_label_id=None,
+                    annotation_id=annotation.annotation_id,
                     vote_type=choice(list(VoteType)),
                     score=round(uniform(0, 5), 2),
                     created_at=faker.date_time_this_year(),
                 )
                 session.add(vote)
-        session.commit()  # Commit the votes
-        logging.info(f"Created Votes for user_labels and annotations for decision {decision.decision_id}.")
+        session.commit()
 
-    logging.info(f"Completed creating SDGLabelDecisions for scenarios.")
+    logging.info("Completed creating SDGLabelDecisions for scenarios.")
     return decisions
+
 
 def populate_db(
     session: Session,
@@ -624,8 +719,9 @@ def populate_db(
         if truncate:
             truncate_tables(session, ["sdg_user_labels", "votes", "annotations", "sdg_label_decisions", "sdg_label_decision_user_label", "sdg_coin_wallets", "sdg_xp_banks"])
 
-        # Load users, publications, and experts
+        # Load users, user_personas, publications, and experts
         users = load_users(session, max_users)
+        user_personas = assign_personas(users)  # Store the temporary mapping
         publications = load_publications(session, max_pubs)
         experts = load_experts(session)
 
@@ -665,7 +761,7 @@ def populate_db(
 
 
         # Create scenario-based decisions
-        relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=500)
+        relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=3)
 
         create_sdg_label_decisions_for_scenarios(
             session,

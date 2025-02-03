@@ -60,3 +60,16 @@ class LevelType(PyEnum):
     @property
     def min_value(self):
         return self.value[1]
+
+
+class BartlePersonaType(PyEnum):
+    ACHIEVER = "Achiever"
+    EXPLORER = "Explorer"
+    SOCIALIZER = "Socializer"
+    KILLER = "Killer"
+
+class BartlePersonaDistributionType(PyEnum):
+    ACHIEVER_PORTION = 0.4
+    EXPLORER_PORTION = 0.2
+    SOCIALIZER_PORTION = 0.3
+    KILLER_PORTION = 0.1

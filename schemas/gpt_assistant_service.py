@@ -45,6 +45,8 @@ class GPTResponseAnnotationScoreSchema(BaseModel):
     creativity: float
     reasoning: str
 
+class GPTPersonaResponseAnnotationSchema(BaseModel):
+    annotation_text: str  # The generated annotation
 
 # API Response Schemas
 
