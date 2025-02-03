@@ -21,7 +21,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from models.base import Base
 from enums.enums import SDGType, DecisionType, VoteType, ScenarioType
 from services.gpt.gpt_assistant_service import GPTAssistantService
-from services.gpt.strategies.persona_annotation_generator_strategy import GenerateAnnotationStrategy
+from services.gpt.strategies.persona_comment_generator_strategy import GenerateCommentStrategy, GenerateAnnotationStrategy
 from utils.logger import logger
 from settings.settings import FixturesSettings
 from utils.personas.personas_generator import assign_personas
@@ -521,14 +521,14 @@ def create_sdg_label_decisions_for_scenarios(
         else:
             try:
                 # Generate Persona-Based Decision Comment using GPT Service
-                response = gpt_service.generate_annotation(
+                response = gpt_service.generate_comment(
                     abstract=publication.description,  # Ensure publication has a valid description
                     persona=persona_data["persona"].value,
                     interest=persona_data["interest"],
                     skill=persona_data["skill"],
                     trust_score=persona_data["trust_score"]
                 )
-                decision_comment = response.annotation_text  # Use AI-generated comment
+                decision_comment = response.comment_text  # Use AI-generated comment
 
             except Exception as e:
                 logging.error(f"Error generating SDGLabelDecision comment for user {user.user_id}: {e}")
@@ -567,7 +567,7 @@ def create_sdg_label_decisions_for_scenarios(
             else:
                 try:
                     # Generate Persona-Based Abstract Section & Comment using GPT Service
-                    response = gpt_service.generate_annotation(
+                    response = gpt_service.generate_comment(
                         abstract=publication.description,  # Ensure publication has a valid description
                         persona=persona_data["persona"].value,
                         interest=persona_data["interest"],
@@ -576,8 +576,8 @@ def create_sdg_label_decisions_for_scenarios(
                     )
                     logging.debug(response)
 
-                    abstract_section = f"{persona_data['persona'].value} perspective: {persona_data['interest']} in relation to this SDG."
-                    comment = response.annotation_text  # Use AI-generated comment
+                    abstract_section = response.abstract_section
+                    comment = response.comment_text  # Use AI-generated comment
 
                 except Exception as e:
                     logging.error(f"Error generating SDGUserLabel content for user {user.user_id}: {e}")
@@ -617,8 +617,10 @@ def create_sdg_label_decisions_for_scenarios(
                     persona=persona_data["persona"].value,
                     interest=persona_data["interest"],
                     skill=persona_data["skill"],
-                    trust_score=persona_data["trust_score"]
+                    trust_score=persona_data["trust_score"],
+                    user_label_comment=user_label.comment
                 )
+                logging.debug(response)
 
                 annotation = Annotation(
                     user_id=user_label.user_id,
@@ -649,8 +651,10 @@ def create_sdg_label_decisions_for_scenarios(
                     persona=persona_data["persona"].value,
                     interest=persona_data["interest"],
                     skill=persona_data["skill"],
-                    trust_score=persona_data["trust_score"]
+                    trust_score=persona_data["trust_score"],
+                    decision_comment=decision.comment
                 )
+                logging.debug(response)
 
                 annotation = Annotation(
                     user_id=user.user_id,
@@ -702,9 +706,9 @@ def create_sdg_label_decisions_for_scenarios(
 def populate_db(
     session: Session,
     truncate: bool = False,
-    max_users: int = 11,
+    max_users: int = 100,
     history_entries_per_user: int = 5,
-    max_pubs: int = 2,
+    max_pubs: int = 5,
     num_labels: int = 4,
     num_votes: int = 10,
     num_annotations: int = 5,
@@ -761,7 +765,7 @@ def populate_db(
 
 
         # Create scenario-based decisions
-        relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=3)
+        relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=500)
 
         create_sdg_label_decisions_for_scenarios(
             session,

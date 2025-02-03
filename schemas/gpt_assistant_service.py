@@ -45,6 +45,10 @@ class GPTResponseAnnotationScoreSchema(BaseModel):
     creativity: float
     reasoning: str
 
+class GPTPersonaResponseCommentSchema(BaseModel):
+    comment_text: str  # The generated comment
+    abstract_section: str # The selected passage
+
 class GPTPersonaResponseAnnotationSchema(BaseModel):
     annotation_text: str  # The generated annotation
 

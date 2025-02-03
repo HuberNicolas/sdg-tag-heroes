@@ -2,6 +2,7 @@ import os
 import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from faker import Faker
 
 from models import Inventory
 from utils.env_loader import load_env
@@ -17,6 +18,10 @@ load_env("users.env")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+fake = Faker()
+Faker.seed(31011997)
+fake = Faker('de_CH')
+
 
 def get_env_variable(key: str) -> str:
     """Retrieve environment variable or raise an error if missing."""
@@ -26,26 +31,35 @@ def get_env_variable(key: str) -> str:
     return value
 
 
-def create_initial_users(session: Session):
-    """Create initial users from environment variables."""
-    user_count = int(get_env_variable("USER_COUNT"))
+def create_initial_users(session: Session, auto_generate: bool = False, user_count: int = 10):
+    """Create initial users either from environment variables or automatically generated."""
+    if not auto_generate:
+        user_count = int(get_env_variable("USER_COUNT"))
 
     for i in range(user_count):
         try:
-            # Load user data from environment variables
-            user_email = get_env_variable(f"USER_{i}_EMAIL")
-            user_nickname = get_env_variable(f"USER_{i}_NICKNAME")
-            user_password = get_env_variable(f"USER_{i}_PASSWORD")
-            user_roles_raw = get_env_variable(f"USER_{i}_ROLE")
+            if auto_generate:
+                # Auto-generate user data
+                user_email = f"{fake.last_name_male()}@ifi.uzh.ch"
+                user_nickname = fake.user_name()
+                user_password = "password01"
+                user_roles_raw = "labeler"
+                user_roles = [UserRole(role) for role in user_roles_raw.split(",")]
+            else:
+                # Load user data from environment variables
+                user_email = get_env_variable(f"USER_{i}_EMAIL")
+                user_nickname = get_env_variable(f"USER_{i}_NICKNAME")
+                user_password = get_env_variable(f"USER_{i}_PASSWORD")
+                user_roles_raw = get_env_variable(f"USER_{i}_ROLE")
 
-            # Parse roles (split by comma and map to UserRole Enum)
-            user_roles = []
-            for role in user_roles_raw.split(","):
-                role = role.strip()
-                try:
-                    user_roles.append(UserRole(role))
-                except ValueError:
-                    logger.warning(f"Unknown role {role} for user {user_email}")
+                # Parse roles (split by comma and map to UserRole Enum)
+                user_roles = []
+                for role in user_roles_raw.split(","):
+                    role = role.strip()
+                    try:
+                        user_roles.append(UserRole(role))
+                    except ValueError:
+                        logger.warning(f"Unknown role {role} for user {user_email}")
 
             if not user_roles:
                 logger.warning(f"No valid roles found for user {user_email}")
@@ -71,12 +85,12 @@ def create_initial_users(session: Session):
                 admin = Admin(user=user)
                 session.add(admin)
             if UserRole.LABELER in user_roles:
-                labeling_score = float(get_env_variable(f"USER_{i}_LABELING_SCORE"))
+                labeling_score = fake.random_number(digits=2)
                 labeler = Labeler(user=user, labeler_score=labeling_score)
                 session.add(labeler)
             if UserRole.EXPERT in user_roles:
-                labeling_score = float(get_env_variable(f"USER_{i}_LABELING_SCORE"))
-                expert_score = float(get_env_variable(f"USER_{i}_EXPERT_SCORE"))
+                labeling_score = fake.random_number(digits=2)
+                expert_score = fake.random_number(digits=2)
                 expert = Expert(user=user, expert_score=expert_score)
                 session.add(expert)
 
@@ -95,7 +109,6 @@ def create_initial_users(session: Session):
             logger.error(f"Invalid data for user {i}: {e}")
 
 
-
 if __name__ == "__main__":
     from db.mariadb_connector import engine as mariadb_engine
     from models.base import Base
@@ -106,5 +119,9 @@ if __name__ == "__main__":
 
     # Ensure tables are created
     Base.metadata.create_all(mariadb_engine)
+
+    # Set to True to auto-generate users, or False to use environment variables
+    auto_generate = True
+
     with Session() as session:
-        create_initial_users(session)
+        create_initial_users(session, auto_generate=auto_generate, user_count=40)

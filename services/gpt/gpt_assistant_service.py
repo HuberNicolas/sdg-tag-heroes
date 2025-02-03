@@ -4,17 +4,18 @@ from typing import List, Optional, Dict, Any
 import instructor
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
+from sympy.physics.units import temperature
 
 from enums import SDGType
 from schemas.gpt_assistant_service import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
     GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema, \
     GPTResponseAnnotationScoreSchema, GPTResponseCommentSummarySchema, SDGPredictionSchema, \
-    GPTPersonaResponseAnnotationSchema
+    GPTPersonaResponseAnnotationSchema, GPTPersonaResponseCommentSchema
 from settings.settings import GPTAssistantServiceSettings
 from utils.env_loader import load_env, get_env_variable
 from .strategies.fact_generator_strategy import FactStrategy
 from .strategies.keyword_extractor_strategy import ExtractKeywordsStrategy
-from .strategies.persona_annotation_generator_strategy import GenerateAnnotationStrategy
+from .strategies.persona_comment_generator_strategy import GenerateCommentStrategy, GenerateAnnotationStrategy
 from .strategies.sdg_explainer_strategy import GoalStrategy, TargetStrategy
 from .strategies.summarize_sdg_user_label_comments import SummarizeSDGUserLabelCommentsStrategy
 from .strategies.summarizer_strategy import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
@@ -45,6 +46,23 @@ class GPTAssistantService:
                     {"role": "system", "content": context},
                     {"role": "user", "content": json.dumps(prompt_data)}
                 ],
+                temperature=0.7,
+                response_format=response_model
+            )
+            return response.choices[0].message.parsed
+        except ValidationError as e:
+            raise ValueError(f"Invalid response format: {str(e)}")
+
+    def _call_creative_model(self, context: str, prompt_data: dict, response_model: type[BaseModel]):
+        """Handles the API call with contextual prompts."""
+        try:
+            response = self.client.beta.chat.completions.parse(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": context},
+                    {"role": "user", "content": json.dumps(prompt_data)}
+                ],
+                temperature=1.2,  # Set temperature (0.7-1.5 recommended for high creativity)
                 response_format=response_model
             )
             return response.choices[0].message.parsed
@@ -144,11 +162,39 @@ class GPTAssistantService:
         response = self._call_model(strategy.context, prompt_data, GPTResponseAnnotationScoreSchema)
         return response
 
-    def generate_annotation(self, abstract: str, persona: str, interest: str, skill: str,
-                            trust_score: float) -> GPTPersonaResponseAnnotationSchema:
-        """Generates an annotation tailored to the user's persona and expertise level."""
-        strategy = GenerateAnnotationStrategy()
+    def generate_comment(self, abstract: str, persona: str, interest: str, skill: str,
+                            trust_score: float) -> GPTPersonaResponseCommentSchema:
+        """Generates a comment tailored to the user's persona and expertise level."""
+        strategy = GenerateCommentStrategy()
         prompt_data = strategy.generate_prompt(abstract, persona, interest, skill, trust_score)
-        response = self._call_model(strategy.context, prompt_data, GPTPersonaResponseAnnotationSchema)
+        response = self._call_creative_model(strategy.context, prompt_data, GPTPersonaResponseCommentSchema)
         return response
 
+
+
+    def generate_annotation(
+            self, abstract: str, persona: str, interest: str, skill: str, trust_score: float,
+            user_label_comment: str = None, decision_comment: str = None
+    ) -> GPTPersonaResponseAnnotationSchema:
+        """
+        Generates an annotation based on the structured prompt.
+
+        Parameters:
+            abstract (str): The publication abstract.
+            persona (str): The user's persona (Achiever, Explorer, Socializer, Killer).
+            interest (str): The user's interest in the topic.
+            skill (str): The user's skill level or profession.
+            trust_score (float): The user’s expertise score (0-1).
+            user_label_comment (str, optional): The comment from the user label.
+            decision_comment (str, optional): The consensus decision comment.
+
+        Returns:
+            str: A concise and relevant annotation.
+        """
+        strategy = GenerateAnnotationStrategy()
+        prompt_data = strategy.generate_prompt(
+            abstract, persona, interest, skill, trust_score, user_label_comment, decision_comment
+        )
+
+        response = self._call_creative_model(strategy.context, prompt_data, GPTPersonaResponseAnnotationSchema)
+        return response
