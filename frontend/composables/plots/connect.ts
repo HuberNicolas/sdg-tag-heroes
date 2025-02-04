@@ -4,8 +4,6 @@ import LeaderLine from 'leader-line-new';
 import { baseCoords, baseSdgColors, baseSdgShortTitles, sdgNullColor, sdgNullCoord, sdgNullShortTitle } from '@/constants/constants';
 import { useSDGsStore } from "@/stores/sdgs";  // Add this import
 
-
-
 export default function useConnect() {
   const sdgsStore = useSDGsStore();  // Initialize the store
 
@@ -32,7 +30,7 @@ export default function useConnect() {
       .style('background', 'transparent');
 
     const contentGroup = svg.append('g')
-      .attr('transform', `translate(${width / 4}, ${height / 2})`);
+      .attr('transform', `translate(${width / 4}, ${height / 2})`);  // Adjusted to position on the left
 
     coords.forEach(([x, y], i) => {
       const color = d3.color(sdgColors[i % sdgColors.length]);
@@ -59,7 +57,7 @@ export default function useConnect() {
         .attr('fill', color?.toString() || 'gray')
         .attr('stroke', 'black')
         .attr('stroke-width', 1)
-        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
+        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
 
       hexagonGroup
         .append('polygon')
@@ -99,17 +97,15 @@ export default function useConnect() {
     const container = d3.select(selector);
     container.selectAll('*').remove();
 
-    // complete svg
     const svg = container
       .append('svg')
       .attr('width', width)
       .attr('height', height)
-      .attr('transform', `translate(${width}, ${height*0})`)
       .style('background', 'transparent');
 
-    // rendered hex inside
+    // Keep the decision hexagon **centered properly**
     const hexagonGroup = svg.append('g')
-      .attr('transform', `translate(${width/2}, ${height/2})`);
+      .attr('transform', `translate(${width / 2}, ${height / 2})`);
 
     const rotation = 30;
 
@@ -117,15 +113,13 @@ export default function useConnect() {
       .append('polygon')
       .attr(
         'points',
-        d3.range(6)
-          .map((k) => {
-            const angle = Math.PI / 3 * k;
-            return [
-              hexRadius * Math.cos(angle),
-              hexRadius * Math.sin(angle),
-            ].join(',');
-          })
-          .join(' ')
+        d3.range(6).map((k) => {
+          const angle = Math.PI / 3 * k;
+          return [
+            hexRadius * Math.cos(angle),
+            hexRadius * Math.sin(angle),
+          ].join(',');
+        }).join(' ')
       )
       .attr('fill', color)
       .attr('stroke', 'black')
@@ -143,22 +137,35 @@ export default function useConnect() {
       .style('fill', 'black');
   };
 
+
   const initArrows = () => {
     const hexagons = document.querySelectorAll('.hexagon');
-    const targetBox = document.getElementById('target-box');
+    const targetHex = document.querySelector('#target-box svg g');  // Select the entire group (G) instead of just the polygon
 
     hexagons.forEach((hex) => {
       const hexColor = hex.getAttribute('data-color');
-      const line = new LeaderLine(hex, targetBox, {
-        color: hexColor || 'blue',
-        startPlug: 'behind',
-        endPlug: 'arrow1',
-        dash: { animation: true },
-        visible: false, // Hide arrows initially
-      });
+
+      const line = new LeaderLine(
+        LeaderLine.pointAnchor(hex, { x: '50%', y: '200%' }), // Start at hexagon center
+        LeaderLine.pointAnchor(targetHex, { x: '50%', y: '100%' }), // End at decision hexagon center
+        {
+          color: hexColor || 'blue',
+          startPlug: 'behind',
+          endPlug: 'arrow1',
+          dash: { animation: true },
+          //path: 'straight',  // Ensures a clean and structured arrow path
+          size: 2,  // Small and cleaner arrows
+          startSocket: 'right', // Align arrows from right side of hex
+          endSocket: 'left', // Align arrows to left side of decision hex
+          visibility: 'hidden',
+        }
+      );
+
       arrowLines.value.push(line);
     });
   };
+
+
 
   const toggleArrow = (hex) => {
     const hexIndex = sdgShortTitles.indexOf(hex.getAttribute('data-id'));
@@ -166,28 +173,24 @@ export default function useConnect() {
 
     if (!line) return;
 
-    // Set selected SDG label to -1 if not relevant, else use the index (which is the SDG ID)
-    const sdgId = (hexIndex >= 0 && hexIndex < 17) ? hexIndex + 1 : -1;  // Map index to 1-17, or -1 for "Not relevant"
+    const sdgId = (hexIndex >= 0 && hexIndex < 17) ? hexIndex + 1 : -1;
 
-    // If the same hexagon is clicked, deselect it and set label to 0
     if (line.visible) {
       line.hide();
       line.visible = false;
-      sdgsStore.setSelectedSDGLabel(0);  // Deselect and reset label to 0
+      sdgsStore.setSelectedSDGLabel(0);
       currentHex.value = null;
-      renderDecisionHex('#target-box', 100, 100, 'whitesmoke', 'Publication');
+      renderDecisionHex('#target-box', 60, 60, 'whitesmoke', 'Publication');
     } else {
-      // Hide all other arrows first
       arrowLines.value.forEach((arrow) => arrow.hide());
-      line.show();  // Show the clicked arrow
+      line.show();
       line.visible = true;
-      sdgsStore.setSelectedSDGLabel(sdgId);  // Set the label to the selected SDG ID
+      sdgsStore.setSelectedSDGLabel(sdgId);
       currentHex.value = hex;
       const hexColor = hex.getAttribute('data-color');
-      renderDecisionHex('#target-box', 100, 100, hexColor, hex.getAttribute('data-id'));
+      renderDecisionHex('#target-box', 60, 60, hexColor, hex.getAttribute('data-id'));
     }
   };
-
 
   const initHoverAndClick = () => {
     const hexagons = document.querySelectorAll('.hexagon');
@@ -198,8 +201,8 @@ export default function useConnect() {
   };
 
   onMounted(() => {
-    renderHexGrid('#glyph-container', 250, 250);
-    renderDecisionHex('#target-box', 100, 100, 'whitesmoke', 'Publication');
+    renderHexGrid('#glyph-container', 260, 260);
+    renderDecisionHex('#target-box', 60, 60, 'whitesmoke', 'Publication');
     initArrows();
     initHoverAndClick();
   });

@@ -12,7 +12,7 @@
         <AnnotationSection></AnnotationSection>
       </div>
       <div class="row-span-1 col-span-2 bg-pink-400">
-        <div>Label Distribution</div>
+        <SDGUserLabelToggle />
         <BarLabelPlot :width="400" :height="100" />
       </div>
 
@@ -44,6 +44,7 @@ import CommentSection from "~/components/CommentSection.vue";
 import CommentSummary from "~/components/CommentSummary.vue"
 import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
 import AnnotationSection from "~/components/AnnotationSection.vue";
+import SDGUserLabelToggle from "~/components/SDGUserLabelToggle.vue";
 
 const route = useRoute()
 

@@ -1,30 +1,34 @@
-// composables/plots/barLabelPlot.ts
-
 import * as d3 from 'd3';
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useSDGsStore } from "~/stores/sdgs";
 
-/**
- * Creates a bar chart showing vote distribution.
- */
-export function createBarLabelPlot(container, width, height, showAllVotes) {
+export function createBarLabelPlot(container, width, height) {
   const labelDecisionsStore = useLabelDecisionsStore();
   const sdgsStore = useSDGsStore();
 
-  // Subscribe to store updates and update the plot when data changes
-  labelDecisionsStore.$subscribe((mutation, state) => {
-    if (state.selectedSDGLabelDecision && state.userLabels) {
-      const labelDistribution = aggregateUserVotes(state.userLabels, showAllVotes);
+  function updateChart() {
+    if (labelDecisionsStore.selectedSDGLabelDecision && labelDecisionsStore.userLabels) {
+      const labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showAllSDGUserLabels);
       updateLabelDistributionBarPlot(container, labelDistribution, width, height, sdgsStore);
     }
+  }
+
+  // Subscribe to Pinia store updates and update the plot when data changes
+  labelDecisionsStore.$subscribe((mutation, state) => {
+    updateChart();
   });
 
-  if (labelDecisionsStore.selectedSDGLabelDecision && labelDecisionsStore.userLabels) {
-    const labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, showAllVotes);
-    updateLabelDistributionBarPlot(container, labelDistribution, width, height, sdgsStore);
-  }
-}
+  // Watch `showAllSDGUserLabels` and update chart when toggled
+  watch(
+    () => labelDecisionsStore.showAllSDGUserLabels,
+    () => {
+      updateChart();
+    }
+  );
 
+  // Initial rendering of the chart
+  updateChart();
+}
 /**
  * Aggregates user votes, either showing all or only the latest vote per user.
  */

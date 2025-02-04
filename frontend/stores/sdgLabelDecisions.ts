@@ -17,6 +17,9 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     partitionedSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[], // All SDGs
     sdgLevelSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[], // 1 SDG
 
+    showAllSDGUserLabels: false, // Default: show only the latest SDG User Labels
+
+
     selectedSDGLabelDecision: null as SDGLabelDecisionSchemaFull | null,
     userLabels: [] as SDGUserLabelSchemaFull[],
     annotations: [] as AnnotationSchemaFull[],
@@ -154,5 +157,10 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     clearSelectedUserLabel() {
       this.selectedUserLabel = null;
     },
+
+    toggleShowAllSDGUserLabels() {
+      this.showAllSDGUserLabels = !this.showAllSDGUserLabels;
+    },
+
   },
 });
