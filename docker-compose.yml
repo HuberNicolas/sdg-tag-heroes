@@ -108,7 +108,7 @@ services:
       - "2001:3306"
     volumes:
       - ./data/docker/db/mariadb/mysql-data/:/var/lib/mysql
-      - ./data/db/igcl-dump.sql:/docker-entrypoint-initdb.d/dump.sql # Change, as we currently mounting a folder
+      # - ./data/db/igcl-dump.sql:/docker-entrypoint-initdb.d/dump.sql # Change, as we currently mounting a folder
     env_file:
       - ./env/mariadb.env
     profiles: [ prod, pipeline ]

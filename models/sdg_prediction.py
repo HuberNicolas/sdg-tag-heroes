@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Tuple
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -72,19 +73,24 @@ class SDGPrediction(Base):
             f"last_predicted_goal={self.last_predicted_goal})>"
         )
 
-    def get_highest_sdg(self):
+    def get_highest_sdg(self) -> Tuple[str, int, float]:
         """
         Get the SDG with the highest prediction value for this instance.
-        Returns a tuple of (SDG key, value). E.g, ('sdg1', 0.99)
+        Returns a tuple of (SDG key, SDG number, value).
+
+        Example: ('sdg1', 1, 0.99)
         """
-        # Only include SDGs that exist in the SDGPrediction model (sdg1 to sdg17)
-        sdg_values = {
-            sdg.value: getattr(self, sdg.value)
+        # Extract SDG values with both string key and integer representation
+        sdg_values: dict[str, Tuple[int, float]] = {
+            sdg.value: (int(sdg.value.replace("sdg", "")), getattr(self, sdg.value))
             for sdg in SDGType
             if sdg.value.startswith("sdg") and hasattr(self, sdg.value)
         }
-        highest_sdg = max(sdg_values.items(), key=lambda item: item[1])
-        return highest_sdg
+
+        # Find the highest SDG prediction
+        highest_sdg_key, (highest_sdg_number, highest_sdg_value) = max(sdg_values.items(), key=lambda item: item[1][1])
+
+        return highest_sdg_key, highest_sdg_number, highest_sdg_value
 
 
     def get_sdgs_above_threshold(self, threshold=mariadb_settings.DEFAULT_PREDICTION_THRESHOLD):

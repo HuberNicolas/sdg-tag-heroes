@@ -1,8 +1,7 @@
 <template>
   <div>
     <div id="glyph-container"></div>
-    <div id="target-box" class="decision-box"></div>
-    <UButton>Submit Label</UButton>
+    <div id="target-box" class="decision-box bg-red-900"></div>
   </div>
 </template>
 
@@ -16,8 +15,3 @@ export default {
   },
 };
 </script>
-
-<style>
-
-
-</style>

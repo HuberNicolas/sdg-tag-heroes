@@ -9,12 +9,17 @@ export const useSDGsStore = defineStore("sdgs", {
     sdgs: [] as SDGGoalSchemaFull[],
     sdgDetails: null as SDGGoalSchemaFull | null,
     selectedSDG: 0, // 0: no SDG selected
+    selectedSDGLabel: 0,
     isLoading: false,
     error: null as string | null,
   }),
   actions: {
     setSelectedSDG(selectedSDG: number) {
       this.selectedSDG = selectedSDG;
+    },
+
+    setSelectedSDGLabel(selectedSDGLabel: number) {
+      this.selectedSDGLabel = selectedSDGLabel;
     },
 
     // Fetch all SDGs
@@ -58,5 +63,8 @@ export const useSDGsStore = defineStore("sdgs", {
     getSelectedSDG(state) {
       return state.selectedSDG;
     },
+    getSelectedSDGLabel(state) {
+      return state.selectedSDGLabel;
+    }
   },
 });

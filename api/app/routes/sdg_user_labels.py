@@ -406,6 +406,7 @@ async def create_sdg_user_label(
 
         user = verify_token(token, db)  # Ensure user is authenticated
         label_service = LabelService(db)
+        print(request)
 
         new_user_label = label_service.create_or_link_label(request)
         return SDGUserLabelSchemaFull.model_validate(new_user_label)

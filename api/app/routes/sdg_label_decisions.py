@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-from enums.enums import ScenarioType, LevelType
-from models import SDGLabelDecision, SDGPrediction, SDGLabelSummary
+from enums.enums import ScenarioType, LevelType, DecisionType
+from models import SDGLabelDecision, SDGPrediction, SDGLabelSummary, SDGLabelHistory
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from schemas import SDGLabelDecisionSchemaFull
@@ -110,26 +110,81 @@ async def get_sdg_label_decisions(
 ) -> List[SDGLabelDecisionSchemaFull]:
     """
     Retrieve all SDGLabelDecision entries for a publication's SDGLabelHistory.
+    If no history exists, it will be initialized.
     """
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
 
-        # Query the database for the publication and its SDGLabelHistory
+        # Query the database for the publication
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
 
-        if not publication or not publication.sdg_label_summary:
+        if not publication:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No SDGLabelHistory found for publication ID {publication_id}",
+                detail=f"Publication with ID {publication_id} not found",
             )
 
-        history = publication.sdg_label_summary.history
+        # Get SDGLabelSummary (we know every publication has one)
+        sdg_label_summary = publication.sdg_label_summary
 
-        if not history or not history.decisions:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No SDGLabelDecision entries found for publication ID {publication_id}",
+        # Check if SDGLabelHistory exists
+        history = db.query(SDGLabelHistory).filter(
+            SDGLabelHistory.history_id == sdg_label_summary.history_id
+        ).first()
+
+        # If no history exists, create a new one
+        if not history:
+            logging.info(f"No SDGLabelHistory found for publication {publication_id}, creating a new history.")
+
+            new_history = SDGLabelHistory(active=True)
+            db.add(new_history)
+            db.flush()  # Flush to get the new history_id
+
+            # Link the SDGLabelSummary to the new history
+            sdg_label_summary.history_id = new_history.history_id
+            db.commit()
+            db.refresh(new_history)
+
+            history = new_history  # Assign the newly created history
+            logging.info(f"Created new SDGLabelHistory (ID: {history.history_id}) for publication {publication_id}.")
+
+        # Check for existing decisions
+        if not history.decisions:
+            logging.info(f"No SDGLabelDecisions found for publication {publication_id}, creating a new decision.")
+
+            # Fetch the best SDG prediction from the 'Aurora' model
+            prediction = (
+                db.query(SDGPrediction)
+                .filter(SDGPrediction.publication_id == publication_id, SDGPrediction.prediction_model == "Aurora")
+                .first()
             )
+
+            suggested_label: int = 0  # Default if no prediction is found
+
+            if prediction:
+                highest_sdg_key, highest_sdg_number, highest_sdg_value = prediction.get_highest_sdg()
+                logging.info(
+                    f"Highest SDG prediction: {highest_sdg_key} ({highest_sdg_number}), Value: {highest_sdg_value}."
+                )
+                suggested_label = highest_sdg_number  # Use extracted integer SDG number
+
+            # Create a new SDGLabelDecision
+            new_decision = SDGLabelDecision(
+                history_id=history.history_id,
+                publication_id=publication_id,
+                suggested_label=suggested_label,
+                decided_label=0,  # Default: not decided
+                decision_type=DecisionType.CONSENSUS_MAJORITY,
+                scenario_type=ScenarioType.NOT_ENOUGH_VOTES,
+                expert_id=None,
+                comment=None,
+            )
+            db.add(new_decision)
+            db.commit()
+            db.refresh(new_decision)
+
+            logging.info(f"Created new SDGLabelDecision for publication {publication_id}.")
+            return [SDGLabelDecisionSchemaFull.model_validate(new_decision)]
 
         return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in history.decisions]
 
@@ -139,6 +194,7 @@ async def get_sdg_label_decisions(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the SDGLabelDecisions for the publication",
         )
+
 
 
 @router.get(

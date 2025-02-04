@@ -1,6 +1,7 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type { SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull } from "~/types/sdgLabelDecision";
 import { snakeToCamel } from "~/utils/snakeToCamel";
+import type { SDGUserLabelsCommentSummarySchema } from "~/types/sdgUserLabel";
 
 export default function useSDGLabelDecisions() {
   const config = useRuntimeConfig();

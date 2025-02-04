@@ -31,6 +31,7 @@ class LabelService:
 
         new_user_label = SDGUserLabel(
             user_id=request.user_id,
+            publication_id=request.publication_id,
             voted_label=request.voted_label,
             abstract_section=request.abstract_section or "",
             comment=request.comment or "",

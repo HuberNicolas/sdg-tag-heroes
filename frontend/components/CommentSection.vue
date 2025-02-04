@@ -37,6 +37,10 @@
           </option>
         </select>
       </div>
+      <div class="flex items-center gap-2">
+        <input id="showAllLabels" type="checkbox" v-model="showAllLabels" class="h-4 w-4" />
+        <label for="showAllLabels" class="text-sm font-medium">Show all labels</label>
+      </div>
     </div>
 
     <!-- Scrollable List -->
@@ -182,7 +186,26 @@ const labelDecisionsStore = useLabelDecisionsStore();
 const usersStore = useUsersStore();
 const sdgsStore = useSDGsStore();
 
-const userLabels = computed(() => labelDecisionsStore.userLabels);
+const userLabels = computed(() => {
+  if (showAllLabels.value) {
+    return labelDecisionsStore.userLabels; // Show all labels
+  }
+
+  // Show only the latest label per user
+  const latestLabels = new Map<number, any>();
+  labelDecisionsStore.userLabels.forEach((label) => {
+    if (
+      !latestLabels.has(label.userId) ||
+      new Date(label.createdAt) > new Date(latestLabels.get(label.userId).createdAt)
+    ) {
+      latestLabels.set(label.userId, label);
+    }
+  });
+
+  return Array.from(latestLabels.values());
+});
+
+
 const isLoading = computed(() => labelDecisionsStore.isLoading);
 const error = computed(() => labelDecisionsStore.error);
 
@@ -190,6 +213,7 @@ const error = computed(() => labelDecisionsStore.error);
 const expandedLabels = ref<number[]>([]);
 const sortBy = ref("date"); // Default sorting criteria
 const filterBy = ref("all"); // Default: Show all labels
+const showAllLabels = ref(false);
 
 // Fetch user labels for a publication on component mount
 const route = useRoute();
@@ -221,12 +245,21 @@ const getSDGIcon = (sdgId: number) => {
 const getLabelVotes = (labelId: number) => {
   const label = userLabels.value.find((label) => label.labelId === labelId);
   if (!label) return { positive: 0, neutral: 0, negative: 0 };
+
+  // Use a Map to ensure only the latest vote per user is counted
+  const latestVotes = new Map<number, string>();
+
+  label.votes.forEach((vote) => {
+    latestVotes.set(vote.userId, vote.voteType);
+  });
+
   return {
-    positive: label.votes.filter((vote) => vote.voteType === VoteType.POSITIVE).length,
-    neutral: label.votes.filter((vote) => vote.voteType === VoteType.NEUTRAL).length,
-    negative: label.votes.filter((vote) => vote.voteType === VoteType.NEGATIVE).length,
+    positive: Array.from(latestVotes.values()).filter(vote => vote === VoteType.POSITIVE).length,
+    neutral: Array.from(latestVotes.values()).filter(vote => vote === VoteType.NEUTRAL).length,
+    negative: Array.from(latestVotes.values()).filter(vote => vote === VoteType.NEGATIVE).length,
   };
 };
+
 
 // Get votes for an annotation
 const getAnnotationVotes = (annotationId: number) => {

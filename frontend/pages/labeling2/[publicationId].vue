@@ -9,10 +9,7 @@
         <ShapAbstract></ShapAbstract>
       </div>
       <div class="row-span-10 col-span-2 bg-blue-400">
-        Annotations
-        <ShapSelector></ShapSelector>
-        <UDivider></UDivider>
-        <ConnectingDots></ConnectingDots>
+        <AnnotationSection></AnnotationSection>
       </div>
       <div class="row-span-1 col-span-2 bg-pink-400">
         <div>Label Distribution</div>
@@ -45,8 +42,8 @@
 
 import CommentSection from "~/components/CommentSection.vue";
 import CommentSummary from "~/components/CommentSummary.vue"
-import ShapSelector from "~/components/ShapSelector.vue";
 import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
+import AnnotationSection from "~/components/AnnotationSection.vue";
 
 const route = useRoute()
 

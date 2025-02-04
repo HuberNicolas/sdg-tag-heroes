@@ -1,5 +1,5 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type { SDGUserLabelSchemaBase, SDGUserLabelSchemaFull } from "~/types/sdgUserLabel";
+import type { SDGUserLabelSchemaBase, SDGUserLabelSchemaFull, UserLabelRequest } from "~/types/sdgUserLabel";
 import { snakeToCamel } from "~/utils/snakeToCamel";
 
 export default function useUserLabels() {
@@ -54,9 +54,33 @@ export default function useUserLabels() {
     }
   }
 
+  async function createOrLinkSDGUserLabel(
+    request: UserLabelRequest
+  ): Promise<SDGUserLabelSchemaFull> {
+    try {
+      const response = await $fetch<SDGUserLabelSchemaFull>(
+        `${config.public.apiUrl}/user-labels`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+            "Content-Type": "application/json",
+          },
+          body: request,
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to create or link SDG user label: ${error}`);
+    }
+  }
+
+
+
   return {
     getSDGUserLabels,
     getSDGUserLabelById,
-    getSDGUserLabelsByPublicationId
+    getSDGUserLabelsByPublicationId,
+    createOrLinkSDGUserLabel
   };
 }

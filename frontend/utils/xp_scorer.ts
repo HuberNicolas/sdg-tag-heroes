@@ -17,7 +17,7 @@ function deterministicLuck(N: number, P_max: number): number {
   const hash = crypto.createHash('sha256').update(hashInput).digest('hex');
   const hashValue = parseInt(hash.slice(-3), 16) % 1000; // Convert hash to int
   const scaledValue = 0.9 + (hashValue / 1000) * 0.2; // Scale to range [0.9, 1.1]
-  return Math.max((L_max * Math.exp(-((N - N_luck) / sigma) ** 2) * scaledValue) + offset, 5); // Ensure minimum luck contribution
+  return Math.max((L_max * Math.exp((-((N - N_luck) / sigma)) ** 2) * scaledValue) + offset, 5); // Ensure minimum luck contribution
 }
 
 // Define the function with a true U-shape: min at 4-6 votes, rising by 8-13

@@ -2,11 +2,16 @@ import { ref, onMounted } from 'vue';
 import * as d3 from 'd3';
 import LeaderLine from 'leader-line-new';
 import { baseCoords, baseSdgColors, baseSdgShortTitles, sdgNullColor, sdgNullCoord, sdgNullShortTitle } from '@/constants/constants';
+import { useSDGsStore } from "@/stores/sdgs";  // Add this import
+
+
 
 export default function useConnect() {
+  const sdgsStore = useSDGsStore();  // Initialize the store
+
   const fixedConnections = ref([]);
   const currentHex = ref(null);
-  const hexRadius = 50;
+  const hexRadius = 30;
   const arrowLines = ref([]); // Array to store all pre-created arrows
 
   const coords = [...baseCoords, sdgNullCoord];
@@ -85,7 +90,7 @@ export default function useConnect() {
         .attr('data-id', sdgShortTitles[i])
         .attr('data-color', color?.toString())
         .text(sdgShortTitles[i])
-        .style('font-size', '12px')
+        .style('font-size', '8px')
         .style('fill', 'black');
     });
   };
@@ -134,7 +139,7 @@ export default function useConnect() {
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
       .text(label)
-      .style('font-size', '12px')
+      .style('font-size', '8px')
       .style('fill', 'black');
   };
 
@@ -161,20 +166,28 @@ export default function useConnect() {
 
     if (!line) return;
 
+    // Set selected SDG label to -1 if not relevant, else use the index (which is the SDG ID)
+    const sdgId = (hexIndex >= 0 && hexIndex < 17) ? hexIndex + 1 : -1;  // Map index to 1-17, or -1 for "Not relevant"
+
+    // If the same hexagon is clicked, deselect it and set label to 0
     if (line.visible) {
       line.hide();
       line.visible = false;
+      sdgsStore.setSelectedSDGLabel(0);  // Deselect and reset label to 0
       currentHex.value = null;
       renderDecisionHex('#target-box', 100, 100, 'whitesmoke', 'Publication');
     } else {
+      // Hide all other arrows first
       arrowLines.value.forEach((arrow) => arrow.hide());
-      line.show();
+      line.show();  // Show the clicked arrow
       line.visible = true;
+      sdgsStore.setSelectedSDGLabel(sdgId);  // Set the label to the selected SDG ID
       currentHex.value = hex;
       const hexColor = hex.getAttribute('data-color');
       renderDecisionHex('#target-box', 100, 100, hexColor, hex.getAttribute('data-id'));
     }
   };
+
 
   const initHoverAndClick = () => {
     const hexagons = document.querySelectorAll('.hexagon');
@@ -185,7 +198,7 @@ export default function useConnect() {
   };
 
   onMounted(() => {
-    renderHexGrid('#glyph-container', 450, 450);
+    renderHexGrid('#glyph-container', 250, 250);
     renderDecisionHex('#target-box', 100, 100, 'whitesmoke', 'Publication');
     initArrows();
     initHoverAndClick();

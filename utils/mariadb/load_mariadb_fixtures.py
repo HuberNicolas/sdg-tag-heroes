@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 from random import choice, randint, uniform
 from typing import List
 
@@ -130,9 +131,9 @@ def create_sdg_user_labels(session: Session, users: list[User], publications: li
             voted_label=randint(0, 17),
             abstract_section=faker.sentence(),
             comment=faker.sentence(),
-            labeled_at=faker.date_time_this_year(),
-            created_at=faker.date_time_this_year(),
-            updated_at=faker.date_time_this_year(),
+            labeled_at=datetime.now(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
         session.add(label)
         logging.info(f"Created {label}.")
@@ -154,7 +155,8 @@ def create_votes(session: Session, users: list[User], user_labels: list[SDGUserL
             sdg_user_label_id=choice(user_labels).label_id,
             vote_type=choice(list(VoteType)),
             score=round(uniform(0, 5), 2),
-            created_at=faker.date_time_this_year(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
         session.add(vote)
         logging.info(f"Created {vote}.")
@@ -176,8 +178,8 @@ def create_annotations(session: Session, users: list[User], user_labels: list[SD
             sdg_user_label_id=choice(user_labels).label_id,
             labeler_score=round(uniform(1.0, 100.0), 2),
             comment=faker.paragraph(),
-            created_at=faker.date_time_this_year(),
-            updated_at=faker.date_time_this_year(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
         session.add(annotation)
         logging.info(f"Created {annotation}.")
@@ -208,9 +210,9 @@ def create_sdg_label_decisions(
             decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
             scenario_type=choice(list(ScenarioType)),
             comment=faker.text(max_nb_chars=200),
-            decided_at=faker.date_time_this_year(),
-            created_at=faker.date_time_this_year(),
-            updated_at=faker.date_time_this_year(),
+            decided_at=datetime.now(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
         # Assign a random subset of unique user labels to the decision
         num_labels = randint(1, 3)
@@ -237,8 +239,8 @@ def create_sdg_label_decisions(
             decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
             scenario_type=choice(list(ScenarioType)),
             comment=choice(list(["Not decided yet", None])),
-            created_at=faker.date_time_this_year(),
-            updated_at=faker.date_time_this_year(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
         # Assign a random subset of unique user labels to the decision
         num_labels = randint(1, 3)
@@ -264,8 +266,8 @@ def create_wallets(session: Session, users: list[User]):
         wallet = SDGCoinWallet(
             user_id=user.user_id,
             total_coins=round(uniform(0, 1000), 2),  # Random initial coin balance
-            created_at=faker.date_time_this_year(),
-            updated_at=faker.date_time_this_year(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
         session.add(wallet)
         logging.info(f"Created {wallet}.")
@@ -287,7 +289,7 @@ def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_
                 increment=increment,
                 reason=faker.sentence(),
                 is_shown=False,
-                timestamp=faker.date_time_this_year(),
+                timestamp=faker.date_time_this_year(before_now=True),
             )
             session.add(history)
             logging.info(f"Created {history}.")
@@ -323,8 +325,8 @@ def create_xp_banks(session: Session, users: list[User]):
             sdg15_xp=round(uniform(0, 500), 2),
             sdg16_xp=round(uniform(0, 500), 2),
             sdg17_xp=round(uniform(0, 500), 2),
-            created_at=faker.date_time_this_year(),
-            updated_at=faker.date_time_this_year(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
         # Calculate the total XP as the sum of SDG-specific XP values
         xp_bank.total_xp = sum(
@@ -359,7 +361,7 @@ def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_en
                 increment=increment,
                 reason=faker.sentence(),
                 is_shown=False,
-                timestamp=faker.date_time_this_year(),
+                timestamp=faker.date_time_this_year(before_now=True),
             )
             session.add(history)
             logging.info(f"Created {history}.")
@@ -395,7 +397,7 @@ def create_votes_for_annotations(session: Session, annotations: list[Annotation]
             annotation_id=annotation.annotation_id,
             vote_type=choice(list(VoteType)),
             score=round(faker.random_number(digits=2) / 100, 2),  # Random score between 0.0 and 100.0
-            created_at=faker.date_time_this_year(),
+            created_at=faker.date_time_this_year(before_now=True),
         )
 
         session.add(vote)
@@ -544,9 +546,9 @@ def create_sdg_label_decisions_for_scenarios(
             decision_type=DecisionType.CONSENSUS_MAJORITY,
             scenario_type=scenario,
             comment=decision_comment,  # Use AI-generated comment
-            decided_at=faker.date_time_this_year(),
-            created_at=faker.date_time_this_year(),
-            updated_at=faker.date_time_this_year(),
+            decided_at=datetime.now(),
+            created_at=faker.date_time_this_year(before_now=True),
+            updated_at=faker.date_time_this_year(before_now=True),
         )
 
         session.add(decision)
@@ -591,9 +593,9 @@ def create_sdg_label_decisions_for_scenarios(
                 publication_id=publication.publication_id,
                 abstract_section=abstract_section,
                 comment=comment,
-                labeled_at=faker.date_time_this_year(),
-                created_at=faker.date_time_this_year(),
-                updated_at=faker.date_time_this_year(),
+                labeled_at=datetime.now(),
+                created_at=faker.date_time_this_year(before_now=True),
+                updated_at=faker.date_time_this_year(before_now=True),
             )
             decision.user_labels.append(user_label)
             session.add(user_label)
@@ -628,8 +630,8 @@ def create_sdg_label_decisions_for_scenarios(
                     decision_id=None,
                     labeler_score=round(uniform(1.0, 100.0), 2),
                     comment=response.annotation_text,
-                    created_at=faker.date_time_this_year(),
-                    updated_at=faker.date_time_this_year(),
+                    created_at=faker.date_time_this_year(before_now=True),
+                    updated_at=faker.date_time_this_year(before_now=True),
                 )
                 session.add(annotation)
                 annotations.append(annotation)
@@ -662,8 +664,8 @@ def create_sdg_label_decisions_for_scenarios(
                     decision_id=decision.decision_id,
                     labeler_score=round(uniform(1.0, 100.0), 2),
                     comment=response.annotation_text,
-                    created_at=faker.date_time_this_year(),
-                    updated_at=faker.date_time_this_year(),
+                    created_at=faker.date_time_this_year(before_now=True),
+                    updated_at=faker.date_time_this_year(before_now=True),
                 )
                 session.add(annotation)
                 annotations.append(annotation)
@@ -683,7 +685,7 @@ def create_sdg_label_decisions_for_scenarios(
                     annotation_id=None,
                     vote_type=choice(list(VoteType)),
                     score=round(uniform(0, 5), 2),
-                    created_at=faker.date_time_this_year(),
+                    created_at=faker.date_time_this_year(before_now=True),
                 )
                 session.add(vote)
         for annotation in annotations:
@@ -694,7 +696,7 @@ def create_sdg_label_decisions_for_scenarios(
                     annotation_id=annotation.annotation_id,
                     vote_type=choice(list(VoteType)),
                     score=round(uniform(0, 5), 2),
-                    created_at=faker.date_time_this_year(),
+                    created_at=faker.date_time_this_year(before_now=True),
                 )
                 session.add(vote)
         session.commit()

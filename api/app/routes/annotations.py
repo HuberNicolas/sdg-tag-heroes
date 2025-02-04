@@ -8,7 +8,7 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import Annotation
-from request_models.annotations_gpt import AnnotationEvaluationRequest
+from request_models.annotations_gpt import AnnotationEvaluationRequest, AnnotationCreateRequest
 from schemas import VoteSchemaFull
 from schemas.annotation import AnnotationSchemaFull
 from schemas.gpt_assistant_service import AnnotationEvaluationSchema
@@ -46,6 +46,59 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
+
+@router.post(
+    "/",
+    response_model=AnnotationSchemaFull,
+    description="Create a new annotation."
+)
+async def create_annotation(
+        request: AnnotationCreateRequest,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+) -> AnnotationSchemaFull:
+    """
+    Create a new annotation.
+    """
+    try:
+        user = verify_token(token, db)  # Authenticate user
+
+        # Ensure either `sdg_user_label_id` or `decision_id` is set, but not both
+        if request.sdg_user_label_id and request.decision_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only one of `sdg_user_label_id` or `decision_id` should be provided.",
+            )
+
+        # Create new annotation instance
+        new_annotation = Annotation(
+            user_id=request.user_id,
+            comment=request.comment,
+            sdg_user_label_id=request.sdg_user_label_id,
+            decision_id=request.decision_id,
+            labeler_score=request.labeler_score,
+        )
+
+        # Add to the database
+        db.add(new_annotation)
+        db.commit()
+        db.refresh(new_annotation)
+
+        return AnnotationSchemaFull.model_validate(new_annotation)
+
+    except ValidationError as ve:
+        logging.error(f"Validation error: {ve}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid input data.",
+        )
+    except Exception as e:
+        logging.error(f"Error creating annotation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while creating the annotation.",
+        )
+
 
 @router.post(
     "/score",

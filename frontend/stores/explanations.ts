@@ -7,7 +7,8 @@ export const useExplanationsStore = defineStore("explanations", {
     explanation: null as ExplanationSchema | null,
     isLoading: false,
     error: null as string | null,
-    markedText: "" as string, // New state property for the marked text
+    markedText: "" as string,
+    comment: "" as string,
   }),
   getters: {
     explanationDetails: (state) => state.explanation,
@@ -32,6 +33,11 @@ export const useExplanationsStore = defineStore("explanations", {
     // Action to update the marked text
     setMarkedText(text: string) {
       this.markedText = text;
+    },
+
+    // Action to update the comment
+    setComment(text: string) {
+      this.comment = text;
     },
   },
 });

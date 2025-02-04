@@ -241,10 +241,9 @@ class DecisionService:
 
         highest_sdg_number = None
         if sdg_prediction:
-            highest_sdg = sdg_prediction.get_highest_sdg()
-            logging.info(f"Highest SDG prediction: {highest_sdg}.")
-            highest_sdg_number = int(re.findall(r'\d+', highest_sdg[0])[0])
-            logging.info(f"Highest SDG prediction number: {highest_sdg_number}.")
+            highest_sdg_key, highest_sdg_number, highest_sdg_value = sdg_prediction.get_highest_sdg()
+            logging.info(
+                f"Highest SDG prediction: {highest_sdg_key} ({highest_sdg_number}), Value: {highest_sdg_value}.")
 
         unfinished_decision = next((d for d in history.decisions if d.decided_label == 0), None)
         if unfinished_decision:

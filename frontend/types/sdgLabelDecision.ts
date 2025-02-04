@@ -1,4 +1,4 @@
-import { DecisionType, ScenarioType } from "./enums";
+import type { DecisionType, ScenarioType } from "./enums";
 import type {
   AnnotationSchemaBase,
   AnnotationSchemaFull,

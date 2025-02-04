@@ -1,5 +1,5 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type { AnnotationSchemaBase, AnnotationSchemaFull } from "~/types/annotation";
+import type { AnnotationCreateRequest, AnnotationSchemaBase, AnnotationSchemaFull } from "~/types/annotation";
 import { snakeToCamel } from "~/utils/snakeToCamel";
 
 export default function useAnnotations() {
@@ -38,8 +38,28 @@ export default function useAnnotations() {
     }
   }
 
+  async function createAnnotation(request: AnnotationCreateRequest): Promise<AnnotationSchemaFull> {
+    try {
+      const response = await $fetch<AnnotationSchemaFull>(
+        `${config.public.apiUrl}/annotations`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+            "Content-Type": "application/json",
+          },
+          body: request,
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to create annotation: ${error}`);
+    }
+  }
+
   return {
     getAnnotations,
     getAnnotationById,
+    createAnnotation
   };
 }
