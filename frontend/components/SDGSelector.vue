@@ -7,8 +7,8 @@
         :key="sdg.id"
         @click="selectSDG(sdg.id)"
         :class="[
-          'cursor-pointer flex flex-col items-center justify-center border-2 rounded-lg p-1 w-18 h-18',
-          selectedSDG === sdg.id ? 'border-black bg-gray-100' : 'border-gray-200 hover:border-gray-400',
+          'cursor-pointer flex flex-col items-center justify-center rounded-lg p-1 w-12 h-12',
+          selectedSDG === sdg.id ? 'bg-base-200' : 'hover:bg-base-100',
         ]"
       >
         <!-- SDG Icon -->
@@ -16,7 +16,7 @@
           v-if="sdg.icon"
           :src="`data:image/svg+xml;base64,${sdg.icon}`"
           :alt="`SDG ${sdg.id} Icon`"
-          class="w-6 h-6 object-contain"
+          class="w-8 h-8 object-contain"
         />
 
         <!-- SDG Short Title -->
@@ -25,16 +25,11 @@
         </span>
       </div>
 
-      <!-- Reset Button -->
-      <button
-        @click="resetSelection"
-        class="mb-1 px-1 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600 transition-colors"
-      >
-        Reset
-      </button>
     </div>
   </div>
 </template>
+
+
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";

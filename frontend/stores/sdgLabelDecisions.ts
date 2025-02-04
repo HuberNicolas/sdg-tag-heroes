@@ -148,6 +148,24 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
       }
     },
 
+    async fetchAnnotationsByDecisionId(decisionId: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getAnnotationsByDecisionId } = useAnnotations();
+        this.annotations = await getAnnotationsByDecisionId(decisionId);
+      } catch (error) {
+        this.error = `Failed to fetch annotations for decision ID ${decisionId}: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+
+
+
     // Select a User Label
     selectUserLabel(label: SDGUserLabelSchemaFull | null) {
       this.selectedUserLabel = label;

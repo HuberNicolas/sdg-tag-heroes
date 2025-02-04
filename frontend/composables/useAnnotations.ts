@@ -57,9 +57,26 @@ export default function useAnnotations() {
     }
   }
 
+  async function getAnnotationsByDecisionId(decisionId: number): Promise<AnnotationSchemaFull[]> {
+    try {
+      const response = await $fetch<AnnotationSchemaFull[]>(
+        `${config.public.apiUrl}/annotations/label-decisions/${decisionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch annotations for decision ID ${decisionId}: ${error}`);
+    }
+  }
+
   return {
     getAnnotations,
     getAnnotationById,
-    createAnnotation
+    createAnnotation,
+    getAnnotationsByDecisionId,
   };
 }

@@ -153,6 +153,41 @@ async def evaluate_annotation_score(
 
 
 @router.get(
+    "/label-decisions/{label_decision_id}",
+    response_model=List[AnnotationSchemaFull],
+    description="Retrieve all annotations for a specific label decision."
+)
+async def get_annotations_by_label_decision(
+        label_decision_id: int,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+) -> List[AnnotationSchemaFull]:
+    """
+    Retrieve all annotations associated with a specific SDG label decision.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        annotations = db.query(Annotation).filter(Annotation.decision_id == label_decision_id).all()
+
+        if not annotations:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No annotations found for label decision ID {label_decision_id}.",
+            )
+
+        return [AnnotationSchemaFull.model_validate(annotation) for annotation in annotations]
+
+    except Exception as e:
+        logging.error(f"Error fetching annotations for label decision ID {label_decision_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching annotations for the label decision.",
+        )
+
+
+
+@router.get(
     "/{annotation_id}",
     response_model=AnnotationSchemaFull,
     description="Retrieve a specific annotation by ID"

@@ -17,25 +17,27 @@
       </div>
 
       <div class="row-span-1 col-span-4 bg-yellow-400">
-        <CommentSummary></CommentSummary>
+        <!--  <CommentSummary></CommentSummary> -->
+
       </div>
       <div class="row-span-8 col-span-4 bg-orange-400">
-        <CommentSection></CommentSection>
-      </div>
-      <div class="row-span-1 col-span-2 bg-green-400">
-        <QuestIndicator></QuestIndicator>
-        <UToggle
-          on-icon="i-heroicons-check-20-solid"
-          off-icon="i-heroicons-x-mark-20-solid"
-          :model-value="false"
-        />
-        <div class="badge badge-outline">default</div>
-        <div class="badge badge-primary badge-outline">primary</div>
-        <div class="badge badge-secondary badge-outline">secondary</div>
-        <div class="badge badge-accent badge-outline">accent</div>
-      </div>
-    </div>
-  </div>
+        <!--  <CommentSection></CommentSection> -->
+       <CommentSectionAnnotations></CommentSectionAnnotations>
+     </div>
+     <div class="row-span-1 col-span-2 bg-green-400">
+       <QuestIndicator></QuestIndicator>
+       <UToggle
+         on-icon="i-heroicons-check-20-solid"
+         off-icon="i-heroicons-x-mark-20-solid"
+         :model-value="false"
+       />
+       <div class="badge badge-outline">default</div>
+       <div class="badge badge-primary badge-outline">primary</div>
+       <div class="badge badge-secondary badge-outline">secondary</div>
+       <div class="badge badge-accent badge-outline">accent</div>
+     </div>
+   </div>
+ </div>
 </template>
 
 <script setup lang="ts">
