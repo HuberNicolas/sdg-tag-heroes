@@ -17,12 +17,24 @@
       </div>
 
       <div class="row-span-1 col-span-4 bg-yellow-400">
-        <!--  <CommentSummary></CommentSummary> -->
+        <CommentSummary></CommentSummary>
 
       </div>
       <div class="row-span-8 col-span-4 bg-orange-400">
-        <!--  <CommentSection></CommentSection> -->
-       <CommentSectionAnnotations></CommentSectionAnnotations>
+        <!-- Toggle Switch -->
+        <div class="flex justify-start items-center mb-4">
+          <label for="comment-toggle" class="mr-2 text-lg font-medium text-gray-700">Show Annotations</label>
+          <input
+            id="comment-toggle"
+            type="checkbox"
+            class="toggle toggle-primary"
+            v-model="showAnnotations"
+          />
+        </div>
+
+        <!-- Conditional Rendering -->
+        <CommentSection v-if="!showAnnotations" />
+        <CommentSectionAnnotations v-else />
      </div>
      <div class="row-span-1 col-span-2 bg-green-400">
        <QuestIndicator></QuestIndicator>
@@ -47,10 +59,13 @@ import CommentSummary from "~/components/CommentSummary.vue"
 import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
 import AnnotationSection from "~/components/AnnotationSection.vue";
 import SDGUserLabelToggle from "~/components/SDGUserLabelToggle.vue";
+import { ref } from 'vue';
 
 const route = useRoute()
 
 const publicationId = route.params.publicationId
+
+const showAnnotations = ref(false); // State to toggle between components
 
 </script>
 
