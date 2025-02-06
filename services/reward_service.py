@@ -20,6 +20,7 @@ class RewardService:
     def reward_users(self, decision: SDGLabelDecision) -> None:
         """
         Reward users based on their votes in the decision.
+        The winning label gets 100 coins, the second most common label gets 50 coins.
         """
         logging.info("Rewarding users.")
         winning_label = decision.decided_label
@@ -27,28 +28,45 @@ class RewardService:
             logging.info("No reward: No decision made.")
             return
 
+        # Count votes for each label
+        vote_counts = {}
         user_votes = {}
+
         for label in decision.user_labels:
-            if label.user_id not in user_votes:
-                user_votes[label.user_id] = set()
-            user_votes[label.user_id].add(label.voted_label)
+            user_votes.setdefault(label.user_id, set()).add(label.voted_label)
+            vote_counts[label.voted_label] = vote_counts.get(label.voted_label, 0) + 1
 
-        winners = [user_id for user_id, user_set in user_votes.items() if winning_label in user_set]
+        # Identify the second most common label
+        sorted_labels = sorted(vote_counts.items(), key=lambda x: x[1], reverse=True)
+        second_label = sorted_labels[1][0] if len(sorted_labels) > 1 else None
 
-        for user_id in user_votes:
+        for user_id, voted_labels in user_votes.items():
             wallet = self.db.query(SDGCoinWallet).filter(SDGCoinWallet.user_id == user_id).first()
             if not wallet:
                 logging.warning(f"Wallet not found for user {user_id}.")
                 continue
 
-            if user_id in winners:
-                increment = 100 if len(user_votes[user_id]) <= 3 else -10 * (len(user_votes[user_id]) - 3)
-                reason = f"Reward for voting for SDG {winning_label}." if increment > 0 else f"Penalty for voting on too many SDGs (limit 3)."
-                logging.info(f"User {user_id} rewarded: {increment} coins.")
+            # Determine the reward
+            if winning_label in voted_labels:
+                increment = 100  # Full reward
+                reason = f"Reward for voting for the winning SDG {winning_label}."
+            elif second_label and second_label in voted_labels:
+                increment = 50  # Half reward
+                reason = f"Partial reward for voting for SDG {second_label} (2nd most common)."
             else:
-                increment = 0
-                reason = f"No reward: Did not vote for SDG {winning_label}."
-                logging.info(f"User {user_id} not rewarded.")
+                increment = 0  # No reward
+                reason = f"No reward: Did not vote for SDG {winning_label} or {second_label}."
+
+            """
+            # Future Work
+            
+            # Apply penalty if user voted for more than 3 labels
+            if len(voted_labels) > 3:
+                penalty = -10 * (len(voted_labels) - 3)
+                increment += penalty
+                reason += f" Penalty for voting on too many SDGs ({len(voted_labels)})."
+            
+            """
 
             if increment != 0:
                 wallet.total_coins += increment
@@ -58,7 +76,8 @@ class RewardService:
                     reason=reason,
                 )
                 self.db.add(wallet_history)
-                logging.info(f"Wallet history updated for user {user_id}.")
+                logging.info(f"User {user_id} updated: {increment} coins. {reason}")
 
         self.db.commit()
         logging.info("User rewards processed.")
+

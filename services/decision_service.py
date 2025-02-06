@@ -10,6 +10,7 @@ from enums.enums import DecisionType, ScenarioType
 from models import SDGLabelDecision, SDGLabelHistory, SDGLabelSummary, SDGPrediction, SDGUserLabel
 from models.publications.publication import Publication
 from request_models.sdg_user_label import UserLabelRequest
+from services.reward_service import RewardService
 from settings.settings import TimeZoneSettings, DecisionServiceSettings
 from utils.logger import logger
 
@@ -117,7 +118,12 @@ class DecisionService:
         decision.decision_type = DecisionType.CONSENSUS_MAJORITY
         self.db.commit()
 
+        # Ensure label summary is updated after finalizing decision
         self.update_label_summary(decision)
+
+        # Reward users after the decision is finalized
+        reward_service = RewardService(self.db)
+        reward_service.reward_users(decision)
 
     def update_label_summary(self, decision: SDGLabelDecision) -> None:
         """

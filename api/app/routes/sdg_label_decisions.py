@@ -148,6 +148,8 @@ async def get_sdg_label_decisions(
             history = new_history  # Assign the newly created history
             logging.info(f"Created new SDGLabelHistory (ID: {history.history_id}) for publication {publication_id}.")
 
+        # If TODO: decisions exists, return the first newest one
+
         # Check for existing decisions
         if not history.decisions:
             logging.info(f"No SDGLabelDecisions found for publication {publication_id}, creating a new decision.")
