@@ -1,20 +1,17 @@
 <template>
   <div class="flex flex-col h-screen">
     <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
-      <div class="row-span-5 col-span-5 bg-red-400 p-1">
+      <div class="row-span-5 col-span-4 bg-red-400 p-1">
         <ScatterSDGPlot
           v-if="selectedSDG !== null && selectedLevel !== null"
           :width="scatterPlotWidth"
           :height="scatterPlotHeight"/>
       </div>
-      <div class="row-span-5 col-span-5 bg-blue-400 p-1">
+      <div class="row-span-5 col-span-4 bg-blue-400 p-1">
         Options SDG {{selectedSDG}} - Level {{selectedLevel}}
         <!-- Add h-full to ensure the grid takes full height -->
 
-        <div class="grid grid-cols-3 h-full">
-          <div class="col-span-3 bg-green-400 p-1">
-            Publication Summary
-          </div>
+        <div class="grid grid-rows-3 grid-cols-2 h-full">
           <div class="col-span-1 bg-purple-400">
             <BarPlot
               :width="barPlotWidth"
@@ -29,29 +26,19 @@
               />
             </div>
           </div>
-          <div class="col-span-1 bg-purple-400">
+          <div class="col-span-2 bg-purple-400">
             <ExplorationUserQuery></ExplorationUserQuery>
           </div>
         </div>
       </div>
-      <div class="row-span-1 col-span-5 bg-green-400 p-1">
+      <div class="row-span-3 col-span-6 bg-blue-400 h-full overflow-auto p-1">
+        <PublicationDetails></PublicationDetails>
+      </div>
+      <div class="row-span-1 col-span-6 bg-green-400 p-1">
         <div class="grid grid-rows-2 grid-cols-6 grid-flow-col h-full">
           <div class="col-span-2 row-span-2 bg-purple-400">
             <div class="flex items-center justify-center">
-              <h1>Quests</h1>
-            </div>
-            <div class="flex items-center justify-around">
-              <QuestButton
-                icon="i-heroicons-light-bulb"
-                name="Label Sparse Instances"
-                tooltip="Label an instance with the least annotations"
-              />
-
-              <QuestButton
-                icon="i-heroicons-fire"
-                name="High Stakes"
-                tooltip="Sort the most uncertain instances based on entropy"
-              />
+              <FilterState></FilterState>
             </div>
           </div>
 
@@ -84,12 +71,11 @@
                 name="Tiebreaker"
                 tooltip="Resolve conflicts with a balanced approach"
               />
-
             </div>
           </div>
         </div>
       </div>
-      <div class="row-span-8 col-span-5 bg-yellow-400 p-1">
+      <div class="row-span-6 col-span-6 bg-yellow-400 p-1">
         <PublicationsTable></PublicationsTable>
       </div>
     </div>
@@ -104,6 +90,7 @@ import QuestButton from "~/components/QuestButton.vue";
 import ExplorationUserQuery from "~/components/ExplorationUserQuery.vue";
 import { ref, onMounted, watch } from 'vue';
 import { useGameStore } from '~/stores/game';
+import PublicationDetails from "~/components/PublicationDetails.vue";
 
 
 const route = useRoute()

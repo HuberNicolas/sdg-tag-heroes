@@ -19,6 +19,19 @@
         </NuxtLink>
       </div>
 
+
+      <div>
+        You are in Qdrant ...
+      </div>
+
+      <div>
+        You are in level
+      </div>
+
+      <div>
+        You are in stage
+      </div>
+
       <!-- Center Section: Top 3 SDGs -->
       <div class="flex items-center space-x-4">
         <div>Top SDGs</div>

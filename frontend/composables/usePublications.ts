@@ -12,6 +12,11 @@ import type {
   PublicationSummarySchema
 } from "~/types/publication";
 
+import type {
+  SummarySchemaBase,
+  SummarySchemaFull
+} from "~/types/summary";
+
 export default function usePublications() {
   const config = useRuntimeConfig();
   const accessToken = useCookie('access_token');
@@ -162,9 +167,9 @@ export default function usePublications() {
   // Fetch a summary for a publication
   async function getPublicationSummary(
     publicationId: number
-  ): Promise<PublicationSummarySchema> {
+  ): Promise<SummarySchemaFull> {
     try {
-      const response = await $fetch<PublicationSummarySchema>(
+      const response = await $fetch<SummarySchemaFull>(
         `${config.public.apiUrl}/publications/${publicationId}/summary`,
         {
           method: "GET",

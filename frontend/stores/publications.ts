@@ -15,6 +15,7 @@ export const usePublicationsStore = defineStore("publications", {
   state: () => ({
     publications: [] as PublicationSchemaBase[],
     publicationDetails: null as PublicationSchemaFull | null,
+    selectedPublication: null as PublicationSchemaBase | null,
     similarPublications: null as PublicationSimilaritySchema | null,
     sdgAnalysis: null as PublicationSDGAnalysisSchema | null,
     keywords: null as PublicationKeywordsSchema | null,
@@ -38,6 +39,11 @@ export const usePublicationsStore = defineStore("publications", {
     },
   },
   actions: {
+    setSelectedPublication(publication: PublicationSchemaBase) {
+      this.selectedPublication = publication;
+      this.selectedPartitionedPublications = [publication];
+    },
+
     // Fetch publications by IDs
     async fetchPublicationsByIds(publicationIds: number[]) {
       this.isLoading = true;

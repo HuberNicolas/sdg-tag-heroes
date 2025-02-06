@@ -18,6 +18,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const level = gameStore.getLevel;
   const sdg = gameStore.getSDG;
   let scatterPlotInstance = null; // Store Plotly instance
+  let selectedPoint = null; // Store clicked point coordinates
 
   // Fetch partitioned data from all stores
   const fetchData = async () => {
@@ -57,7 +58,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
         symbol: "hexagon2",
         color: selectedSDGColor,
         line: {
-          width: 2, // Adjust outline thickness
+          width: 5, // Adjust outline thickness
           color: combinedData.map(d => {
             if (!d.sdgPrediction) return "black";
 
@@ -128,6 +129,32 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       Plotly.relayout(container, { 'xaxis.range': [0, 100], 'yaxis.range': [0, 100] });
     });
 
+    container.on('plotly_click', function (eventData) {
+      if (eventData && eventData.points.length > 0) {
+        const clickedPoint = eventData.points[0];
+        const clickedIndex = clickedPoint.pointNumber;
+
+        // Ensure the clicked marker is NOT the user marker (gold star)
+        if (clickedPoint.data.marker.symbol === "star") return;
+
+        // Get the selected publication
+        const selectedPublication = combinedData[clickedIndex]?.publication;
+        if (selectedPublication) {
+          publicationsStore.setSelectedPublication(selectedPublication);
+          console.log("Selected Publication:", selectedPublication);
+
+          // Store the clicked point's coordinates
+          selectedPoint = {
+            x: clickedPoint.x,
+            y: clickedPoint.y
+          };
+
+          updateHighlightedPoint();
+        }
+      }
+    });
+
+
     // Function to create user marker
     function createUserMarker() {
       const userCoordinates = gameStore.getUserCoordinates;
@@ -152,6 +179,32 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
         hoverinfo: "text",
       };
     }
+
+    function updateHighlightedPoint() {
+      if (!selectedPoint) return;
+
+      const highlightMarker = {
+        x: [selectedPoint.x],
+        y: [selectedPoint.y],
+        mode: "markers",
+        type: "scatter",
+        marker: {
+          size: 50, // Slightly larger to create a circle effect
+          symbol: "circle",
+          color: "rgba(0, 0, 0, 0.1)", // Transparent black
+          line: {
+            width: 3,
+            color: "black",
+          },
+          opacity: 1.0,
+        },
+        text: [`Selected Point`],
+        hoverinfo: "text",
+      };
+
+      Plotly.react(container, [scatterData, highlightMarker, userMarker].filter(Boolean), layout);
+    }
+
 
     // Function to update user marker dynamically
     function updateUserMarker() {
