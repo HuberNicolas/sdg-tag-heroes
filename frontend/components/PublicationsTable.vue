@@ -15,7 +15,9 @@
       </thead>
       <tbody>
       <tr v-for="(item, index) in tableData" :key="index" class="hover:bg-gray-50">
-        <td class="border border-gray-300 p-2 text-xs">{{ item.title }}</td>
+        <td class="border border-gray-300 p-2 text-xs">
+          <NuxtLink :to="`/labeling2/${item.publicationId}`">{{ item.title }}</NuxtLink>
+        </td>
         <td class="border border-gray-300 p-2 flex items-center justify-center">
           <HexGlyph :values="item.values" :height="80" :width="60" />
         </td>
@@ -59,16 +61,11 @@ watch(
   { deep: true }
 );
 
-// Check if any SDGLabelDecision has a scenarioType
-const hasScenarioType = computed(() => {
-  return labelDecisionsStore.sdgLevelSDGLabelDecisions.some(decision => decision.scenarioType);
-});
 
 function getScenarioProps(scenarioType: string) {
   // Return the mapping or a fallback if not found
   return scenarioMapping[scenarioType] || { icon: '', name: '', tooltip: '' };
 }
-
 
 // Mapping for scenario types to chip properties
 const scenarioMapping: Record<string, { icon: string; name: string; tooltip: string }> = {
@@ -145,6 +142,7 @@ const tableData = computed(() => {
 
     return {
       title: pub.title,
+      publicationId: pub.publicationId,
       values,
       //xp,
       coins,
