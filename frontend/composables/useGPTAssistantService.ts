@@ -4,6 +4,8 @@ import type {
   UserEnrichedSkillsDescription,
   UserProfileSkillsRequest,
   UserProfileInterestsRequest,
+  UserCoordinatesRequest,
+  UserCoordinates
 } from "~/types/gptAssistantService";
 
 export default function useGPTAssistantService() {
@@ -98,10 +100,38 @@ export default function useGPTAssistantService() {
     }
   }
 
+  // Fetch user coordinates based on enriched description
+  async function getUserCoordinates(
+    request: UserCoordinatesRequest
+  ): Promise<UserCoordinates> {
+    try {
+      const response = await $fetch<UserCoordinates>(
+        `${config.public.apiUrl}/dimensionality-reductions/user-coordinates`,
+        {
+          method: "POST",
+          body: {
+            sdg: request.sdg,
+            level: request.level,
+            user_query: request.userQuery,
+          },
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      throw new Error(`Failed to fetch user coordinates: ${error}`);
+    }
+  }
+
+
   return {
     getSkillsDescription,
     getInterestsDescription,
     proposeSdgBasedOnSkills,
     proposeSdgBasedOnInterests,
+    getUserCoordinates,
   };
 }

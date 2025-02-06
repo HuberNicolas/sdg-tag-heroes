@@ -1,13 +1,20 @@
 <template>
   <div class="flex flex-col h-screen">
-    <div class="grid grid-rows-8 grid-cols-6 grid-flow-col h-full">
-      <div class="row-span-6 col-span-4 bg-red-400">
-        <ScatterSDGPlot :width="scatterPlotWidth" :height="scatterPlotHeight"/>
+    <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
+      <div class="row-span-5 col-span-5 bg-red-400 p-1">
+        <ScatterSDGPlot
+          v-if="selectedSDG !== null && selectedLevel !== null"
+          :width="scatterPlotWidth"
+          :height="scatterPlotHeight"/>
       </div>
-      <div class="row-span-2 col-span-4 bg-blue-400">
+      <div class="row-span-5 col-span-5 bg-blue-400 p-1">
         Options SDG {{selectedSDG}} - Level {{selectedLevel}}
         <!-- Add h-full to ensure the grid takes full height -->
+
         <div class="grid grid-cols-3 h-full">
+          <div class="col-span-3 bg-green-400 p-1">
+            Publication Summary
+          </div>
           <div class="col-span-1 bg-purple-400">
             <BarPlot
               :width="barPlotWidth"
@@ -27,10 +34,8 @@
           </div>
         </div>
       </div>
-      <div class="row-span-1 col-span-2 bg-green-400 p-4">
-
+      <div class="row-span-1 col-span-5 bg-green-400 p-1">
         <div class="grid grid-rows-2 grid-cols-6 grid-flow-col h-full">
-
           <div class="col-span-2 row-span-2 bg-purple-400">
             <div class="flex items-center justify-center">
               <h1>Quests</h1>
@@ -83,13 +88,8 @@
             </div>
           </div>
         </div>
-
-
-
-
-
       </div>
-      <div class="row-span-7 col-span-2 bg-yellow-400">
+      <div class="row-span-8 col-span-5 bg-yellow-400 p-1">
         <PublicationsTable></PublicationsTable>
       </div>
     </div>
@@ -102,27 +102,33 @@ import RainPlot from '@/components/plots/RainPlot.vue';
 import BarPlot from '@/components/plots/BarPlot.vue';
 import QuestButton from "~/components/QuestButton.vue";
 import ExplorationUserQuery from "~/components/ExplorationUserQuery.vue";
-import { ref, onMounted } from 'vue';
-import { useSDGsStore } from '~/stores/sdgs';
+import { ref, onMounted, watch } from 'vue';
 import { useGameStore } from '~/stores/game';
 
 
-
 const route = useRoute()
-
-
-const selectedSDG = route.params.sdg as Number
-const selectedLevel = route.params.level as Number
-
-const sdgsStore = useSDGsStore();
 const gameStore = useGameStore();
 
-// Set the selectedSDG and selectedLevel in the stores
-onMounted(() => {
-  sdgsStore.setSelectedSDG(selectedSDG);
-  gameStore.setLevel(selectedLevel);
-});
+// Make as reactive
+const selectedSDG = ref(null);
+const selectedLevel = ref(null);
 
+
+// Watch for route changes and update the store
+watch(
+  () => route.params,
+  (params) => {
+    selectedSDG.value = Number(params.sdg);
+    selectedLevel.value = Number(params.level);
+
+    // Ensure the store updates after values change
+    if (selectedSDG.value && selectedLevel.value) {
+      gameStore.setSDG(selectedSDG.value);
+      gameStore.setLevel(selectedLevel.value);
+    }
+  },
+  { immediate: true } // Run the watcher immediately on component mount
+);
 
 
 // Track dimensions for ScatterPlot

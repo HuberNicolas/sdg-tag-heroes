@@ -15,18 +15,18 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const sdgsStore = useSDGsStore();
 
   const level = gameStore.getLevel;
-  const sdg = sdgsStore.getSelectedSDG;
+  const sdg = gameStore.getSDG;
 
   // Fetch partitioned data from all stores
   const fetchData = async () => {
     const reductionShorthand = 'UMAP-15-0.0-2';
 
     await Promise.all([
-      dimensionalityReductionsStore.fetchDimensionalityReductionsBySDGAndLevel(10, reductionShorthand, level),
-      publicationsStore.fetchPublicationsForDimensionalityReductions(10, reductionShorthand, level),
-      sdgPredictionsStore.fetchSDGPredictionsByLevel(10, reductionShorthand, level),
+      dimensionalityReductionsStore.fetchDimensionalityReductionsBySDGAndLevel(sdg, reductionShorthand, level),
+      publicationsStore.fetchPublicationsForDimensionalityReductions(sdg, reductionShorthand, level),
+      sdgPredictionsStore.fetchSDGPredictionsByLevel(sdg, reductionShorthand, level),
       sdgsStore.fetchSDGs(),
-      labelDecisionsStore.fetchSDGLabelDecisionsForReduction(10, reductionShorthand, level),
+      labelDecisionsStore.fetchSDGLabelDecisionsForReduction(sdg, reductionShorthand, level),
   ]);
   }
 
@@ -54,7 +54,8 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     sdgPredictionsStore.selectedPartitionedSDGPredictions = sdgPredictionsStore.partitionedSDGPredictions;
 
 
-
+    // Get the color for the selected SDG
+    const selectedSDGColor = sdgsStore.getColorBySDG(sdg);
 
 
     const scatterData = {
@@ -64,29 +65,23 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       type: 'scatter',
       marker: {
         size: combinedData.map(d => (mode === 'top1' ? d.sdgPrediction.entropy * 10 : 10)),
-        color: combinedData.map(d => {
-          if (mode === 'normal') return 'steelblue';
+        symbol: "hexagon2",
+        color: selectedSDGColor,
+        line: {
+          width: 2, // Adjust outline thickness
+          color: combinedData.map(d => {
+            if (!d.sdgPrediction) return "black"; // Default to black if no prediction
 
-          if (mode === 'top1') {
-            if (d.sdgPrediction) {
-              // Find the max SDG prediction dynamically
-              // TODO: Refactor, very ugly, but works :)
-              const maxSDG = Object.entries(d.sdgPrediction)
-                .filter(([key]) => key.startsWith('sdg')) // Only include SDG keys
-                .reduce((max, [key, value]) => {
-                  return value > max.value ? { key, value } : max;
-                }, { key: null, value: -Infinity });
+            // Find the top 2 SDG predictions
+            const sortedPredictions = Object.entries(d.sdgPrediction)
+              .filter(([key]) => key.startsWith('sdg')) // Only include SDG keys
+              .sort(([, valA], [, valB]) => valB - valA); // Sort in descending order
 
-              if (maxSDG.key) {
-                // Extract the SDG number from the key and pass it to getColorBySDG
-                const sdgId = parseInt(maxSDG.key.replace('sdg', ''), 10);
-                return sdgsStore.getColorBySDG(sdgId);
-              }
-            }
-            return 'steelblue';
-          }
-          return 'steelblue';
-        }),
+            const highestSdgId = parseInt(sortedPredictions[0][0].replace('sdg', ''), 10);
+            return sdgsStore.getColorBySDG(highestSdgId); // Outline color is highest SDG prediction
+          }),
+        },
+
         opacity: 0.7
       },
       text: combinedData.map(d =>

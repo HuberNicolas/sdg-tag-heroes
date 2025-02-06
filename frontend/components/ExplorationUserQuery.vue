@@ -52,7 +52,7 @@ export default {
   },
   methods: {
     async handleGetEnrichedDescription() {
-      const { getSkillsDescription, getInterestsDescription } = useGPTAssistantService();
+      const { getSkillsDescription, getInterestsDescription, getUserCoordinates } = useGPTAssistantService();
       const gameStore = useGameStore();
       const input = this.inputValue.trim();
 
@@ -68,6 +68,17 @@ export default {
 
         if (response) {
           this.enrichedDescription = response.enrichedDescription;
+
+
+          // Fetch user coordinates
+          if (gameStore.getSDG && gameStore.getLevel) {
+            response = await getUserCoordinates({
+              sdg: gameStore.getSDG,
+              level: gameStore.getLevel,
+              userQuery: response.enrichedDescription});
+            gameStore.setUserCoordinates(response);
+          }
+
         } else {
           this.enrichedDescription = "No enriched description available.";
         }
