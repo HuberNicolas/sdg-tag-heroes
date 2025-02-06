@@ -15,6 +15,8 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
     partitionedSDGPredictions: [] as SDGPredictionSchemaFull[], // All SDGs
     sdgLevelSDGPredictions: [] as SDGPredictionSchemaFull[], // 1 SDG
 
+    scenarioTypeSDGPredictions: [] as SDGPredictionSchemaFull[],
+
 
     selectedPartitionedSDGPredictions: [] as SDGPredictionSchemaFull[],
   }),
@@ -169,6 +171,32 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
       } finally {
         this.isLoading = false;
       }
-    }
+    },
+
+    // Fetch SDG predictions by SDG, reduction shorthand, and scenario type
+    async fetchSDGPredictionsForDimensionalityReductionsWithScenario(
+      sdg: number,
+      reductionShorthand: string,
+      scenarioType: string
+    ) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGPredictionsForDimensionalityReductionsWithScenario } =
+          useSDGPredictions();
+        this.scenarioTypeSDGPredictions =
+          await getSDGPredictionsForDimensionalityReductionsWithScenario(
+            sdg,
+            reductionShorthand,
+            scenarioType
+          );
+      } catch (error) {
+        this.error = `Failed to fetch SDG predictions for SDG ${sdg} and scenario ${scenarioType}: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
   },
 });

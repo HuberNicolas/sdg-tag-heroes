@@ -158,6 +158,30 @@ export default function useSDGPredictions() {
     }
   }
 
+  // Fetch SDG predictions for a given SDG, reduction shorthand, and scenario type
+  async function getSDGPredictionsForDimensionalityReductionsWithScenario(
+    sdg: number,
+    reductionShorthand: string,
+    scenarioType: string
+  ): Promise<SDGPredictionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGPredictionSchemaFull[]>(
+        `${config.public.apiUrl}/sdg-predictions/dimensionality-reductions/sdgs/${sdg}/${reductionShorthand}/scenarios/${scenarioType}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch SDG predictions for SDG ${sdg}, scenario ${scenarioType}: ${error}`
+      );
+    }
+  }
+
+
   return {
     getSDGPredictionsByIds,
     getSDGPredictionsByPublicationIds,
@@ -167,6 +191,7 @@ export default function useSDGPredictions() {
     getPublicationMetricsById,
     getPublicationsByMetric,
     getSDGPredictionsForDimensionalityReductionsPartitioned,
-    getSDGPredictionsByLevel
+    getSDGPredictionsByLevel,
+    getSDGPredictionsForDimensionalityReductionsWithScenario,
   };
 }

@@ -17,6 +17,8 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
     partitionedReductions: [] as DimensionalityReductionSchemaFull[], // All SDGs
     sdgLevelReductions: [] as DimensionalityReductionSchemaFull[], // 1 SDG
 
+    scenarioTypeReductions: [] as DimensionalityReductionSchemaFull[],
+
     selectedPartitionedReductions: [] as DimensionalityReductionSchemaFull[],
     isLoading: false,
     error: null as string | null,
@@ -41,7 +43,7 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
     // Fetch dimensionality reductions for specific publications
     async fetchDimensionalityReductionsForPublications(
       request: DimensionalityReductionPublicationIdsRequest,
-      reductionShorthand: string = "UMAP-15-0.1-2"
+      reductionShorthand: string = "UMAP-15-0.0-2"
     ) {
       this.isLoading = true;
       this.error = null;
@@ -145,7 +147,31 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
       } finally {
         this.isLoading = false;
       }
-    }
+    },
+
+    // Fetch dimensionality reductions by SDG and scenario type
+    async fetchDimensionalityReductionsBySDGAndScenario(
+      sdg: number,
+      reductionShorthand: string,
+      scenarioType: string
+    ) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getDimensionalityReductionsBySDGAndScenario } = useDimensionalityReductions();
+        this.scenarioTypeReductions = await getDimensionalityReductionsBySDGAndScenario(
+          sdg,
+          reductionShorthand,
+          scenarioType
+        );
+      } catch (error) {
+        this.error = `Failed to fetch dimensionality reductions for SDG ${sdg} and scenario ${scenarioType}: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
 
   },
 });

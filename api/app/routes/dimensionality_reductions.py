@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session, sessionmaker, aliased
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-from enums.enums import LevelType
-from models import DimensionalityReduction, SDGPrediction
+from enums.enums import LevelType, ScenarioType
+from models import DimensionalityReduction, SDGPrediction, SDGLabelDecision
 from models.publications.publication import Publication
 from request_models.dimensionality_reductions import UserCoordinatesRequest, \
     DimensionalityReductionPublicationIdsRequest
@@ -330,6 +330,56 @@ async def get_dimensionality_reductions_by_sdg_and_level(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching dimensionality reductions: {e}",
         )
+
+
+@router.get(
+    "/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
+    response_model=List[DimensionalityReductionSchemaFull],
+    description="Retrieve dimensionality reductions for a given reduction shorthand, SDG, and scenario type."
+)
+async def get_dimensionality_reductions_by_sdg_and_scenario(
+    sdg: int,
+    reduction_shorthand: str,
+    scenario_type: ScenarioType,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    try:
+        # Ensure user is authenticated
+        user = verify_token(token, db)
+
+        # Fetch Dimensionality Reductions with filtered join conditions
+        dimensionality_reductions = (
+            db.query(DimensionalityReduction)
+            .join(Publication, DimensionalityReduction.publication_id == Publication.publication_id)
+            .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
+            .join(SDGLabelDecision, Publication.publication_id == SDGLabelDecision.publication_id)  # New join
+            .filter(
+                DimensionalityReduction.reduction_shorthand == reduction_shorthand,
+                DimensionalityReduction.sdg == sdg,
+                SDGPrediction.prediction_model == "Aurora",
+                SDGLabelDecision.scenario_type == scenario_type  # Filtering by scenario_type
+            )
+            .order_by(DimensionalityReduction.dim_red_id)
+            # .limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
+            .all()
+        )
+        print(dimensionality_reductions)
+
+        logging.info(f"Retrieved {len(dimensionality_reductions)} dimensionality reductions for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(f"Returning {len(dimensionality_reductions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} dimensionality reductions.")
+
+        return dimensionality_reductions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching dimensionality reductions: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching dimensionality reductions: {e}",
+        )
+
 
 @router.post(
     "/user-coordinates",

@@ -246,6 +246,31 @@ export default function usePublications() {
     }
   }
 
+  // Fetch publications for a given SDG, reduction shorthand, and scenario type
+  async function getPublicationsForDimensionalityReductionsWithScenario(
+    sdg: number,
+    reductionShorthand: string,
+    scenarioType: string
+  ): Promise<PublicationSchemaBase[]> {
+    try {
+      const response = await $fetch<PublicationSchemaBase[]>(
+        `${config.public.apiUrl}/publications/dimensionality-reductions/sdgs/${sdg}/${reductionShorthand}/scenarios/${scenarioType}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch publications for SDG ${sdg}, scenario ${scenarioType}: ${error}`
+      );
+    }
+  }
+
+
+
 
 
   return {
@@ -260,5 +285,6 @@ export default function usePublications() {
     getCollectiveSummary,
     getPublicationsForDimensionalityReductionsPartitioned,
     getPublicationsForDimensionalityReductions,
+    getPublicationsForDimensionalityReductionsWithScenario,
   };
 }

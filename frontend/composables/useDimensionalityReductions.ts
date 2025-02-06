@@ -196,6 +196,26 @@ export default function useDimensionalityReductions() {
     }
   }
 
+  // Fetch dimensionality reductions by SDG and scenario type
+  async function getDimensionalityReductionsBySDGAndScenario(
+    sdg: number,
+    reductionShorthand: string,
+    scenarioType: string
+  ): Promise<DimensionalityReductionSchemaFull[]> {
+    try {
+      const response = await $fetch<DimensionalityReductionSchemaFull[]>(
+        `${config.public.apiUrl}/dimensionality-reductions/sdgs/${sdg}/${reductionShorthand}/scenarios/${scenarioType}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch dimensionality reductions for SDG ${sdg}, scenario ${scenarioType}: ${error}`);
+    }
+  }
 
 
   return {
@@ -206,6 +226,7 @@ export default function useDimensionalityReductions() {
     getGroupedDimensionalityReductions,
     calculateUserCoordinates,
     getDimensionalityReductionsPartitioned,
-    getSDGPredictionsByLevel
+    getSDGPredictionsByLevel,
+    getDimensionalityReductionsBySDGAndScenario
   };
 }

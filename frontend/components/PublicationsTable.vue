@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { usePublicationsStore } from '~/stores/publications';
 import { useSDGPredictionsStore } from '~/stores/sdgPredictions';
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
@@ -49,6 +49,15 @@ import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
 const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const labelDecisionsStore = useLabelDecisionsStore();
+
+
+watch(
+  () => labelDecisionsStore.scenarioTypeSDGLabelDecisions,
+  (newVal) => {
+    console.log("Scenario Label Decisions Updated:", newVal);
+  },
+  { deep: true }
+);
 
 // Check if any SDGLabelDecision has a scenarioType
 const hasScenarioType = computed(() => {
@@ -95,10 +104,11 @@ const scenarioMapping: Record<string, { icon: string; name: string; tooltip: str
 const tableData = computed(() => {
   return publicationsStore.selectedPartitionedPublications.map((pub, index) => {
     const prediction = sdgPredictionsStore.selectedPartitionedSDGPredictions[index];
-    const decision = labelDecisionsStore.sdgLevelSDGLabelDecisions.find(d => {
-      // console.log("Comparing", d.publicationId, "with", pub.publicationId);
-      return d.publicationId === pub.publicationId;
-    });
+
+    // Find decision in either standard or scenario-based SDG decisions
+    const decision = [...labelDecisionsStore.sdgLevelSDGLabelDecisions, ...labelDecisionsStore.scenarioTypeSDGLabelDecisions]
+      .find(d => d.publicationId === pub.publicationId);
+
 
     // Extract SDG values from the prediction
     const values = [

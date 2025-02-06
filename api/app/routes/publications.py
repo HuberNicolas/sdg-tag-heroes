@@ -10,8 +10,8 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qdrant_client
-from enums.enums import LevelType
-from models import SDGPrediction
+from enums.enums import LevelType, ScenarioType
+from models import SDGPrediction, SDGLabelDecision
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from request_models.publication import PublicationIdsRequest
@@ -216,6 +216,48 @@ async def get_publications_for_dimensionality_reductions(
 
         logging.info(f"Retrieved {len(publications)} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
         logging.info(f"Returning {len(publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+
+        return publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching publications: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching publications: {e}")
+
+
+@router.get(
+    "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
+    response_model=List[PublicationSchemaBase],
+    description="Retrieve the corresponding publications for a given SDG, reduction shorthand, and scenario type."
+)
+async def get_publications_for_dimensionality_reductions_with_scenario(
+    sdg: int,
+    reduction_shorthand: str,
+    scenario_type: ScenarioType,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[PublicationSchemaBase]:
+    try:
+        user = verify_token(token, db)
+
+        publications = (
+            db.query(Publication)
+            .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
+            .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
+            .join(SDGLabelDecision, Publication.publication_id == SDGLabelDecision.publication_id)  # New join
+            .filter(
+                DimensionalityReduction.reduction_shorthand == reduction_shorthand,
+                DimensionalityReduction.sdg == sdg,
+                SDGPrediction.prediction_model == "Aurora",
+                SDGLabelDecision.scenario_type == scenario_type  # Filtering by scenario_type
+            )
+            .order_by(Publication.publication_id)
+            # .limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
+            .all()
+        )
+
+        logging.info(f"Retrieved {len(publications)} publications for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(f"Returning {len(publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} publications.")
 
         return publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
     except HTTPException:

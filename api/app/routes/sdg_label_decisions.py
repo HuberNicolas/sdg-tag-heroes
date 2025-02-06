@@ -45,6 +45,51 @@ router = APIRouter(
 )
 
 @router.get(
+    "/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
+    response_model=List[SDGLabelDecisionSchemaFull],
+    description="Retrieve SDG Label Decisions for a given SDG, reduction shorthand, and scenario type."
+)
+async def get_sdg_label_decisions_for_scenario(
+    sdg: int,
+    reduction_shorthand: str,
+    scenario_type: ScenarioType,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGLabelDecisionSchemaFull]:
+    """
+    Retrieve SDG Label Decisions for a specific SDG, reduction shorthand, and scenario type.
+    """
+    try:
+        user = verify_token(token, db)
+
+        decisions = (
+            db.query(SDGLabelDecision)
+            .join(SDGLabelSummary, SDGLabelDecision.history_id == SDGLabelSummary.history_id)
+            .join(Publication, SDGLabelSummary.publication_id == Publication.publication_id)
+            .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
+            .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
+            .filter(
+                DimensionalityReduction.reduction_shorthand == reduction_shorthand,
+                DimensionalityReduction.sdg == sdg,
+                SDGPrediction.prediction_model == "Aurora",
+                SDGLabelDecision.scenario_type == scenario_type  # Filter by scenario type
+            )
+            .order_by(Publication.publication_id)
+            .all()
+        )
+
+        logging.info(f"Retrieved {len(decisions)} SDGLabelDecisions for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'.")
+
+        return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in decisions]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelDecisions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching SDGLabelDecisions: {e}")
+
+
+@router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
     response_model=List[SDGLabelDecisionSchemaFull],
     description="Retrieve the newest SDG Label Decisions corresponding to the publications selected by dimensionality reduction."

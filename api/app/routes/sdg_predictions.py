@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session, sessionmaker, aliased
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-from enums.enums import LevelType
-from models import SDGPrediction
+from enums.enums import LevelType, ScenarioType
+from models import SDGPrediction, SDGLabelDecision
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from request_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, SDGPredictionsIdsRequest
@@ -217,6 +217,7 @@ async def get_default_model_sdg_predictions_by_publication_id(
             detail="An error occurred while fetching SDG predictions for the publication.",
         )
 
+
 @router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
     response_model=List[SDGPredictionSchemaFull],
@@ -253,6 +254,46 @@ async def get_sdg_predictions_for_dimensionality_reductions(
 
         logging.info(f"Retrieved {len(sdg_predictions)} SDG predictions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
         logging.info(f"Returning {len(sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} SDG predictions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+
+        return sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching SDG predictions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching SDG predictions: {e}")
+
+@router.get(
+    "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
+    response_model=List[SDGPredictionSchemaFull],
+    description="Retrieve SDG predictions for a given SDG, reduction shorthand, and scenario type."
+)
+async def get_sdg_predictions_for_dimensionality_reductions_with_scenario(
+    sdg: int,
+    reduction_shorthand: str,
+    scenario_type: ScenarioType,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGPredictionSchemaFull]:
+    try:
+        user = verify_token(token, db)
+
+        sdg_predictions = (
+            db.query(SDGPrediction)
+            .join(DimensionalityReduction, SDGPrediction.publication_id == DimensionalityReduction.publication_id)
+            .join(SDGLabelDecision, SDGPrediction.publication_id == SDGLabelDecision.publication_id)  # New join
+            .filter(
+                DimensionalityReduction.reduction_shorthand == reduction_shorthand,
+                DimensionalityReduction.sdg == sdg,
+                SDGPrediction.prediction_model == "Aurora",
+                SDGLabelDecision.scenario_type == scenario_type  # Filtering by scenario_type
+            )
+            .order_by(SDGPrediction.prediction_id)
+            # .limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
+            .all()
+        )
+
+        logging.info(f"Retrieved {len(sdg_predictions)} SDG predictions for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(f"Returning {len(sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} SDG predictions.")
 
         return sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
     except HTTPException:

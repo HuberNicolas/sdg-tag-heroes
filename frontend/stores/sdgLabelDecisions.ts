@@ -19,6 +19,8 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
 
     showAllSDGUserLabels: false, // Default: show only the latest SDG User Labels
 
+    scenarioTypeSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[],
+
 
     selectedSDGLabelDecision: null as SDGLabelDecisionSchemaFull | null,
     userLabels: [] as SDGUserLabelSchemaFull[],
@@ -162,6 +164,23 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
         this.isLoading = false;
       }
     },
+
+    async fetchScenarioSDGLabelDecisionsForReduction(sdg: number, reductionShorthand: string, scenarioType: string) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getScenarioSDGLabelDecisionsForReduction } = useSDGLabelDecisions();
+        const decisions = await getScenarioSDGLabelDecisionsForReduction(sdg, reductionShorthand, scenarioType);
+        this.scenarioTypeSDGLabelDecisions = decisions || [];
+      } catch (error) {
+        this.error = `Failed to fetch scenario SDG Label Decisions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
 
 
 

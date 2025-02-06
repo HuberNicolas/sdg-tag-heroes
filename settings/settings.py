@@ -44,7 +44,7 @@ class MariaDBSettings(BaseSettings):
     MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
     DEFAULT_PREDICTION_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
     DEFAULT_PREDICTION_THRESHOLD: ClassVar[float] = 0.98
-    DEFAULT_SDG_EXPLORATION_SIZE: ClassVar[int] = 10
+    DEFAULT_SDG_EXPLORATION_SIZE: ClassVar[int] = 100
 
 class QdrantDBSettings(BaseSettings):
     QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"

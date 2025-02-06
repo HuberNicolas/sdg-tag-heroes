@@ -64,9 +64,31 @@ export default function useSDGLabelDecisions() {
     }
   }
 
+  async function getScenarioSDGLabelDecisionsForReduction(
+    sdg: number,
+    reductionShorthand: string,
+    scenarioType: string
+  ): Promise<SDGLabelDecisionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
+        `${config.public.apiUrl}/label-decisions/sdgs/${sdg}/${reductionShorthand}/scenarios/${scenarioType}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch scenario SDG Label Decisions: ${error}`);
+    }
+  }
+
+
   return {
     getSDGLabelDecisionsByPublicationId,
     createCommentSummary,
     getSDGLabelDecisionsForReduction,
+    getScenarioSDGLabelDecisionsForReduction
   };
 }

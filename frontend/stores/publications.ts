@@ -26,6 +26,8 @@ export const usePublicationsStore = defineStore("publications", {
     partitionedPublications: [] as PublicationSchemaBase[], // All SDGs
     sdgLevelPublications: [] as PublicationSchemaBase[], // 1 SDG
 
+    scenarioTypePublications: [] as PublicationSchemaBase[],
+
     selectedPartitionedPublications: [] as PublicationSchemaBase[],
     isLoading: false,
     error: null as string | null,
@@ -225,6 +227,32 @@ export const usePublicationsStore = defineStore("publications", {
       } finally {
         this.isLoading = false;
       }
-    }
+    },
+
+    // Fetch publications by SDG, reduction shorthand, and scenario type
+    async fetchPublicationsForDimensionalityReductionsWithScenario(
+      sdg: number,
+      reductionShorthand: string,
+      scenarioType: string
+    ) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getPublicationsForDimensionalityReductionsWithScenario } =
+          usePublications();
+        this.scenarioTypePublications =
+          await getPublicationsForDimensionalityReductionsWithScenario(
+            sdg,
+            reductionShorthand,
+            scenarioType
+          );
+      } catch (error) {
+        this.error = `Failed to fetch publications for SDG ${sdg} and scenario ${scenarioType}: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
   },
 });

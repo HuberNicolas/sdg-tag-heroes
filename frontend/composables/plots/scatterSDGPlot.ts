@@ -38,11 +38,13 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     const publicationsData = publicationsStore.sdgLevelPublications;
     const sdgPredictionsData = sdgPredictionsStore.sdgLevelSDGPredictions;
 
-    const combinedData = dimensionalityReductionsData.map((reduction, index) => ({
+    let combinedData = dimensionalityReductionsData.map((reduction, index) => ({
       dimensionalityReduction: reduction,
       publication: publicationsData[index],
       sdgPrediction: sdgPredictionsData[index],
     }));
+
+    console.log(combinedData);
 
     // Get the color for the selected SDG
     const selectedSDGColor = sdgsStore.getColorBySDG(sdg);
@@ -109,6 +111,21 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       },
       { deep: true }
     );
+
+    // user clicked Scenario button
+    watch(
+      [
+        () => dimensionalityReductionsStore.scenarioTypeReductions,
+        () => publicationsStore.scenarioTypePublications,
+        () => sdgPredictionsStore.scenarioTypeSDGPredictions,
+      ],
+      () => {
+        console.log("Scenario data updated! Updating scatter plot...");
+        updateScatterPlot();
+      },
+      { deep: true }
+    );
+
 
     // Selection events
     container.on('plotly_selected', function (eventData) {
@@ -204,6 +221,81 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
 
       Plotly.react(container, [scatterData, highlightMarker, userMarker].filter(Boolean), layout);
     }
+    function updateScatterPlot() {
+      const dimensionalityReductionsData = dimensionalityReductionsStore.sdgLevelReductions;
+      const publicationsData = publicationsStore.sdgLevelPublications;
+      const sdgPredictionsData = sdgPredictionsStore.sdgLevelSDGPredictions;
+
+      // Scenario Data
+      const scenarioReductionsData = dimensionalityReductionsStore.scenarioTypeReductions;
+      const scenarioPublicationsData = publicationsStore.scenarioTypePublications;
+      const scenarioPredictionsData = sdgPredictionsStore.scenarioTypeSDGPredictions;
+
+      // Merge data while tagging scenario points
+      combinedData = [
+        ...dimensionalityReductionsData.map((reduction, index) => ({
+          dimensionalityReduction: reduction,
+          publication: publicationsData[index],
+          sdgPrediction: sdgPredictionsData[index],
+          isScenario: false,
+        })),
+        ...scenarioReductionsData.map((reduction, index) => ({
+          dimensionalityReduction: reduction,
+          publication: scenarioPublicationsData[index],
+          sdgPrediction: scenarioPredictionsData[index],
+          isScenario: true,
+        })),
+      ];
+
+      console.log(combinedData)
+
+      // Check for missing or undefined properties
+      combinedData.forEach((d, i) => {
+        if (!d.publication || !d.publication.title) {
+          console.warn(`Missing publication data at index ${i}`);
+        }
+        if (!d.sdgPrediction) {
+          console.warn(`Missing SDG prediction at index ${i}`);
+        }
+      });
+
+      // Define scatter data
+      const scatterData = {
+        x: combinedData.map(d => d.dimensionalityReduction.xCoord),
+        y: combinedData.map(d => d.dimensionalityReduction.yCoord),
+        mode: "markers",
+        type: "scatter",
+        marker: {
+          size: combinedData.map(d => (mode === "top1" ? d.sdgPrediction?.entropy * 10 : 10)),
+          symbol: combinedData.map(d => (d.isScenario ? "diamond" : "hexagon2")), // Different glyph for scenarios
+          color: combinedData.map(d => (d.isScenario ? selectedSDGColor : selectedSDGColor)), // Keep original color but differentiate scenarios
+          line: {
+            width: combinedData.map(d => (d.isScenario ? 3 : 5)), // Slightly thinner outline for scenario pubs
+            color: combinedData.map(d => {
+              if (!d.sdgPrediction) return "black";
+
+              // Determine highest SDG prediction
+              const sortedPredictions = Object.entries(d.sdgPrediction)
+                .filter(([key]) => key.startsWith("sdg"))
+                .sort(([, valA], [, valB]) => valB - valA);
+
+              const highestSdgId = parseInt(sortedPredictions[0][0].replace("sdg", ""), 10);
+              return sdgsStore.getColorBySDG(highestSdgId);
+            }),
+          },
+          opacity: 0.7,
+        },
+        text: combinedData.map(d =>
+          `Title: ${d.publication.title} <br> X: ${d.dimensionalityReduction.xCoord.toFixed(2)} <br> Y: ${d.dimensionalityReduction.yCoord.toFixed(2)}`
+        ),
+        hoverinfo: "text",
+      };
+
+      // Update the plot with both default and scenario points
+      Plotly.react(container, [scatterData], layout);
+    }
+
+
 
 
     // Function to update user marker dynamically
