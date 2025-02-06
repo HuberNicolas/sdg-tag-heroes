@@ -557,9 +557,21 @@ def create_sdg_label_decisions_for_scenarios(
 
         # Step 2: Create SDGUserLabels
         user_labels = []
+        selected_users = set()  # A set to keep track of already selected users
+
         for label in labels:
             sdg_number = int(label[3:])
-            user = choice(users)
+
+            # Find a user who hasn't been selected yet
+            available_users = [user for user in users if user.user_id not in selected_users]
+
+            if not available_users:
+                logging.warning(f"No more unique users available for SDGLabel {sdg_number}. Skipping label.")
+                continue  # Skip this label if no more unique users are available
+
+            user = choice(available_users)  # Select a random user from available users
+            selected_users.add(user.user_id)  # Mark this user as selected
+
             persona_data = user_personas.get(user.user_id, {})
 
             if not persona_data:
@@ -749,21 +761,22 @@ def populate_db(
         create_wallet_histories(session, wallets, num_entries=history_entries_per_user)
         create_xp_bank_histories(session, xp_banks, num_entries=history_entries_per_user)
 
-        # Create SDGUserLabels
-        user_labels = create_sdg_user_labels(session, users, publications, num_labels)
+        if False:
+            # Create SDGUserLabels
+            user_labels = create_sdg_user_labels(session, users, publications, num_labels)
 
-        # Create Votes
-        create_votes(session, users, user_labels, num_votes)
+            # Create Votes
+            create_votes(session, users, user_labels, num_votes)
 
-        # Create Annotations
-        create_annotations(session, users, user_labels, num_annotations)
+            # Create Annotations
+            create_annotations(session, users, user_labels, num_annotations)
 
-        # Create Votes for Annotations
-        annotations = create_annotations(session, users, user_labels, num_annotations)
-        create_votes_for_annotations(session, annotations, users, num_votes)
+            # Create Votes for Annotations
+            annotations = create_annotations(session, users, user_labels, num_annotations)
+            create_votes_for_annotations(session, annotations, users, num_votes)
 
-        # Create SDGLabelDecisions
-        create_sdg_label_decisions(session, histories, user_labels, experts, publications, num_decisions)
+            # Create SDGLabelDecisions
+            create_sdg_label_decisions(session, histories, user_labels, experts, publications, num_decisions)
 
 
         # Create scenario-based decisions

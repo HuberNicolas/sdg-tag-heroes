@@ -170,8 +170,6 @@ class GPTAssistantService:
         response = self._call_creative_model(strategy.context, prompt_data, GPTPersonaResponseCommentSchema)
         return response
 
-
-
     def generate_annotation(
             self, abstract: str, persona: str, interest: str, skill: str, trust_score: float,
             user_label_comment: str = None, decision_comment: str = None
