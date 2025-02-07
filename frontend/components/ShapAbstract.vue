@@ -18,10 +18,12 @@
     <!-- Abstract Display -->
     <div class="bg-white p-6 rounded-lg shadow-md">
       <h2 class="text-xl font-semibold mb-4">Abstract</h2>
-      <div v-if="showShap && explanation" class="text-justify"
-           v-html="shapHighlightedAbstract"
-           @mouseup="handleAbstractSelection">
-      </div>
+      <div
+        v-if="showShap && explanation"
+        class="text-justify"
+        v-html="shapHighlightedAbstract"
+        @mouseup="handleAbstractSelection"
+      ></div>
       <div v-else class="text-justify text-gray-700">
         {{ publication?.description || "No abstract available." }}
       </div>
@@ -62,92 +64,101 @@ onMounted(async () => {
   await sdgsStore.fetchSDGs();
 });
 
-// Watch for changes in selected SDG and fetch SHAP explanations
+// Watch for changes in the selected SDG and re-fetch explanations
 watch(selectedSDG, async () => {
   if (publicationId.value) {
     await explanationStore.fetchExplanationByPublicationId(publicationId.value);
   }
 });
 
-// Compute SHAP-highlighted abstract
+/*
+  Compute the SHAP-highlighted abstract.
+  This version uses a sequential token matching approach similar to your previous version:
+  1. We extract the token scores for the selected SDG.
+  2. We compute a d3 color scale (from white to the selected SDG color) based on the maximum positive score.
+  3. We loop over the tokens in order. For each token, we use indexOf to find it in the remaining text,
+     append the preceding plain text and then the highlighted token, and finally slice the text.
+*/
 const shapHighlightedAbstract = computed(() => {
-  if (!explanation.value || !publication.value?.description) return "";
+  if (!explanation.value || !publication.value?.description)
+    return publication.value?.description || "";
 
-  const { inputTokens, tokenScores, baseValues } = explanation.value;
-  const sdgIndex = selectedSDG.value - 1; // SDG index (0-based)
+  const { inputTokens, tokenScores } = explanation.value;
+  const sdgIdx = selectedSDG.value - 1; // convert to 0-based index
+  const scoresForSelectedSDG = tokenScores.map((scores) => scores[sdgIdx]);
+  console.log(scoresForSelectedSDG);
 
-  // Adjust token scores for the selected SDG
-  const adjustedScores = tokenScores.map((scores) => scores[sdgIndex]);
+  // Compute the maximum positive score (previous version used Math.max(0, ...))
+  const maxScore = Math.max(0, ...scoresForSelectedSDG);
 
-  // Highlight tokens based on their SHAP scores
-  return highlightTextTokens(inputTokens, adjustedScores, publication.value.description);
-});
+  // Get the selected SDG color (or fallback to yellow)
+  const selectedSDGColor =
+    sdgsStore.sdgs.find((sdg) => sdg.id === selectedSDG.value)?.color ||
+    "#ffff00";
 
-// Helper function to highlight tokens in the abstract
-const highlightTextTokens = (tokens: string[], scores: number[], text: string) => {
-  const threshold = 0.0001; // Ignore negligible SHAP scores
-  const highlightedText: string[] = [];
-  let remainingText = text;
-
-  // Get the selected SDG color
-  const selectedSDGColor = sdgsStore.sdgs.find(sdg => sdg.id === selectedSDG.value)?.color || "#ffff00";
-  const negativeColor = "#7D7D7D";
-
-  // Get the min and max scores
-  const maxScore = Math.max(0, Math.max(...scores));
-  const minScore = Math.min(0, Math.min(...scores));
-
-  // Create the color scale according to the min and max scores
+  // Create a d3 color scale: tokens with a higher positive score get a stronger highlight
   const colorScale = d3.scaleLinear<string>()
     .domain([0, maxScore])
     .range(["#ffffff", selectedSDGColor]);
-  const negColorScale = d3.scaleLinear<string>()
-    .domain([0, -minScore])
-    .range(["#ffffff", negativeColor]);
 
-  tokens.forEach((token, index) => {
-    const score = scores[index];
-    if (Math.abs(score) < threshold) return;
+  const threshold = 0; // Only tokens with a score > 0 are highlighted
+  let remainingText = publication.value.description;
+  const highlightedParts: string[] = [];
 
-    // Match the token in the remaining text
-    const tokenRegex = new RegExp(`\\b${token.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, "i");
-    const match = remainingText.match(tokenRegex);
+  // Loop sequentially over each token and its score
+  inputTokens.forEach((token, index) => {
+    const score = scoresForSelectedSDG[index];
+    if (score <= threshold) return; // skip tokens below threshold
 
-    if (!match) return;
+    // Find the token in the remaining text (this approach mimics the previous version)
+    const idx = remainingText.indexOf(token);
+    if (idx === -1) return; // if not found, skip
 
-    const idxStart = match.index!;
-    const idxEnd = idxStart + token.length;
+    // Append text before the token (un-highlighted)
+    highlightedParts.push(remainingText.slice(0, idx));
 
-    // Add plain text before the token
-    highlightedText.push(remainingText.substring(0, idxStart));
+    // Determine the highlight color
+    const highlightColor =
+      score > threshold ? rgbToHex(colorScale(score)) : "#ffffff";
 
-    // Add highlighted token
-    const highlightColor = score > 0 ? rgbToHex(colorScale(score)) : rgbToHex(negColorScale(-score));
-    highlightedText.push(`<mark style="background-color: ${highlightColor}; padding: 0;">${remainingText.substring(idxStart, idxEnd)}</mark>`);
+    // Append the token wrapped in a <mark> tag with the chosen styling.
+    // (Here we use 14px and Roboto as in your previous version.)
+    highlightedParts.push(
+      `<mark style="background-color: ${highlightColor}; font-size: 14px; padding: 0;">${token}</mark>`
+    );
 
-    // Remove the processed part of the text
-    remainingText = remainingText.slice(idxEnd);
+    // Remove the processed part from the text
+    remainingText = remainingText.slice(idx + token.length);
   });
+  // Append any text that remains after the last token
+  highlightedParts.push(remainingText);
 
-  highlightedText.push(remainingText); // Add any remaining plain text
-  return highlightedText.join("");
-};
+  return highlightedParts.join("");
+});
 
-// Convert RGB to Hex
+// Helper function to convert an "rgb(…)" string to a hex color code.
+// This is essentially the same as your previous rgbToHex.
 const rgbToHex = (rgb: string) => {
   if (!rgb) return "#ffffff";
-  const [r, g, b] = rgb.slice(4, -1).split(',').map(Number);
-  return '#' + [r, g, b].map(component => {
-    const hex = component.toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  }).join('');
+  const rgbValues = rgb.match(/\d+/g);
+  if (!rgbValues) return "#ffffff";
+  return (
+    "#" +
+    rgbValues
+      .slice(0, 3)
+      .map((num) => {
+        const hex = parseInt(num).toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      })
+      .join("")
+  );
 };
 
 const handleAbstractSelection = () => {
   const selection = window.getSelection();
   if (selection && selection.toString().trim() !== "") {
     const selectedText = selection.toString().trim();
-    explanationStore.setMarkedText(selectedText); // Update the store
+    explanationStore.setMarkedText(selectedText); // Update the store accordingly
   }
 };
 </script>
