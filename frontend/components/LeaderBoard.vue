@@ -24,9 +24,10 @@
           <thead class="bg-gray-100 sticky top-0">
           <tr class="text-left text-gray-700">
             <th class="p-4 border border-gray-300 text-center w-16">#</th>
-            <th class="p-4 border border-gray-300">Nickname</th>
-            <th class="p-4 border border-gray-300">Rank</th>
+            <th class="p-4 border border-gray-300">User</th>
+            <th class="p-4 border border-gray-300 text-center">Rank Tier</th>
             <th class="p-4 border border-gray-300 text-center">Rank Symbol</th>
+            <th class="p-4 border border-gray-300">Rank Title</th>
             <th class="p-4 border border-gray-300 text-center w-24">XP</th>
           </tr>
           </thead>
@@ -43,63 +44,77 @@
 
             <!-- Avatar & Nickname -->
             <td class="p-4 border border-gray-300 flex items-center space-x-4">
-              <div class="relative">
-                <!-- Avatar with border based on rank -->
+              <!-- Outer Container for Free Space -->
+              <div class="relative flex items-center justify-center p-2">
+                <!-- Inner Frame with SDG Color Border -->
                 <div
+                  v-if="user.rank?.tier !== 0"
+                  :style="{ borderColor: sdgColor }"
                   :class="[
-                      'w-12 h-12 rounded-full overflow-hidden border-4',
-                      getAvatarFrameClass(user.rank?.tier)
-                    ]"
+      'w-16 h-16 rounded-full flex items-center justify-center border-4',
+      getBorderStyle(user.rank?.tier)
+    ]"
                 >
+                  <!-- Avatar Inside the Frame -->
+                  <div class="w-12 h-12 rounded-full overflow-hidden">
+                    <img :src="generateAvatar(user.email)" alt="User Avatar" class="w-full h-full" />
+                  </div>
+                </div>
+
+                <!-- Direct Avatar (No Frame) if Tier is 0 -->
+                <div v-else class="w-12 h-12 rounded-full overflow-hidden">
                   <img :src="generateAvatar(user.email)" alt="User Avatar" class="w-full h-full" />
                 </div>
               </div>
+
               <span class="text-lg font-semibold text-gray-800">{{ user.nickname }}</span>
             </td>
 
-            <!-- Rank Display (Text) -->
-            <td class="p-4 border border-gray-300">
-                <span
-                  v-if="user.rank"
-                  :class="['px-3 py-1 rounded-lg text-white text-sm font-semibold', getRankBadgeClass(user.rank?.tier)]"
-                >
-                  {{ user.rank.name }} (Tier {{ user.rank.tier }})
-                </span>
-              <span v-else class="text-gray-400">No Rank</span>
+
+            <!-- Rank Tier (Number) -->
+            <td class="p-4 border border-gray-300 text-center font-semibold text-gray-700">
+              {{ user.rank?.tier !== undefined ? user.rank.tier : "-" }}
             </td>
 
             <!-- Rank Symbol (Chevron Icons) -->
             <td class="p-4 border border-gray-300 text-center">
-              <!-- Tier 1: Single Chevron -->
               <Icon
                 v-if="user.rank?.tier === 1"
                 name="line-md:chevron-up"
-                class="text-gray-700 w-6 h-6"
+                :style="{ color: sdgColor }"
+                class="w-6 h-6"
               />
-
-              <!-- Tier 2: Double Chevron -->
               <Icon
                 v-else-if="user.rank?.tier === 2"
                 name="line-md:chevron-double-up"
-                class="text-gray-700 w-6 h-6"
+                :style="{ color: sdgColor }"
+                class="w-6 h-6"
               />
-
-              <!-- Tier 3: Triple Chevron -->
               <Icon
                 v-else-if="user.rank?.tier === 3"
                 name="line-md:chevron-triple-up"
-                class="text-yellow-500 w-6 h-6"
+                :style="{ color: sdgColor }"
+                class="w-6 h-6"
               />
-
-              <!-- No Rank (Default) -->
               <Icon v-else name="line-md:minus" class="text-gray-400 w-6 h-6" />
             </td>
 
 
+            <!-- Rank Title -->
+            <td class="p-4 border border-gray-300 text-center whitespace-nowrap">
+              <span
+                v-if="user.rank"
+                :style="{ backgroundColor: sdgColor }"
+                class="px-3 py-1 rounded-lg text-white text-sm font-semibold"
+              >
+                {{ user.rank.name }}
+              </span>
+              <span v-else class="text-gray-400">No Rank</span>
+            </td>
 
             <!-- XP Display -->
             <td class="p-4 border border-gray-300 text-center text-lg font-semibold text-gray-800">
-              {{ user.sdgXp }}
+              {{ Math.round(user.sdgXp) }}
             </td>
           </tr>
           </tbody>
@@ -123,7 +138,6 @@
 </template>
 
 
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
 import { useUsersStore } from "~/stores/users";
@@ -142,7 +156,7 @@ const sdgStore = useSDGsStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const leaderboard = ref<
-  { userId: number; nickname:string, email: string; sdgXp: number; rank?: { name: string; tier: number } }[]
+  { userId: number; nickname: string, email: string; sdgXp: number; rank?: { name: string; tier: number } }[]
 >([]);
 const visibleCount = ref(10); // Start with 10 players visible
 
@@ -151,6 +165,12 @@ const currentSDG = computed(() => {
   const sdgId = sdgStore.getSelectedSDG;
   return sdgStore.sdgs.find((sdg) => sdg.id === sdgId) || null;
 });
+
+// Computed property to get the color of the selected SDG
+const sdgColor = computed(() => {
+  return currentSDG.value ? sdgStore.getColorBySDG(currentSDG.value.id) : "#A0A0A0"; // Default gray if no SDG
+});
+
 
 // Compute visible players
 const visibleLeaderboard = computed(() => leaderboard.value.slice(0, visibleCount.value));
@@ -177,7 +197,7 @@ async function fetchData() {
     loading.value = true;
     await userStore.fetchUsers();
     await xpBankStore.fetchXPBanks();
-    await rankStore.fetchSDGRanks();
+    await rankStore.fetchSDGRanksForUsers();
   } catch (err) {
     console.error("Error fetching initial data:", err);
     error.value = err.message || "Failed to load data.";
@@ -185,6 +205,7 @@ async function fetchData() {
     loading.value = false;
   }
 }
+
 // Update leaderboard based on the selected SDG
 async function updateLeaderboard() {
   if (!currentSDG.value) {
@@ -210,7 +231,7 @@ async function updateLeaderboard() {
         nickname: user.nickname,
         email: user.email,
         sdgXp: sdgXp,
-        rank: rank ? { name: rank.name, tier: rank.tier } : undefined,
+        rank: rank ? { name: rank.name, tier: rank.tier } : undefined
       };
     });
 
@@ -225,41 +246,25 @@ async function updateLeaderboard() {
 }
 
 
-
 // Load more players
 function loadMore() {
   visibleCount.value += 10; // Show 10 more players each time
 }
 
-// Assign avatar frames based on rank tier (0-4)
-const getAvatarFrameClass = (tier?: number) => {
+// Function to return different border styles based on rank tier
+const getBorderStyle = (tier?: number) => {
   switch (tier) {
     case 0:
-      return "border-gray-400"; // Basic (Gray)
+      return ""; // Dashed border for beginners
     case 1:
-      return "border-green-500"; // Beginner (Green)
+      return "border-double"; // Solid border for intermediate
     case 2:
-      return "border-blue-500"; // Intermediate (Blue)
+      return "border-dashed"; // Double border for advanced
     case 3:
-      return "border-yellow-500"; // Elite (Gold)
-    default:
-      return "border-gray-300"; // Default
-  }
-};
+      return "border-solid"; // Thick double border for elite
 
-// Assign rank badge colors based on tier
-const getRankBadgeClass = (tier?: number) => {
-  switch (tier) {
-    case 0:
-      return "bg-gray-400"; // Basic
-    case 1:
-      return "bg-green-500"; // Beginner
-    case 2:
-      return "bg-blue-500"; // Intermediate
-    case 3:
-      return "bg-yellow-500"; // Elite
     default:
-      return "bg-gray-300"; // Default
+      return "border-solid"; // Default to solid if no rank
   }
 };
 

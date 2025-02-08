@@ -7,7 +7,21 @@ export default function useSDGRanks() {
   const accessToken = useCookie("access_token");
 
   // Fetch all SDG ranks
-  async function getSDGRanks(): Promise<UserSDGRankSchemaFull[]> {
+  async function getSDGRanks(): Promise<SDGRankSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGRankSchemaFull[]>(`${config.public.apiUrl}/ranks`, {
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+        },
+      });
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch SDG ranks: ${error}`);
+    }
+  }
+
+  // Fetch all SDG ranks for all Users
+  async function getSDGRanksForUsers(): Promise<UserSDGRankSchemaFull[]> {
     try {
       const response = await $fetch<UserSDGRankSchemaFull[]>(`${config.public.apiUrl}/ranks/users`, {
         headers: {
@@ -39,6 +53,7 @@ export default function useSDGRanks() {
 
   return {
     getSDGRanks,
+    getSDGRanksForUsers,
     getSDGRankById,
   };
 }

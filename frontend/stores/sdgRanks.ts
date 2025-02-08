@@ -13,14 +13,31 @@ export const useSDGRanksStore = defineStore("sdgRanks", {
     error: null as string | null,
   }),
   actions: {
-    // Fetch all SDG ranks
+    // Fetch all SDG ranks for Users
     async fetchSDGRanks() {
       this.isLoading = true;
       this.error = null;
 
       try {
         const { getSDGRanks } = useSDGRanks();
-        this.userSDGRanks = await getSDGRanks();
+        this.sdgRanks = await getSDGRanks();
+      } catch (error) {
+        this.error = `Failed to fetch SDG ranks: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+
+    // Fetch all SDG ranks for Users
+    async fetchSDGRanksForUsers() {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGRanksForUsers } = useSDGRanks();
+        this.userSDGRanks = await getSDGRanksForUsers();
       } catch (error) {
         this.error = `Failed to fetch SDG ranks: ${error}`;
         throw error;

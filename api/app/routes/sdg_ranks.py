@@ -43,6 +43,37 @@ router = APIRouter(
     },
 )
 
+@router.get("/", response_model=List[SDGRankSchemaFull], description="Retrieve all SDG ranks")
+async def get_all_sdg_ranks(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Retrieve all SDG ranks available in the system.
+    These ranks define the XP thresholds and titles for different tiers within each SDG.
+    """
+    try:
+        # Ensure the user is authenticated
+        verify_token(token, db)
+
+        # Query all SDG ranks
+        ranks = db.query(SDGRank).order_by(SDGRank.sdg_goal_id, SDGRank.tier).all()
+
+        if not ranks:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No SDG ranks found",
+            )
+
+        return [SDGRankSchemaFull.model_validate(rank) for rank in ranks]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching SDG ranks: {e}",
+        )
+
+
 @router.get("/users/{user_id}/", response_model=List[SDGRankSchemaFull],
             description="Retrieve all SDG ranks (1-17) for a specific user based on their XP bank")
 async def get_user_ranks_and_xp(
@@ -106,6 +137,7 @@ async def get_user_ranks_and_xp(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching ranks and XP: {e}",
         )
+
 @router.get("/users/", response_model=List[UsersSDGRankSchemaBase], description="Retrieve ranks for all users")
 async def get_ranks_for_all_users(
     db: Session = Depends(get_db),

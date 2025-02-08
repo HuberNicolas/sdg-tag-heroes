@@ -8,14 +8,17 @@
           <div class="flex h-full">
             <!-- First 50% of the Green Container -->
             <div class="basis-1/2 bg-green-500 p-4">
-              <GlyphOverview :values="values" :height="400" :width="400"></GlyphOverview>
+              <GlyphOverview :values="values" :height="300" :width="300"></GlyphOverview>
+            </div>
+            <div class="basis-1/2 bg-green-500 p-4">
+              <SDGExplorerLeaderboard></SDGExplorerLeaderboard>
             </div>
           </div>
         </div>
 
         <!-- Second Section: 50% -->
         <div class="row-span-1 bg-orange-400 flex items-center justify-center">
-          <SDGExplorerLeaderboard></SDGExplorerLeaderboard>
+          <LeaderBoardExplanation></LeaderBoardExplanation>
         </div>
       </div>
     </div>
@@ -29,6 +32,7 @@
 
 <script setup lang="ts">
 import SDGExplorerLeaderboard from "~/components/SDGExplorerLeaderboard.vue";
+import LeaderBoardExplanation from "~/components/LeaderBoardExplanation.vue";
 
 // Values for the HexGlyph component (example)
 const values = Array(17).fill(0.6);
