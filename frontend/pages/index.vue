@@ -1,44 +1,128 @@
 <template>
   <div>
-    <div class="flex flex-col items-center justify-center p-8">Hello World</div>
-    <UButton label="Test" />
-    <h1>Color mode: {{ $colorMode.value }}</h1>
-    <select v-model="$colorMode.preference">
-      <option value="system">System</option>
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-      <option value="sepia">Sepia</option>
-    </select>
-    <UButton
-      :icon="isDark ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid'"
-      color="gray"
-      variant="ghost"
-      aria-label="Theme"
-      @click="isDark = !isDark"
-    />
-    <div class="jetbrains-font">Jetbrains Mono</div>
-    <div class="press-start-font">Press Start 2P</div>
+    <NuxtParticles
+      id="tsparticles"
+      :options="options"
+      @load="onLoad"
+    ></NuxtParticles>
   </div>
 </template>
 
 <script setup lang="ts">
-const colorMode = useColorMode();
+import type { Container } from '@tsparticles/engine';
+import { baseSdgColors } from "@/constants/constants";
 
-const isDark = computed({
-  get() {
-    return colorMode.value === "dark";
+const options = {
+  "particles": {
+    "number": {
+      "value": 100,
+      "density": {
+        "enable": true,
+        "value_area": 800
+      }
+    },
+    "color": {
+      "value": baseSdgColors
+    },
+    "shape": {
+      "type": "polygon",
+      "sides": 6,
+      "stroke": {
+        "width": 1,
+        "color": "#000000"
+      }
+    },
+    "opacity": {
+      "value": 0.5,
+      "random": false,
+      "anim": {
+        "enable": false,
+        "speed": 1,
+        "opacity_min": 0.1,
+        "sync": false
+      }
+    },
+    "size": {
+      "value": 10,
+      "random": true,
+      "anim": {
+        "enable": false,
+        "speed": 40,
+        "size_min": 0.1,
+        "sync": false
+      }
+    },
+    "line_linked": {
+      "enable": true,
+      "distance": 150,
+      "color": "#ffffff",
+      "opacity": 0.4,
+      "width": 1
+    },
+    "move": {
+      "enable": true,
+      "speed": 6,
+      "direction": "none",
+      "random": false,
+      "straight": false,
+      "out_mode": "out",
+      "bounce": false,
+      "attract": {
+        "enable": false,
+        "rotateX": 600,
+        "rotateY": 1200
+      }
+    }
   },
-  set() {
-    colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
+  "interactivity": {
+    "detect_on": "canvas",
+    "events": {
+      "onhover": {
+        "enable": true,
+        "mode": "repulse"
+      },
+      "onclick": {
+        "enable": true,
+        "mode": "push"
+      },
+      "resize": true
+    },
+    "modes": {
+      "grab": {
+        "distance": 400,
+        "line_linked": {
+          "opacity": 1
+        }
+      },
+      "bubble": {
+        "distance": 400,
+        "size": 40,
+        "duration": 2,
+        "opacity": 8,
+        "speed": 3
+      },
+      "repulse": {
+        "distance": 200,
+        "duration": 0.4
+      },
+      "push": {
+        "particles_nb": 4
+      },
+      "remove": {
+        "particles_nb": 2
+      }
+    }
   },
-});
+  "retina_detect": true
+}
+
+const onLoad = (container: Container) => {
+  // Do something with the container
+  container.pause()
+  setTimeout(() => container.play(), 2000)
+}
 </script>
 
 <style scoped>
-.jetbrains-font {
-  font-family: "JetBrains Mono", monospace;
-}
-.press-start-font {
-  font-family: "Press Start 2P", monospace;
-}
+
 </style>

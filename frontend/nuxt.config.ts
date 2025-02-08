@@ -16,7 +16,8 @@ export default defineNuxtConfig({
     "@nuxt/content",
     "nuxt-svgo",
     "@nuxt/image",
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    'nuxt-particles'
   ],
   imports: {
     // https://nuxt.com/docs/guide/directory-structure/composables
