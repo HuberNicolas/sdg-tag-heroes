@@ -266,6 +266,9 @@ class AnnotationsSettings(BaseSettings):
 class VotesSettings(BaseSettings):
     VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
 
+class SDGRanksSettings(BaseSettings):
+    SDGRANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_ranks.log"
+
 
 class FixturesSettings(BaseSettings):
     FIXTURES_LOG_NAME: ClassVar[str] = "fixtures.log"

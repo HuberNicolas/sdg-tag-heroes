@@ -1,212 +1,266 @@
 <template>
-  <div>
-    <div class="users-page">
-      <h1 class="text-2xl font-bold mb-4">SDG XP Leaderboard</h1>
+  <div class="p-5">
+    <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">
+      Leaderboard - {{ currentSDG ? `SDG${currentSDG.id} - ${currentSDG.shortTitle}` : "Please select an SDG" }}
+    </h1>
 
-      <!-- Loading state -->
-      <div v-if="loading" class="text-blue-500">
-        Loading leaderboard...
-      </div>
+    <!-- Loading State -->
+    <div v-if="loading" class="text-blue-500 text-lg text-center">Loading leaderboard...</div>
 
-      <!-- Error state -->
-      <div v-if="error" class="text-red-500">
-        <p>An error occurred: {{ error }}</p>
-      </div>
+    <!-- Error State -->
+    <div v-if="error" class="text-red-500 text-lg text-center">
+      <p>An error occurred: {{ error }}</p>
+    </div>
 
-      <!-- Leaderboard -->
-      <div v-else>
-        <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg">
-          <thead class="bg-gray-100">
-          <tr>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Rank</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">User</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Nickname</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">XP</th>
+    <!-- No SDG Selected Placeholder -->
+    <div v-if="!currentSDG && !loading" class="text-center text-gray-600 text-lg">
+      Please select an SDG to view the leaderboard.
+    </div>
+
+    <!-- Scrollable Leaderboard Table -->
+    <div v-if="leaderboard.length > 0" class="overflow-x-auto">
+      <div class="max-h-[800px] overflow-y-auto border border-gray-300 rounded-lg shadow-lg">
+        <table class="w-full border-collapse">
+          <thead class="bg-gray-100 sticky top-0">
+          <tr class="text-left text-gray-700">
+            <th class="p-4 border border-gray-300 text-center w-16">#</th>
+            <th class="p-4 border border-gray-300">Nickname</th>
+            <th class="p-4 border border-gray-300">Rank</th>
+            <th class="p-4 border border-gray-300 text-center">Rank Symbol</th>
+            <th class="p-4 border border-gray-300 text-center w-24">XP</th>
           </tr>
           </thead>
-          <tbody>
+          <tbody class="bg-white">
           <tr
-            v-for="(user, index) in leaderboard"
-            :key="user.user_id"
-            :class="{'highlighted-user': user.user_id === loggedInUserId}"
-            class="border-t hover:bg-gray-50"
+            v-for="(user, index) in visibleLeaderboard"
+            :key="user.userId"
+            class="hover:bg-gray-50 transition duration-200"
           >
-            <td class="px-6 py-4 text-sm font-medium text-gray-700">{{ index + 1 }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">
-              <router-link :to="`/users/${user.user_id}`" class="text-blue-500 hover:underline">
-                <!-- {{ user.email }} -->
-                <div :class="['user-avatar', getAvatarFrameClass(user.sdg_xp)]">
-                  <!-- Generate and display the avatar -->
-                  <UAvatar
-                    chip-color="primary"
-                    chip-text=""
-                    chip-position="top-right"
-                    size="sm"
-                    :src="generateUserAvatar(user.email)"
-                    alt="Avatar"
-                  />
-                </div>
-              </router-link>
+            <!-- Rank Number -->
+            <td class="p-4 border border-gray-300 text-center font-semibold text-gray-700">
+              {{ index + 1 }}
             </td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ user.nickname }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ user.sdg_xp }}</td>
+
+            <!-- Avatar & Nickname -->
+            <td class="p-4 border border-gray-300 flex items-center space-x-4">
+              <div class="relative">
+                <!-- Avatar with border based on rank -->
+                <div
+                  :class="[
+                      'w-12 h-12 rounded-full overflow-hidden border-4',
+                      getAvatarFrameClass(user.rank?.tier)
+                    ]"
+                >
+                  <img :src="generateAvatar(user.email)" alt="User Avatar" class="w-full h-full" />
+                </div>
+              </div>
+              <span class="text-lg font-semibold text-gray-800">{{ user.nickname }}</span>
+            </td>
+
+            <!-- Rank Display (Text) -->
+            <td class="p-4 border border-gray-300">
+                <span
+                  v-if="user.rank"
+                  :class="['px-3 py-1 rounded-lg text-white text-sm font-semibold', getRankBadgeClass(user.rank?.tier)]"
+                >
+                  {{ user.rank.name }} (Tier {{ user.rank.tier }})
+                </span>
+              <span v-else class="text-gray-400">No Rank</span>
+            </td>
+
+            <!-- Rank Symbol (Chevron Icons) -->
+            <td class="p-4 border border-gray-300 text-center">
+              <!-- Tier 1: Single Chevron -->
+              <Icon
+                v-if="user.rank?.tier === 1"
+                name="line-md:chevron-up"
+                class="text-gray-700 w-6 h-6"
+              />
+
+              <!-- Tier 2: Double Chevron -->
+              <Icon
+                v-else-if="user.rank?.tier === 2"
+                name="line-md:chevron-double-up"
+                class="text-gray-700 w-6 h-6"
+              />
+
+              <!-- Tier 3: Triple Chevron -->
+              <Icon
+                v-else-if="user.rank?.tier === 3"
+                name="line-md:chevron-triple-up"
+                class="text-yellow-500 w-6 h-6"
+              />
+
+              <!-- No Rank (Default) -->
+              <Icon v-else name="line-md:minus" class="text-gray-400 w-6 h-6" />
+            </td>
+
+
+
+            <!-- XP Display -->
+            <td class="p-4 border border-gray-300 text-center text-lg font-semibold text-gray-800">
+              {{ user.sdgXp }}
+            </td>
           </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Navigation -->
-      <div class="mt-6">
-        <UButton label="Back to Worlds Overview" @click="goBackToWorlds" />
-        <UButton label="Back to World" @click="goBackToWorld" />
+      <!-- Load More Button -->
+      <div v-if="visibleCount < leaderboard.length" class="text-center mt-4">
+        <button
+          @click="loadMore"
+          class="px-5 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+        >
+          Load More
+        </button>
       </div>
     </div>
+
+    <!-- No Users Found -->
+    <p v-else class="text-gray-600 text-center text-lg">No users found.</p>
   </div>
 </template>
 
+
+
 <script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
-import { ref, onMounted } from "vue";
-import UseAuth from "~/composables/useAuthentication";
+import { ref, computed, watch, onMounted } from "vue";
+import { useUsersStore } from "~/stores/users";
+import { useSDGRanksStore } from "~/stores/sdgRanks";
+import { useXPBanksStore } from "~/stores/xpBanks";
+import { useSDGsStore } from "~/stores/sdgs";
+import { generateAvatar } from "~/utils/avatar";
 
-// Route and router setup
-const route = useRoute();
-const router = useRouter();
+// Stores
+const userStore = useUsersStore();
+const rankStore = useSDGRanksStore();
+const xpBankStore = useXPBanksStore();
+const sdgStore = useSDGsStore();
 
-const sdgId = parseInt(route.params.id as string, 10);
-
-// State variables
-const leaderboard = ref([]);
+// Reactive State
 const loading = ref(true);
 const error = ref<string | null>(null);
-const loggedInUserId = ref<number | null>(null); // Store logged-in user ID
+const leaderboard = ref<
+  { userId: number; nickname:string, email: string; sdgXp: number; rank?: { name: string; tier: number } }[]
+>([]);
+const visibleCount = ref(10); // Start with 10 players visible
 
-// Import useAvatar composable
-const { generateAvatar } = useAvatar();
+// Get the currently selected SDG
+const currentSDG = computed(() => {
+  const sdgId = sdgStore.getSelectedSDG;
+  return sdgStore.sdgs.find((sdg) => sdg.id === sdgId) || null;
+});
 
-// Function to generate avatars based on email
-const generateUserAvatar = (email: string) => {
-  return generateAvatar({ seed: email, size: 64 }).toDataUri();
-};
+// Compute visible players
+const visibleLeaderboard = computed(() => leaderboard.value.slice(0, visibleCount.value));
 
-// Function to determine the frame class based on XP
-const getAvatarFrameClass = (xp: number) => {
-  if (xp > 500) return "frame-diamond";
-  if (xp > 200) return "frame-platinum";
-  if (xp > 100) return "frame-gold";
-  if (xp > 50) return "frame-silver";
-  if (xp > 10) return "frame-bronze";
-  return "frame-none"; // Default frame if XP is <= 10
-};
-
-onMounted(async () => {
-  const config = useRuntimeConfig();
-  const apiUrl = config.public.apiUrl;
-
-  try {
-    const authService = new UseAuth();
-    const profile = await authService.getProfile(); // Fetch logged-in user's profile
-    loggedInUserId.value = profile?.user_id; // Store the logged-in user's ID
-
-    const response = await $fetch(`${apiUrl}users/banks`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-      },
-    });
-
-    console.log("Raw API Response:", response);
-    const sdgField = `sdg_${sdgId}_xp`;
-
-    // Extract user IDs with non-zero XP
-    const userIds = response.items
-      .filter((bank: any) => bank[sdgField] > 0)
-      .map((bank: any) => bank.user_id);
-
-    // Query user details from /users endpoint
-    const userDetailsResponse = await $fetch(`${apiUrl}users`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        "Content-Type": "application/json",
-      },
-      body: { user_ids: userIds },
-    });
-    console.log(userDetailsResponse);
-
-    // Map user details by user_id for quick lookup
-    const userMap = new Map(userDetailsResponse.map(user => [user.user_id, { email: user.email, nickname: user.nickname }]));
-    console.log("User Details Map:", userMap);
-
-    // Filter out users with 0 XP for the specific SDG and sort by XP
-    leaderboard.value = response.items
-      .filter((bank: any) => bank[sdgField] > 0)
-      .map((bank: any) => ({
-        user_id: bank.user_id,
-        email: userMap.get(bank.user_id)?.email || `User ${bank.user_id}`, // Add email or fallback
-        nickname: userMap.get(bank.user_id)?.nickname || "Unknown", // Add nickname or fallback
-        sdg_xp: bank[sdgField],
-      }))
-      .sort((a: any, b: any) => b.sdg_xp - a.sdg_xp);
-
-    console.log("Filtered and Sorted Leaderboard:", leaderboard.value);
-  } catch (err: any) {
-    console.error("Error fetching SDG XP leaderboard:", err);
-    error.value = err.message || "Failed to load leaderboard.";
-  } finally {
-    loading.value = false;
+// Watch for SDG changes and update leaderboard dynamically
+watch(currentSDG, async (newSDG) => {
+  if (newSDG) {
+    visibleCount.value = 10; // Reset visible count when SDG changes
+    await updateLeaderboard();
   }
 });
 
+// Fetch users, XP, and ranks on mount
+onMounted(async () => {
+  await fetchData();
+  if (currentSDG.value) {
+    await updateLeaderboard();
+  }
+});
 
-// Navigation
-const goBackToWorlds = () => {
-  router.push("/worlds");
+// Fetch initial data
+async function fetchData() {
+  try {
+    loading.value = true;
+    await userStore.fetchUsers();
+    await xpBankStore.fetchXPBanks();
+    await rankStore.fetchSDGRanks();
+  } catch (err) {
+    console.error("Error fetching initial data:", err);
+    error.value = err.message || "Failed to load data.";
+  } finally {
+    loading.value = false;
+  }
+}
+// Update leaderboard based on the selected SDG
+async function updateLeaderboard() {
+  if (!currentSDG.value) {
+    leaderboard.value = [];
+    return;
+  }
+
+  try {
+    loading.value = true;
+    const sdgField = `sdg${currentSDG.value.id}Xp`; // Example: "sdg1Xp" for SDG 1
+
+    // Map users with XP for the selected SDG
+    const usersWithXp = userStore.users.map((user) => {
+      const xpData = xpBankStore.xpBanks.find((xp) => xp.userId === user.userId);
+      const sdgXp = xpData ? xpData[sdgField] || 0 : 0;
+
+      // ✅ Get user's ranks from `sdgRanksStore.userSDGRanks`
+      const userRankData = rankStore.userSDGRanks.find((u) => u.userId === user.userId);
+      const rank = userRankData?.ranks.find((r) => r.sdgGoalId === currentSDG.value.id);
+
+      return {
+        userId: user.userId,
+        nickname: user.nickname,
+        email: user.email,
+        sdgXp: sdgXp,
+        rank: rank ? { name: rank.name, tier: rank.tier } : undefined,
+      };
+    });
+
+    // ✅ Sort users by XP in DESCENDING ORDER (highest XP first)
+    leaderboard.value = usersWithXp.sort((a, b) => b.sdgXp - a.sdgXp);
+  } catch (err) {
+    console.error("Error updating leaderboard:", err);
+    error.value = "Failed to update leaderboard.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+
+
+// Load more players
+function loadMore() {
+  visibleCount.value += 10; // Show 10 more players each time
+}
+
+// Assign avatar frames based on rank tier (0-4)
+const getAvatarFrameClass = (tier?: number) => {
+  switch (tier) {
+    case 0:
+      return "border-gray-400"; // Basic (Gray)
+    case 1:
+      return "border-green-500"; // Beginner (Green)
+    case 2:
+      return "border-blue-500"; // Intermediate (Blue)
+    case 3:
+      return "border-yellow-500"; // Elite (Gold)
+    default:
+      return "border-gray-300"; // Default
+  }
 };
 
-const goBackToWorld = () => {
-  router.push({ name: 'worlds-id', params: { id: sdgId } });
+// Assign rank badge colors based on tier
+const getRankBadgeClass = (tier?: number) => {
+  switch (tier) {
+    case 0:
+      return "bg-gray-400"; // Basic
+    case 1:
+      return "bg-green-500"; // Beginner
+    case 2:
+      return "bg-blue-500"; // Intermediate
+    case 3:
+      return "bg-yellow-500"; // Elite
+    default:
+      return "bg-gray-300"; // Default
+  }
 };
+
 </script>
-
-<style scoped>
-.users-page {
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-.user-avatar {
-  display: inline-block;
-  padding: 8px; /* Space for the frame */
-}
-
-/* Frames based on XP */
-.frame-bronze {
-  border: 3px solid #cd7f32; /* Bronze color */
-}
-
-.frame-silver {
-  border: 3px solid #c0c0c0; /* Silver color */
-}
-
-.frame-gold {
-  border: 3px solid #ffd700; /* Gold color */
-}
-
-.frame-platinum {
-  border: 3px solid #e5e4e2; /* Platinum color */
-}
-
-.frame-diamond {
-  border: 3px solid #b9f2ff; /* Diamond color */
-}
-
-.frame-none {
-  border: 3px dotted #000000; /* No frame */
-}
-
-.highlighted-user {
-  background-color: #f0f8ff; /* Light blue background */
-  font-weight: bold; /* Bold text */
-}
-</style>

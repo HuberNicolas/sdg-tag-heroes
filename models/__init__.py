@@ -50,6 +50,8 @@ from .sdg_coin_wallet_history import SDGCoinWalletHistory
 
 from .collection import Collection
 
+from .sdg_ranks import SDGRank
+
 # Export all models for external use
 __all__ = [
     "Base",
@@ -99,4 +101,6 @@ __all__ = [
     "SDGCoinWallet",
     "SDGXPBankHistory",
     "SDGCoinWalletHistory",
+
+    "SDGRank",
 ]

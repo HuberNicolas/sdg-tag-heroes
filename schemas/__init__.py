@@ -1,4 +1,5 @@
 # Note: This was/should be deactivated as the circular imports are hard to handle for automatic schema generation via pydantic-to-typescript
+print("Initializing schemas")
 from .authentication import UserDataSchemaBase, UserDataSchemaFull, TokenDataSchemaBase, TokenDataSchemaFull, LoginSchemaBase, LoginSchemaFull
 
 from .sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
@@ -49,6 +50,9 @@ from .clusters.topic import ClusterTopicSchemaBase, ClusterTopicSchemaFull
 
 from .collection import CollectionSchemaBase, CollectionSchemaFull
 
+from .sdg_ranks import SDGRankSchemaBase, SDGRankSchemaFull, UsersSDGRankSchemaBase
+
+print("Export all models")
 # Export all models for external use
 __all__ = [
     "UserDataSchemaBase",
@@ -167,6 +171,10 @@ __all__ = [
 
     "CollectionSchemaBase",
     "CollectionSchemaFull",
+
+    "SDGRankSchemaBase",
+    "SDGRankSchemaFull",
+    "UsersSDGRankSchemaBase" # Non-entity-derived
 ]
 
 # Black magic below:
@@ -218,3 +226,13 @@ SDGUserLabelSchemaFull.model_rebuild()
 SDGLabelDistribution.model_rebuild()
 UserVotingDetails.model_rebuild()
 SDGUserLabelStatisticsSchema.model_rebuild()
+
+
+UserSchemaBase.model_rebuild()
+UserSchemaFull.model_rebuild()
+SDGRankSchemaBase.model_rebuild()
+SDGRankSchemaFull.model_rebuild()
+UsersSDGRankSchemaBase.model_rebuild()
+
+
+print("Finished rebuilding schemas")

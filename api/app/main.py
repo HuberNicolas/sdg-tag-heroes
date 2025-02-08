@@ -24,6 +24,7 @@ from api.app.routes import sdgs
 from api.app.routes import user_profiles_gpt
 from api.app.routes import users
 from api.app.routes import votes
+from api.app.routes import sdg_ranks
 
 from settings.settings import FastAPISettings
 fastapi_settings = FastAPISettings()
@@ -141,6 +142,8 @@ app.include_router(sdg_coin_wallets.router)
 
 app.include_router(authors.router)
 app.include_router(sdgs.router)
+
+app.include_router(sdg_ranks.router)
 
 
 # CORS (development only)

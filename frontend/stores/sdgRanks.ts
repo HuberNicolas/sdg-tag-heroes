@@ -1,0 +1,48 @@
+import { defineStore } from "pinia";
+import type { SDGRankSchemaFull, UserSDGRankSchemaFull } from "~/types/sdgRanks";
+import useSDGRanks from "~/composables/useSDGRanks";
+
+export const useSDGRanksStore = defineStore("sdgRanks", {
+  state: () => ({
+    sdgRanks: [] as SDGRankSchemaFull[],
+    userSDGRanks: [] as UserSDGRankSchemaFull[], // Ranks per user
+
+
+    userSDGRank: null as SDGRankSchemaFull | null, // Personal Rank
+    isLoading: false,
+    error: null as string | null,
+  }),
+  actions: {
+    // Fetch all SDG ranks
+    async fetchSDGRanks() {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGRanks } = useSDGRanks();
+        this.userSDGRanks = await getSDGRanks();
+      } catch (error) {
+        this.error = `Failed to fetch SDG ranks: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // Fetch a single SDG rank by ID
+    async fetchSDGRankById(rankId: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getSDGRankById } = useSDGRanks();
+        this.userSDGRank = await getSDGRankById(rankId);
+      } catch (error) {
+        this.error = `Failed to fetch SDG rank: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+  },
+});
