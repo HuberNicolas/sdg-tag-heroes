@@ -21,6 +21,9 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
 
     scenarioTypeSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[],
 
+    totalVotes: 0 as number,
+    voteDistribution: {},
+
 
     selectedSDGLabelDecision: null as SDGLabelDecisionSchemaFull | null,
     userLabels: [] as SDGUserLabelSchemaFull[],
@@ -32,6 +35,21 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     error: null as string | null,
   }),
   actions: {
+
+    updateVoteStatistics() {
+      const voteCounts = {};
+      this.userLabels.forEach(label => {
+        const votedLabel = label.votedLabel;
+        if ((votedLabel >= 1 && votedLabel <= 17) || votedLabel === -1) {
+          voteCounts[votedLabel] = (voteCounts[votedLabel] || 0) + 1;
+        }
+      });
+
+      this.voteDistribution = voteCounts;
+      this.totalVotes = Object.values(voteCounts).reduce((sum, count) => sum + count, 0);
+    },
+
+
     // Fetch SDG Label Decision by Publication ID
     async fetchSDGLabelDecisionsByPublicationId(publicationId: number) {
       this.isLoading = true;
@@ -75,6 +93,7 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
       try {
         const { getSDGUserLabelsByPublicationId } = useUserLabels();
         this.userLabels = await getSDGUserLabelsByPublicationId(publicationId);
+        this.updateVoteStatistics();
       } catch (error) {
         this.error = `Failed to fetch user labels: ${error}`;
         throw error;

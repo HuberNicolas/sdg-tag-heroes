@@ -12,29 +12,55 @@
         <AnnotationSection></AnnotationSection>
       </div>
 
-      <div class="row-span-1 col-span-3 bg-green-400">
-        <label for="content-toggle" class="mr-2 text-lg font-medium text-gray-700">Show User Labels</label>
-        <input
-          id="content-toggle"
-          type="checkbox"
-          class="toggle toggle-primary"
-          v-model="showContent"
-        />
-      </div>
+      <div class="row-span-2 col-span-3 bg-green-400">
 
 
-
-      <div class="row-span-1 col-span-3">
-        <div class="grid grid-cols-3 gap-4">
-
-          <div v-if="showContent" class="row-span-1 col-span-2 bg-pink-400">
-            <SDGUserLabelToggle />
-            <BarLabelPlot :width="400" :height="100" />
+        <div class="row-span-1 col-span-1 bg-blue-400 flex justify-evenly items-center">
+          <div>
+            <label for="content-toggle" class="mr-2 text-lg font-medium text-gray-700">Show User Labels</label>
+            <input
+              id="content-toggle"
+              type="checkbox"
+              class="toggle toggle-primary"
+              v-model="showContent"
+            />
           </div>
+
+          <!-- Help -->
+
+          <div class="drawer drawer-end">
+            <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
+            <div class="drawer-content">
+              <!-- Page content here -->
+              <label for="my-drawer-4" class="drawer-button btn btn-primary">Help</label>
+            </div>
+            <div class="drawer-side">
+              <label for="my-drawer-4" aria-label="close sidebar" class="drawer-overlay"></label>
+              <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+                <!-- Sidebar content here -->
+                <li><a>Sidebar Item 1</a></li>
+                <li><a>Sidebar Item 2</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3">
           <div  v-if="showContent" class="row-span-1 col-span-1 bg-green-400">
+            <DonutPlot></DonutPlot>
+          </div>
+
+          <div v-if="showContent" class="row-span-1 col-span-1 bg-orange-400">
+            <SDGUserLabelToggle />
+            <BarLabelPlot :width="200" :height="100" />
+          </div>
+
+          <div  v-if="showContent" class="row-span-1 col-span-1 bg-purple-400 flex justify-center items-center">
             <QuestIndicator></QuestIndicator>
           </div>
         </div>
+
+
       </div>
 
       <div v-if="showContent" class="row-span-1 col-span-3 bg-yellow-400">
@@ -74,6 +100,7 @@ import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
 import AnnotationSection from "~/components/AnnotationSection.vue";
 import SDGUserLabelToggle from "~/components/SDGUserLabelToggle.vue";
 import { ref } from 'vue';
+import DonutPlot from "~/components/plots/DonutPlot.vue";
 
 const route = useRoute()
 

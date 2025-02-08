@@ -9,7 +9,7 @@ export function createRaincloudPlot(container, width, height) {
   sdgPredictionsStore.$subscribe((mutation, state) => {
     if (state.selectedPartitionedSDGPredictions.length > 0) {
       const entropyData = state.selectedPartitionedSDGPredictions.map(prediction => calculateEntropy(prediction));
-      renderRaincloudPlot(container, entropyData, 200, 200);
+      renderRaincloudPlot(container, entropyData, 100, 400);
     }
   });
 

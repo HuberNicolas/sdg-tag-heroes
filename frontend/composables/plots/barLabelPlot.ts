@@ -115,4 +115,17 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
     .append("title")
     .text(d => `${d.count} votes`);
+
+  // Update the D3 bar chart to display vote count above each bar
+  g.selectAll(".label")
+    .data(labelDistribution)
+    .enter().append("text")
+    .attr("class", "label")
+    .attr("x", d => x(d.label === -1 ? 'Not relevant' : `SDG ${d.label}`) + x.bandwidth() / 2)
+    .attr("y", d => y(d.count) - 5) // Position above the bar
+    .attr("text-anchor", "middle")
+    .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
+    .attr("font-size", "12px")
+    .attr("font-weight", "bold")
+    .text(d => d.count);
 }

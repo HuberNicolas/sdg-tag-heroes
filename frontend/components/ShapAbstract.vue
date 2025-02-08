@@ -28,6 +28,23 @@
         {{ publication?.description || "No abstract available." }}
       </div>
     </div>
+
+    <!-- Help -->
+    <div class="drawer">
+      <input id="my-drawer" type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content">
+        <!-- Page content here -->
+        <label for="my-drawer" class="btn btn-primary drawer-button">Help</label>
+      </div>
+      <div class="drawer-side">
+        <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+        <ul class="menu bg-base-200 text-base-content min-h-full w-96 p-4">
+          <!-- Sidebar content here -->
+          <li><a>Sidebar Item 1</a></li>
+          <li><a>Sidebar Item 2</a></li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -85,16 +102,18 @@ const shapHighlightedAbstract = computed(() => {
 
   const { inputTokens, tokenScores } = explanation.value;
   const sdgIdx = selectedSDG.value - 1; // convert to 0-based index
-  const scoresForSelectedSDG = tokenScores.map((scores) => scores[sdgIdx]);
+  const scoresForSelectedSDG = tokenScores.map((scores) => Math.max(0, Math.round(scores[sdgIdx]*10000)));
   console.log(scoresForSelectedSDG);
 
-  // Compute the maximum positive score (previous version used Math.max(0, ...))
   const maxScore = Math.max(0, ...scoresForSelectedSDG);
+  console.log(maxScore);
 
   // Get the selected SDG color (or fallback to yellow)
   const selectedSDGColor =
     sdgsStore.sdgs.find((sdg) => sdg.id === selectedSDG.value)?.color ||
     "#ffff00";
+
+  console.log(selectedSDGColor);
 
   // Create a d3 color scale: tokens with a higher positive score get a stronger highlight
   const colorScale = d3.scaleLinear<string>()
@@ -106,11 +125,14 @@ const shapHighlightedAbstract = computed(() => {
   const highlightedParts: string[] = [];
 
   // Loop sequentially over each token and its score
+  console.log(inputTokens);
+  console.log(scoresForSelectedSDG);
   inputTokens.forEach((token, index) => {
     const score = scoresForSelectedSDG[index];
+    console.log(token, index, score)
     if (score <= threshold) return; // skip tokens below threshold
 
-    // Find the token in the remaining text (this approach mimics the previous version)
+    // Find the token in the remaining text
     const idx = remainingText.indexOf(token);
     if (idx === -1) return; // if not found, skip
 
@@ -122,9 +144,8 @@ const shapHighlightedAbstract = computed(() => {
       score > threshold ? rgbToHex(colorScale(score)) : "#ffffff";
 
     // Append the token wrapped in a <mark> tag with the chosen styling.
-    // (Here we use 14px and Roboto as in your previous version.)
     highlightedParts.push(
-      `<mark style="background-color: ${highlightColor}; font-size: 14px; padding: 0;">${token}</mark>`
+      `<mark style="background-color: ${highlightColor}; padding: 0;">${token}</mark>`
     );
 
     // Remove the processed part from the text

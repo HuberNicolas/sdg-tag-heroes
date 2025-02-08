@@ -15,7 +15,7 @@
     />
 
     <QuestButton
-      v-else-if="selectedSDGLabelDecision.scenarioType === 'Investment'"
+      v-else-if="selectedSDGLabelDecision.scenarioType === 'Investigate'"
       icon="i-heroicons-magnifying-glass"
       name="Investigate"
       tooltip="Analyze and investigate data"
