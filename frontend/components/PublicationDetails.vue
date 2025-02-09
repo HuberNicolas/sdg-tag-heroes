@@ -23,26 +23,16 @@
       </span>
     </div>
 
-    <!-- Summary -->
-    <div v-if="summary && summary.summary" class="mt-4">
-      <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
-      <p class="text-gray-700">{{ summary.summary }}</p>
-    </div>
-
     <!-- Fact -->
     <div v-if="fact && fact.content" class="mt-4 bg-blue-100 p-3 rounded-lg">
       <h3 class="text-lg font-semibold text-blue-700">Did You Know?</h3>
       <p class="text-blue-700">{{ fact.content }}</p>
     </div>
 
-    <!-- SDG Predictions -->
-    <div v-if="selectedPublication.sdgPredictions && selectedPublication.sdgPredictions.length > 0" class="mt-4">
-      <h3 class="text-lg font-semibold text-green-700">SDG Predictions</h3>
-      <ul class="list-disc list-inside text-gray-700">
-        <li v-for="(sdg, index) in selectedPublication.sdgPredictions" :key="index">
-          SDG {{ sdg.sdgId }}: {{ sdg.reasoning }}
-        </li>
-      </ul>
+    <!-- Summary -->
+    <div v-if="summary && summary.summary" class="mt-4">
+      <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
+      <p class="text-gray-700">{{ summary.summary }}</p>
     </div>
   </div>
 
