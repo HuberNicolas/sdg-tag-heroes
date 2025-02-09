@@ -93,14 +93,15 @@
 
 <script setup lang="ts">
 import ScatterSDGPlot from "~/components/plots/ScatterSDGPlot.vue";
-import RainPlot from '@/components/plots/RainPlot.vue';
-import BarPlot from '@/components/plots/BarPlot.vue';
+import RainPlot from "@/components/plots/RainPlot.vue";
+import BarPlot from "@/components/plots/BarPlot.vue";
 import QuestButton from "~/components/QuestButton.vue";
 import ExplorationUserQuery from "~/components/ExplorationUserQuery.vue";
-import { ref, onMounted, watch } from 'vue';
-import { useGameStore } from '~/stores/game';
+import { onMounted, ref, watch } from "vue";
+import { useGameStore } from "~/stores/game";
 import PublicationDetails from "~/components/PublicationDetails.vue";
 import ScatterPlotSDGCollections from "~/components/plots/ScatterPlotSDGCollections.vue";
+import { Quadrant } from "~/types/enums";
 
 
 const route = useRoute()
@@ -139,6 +140,7 @@ const barPlotWidth = ref(0);
 const barPlotHeight = ref(0);
 
 onMounted(() => {
+  gameStore.setQuadrant(Quadrant.MANY_PUBS_ONE_SDG);
   const mapContainer = document.querySelector('.row-span-4.col-span-4');
   if (mapContainer) {
     scatterPlotWidth.value = mapContainer.clientWidth;

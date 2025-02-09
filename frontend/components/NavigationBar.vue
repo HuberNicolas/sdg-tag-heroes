@@ -4,8 +4,8 @@
       <span class="text-gray-500">Loading...</span>
     </div>
 
-    <div v-else class="max-w-7xl mx-auto flex justify-between items-center px-1 py-1">
-      <div class="flex items-center space-x-6">
+    <div v-else class="w-full flex justify-between items-center px-1 py-1 flex-nowrap overflow-x-auto">
+    <div class="flex items-center space-x-6">
         <NuxtLink
           v-for="(link, index) in links.slice(0, 3)"
           :key="index"
@@ -19,62 +19,54 @@
       </div>
 
       <!-- Quadrant Display -->
-      <div class="flex flex-col items-center space-y-2">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Situation:</span>
-
-        <div class="grid grid-cols-2 gap-1 border p-1 rounded-md w-20 h-20 text-xs">
-          <!-- 1 Publication, 1 SDG -->
-          <div class="relative flex flex-col items-center justify-center p-1 border rounded-md hover:bg-blue-100"
-               :class="{ 'bg-blue-200': gameStore.getQuadrant === Quadrant.ONE_PUB_ONE_SDG }">
-            <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
-            <Icon name="ph-hexagon-light" class="w-4 h-4 text-green-500"/>
-            <span class="absolute opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-gray-600">1 Pub, 1 SDG</span>
-          </div>
-
-          <!-- 1 Publication, All SDGs -->
-          <div class="relative flex flex-col items-center justify-center p-1 border rounded-md hover:bg-blue-100"
-               :class="{ 'bg-blue-300': gameStore.getQuadrant === Quadrant.ONE_PUB_ALL_SDG }">
-            <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
-            <div class="flex space-x-0.5">
-              <Icon name="ph-hexagon-light" class="w-3 h-3 text-red-500"/>
-              <Icon name="ph-hexagon-light" class="w-3 h-3 text-blue-500"/>
-              <Icon name="ph-hexagon-light" class="w-3 h-3 text-yellow-500"/>
-            </div>
-            <span class="absolute opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-gray-600">1 Pub, All SDGs</span>
-          </div>
-
-          <!-- Many Publications, 1 SDG -->
-          <div class="relative flex flex-col items-center justify-center p-1 border rounded-md hover:bg-blue-100"
-               :class="{ 'bg-blue-400': gameStore.getQuadrant === Quadrant.MANY_PUBS_ONE_SDG }">
-            <div class="flex space-x-0.5">
-              <Icon name="line-md-document" class="w-3 h-3 text-gray-600"/>
-              <Icon name="line-md-document" class="w-3 h-3 text-gray-600"/>
-            </div>
-            <Icon name="ph-hexagon-light" class="w-4 h-4 text-green-500"/>
-            <span class="absolute opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-gray-600">Many Pubs, 1 SDG</span>
-          </div>
+      <div class="flex items-center space-x-4">
+        <span>Situation:</span>
+        <!-- Render only the active quadrant -->
+        <div class="p-1 border rounded-md w-10 h-10 text-xs flex flex-col items-center justify-between">
 
           <!-- Many Publications, All SDGs -->
-          <div class="relative flex flex-col items-center justify-center p-1 border rounded-md hover:bg-blue-100"
-               :class="{ 'bg-blue-500': gameStore.getQuadrant === Quadrant.MANY_PUBS_ALL_SDG }">
+          <template v-if="gameStore.getQuadrant === Quadrant.MANY_PUBS_ALL_SDG">
+            <div class="flex space-x-0.5">
+              <Icon name="ph-hexagon-light" class="w-3 h-3 text-gray-600"/>
+              <Icon name="ph-hexagon-light" class="w-3 h-3 text-gray-600"/>
+              <Icon name="ph-hexagon-light" class="w-3 h-3 text-gray-600"/>
+            </div>
             <div class="flex space-x-0.5">
               <Icon name="line-md-document" class="w-3 h-3 text-gray-600"/>
               <Icon name="line-md-document" class="w-3 h-3 text-gray-600"/>
             </div>
+          </template>
+
+          <!-- Many Publications, 1 SDG -->
+          <template v-if="gameStore.getQuadrant === Quadrant.MANY_PUBS_ONE_SDG">
+            <Icon name="ph-hexagon-light" class="w-4 h-4" :style="{ color: sdgColor }"/>
             <div class="flex space-x-0.5">
-              <Icon name="ph-hexagon-light" class="w-3 h-3 text-red-500"/>
-              <Icon name="ph-hexagon-light" class="w-3 h-3 text-blue-500"/>
-              <Icon name="ph-hexagon-light" class="w-3 h-3 text-yellow-500"/>
+              <Icon name="line-md-document" class="w-3 h-3 text-gray-600"/>
+              <Icon name="line-md-document" class="w-3 h-3 text-gray-600"/>
             </div>
-            <span class="absolute opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-gray-600">Many Pubs, All SDGs</span>
-          </div>
+          </template>
+
+          <!-- 1 Publication, All SDGs -->
+          <template v-if="gameStore.getQuadrant === Quadrant.ONE_PUB_ALL_SDG">
+            <div class="flex space-x-0.5">
+              <Icon name="ph-hexagon-light" class="w-3 h-3 text-gray-600"/>
+              <Icon name="ph-hexagon-light" class="w-3 h-3 text-gray-600"/>
+              <Icon name="ph-hexagon-light" class="w-3 h-3 text-gray-600"/>
+            </div>
+            <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
+          </template>
+
+          <!-- 1 Publication, 1 SDG -->
+          <template v-if="gameStore.getQuadrant === Quadrant.ONE_PUB_ONE_SDG">
+            <Icon name="ph-hexagon-light" class="w-4 h-4" :style="{ color: sdgColor }"/>
+            <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
+          </template>
         </div>
       </div>
 
-
       <!-- Level Display -->
       <div class="flex items-center space-x-4">
-        <span>Current Level:</span>
+        <span>Level:</span>
         <span
           class="px-3 py-1 rounded-md border font-semibold"
           :class="getLevelClass(gameStore.getLevel)"
@@ -83,18 +75,17 @@
         </span>
       </div>
 
-
       <div class="flex items-center space-x-4">
         <span>Stage:</span>
-        <span class="font-semibold text-purple-600 dark:text-purple-400">
+        <span class="font-semibold">
           <template v-if="gameStore.getStage === 'Exploring'">
-            <Icon name="magnifying-glass" /> {{ gameStore.getStage }}
+            <Icon name="mdi-person-search" /> {{ gameStore.getStage }}
           </template>
           <template v-else-if="gameStore.getStage === 'Labeling'">
-            <Icon name="label" /> {{ gameStore.getStage }}
+            <Icon name="mdi-tag-outline" /> {{ gameStore.getStage }}
           </template>
           <template v-else-if="gameStore.getStage === 'Voting'">
-            <Icon name="thumbs-up" /> {{ gameStore.getStage }}
+            <Icon name="mdi-vote" /> {{ gameStore.getStage }}
           </template>
           <template v-else>
             {{ gameStore.getStage }}
@@ -131,13 +122,13 @@
       <div class="flex items-center space-x-6">
 
         <div v-if="gameStore.getSDG" class="flex flex-col items-start ml-4">
-          <span v-if="currentRank" class="font-semibold text-gray-700 dark:text-gray-300">
+          <span v-if="currentRank" class="font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
             {{ currentRank.name }}
           </span>
         </div>
 
         <div v-if="gameStore.getSDG" class="flex flex-col items-start ml-4">
-          <span v-if="currentRank" class="text-sm text-gray-500 dark:text-gray-400">
+          <span v-if="currentRank" class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
             Tier {{ currentRank.tier }}
           </span>
         </div>
@@ -188,13 +179,74 @@
             <!-- Page content here -->
             <label for="my-drawer-4" class="drawer-button btn btn-primary">Help</label>
           </div>
+
           <div class="drawer-side">
             <label for="my-drawer-4" aria-label="close sidebar" class="drawer-overlay"></label>
-            <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-              <!-- Sidebar content here -->
-              <li><a>Sidebar Item 1</a></li>
-              <li><a>Sidebar Item 2</a></li>
-            </ul>
+
+            <div class="menu bg-base-200 text-base-content min-h-full w-1/5 p-4">
+
+              <div class="flex justify-center h-full">
+                <div class="grid grid-flow-col grid-cols-3 grid-rows-3 gap-4 w-80 h-80 border border-gray-300 bg-white dark:border-gray-700 p-2 rounded-md">
+
+                  <div class="col-span-1 row-span-1flex flex-col items-center justify-center bg-white text-black font-bold p-2 rounded-md">
+                  </div>
+
+                  <!-- Publications Label (Y-axis, Vertical) -->
+                  <div class="row-span-2 flex flex-col items-center justify-center text-black font-bold p-2 rounded-md">
+                    <span class="transform rotate-180 whitespace-nowrap [writing-mode:vertical-lr]">Publications (N - 1)</span>
+                    <Icon name="line-md-document" class="w-5 h-5 text-black mt-1"/>
+                  </div>
+
+                  <!-- SDGs Label (X-axis) -->
+                  <div class="col-span-2 flex flex-col items-center justify-center text-black font-bold p-2 rounded-md">
+                    <span>SDGs (17 - 1)</span>
+                    <Icon name="ph-hexagon-light" class="w-5 h-5 text-black mt-1"/>
+                  </div>
+
+                  <!-- Quadrant: Many Publications, All SDGs -->
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md"
+                       :class="{ 'bg-blue-500': gameStore.getQuadrant === Quadrant.MANY_PUBS_ALL_SDG }">
+                    <div class="flex space-x-1">
+                      <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
+                      <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
+                      <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
+                    </div>
+                    <div class="flex space-x-1 mt-1">
+                      <Icon name="line-md-document" class="w-4 h-4 text-gray-600 dark:text-gray-300"/>
+                      <Icon name="line-md-document" class="w-4 h-4 text-gray-600 dark:text-gray-300"/>
+                    </div>
+                  </div>
+
+                  <!-- Quadrant: 1 Publication, All SDGs -->
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center  border border-gray-300 rounded-md shadow-md"
+                       :class="{ 'bg-blue-500': gameStore.getQuadrant === Quadrant.ONE_PUB_ALL_SDG }">
+                    <div class="flex space-x-1">
+                      <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
+                      <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
+                      <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
+                    </div>
+                    <Icon name="line-md-document" class="w-5 h-5 text-gray-600 dark:text-gray-300 mt-1"/>
+                  </div>
+
+                  <!-- Quadrant: Many Publications, 1 SDG -->
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md"
+                       :class="{ 'bg-blue-500': gameStore.getQuadrant === Quadrant.MANY_PUBS_ONE_SDG }">
+                    <Icon name="ph-hexagon-light" class="w-4 h-4" :style="{ color: sdgColor }"/>
+                    <div class="flex space-x-1 mt-1">
+                      <Icon name="line-md-document" class="w-4 h-4 text-gray-600 dark:text-gray-300"/>
+                      <Icon name="line-md-document" class="w-4 h-4 text-gray-600 dark:text-gray-300"/>
+                    </div>
+                  </div>
+
+                  <!-- Quadrant: 1 Publication, 1 SDG -->
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md"
+                       :class="{ 'bg-blue-500': gameStore.getQuadrant === Quadrant.ONE_PUB_ONE_SDG }">
+                    <Icon name="ph-hexagon-light" class="w-4 h-4" :style="{ color: sdgColor }"/>
+                    <Icon name="line-md-document" class="w-5 h-5 text-gray-600 dark:text-gray-300 mt-1"/>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -203,15 +255,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useUsersStore } from '~/stores/users';
-import { useXPBanksStore } from '~/stores/xpBanks';
-import { useCoinWalletsStore } from '~/stores/coinWallets';
-import { useSDGsStore } from '~/stores/sdgs';
-import { useGameStore } from '~/stores/game';
-import { useSDGRanksStore } from '~/stores/sdgRanks';
-import { generateAvatar } from '~/utils/avatar';
-import { Quadrant } from "~/types/enums";
+import { onMounted, ref } from "vue";
+import { useUsersStore } from "~/stores/users";
+import { useXPBanksStore } from "~/stores/xpBanks";
+import { useCoinWalletsStore } from "~/stores/coinWallets";
+import { useSDGsStore } from "~/stores/sdgs";
+import { useGameStore } from "~/stores/game";
+import { useSDGRanksStore } from "~/stores/sdgRanks";
+import { generateAvatar } from "~/utils/avatar";
+import { Quadrant, Stage } from "~/types/enums";
 
 
 // Pinia stores
@@ -227,6 +279,7 @@ const loading = ref(true);
 const links = ref<Array<any>>([]);
 
 const fetchData = async () => {
+  gameStore.setStage(Stage.EXPLORING);
   try {
     // First fetch the user data
     await userStore.fetchPersonalUser();
@@ -314,7 +367,6 @@ const getRomanLevel = (level: number | null) => {
 
 // Assign tier color based on level
 const getLevelClass = (level: number | null) => {
-
   if (level === 1) return "bg-orange-200 border-orange-400 text-orange-800"; // Bronze
   if (level === 2) return "bg-gray-200 border-gray-400 text-gray-700"; // Silver
   if (level === 3) return "bg-yellow-200 border-yellow-500 text-yellow-800"; // Gold
