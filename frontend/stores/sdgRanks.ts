@@ -47,13 +47,13 @@ export const useSDGRanksStore = defineStore("sdgRanks", {
     },
 
     // Fetch a single SDG rank by ID
-    async fetchSDGRankById(rankId: number) {
+    async fetchSDGRankByUserId(userId: number) {
       this.isLoading = true;
       this.error = null;
 
       try {
-        const { getSDGRankById } = useSDGRanks();
-        this.userSDGRank = await getSDGRankById(rankId);
+        const { getSDGRankByUserId } = useSDGRanks();
+        this.userSDGRank = await getSDGRankByUserId(userId);
       } catch (error) {
         this.error = `Failed to fetch SDG rank: ${error}`;
         throw error;
@@ -61,5 +61,7 @@ export const useSDGRanksStore = defineStore("sdgRanks", {
         this.isLoading = false;
       }
     },
+
+
   },
 });

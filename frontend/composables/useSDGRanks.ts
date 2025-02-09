@@ -35,7 +35,7 @@ export default function useSDGRanks() {
   }
 
   // Fetch a single SDG rank by ID
-  async function getSDGRankById(userId: number): Promise<SDGRankSchemaFull> {
+  async function getSDGRankByUserId(userId: number): Promise<SDGRankSchemaFull> {
     try {
       const response = await $fetch<SDGRankSchemaFull>(
         `${config.public.apiUrl}/ranks/users/${userId}`,
@@ -54,6 +54,6 @@ export default function useSDGRanks() {
   return {
     getSDGRanks,
     getSDGRanksForUsers,
-    getSDGRankById,
+    getSDGRankByUserId,
   };
 }

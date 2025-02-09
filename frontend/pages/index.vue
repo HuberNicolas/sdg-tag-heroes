@@ -71,7 +71,6 @@ import type { Container } from '@tsparticles/engine';
 import { baseSdgColors } from "@/constants/constants";
 import { VueWriter } from 'vue-writer';
 
-
 const email = ref('');
 const password = ref('');
 const error = ref('');
@@ -82,7 +81,7 @@ const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    const response = await auth.login({ email: email.value, password: password.value });
+    await auth.login({ email: email.value, password: password.value });
     const profile = await auth.getProfile();
     authStore.setUserProfile(profile);
     router.push('/profile');
@@ -209,6 +208,9 @@ const onLoad = (container: Container) => {
   setTimeout(() => container.play(), 2000)
 }
 
+definePageMeta({
+  layout: 'empty'
+})
 
 </script>
 

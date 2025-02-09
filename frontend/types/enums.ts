@@ -51,3 +51,16 @@ export enum ScenarioType {
   NOT_ENOUGH_VOTES = "Not enough votes", // Gather the Troops
   NO_SPECIFIC_SCENARIO = "No specific scenario", // Await the Signal
 }
+
+export enum Quadrant {
+  ONE_PUB_ONE_SDG = "1 Publication, 1 SDG",
+  ONE_PUB_ALL_SDG = "1 Publication, all SDGs",
+  MANY_PUBS_ONE_SDG = "Many Publications, 1 SDG",
+  MANY_PUBS_ALL_SDG = "Many Publications, allo SDGs"
+}
+
+export enum Stage {
+  EXPLORING = "Exploring",
+  LABELING = "Labeling",
+  VOTING = "Voting"
+}
