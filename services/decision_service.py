@@ -37,6 +37,7 @@ class DecisionService:
                 user_to_label[label.user_id] = label
         return [label.voted_label for label in user_to_label.values()]
 
+    # TODO: Debug, not correct yet
     def evaluate_vote_scenario(self, user_labels: List["SDGUserLabel"], votes_needed: int = decision_service_settings.VOTES_NEEDED_FOR_SCENARIO) -> ScenarioType:
         """
         Evaluate the current scenario based on the distribution of votes.
@@ -56,7 +57,7 @@ class DecisionService:
         # Total number of votes
         total_votes = len(most_recent_labels)
 
-        # Thresholds (relative to total_votes)
+        # Thresholds (relative to total_votes) #TODO: de-hardcode
         absolute_majority_threshold = total_votes * 0.5  # More than 50% for Confirm
         significant_count_threshold = total_votes * 0.3  # At least 30% for Investigate
 
@@ -66,7 +67,7 @@ class DecisionService:
             return ScenarioType.CONFIRM
 
         # Scenario 2: Tiebreaker (50/50 split between exactly two classes)
-        if len(sorted_counts) == 2 and sorted_counts[0] == sorted_counts[1] and sorted_counts[0] == total_votes / 2:
+        if len(sorted_counts) == 2 and sorted_counts[0] == sorted_counts[1]: # and sorted_counts[0] == total_votes / 2:
             logging.info("Scenario: Tiebreaker (50/50 split).")
             return ScenarioType.TIEBREAKER
 
@@ -98,6 +99,7 @@ class DecisionService:
             if max_votes > total_votes / 2:  # Clear majority
                 winning_label = vote_counts.most_common(1)[0][0]
                 logging.info(f"Consensus reached for label {winning_label}.")
+                decision.scenario_type = ScenarioType.DECIDED
                 self.finalize_decision(decision, winning_label)
             else:
                 logging.info("No consensus reached. Leaving decision open.")
@@ -121,9 +123,6 @@ class DecisionService:
         # Ensure label summary is updated after finalizing decision
         self.update_label_summary(decision)
 
-        # Reward users after the decision is finalized
-        reward_service = RewardService(self.db)
-        reward_service.reward_users(decision)
 
     def update_label_summary(self, decision: SDGLabelDecision) -> None:
         """

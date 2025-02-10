@@ -35,6 +35,8 @@
       tooltip="Not enough votes"
     />
 
+    <DecidedScenario />
+
   </div>
 </template>
 

@@ -1,4 +1,6 @@
 from enum import Enum as PyEnum
+from typing import Tuple
+
 
 class UserRole(PyEnum):
     USER = "user"
@@ -48,18 +50,31 @@ class ScenarioType(PyEnum):
     NOT_ENOUGH_VOTES = "Not enough votes" # Gather the Troops
     NO_SPECIFIC_SCENARIO = "No specific scenario" # Await the Signal
 
+    DECIDED = "Decided"
+
 class LevelType(PyEnum):
-    LEVEL_1 = (1, 0.98)  # Level 1
-    LEVEL_2 = (0.98, 0.9)  # Level 2
-    LEVEL_3 = (0.9, 0.7)  # Level 3
+    LEVEL_1 = (1, 0.98, 100)  # max_prob, min_prob, coins
+    LEVEL_2 = (0.98, 0.9, 200)
+    LEVEL_3 = (0.9, 0.7, 300)
+
+    def __init__(self, max_prob: float, min_prob: float, coins: int):
+        self.max_prob = max_prob
+        self.min_prob = min_prob
+        self.coins = coins
 
     @property
-    def max_value(self):
-        return self.value[0]
+    def range(self) -> Tuple[float, float]:
+        """Return the probability range for this level."""
+        return (self.min_prob, self.max_prob)
 
-    @property
-    def min_value(self):
-        return self.value[1]
+    @classmethod
+    def get_level(cls, P_max: float) -> 'LevelType':
+        """Determine level based on probability."""
+        return next(
+            (level for level in cls
+             if level.min_prob <= P_max < level.max_prob),
+            cls.LEVEL_1  # Default case
+        )
 
 
 class BartlePersonaType(PyEnum):

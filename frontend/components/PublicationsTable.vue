@@ -93,6 +93,11 @@ const scenarioMapping: Record<string, { icon: string; name: string; tooltip: str
     icon: 'question-mark-circle',
     name: 'Not enough votes',
     tooltip: 'Not enough votes'
+  },
+  'Decided': {
+    icon: 'check-mark-circle',
+    name: 'Decided',
+    tooltip: 'Decided'
   }
 };
 

@@ -60,7 +60,7 @@ class SDGLabelDecision(Base):
     decided_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
-        nullable=False,
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(

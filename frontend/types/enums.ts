@@ -50,6 +50,8 @@ export enum ScenarioType {
 
   NOT_ENOUGH_VOTES = "Not enough votes", // Gather the Troops
   NO_SPECIFIC_SCENARIO = "No specific scenario", // Await the Signal
+
+  Decided = "Decided"
 }
 
 export enum Quadrant {

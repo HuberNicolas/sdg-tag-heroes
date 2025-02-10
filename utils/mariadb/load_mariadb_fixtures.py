@@ -210,7 +210,7 @@ def create_sdg_label_decisions(
             decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
             scenario_type=choice(list(ScenarioType)),
             comment=faker.text(max_nb_chars=200),
-            decided_at=datetime.now(),
+            # decided_at=datetime.now(),
             created_at=faker.date_time_this_year(before_now=True),
             updated_at=faker.date_time_this_year(before_now=True),
         )
@@ -546,7 +546,7 @@ def create_sdg_label_decisions_for_scenarios(
             decision_type=DecisionType.CONSENSUS_MAJORITY,
             scenario_type=scenario,
             comment=decision_comment,  # Use AI-generated comment
-            decided_at=datetime.now(),
+            # decided_at=datetime.now(),
             created_at=faker.date_time_this_year(before_now=True),
             updated_at=faker.date_time_this_year(before_now=True),
         )

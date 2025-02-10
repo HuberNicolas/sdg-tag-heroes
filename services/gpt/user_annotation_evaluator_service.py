@@ -1,4 +1,9 @@
 import os
+import warnings
+# OpenBLAS Warning : Detect OpenMP Loop and this application may hang. Please rebuild the library with USE_OPENMP=1 option.
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+# https://stackoverflow.com/questions/77137232/identifying-source-of-and-understanding-openblas-and-openmp-warnings
+# warnings.filterwarnings('ignore', category=UserWarning, module='openblas')
 
 import torch
 from transformers import AutoTokenizer, AutoModel
@@ -7,9 +12,6 @@ from enums import SDGType
 from schemas.gpt_assistant_service import GPTResponseAnnotationScoreSchema, AnnotationEvaluationSchema
 from settings.sdg_descriptions import sdgs
 from settings.settings import UserAnnotationEvaluatorServiceSettings
-
-# OpenBLAS Warning : Detect OpenMP Loop and this application may hang. Please rebuild the library with USE_OPENMP=1 option.
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 # Load Transformer Model
 user_annotation_evaluator_service_settings = UserAnnotationEvaluatorServiceSettings()

@@ -191,7 +191,7 @@ class DecisionServiceSettings(BaseSettings):
     DECISION_SERVICE_LOG_NAME: ClassVar[str] = "service_decision.log"
     DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
     VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = 10 # 10
-    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 15 # 15
+    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 11 # 15
 
 class LabelServiceSettings(BaseSettings):
     LABEL_SERVICE_LOG_NAME: ClassVar[str] = "service_label.log"

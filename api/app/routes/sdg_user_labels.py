@@ -1,21 +1,26 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy import func
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
+from enums import SDGType
 from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, Vote
 from models.publications.publication import Publication
 from models.sdg_label_summary import SDGLabelSummary
+from request_models.annotations_gpt import AnnotationEvaluationRequest
 from request_models.sdg_user_label import UserLabelRequest, UserLabelIdsRequest
 from schemas import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
-from schemas.gpt_assistant_service import GPTResponseCommentSummarySchema, SDGUserLabelsCommentSummarySchema
+from schemas.gpt_assistant_service import GPTResponseCommentSummarySchema, SDGUserLabelsCommentSummarySchema, \
+    AnnotationEvaluationSchema
 from schemas.sdg_user_label import SDGUserLabelStatisticsSchema, SDGLabelDistribution, UserVotingDetails
 from schemas.vote import VoteSchemaFull
 from services.gpt.gpt_assistant_service import GPTAssistantService
+from services.gpt.user_annotation_evaluator_service import UserAnnotationEvaluatorService
 from services.label_service import LabelService
 from settings.settings import SDGUserLabelsSettings
 from utils.logger import logger
@@ -112,7 +117,85 @@ async def get_all_sdg_user_labels(
         )
 
 @router.post(
-    "/summary",
+    "/{user_label_id}/evaluate",
+    response_model=AnnotationEvaluationSchema,
+    description="Evaluate a user label's comment against the abstract selection."
+)
+async def evaluate_user_label(
+    user_label_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> AnnotationEvaluationSchema:
+    """
+    Evaluate a user label's comment in relation to the abstract selection.
+    Returns zero scores if the label lacks an abstract section or a comment.
+    """
+    try:
+        user = verify_token(token, db)  # Authenticate user
+
+        # Fetch the user label
+        user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == user_label_id).first()
+
+        if not user_label:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDG user label with ID {user_label_id} not found",
+            )
+
+        # Handle missing abstract section or comment by returning zero scores
+        if not user_label.abstract_section or not user_label.comment:
+            return AnnotationEvaluationSchema(
+                passage=user_label.abstract_section or "",
+                annotation=user_label.comment or "",
+                sdg_label=SDGType(f"sdg{user_label.voted_label}") if user_label.voted_label else SDGType("sdg0"),
+                relevance=0.0,
+                depth=0.0,
+                correctness=0.0,
+                creativity=0.0,
+                reasoning="Insufficient data for evaluation.",
+                llm_score=0.0,
+                semantic_score=0.0,
+                combined_score=0.0,
+            )
+
+        # Initialize services
+        gpt_service = GPTAssistantService()
+        evaluator_service = UserAnnotationEvaluatorService()
+
+        # Get LLM evaluation scores
+        llm_scores = gpt_service.evaluate_annotation(
+            passage=user_label.abstract_section,
+            annotation=user_label.comment,
+            sdg_label=SDGType(f"sdg{user_label.voted_label}"),
+        )
+
+        # Compute semantic similarity and final score
+        evaluation_result = evaluator_service.evaluate_annotation(
+            passage=user_label.abstract_section,
+            annotation=user_label.comment,
+            sdg_label=SDGType(f"sdg{user_label.voted_label}"),
+            llm_scores=llm_scores,
+        )
+
+        return AnnotationEvaluationSchema.model_validate(evaluation_result)
+
+    except ValidationError as ve:
+        logging.error(f"Validation error: {ve}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid input data.",
+        )
+    except Exception as e:
+        logging.error(f"Error evaluating user label {user_label_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while evaluating the user label.",
+        )
+
+
+
+@router.post(
+    "/summary", # TODO: Rename into comments/summary
     response_model=SDGUserLabelsCommentSummarySchema,
     description="Summarize a collection of SDG user comments into a cohesive summary."
 )
