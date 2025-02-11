@@ -53,8 +53,8 @@
         </div>
       </div>
 
-      <div class="row-span-4 col-span-5 bg-blue-400 h-full overflow-auto p-1">
-        <PublicationDetails></PublicationDetails>
+      <div class="row-span-6 col-span-5 bg-yellow-400 p-1">
+        <PublicationsTable></PublicationsTable>
       </div>
 
       <div class="row-span-4 col-span-5 bg-blue-400 p-1">
@@ -64,8 +64,8 @@
           :height="scatterPlotHeight"/>
       </div>
 
-      <div class="row-span-6 col-span-5 bg-yellow-400 p-1">
-        <PublicationsTable></PublicationsTable>
+      <div class="row-span-4 col-span-5 bg-blue-400 h-full overflow-auto p-1">
+        <PublicationDetails></PublicationDetails>
       </div>
 
       <div class="row-span-3 col-span-5 bg-yellow-400 p-1">
@@ -100,8 +100,7 @@ import ExplorationUserQuery from "~/components/ExplorationUserQuery.vue";
 import { onMounted, ref, watch } from "vue";
 import { useGameStore } from "~/stores/game";
 import PublicationDetails from "~/components/PublicationDetails.vue";
-import ScatterPlotSDGCollections from "~/components/plots/ScatterPlotSDGCollections.vue";
-import { Quadrant } from "~/types/enums";
+import { Quadrant, Stage } from "~/types/enums";
 
 
 const route = useRoute()
@@ -141,6 +140,7 @@ const barPlotHeight = ref(0);
 
 onMounted(() => {
   gameStore.setQuadrant(Quadrant.MANY_PUBS_ONE_SDG);
+  gameStore.setStage(Stage.EXPLORING);
   const mapContainer = document.querySelector('.row-span-4.col-span-4');
   if (mapContainer) {
     scatterPlotWidth.value = mapContainer.clientWidth;

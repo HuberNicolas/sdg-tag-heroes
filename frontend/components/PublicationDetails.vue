@@ -34,6 +34,11 @@
       <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
       <p class="text-gray-700">{{ summary.summary }}</p>
     </div>
+
+    <button class="btn btn-primary">
+      <NuxtLink :to="`/labeling2/${selectedPublication.publicationId}`">Label</NuxtLink>
+    </button>
+
   </div>
 
   <div v-else class="text-center text-gray-500 mt-6">No publication selected.</div>

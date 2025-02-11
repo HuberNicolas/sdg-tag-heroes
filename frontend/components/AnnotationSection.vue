@@ -7,9 +7,8 @@
     <UDivider></UDivider>
 
     <!-- SDG User Label is attached to SDG Label decision -->
-    <CreateSDGLabelButton></CreateSDGLabelButton>
     <ConnectingDots></ConnectingDots>
-
+    <CreateSDGLabelButton></CreateSDGLabelButton>
   </div>
 </template>
 

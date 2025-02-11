@@ -1,9 +1,11 @@
 <template>
   <div class="container mx-auto p-4">
-    <!-- Publication Title -->
-    <h1 class="text-2xl font-bold mb-4">{{ publication?.title }}</h1>
+    <div class="flex flex-row justify-between">
+      <h1 class="text-2xl font-bold">{{ publication?.title }}</h1>
+      <SDGExplorerLabeling></SDGExplorerLabeling>
+    </div>
 
-    <!-- Toggle for SHAP/Plain Text -->
+
     <div class="mb-6">
       <label class="inline-flex items-center">
         <input
@@ -16,37 +18,24 @@
     </div>
 
     <!-- Abstract Display -->
-    <div class="bg-white p-6 rounded-lg shadow-md">
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[400px]">
       <h2 class="text-xl font-semibold mb-4">Abstract</h2>
+
+      <!-- Abstract content that fills the remaining space -->
       <div
         v-if="showShap && explanation"
-        class="text-justify"
-        v-html="shapHighlightedAbstract"
+        class="h-[500px] overflow-y-auto text-justify"
         @mouseup="handleAbstractSelection"
+        v-html="shapHighlightedAbstract"
       ></div>
-      <div v-else class="text-justify text-gray-700">
+      <div v-else class="h-[500px] overflow-y-auto text-justify">
         {{ publication?.description || "No abstract available." }}
-      </div>
-    </div>
-
-    <!-- Help -->
-    <div class="drawer">
-      <input id="my-drawer" type="checkbox" class="drawer-toggle" />
-      <div class="drawer-content">
-        <!-- Page content here -->
-        <label for="my-drawer" class="btn btn-primary drawer-button">Help</label>
-      </div>
-      <div class="drawer-side">
-        <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        <ul class="menu bg-base-200 text-base-content min-h-full w-96 p-4">
-          <!-- Sidebar content here -->
-          <li><a>Sidebar Item 1</a></li>
-          <li><a>Sidebar Item 2</a></li>
-        </ul>
       </div>
     </div>
   </div>
 </template>
+
+
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
@@ -102,7 +91,7 @@ const shapHighlightedAbstract = computed(() => {
 
   const { inputTokens, tokenScores } = explanation.value;
   const sdgIdx = selectedSDG.value - 1; // convert to 0-based index
-  const scoresForSelectedSDG = tokenScores.map((scores) => Math.max(0, Math.round(scores[sdgIdx]*10000)));
+  const scoresForSelectedSDG = tokenScores.map((scores) => Math.max(0, scores[sdgIdx]));
   console.log(scoresForSelectedSDG);
 
   const maxScore = Math.max(0, ...scoresForSelectedSDG);

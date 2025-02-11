@@ -1,23 +1,23 @@
 <template>
-  <div class="overflow-auto h-full">
+  <div class="max-h-[600px] overflow-y-auto h-full">
     <!-- Scrollable container -->
     <table class="w-full border-collapse">
       <thead>
       <tr class="bg-gray-100">
-        <th class="border border-gray-300 p-2">Title</th>
+        <th @click="sortTable('title')" class="border border-gray-300 p-2 cursor-pointer">Title</th>
         <th class="border border-gray-300 p-2">Glyph</th>
         <th class="border border-gray-300 p-2">Top SDGs</th>
-        <!--<th class="border border-gray-300 p-2">XP</th>--->
-        <th class="border border-gray-300 p-2">Coins</th>
-        <th class="border border-gray-300 p-2">Year</th>
-        <th class="border border-gray-300 p-2">Collection</th>
-        <th class="border border-gray-300 p-2">Scenario</th>
+        <th @click="sortTable('coins')" class="border border-gray-300 p-2 cursor-pointer">Coins</th>
+        <th @click="sortTable('year')" class="border border-gray-300 p-2 cursor-pointer">Year</th>
+        <th @click="sortTable('collectionName')" class="border border-gray-300 p-2 cursor-pointer">Collection</th>
+        <th @click="sortTable('scenarioType')" class="border border-gray-300 p-2 cursor-pointer">Scenario</th>
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(item, index) in tableData" :key="index" class="hover:bg-gray-50">
-        <td class="border border-gray-300 p-2 text-xs">
-          <NuxtLink :to="`/labeling2/${item.publicationId}`">{{ item.title }}</NuxtLink>
+      <tr v-for="(item, index) in sortedTableData" :key="index" class="hover:bg-gray-50">
+        <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
+            @click="handlePublicationClick(item)">
+          {{ item.title }}
         </td>
         <td class="border border-gray-300 p-2 flex items-center justify-center">
           <HexGlyph :values="item.values" :height="80" :width="60" />
@@ -25,7 +25,6 @@
         <td class="border border-gray-300 p-2">
           <BarPredictionPlot :values="item.values" :width="80" :height="60" />
         </td>
-        <!--<td class="border border-gray-300 p-2">{{ item.xp }}</td>--->
         <td class="border border-gray-300 p-2">{{ item.coins }}</td>
         <td class="border border-gray-300 p-2">{{ item.year }}</td>
         <td class="border border-gray-300 p-2 flex flex-auto justify-evenly content-center">
@@ -34,19 +33,16 @@
           </UTooltip>
         </td>
         <td v-if="item.scenarioType">
-          <!-- Render the ScenarioChip with mapped props -->
           <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
         </td>
         <td v-else>
           No Scenario
         </td>
-
       </tr>
       </tbody>
     </table>
   </div>
 </template>
-
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { usePublicationsStore } from '~/stores/publications';
@@ -182,6 +178,28 @@ const tableData = computed(() => {
   });
 });
 
-console.log(tableData);
+const sortKey = ref('title');
+const sortOrder = ref('asc');
 
+const sortTable = (key: string) => {
+  if (sortKey.value === key) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortKey.value = key;
+    sortOrder.value = 'asc';
+  }
+};
+
+const sortedTableData = computed(() => {
+  return [...tableData.value].sort((a, b) => {
+    let result = 0;
+    if (a[sortKey.value] < b[sortKey.value]) result = -1;
+    if (a[sortKey.value] > b[sortKey.value]) result = 1;
+    return sortOrder.value === 'asc' ? result : -result;
+  });
+});
+
+function handlePublicationClick(publication: PublicationSchemaBase) {
+  publicationsStore.setSelectedPublication(publication);
+}
 </script>

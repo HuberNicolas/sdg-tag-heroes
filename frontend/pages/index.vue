@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col justify-center items-center text-white">
+  <div class="min-h-screen bg-black flex flex-col justify-center items-center text-white">
     <NuxtParticles
       id="tsparticles"
       :options="options"
@@ -30,7 +30,7 @@
     </ClientOnly>
 
     <!-- Main Content Section -->
-    <div class="mt-12 p-8 bg-white rounded-lg shadow-lg w-full max-w-3xl z-10">
+    <div class="mt-12 p-8 bg-black rounded-lg shadow-lg w-full max-w-3xl z-10">
       <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
       <form @submit.prevent="handleLogin">
         <div class="mb-4">
@@ -213,9 +213,6 @@ definePageMeta({
 })
 
 </script>
-
-
-
 
 <style scoped>
 .press-start-font {

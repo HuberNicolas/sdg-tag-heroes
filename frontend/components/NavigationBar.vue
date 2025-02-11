@@ -19,7 +19,7 @@
       </div>
 
       <!-- World Display -->
-      <div class="flex items-center space-x-4">
+      <div v-if="gameStore.getSDG" class="flex items-center space-x-4">
         <span>World:</span>
         <div class="w-8 h-8 flex items-center justify-center">
           <img
@@ -31,7 +31,7 @@
       </div>
 
       <!-- Level Display -->
-      <div class="flex items-center space-x-4">
+      <div v-if="gameStore.getLevel" class="flex items-center space-x-4">
         <span>Level:</span>
         <span
           class="px-3 py-1 rounded-md border font-semibold"
@@ -185,7 +185,7 @@
           </div>
         </NuxtLink>
 
-        <div class="drawer drawer-end">
+        <div class="drawer drawer-end z-10">
           <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
           <div class="drawer-content">
             <!-- Page content here -->
@@ -291,7 +291,6 @@ const loading = ref(true);
 const links = ref<Array<any>>([]);
 
 const fetchData = async () => {
-  gameStore.setStage(Stage.EXPLORING);
   try {
     // First fetch the user data
     await userStore.fetchPersonalUser();

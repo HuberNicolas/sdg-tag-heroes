@@ -26,13 +26,16 @@
       </div>
 
       <!-- Submit Button -->
-      <button
-        type="submit"
-        :disabled="isSubmitting"
-        class="w-full px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 disabled:bg-gray-400"
-      >
-        {{ isSubmitting ? "Submitting..." : "Submit SDG Label" }}
-      </button>
+      <UButton
+        icon="i-heroicons-check-circle"
+      size="sm"
+      color="primary"
+      variant="solid"
+      :label="isSubmitting ? 'Submitting...' : 'Submit SDG Label'"
+      :disabled="isSubmitting"
+      :trailing="false"
+      type="submit"
+      />
     </form>
   </div>
 </template>

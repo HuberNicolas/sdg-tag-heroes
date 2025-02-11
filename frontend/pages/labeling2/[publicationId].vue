@@ -1,21 +1,24 @@
 <template>
   <div class="flex flex-col h-screen">
     <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
-      <div class="row-span-1 col-span-3 bg-purple-400">
+      <div class="row-span-1 col-span-3">
         <SDGSelector></SDGSelector>
       </div>
-      <div class="row-span-9 col-span-3 bg-red-400">
-        SHAP from Publication {{publicationId}}
+      <div class="row-span-9 col-span-3">
         <ShapAbstract></ShapAbstract>
       </div>
-      <div class="row-span-10 col-span-4 bg-blue-400">
+      <div class="row-span-10 col-span-4">
         <AnnotationSection></AnnotationSection>
+        <div class="flex justify-between">
+          <ContinueLabelingDialog></ContinueLabelingDialog>
+          <ContinueExplorationDialog></ContinueExplorationDialog>
+        </div>
       </div>
 
-      <div class="row-span-2 col-span-3 bg-green-400">
+      <div class="row-span-2 col-span-3">
 
 
-        <div class="row-span-1 col-span-1 bg-blue-400 flex justify-evenly items-center">
+        <div class="row-span-1 col-span-1 flex justify-evenly items-center">
           <div>
             <label for="content-toggle" class="mr-2 text-lg font-medium text-gray-700">Show User Labels</label>
             <input
@@ -27,7 +30,6 @@
           </div>
 
           <!-- Help -->
-
           <div class="drawer drawer-end">
             <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
             <div class="drawer-content">
@@ -46,16 +48,16 @@
         </div>
 
         <div class="grid grid-cols-3">
-          <div  v-if="showContent" class="row-span-1 col-span-1 bg-green-400">
+          <div  v-if="showContent" class="row-span-1 col-span-1">
             <DonutPlot></DonutPlot>
           </div>
 
-          <div v-if="showContent" class="row-span-1 col-span-1 bg-orange-400">
+          <div v-if="showContent" class="row-span-1 col-span-1">
             <SDGUserLabelToggle />
             <BarLabelPlot :width="200" :height="100" />
           </div>
 
-          <div  v-if="showContent" class="row-span-1 col-span-1 bg-purple-400 flex justify-center items-center">
+          <div  v-if="showContent" class="row-span-1 col-span-1  flex justify-center items-center">
             <QuestIndicator></QuestIndicator>
           </div>
         </div>
@@ -63,13 +65,13 @@
 
       </div>
 
-      <div v-if="showContent" class="row-span-1 col-span-3 bg-yellow-400">
-        <CommentSummary></CommentSummary>
+      <div v-if="showContent" class="row-span-1 col-span-3">
+        <!-- <CommentSummary></CommentSummary> -->
       </div>
 
 
 
-      <div v-if="showContent" class="row-span-7 col-span-3 bg-orange-400">
+      <div v-if="showContent" class="row-span-7 col-span-3">
         <!-- Toggle Switch -->
         <div class="flex justify-start items-center mb-4">
           <label for="comment-toggle" class="mr-2 text-lg font-medium text-gray-700">Show Annotations</label>
@@ -95,12 +97,19 @@
 <script setup lang="ts">
 
 import CommentSection from "~/components/CommentSection.vue";
-import CommentSummary from "~/components/CommentSummary.vue"
+import CommentSummary from "~/components/CommentSummary.vue";
 import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
 import AnnotationSection from "~/components/AnnotationSection.vue";
 import SDGUserLabelToggle from "~/components/SDGUserLabelToggle.vue";
-import { ref } from 'vue';
+import { onMounted, ref } from "vue";
 import DonutPlot from "~/components/plots/DonutPlot.vue";
+import { Quadrant, Stage } from "~/types/enums";
+import { useGameStore } from "~/stores/game";
+import ContinueLabelingDialog from "~/components/ContinueLabelingDialog.vue";
+import ContinueExplorationDialog from "~/components/ContinueExplorationDialog.vue";
+import SDGExplorerLabeling from "~/components/SDGExplorerLabeling.vue";
+
+const gameStore = useGameStore();
 
 const route = useRoute()
 
@@ -108,6 +117,12 @@ const publicationId = route.params.publicationId
 
 const showAnnotations = ref(false); // State to toggle between components
 const showContent = ref(false); // State to toggle the visibility of the sections
+
+
+onMounted(() => {
+  gameStore.setStage(Stage.LABELING);
+  gameStore.setQuadrant(Quadrant.ONE_PUB_ALL_SDG);
+})
 
 </script>
 

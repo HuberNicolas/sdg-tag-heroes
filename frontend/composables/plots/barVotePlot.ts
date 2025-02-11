@@ -24,7 +24,7 @@ export function createBarVotePlot(container, width, height, votesData) {
     negative: votesData.negative / totalVotes,
   };
 
-  const colors = { positive: "#4CAF50", neutral: "#9E9E9E", negative: "#F44336" };
+  const colors = { positive: "#3845a0", neutral: "#9E9E9E", negative: "#F44336" };
 
   let startX = 0;
   Object.entries(proportions).forEach(([category, proportion]) => {

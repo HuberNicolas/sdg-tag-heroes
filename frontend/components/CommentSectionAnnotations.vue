@@ -1,10 +1,19 @@
 <template>
   <div class="max-w-4xl mx-auto p-4">
     <div v-if="isLoading" class="text-blue-500">Loading...</div>
-    <div v-if="error" class="text-red-500">
+
+
+    <!-- <div v-if="error" class="text-red-500">
       No Annotations Yet
       Error: {{ error }}
     </div>
+    -->
+
+
+    <div v-if="error">
+      Be the first user to make an annotation.
+    </div>
+
 
     <!-- Annotations List -->
     <div class="max-h-[600px] overflow-y-auto border rounded p-4">

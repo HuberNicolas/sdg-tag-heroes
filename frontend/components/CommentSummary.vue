@@ -1,7 +1,8 @@
 <template>
   <div class="max-w-4xl mx-auto p-4">
     <div v-if="isLoading" class="text-blue-500">Loading...</div>
-    <div v-if="error" class="text-red-500">Error: {{ error }}</div>
+    <!-- <div v-if="error" class="text-red-500">Error: {{ error }}</div> -->
+    <div v-if="error" class="max-h-[100px] bg-gray-100 p-4 rounded-md overflow-y-auto"> No Comments available </div>
     <div v-if="commentSummary" class="max-h-[100px] bg-gray-100 p-4 rounded-md overflow-y-auto">
       <p>{{ commentSummary.summary }}</p>
     </div>

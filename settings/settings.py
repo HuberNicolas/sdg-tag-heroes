@@ -62,7 +62,7 @@ class RedisDBSettings(BaseSettings):
 class MongoDBSDGSettings(BaseSettings):
     MONGODB_LOG_NAME: ClassVar[str] = "db_mongodb.log"
     DB_NAME: ClassVar[str] = "sdg_database"
-    DB_COLLECTION_NAME: ClassVar[str] = "explanations"
+    DB_COLLECTION_NAME: ClassVar[str] = "explanations_scaled_new"
     SVG_ENCODING: ClassVar[str] = "utf-8"
     GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
     TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = (

@@ -1,12 +1,15 @@
 <template>
   <div class="container mx-auto p-4">
-    <button
-      @click="submitAnnotation"
+    <UButton
+      icon="i-heroicons-paper-clip"
+      size="sm"
+      color="primary"
+      variant="solid"
+      :label="isSubmitting ? 'Submitting...' : 'Submit Annotation'"
       :disabled="isSubmitting"
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 disabled:bg-gray-400"
-    >
-      {{ isSubmitting ? "Submitting..." : "Submit Annotation" }}
-    </button>
+      :trailing="false"
+      @click="submitAnnotation"
+    />
   </div>
 </template>
 
