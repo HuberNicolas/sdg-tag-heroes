@@ -63,6 +63,16 @@ class LevelType(PyEnum):
         self.coins = coins
 
     @property
+    def min_value(self) -> float:
+        """Alias for min_prob"""
+        return self.min_prob
+
+    @property
+    def max_value(self) -> float:
+        """Alias for max_prob"""
+        return self.max_prob
+
+    @property
     def range(self) -> Tuple[float, float]:
         """Return the probability range for this level."""
         return (self.min_prob, self.max_prob)

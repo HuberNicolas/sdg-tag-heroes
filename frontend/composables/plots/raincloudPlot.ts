@@ -9,7 +9,7 @@ export function createRaincloudPlot(container, width, height) {
   sdgPredictionsStore.$subscribe((mutation, state) => {
     if (state.selectedPartitionedSDGPredictions.length > 0) {
       const entropyData = state.selectedPartitionedSDGPredictions.map(prediction => calculateEntropy(prediction));
-      renderRaincloudPlot(container, entropyData, 100, 400);
+      renderRaincloudPlot(container, entropyData, 200, 200);
     }
   });
 
@@ -21,12 +21,13 @@ export function createRaincloudPlot(container, width, height) {
 }
 
 function renderRaincloudPlot(container, data, width, height) {
-  const margin = { top: 0, right: 0, bottom: 0, left: 0 };
+  console.log(data)
+  const margin = { top: 20, right: 20, bottom: 20, left: 20 }; // Add some margin for labels
   const totalWidth = width - margin.left - margin.right;
   const totalHeight = height - margin.top - margin.bottom;
 
-  const segment = totalHeight * 0.25; // y-position density plot
-  const size = segment * 0.8; // for density plot
+  // Divide the total height into three equal segments
+  const segmentHeight = totalHeight / 3;
 
   // Verify and sort the data
   if (!data || data.length === 0) {
@@ -63,7 +64,7 @@ function renderRaincloudPlot(container, data, width, height) {
       .call(boxplot, data);
   };
 
-  // Curve (Density Histogram)
+  // Curve (Density Histogram) - Top 1/3
   const curve = (selection, data) => {
     const histogram = d3
       .bin()
@@ -71,7 +72,7 @@ function renderRaincloudPlot(container, data, width, height) {
       .map((bin) => bin.length);
 
     const xScale = d3.scaleLinear().domain([0, histogram.length]).range([0, totalWidth]);
-    const yScale = d3.scaleLinear().domain([0, d3.max(histogram)]).range([size, 0]);
+    const yScale = d3.scaleLinear().domain([0, d3.max(histogram)]).range([segmentHeight, 0]);
 
     const area = d3
       .area()
@@ -85,13 +86,14 @@ function renderRaincloudPlot(container, data, width, height) {
       .datum(histogram)
       .attr('d', area)
       .style('fill', 'grey')
-      .style('opacity', 0.6);
+      .style('opacity', 0.6)
+      .attr('transform', `translate(0, 0)`); // Position in the top segment
   };
 
-  // Boxplot
+  // Boxplot - Middle 1/3
   const boxplot = (selection, data) => {
-    const y = totalHeight * 0.5;
-    const boxHeight = Math.max(0, totalHeight / 12); // Ensure boxHeight is always positive
+    const y = segmentHeight; // Position in the middle segment
+    const boxHeight = segmentHeight * 0.5; // Adjust box height to fit within the segment
 
     selection
       .append('g')
@@ -163,9 +165,10 @@ function renderRaincloudPlot(container, data, width, height) {
       });
   };
 
-// Dots (Updated with tooltips for data points)
+  // Dots - Bottom 1/3
   const dots = (selection, data) => {
-    const jitterHeight = 40; // Controls vertical jitter
+    const jitterHeight = segmentHeight * 0.5; // Adjust jitter height to fit within the segment
+    const dotOffset = 20; // Additional offset to pull dots down
     const tooltip = d3.select(container).append('div') // Create tooltip
       .style('position', 'absolute')
       .style('background', 'white')
@@ -178,13 +181,14 @@ function renderRaincloudPlot(container, data, width, height) {
     selection
       .append('g')
       .classed('dots', true)
+      .attr('transform', `translate(0, ${segmentHeight * 2})`) // Position in the bottom segment
       .selectAll('circle')
       .data(data)
       .enter()
       .append('circle')
       .attr('r', 5)
       .attr('cx', (d) => x(d)) // Keep x-axis alignment consistent with boxplot and density
-      .attr('cy', () => totalHeight * 0.75 + (Math.random() - 0.5) * jitterHeight) // Add random vertical jitter only
+      .attr('cy', () => (Math.random() - 0.5) * jitterHeight + dotOffset) // Add random vertical jitter and offset
       .style('fill', 'grey')
       .style('opacity', 0.6)
       .attr('stroke', 'none')
@@ -201,7 +205,6 @@ function renderRaincloudPlot(container, data, width, height) {
         d3.select(this).attr('stroke', 'none');
       });
   };
-
 
   // Call the raincloud rendering function
   svg.append('g').call(raincloud, sortedData);

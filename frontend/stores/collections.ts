@@ -2,17 +2,28 @@ import { defineStore } from "pinia";
 import type {
   CollectionSchemaBase,
   CollectionSchemaFull,
-} from "~/types/collections";
+} from "~/types/collection";
 import useCollections from "~/composables/useCollections";
 
 export const useCollectionsStore = defineStore("collections", {
   state: () => ({
     collections: [] as CollectionSchemaFull[],
+    selectedCollections: [] as CollectionSchemaFull[],
     collectionDetails: null as CollectionSchemaFull | null,
     isLoading: false,
     error: null as string | null,
   }),
   actions: {
+    setSelectedCollections(selected: CollectionSchemaFull[]) {
+      this.selectedCollections = selected;
+    },
+
+    addCollection(collection: CollectionSchemaFull) {
+      if (!this.selectedCollections.some(c => c.collectionId === collection.collectionId)) {
+        this.selectedCollections.push(collection);
+      }
+    },
+
     // Fetch all collections
     async fetchCollections() {
       this.isLoading = true;
@@ -21,6 +32,7 @@ export const useCollectionsStore = defineStore("collections", {
       try {
         const { getCollections } = useCollections();
         this.collections = await getCollections();
+        this.selectedCollections = [...this.collections]; // Default all collections as selected
       } catch (error) {
         this.error = `Failed to fetch collections: ${error}`;
         throw error;

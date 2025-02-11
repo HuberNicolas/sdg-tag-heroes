@@ -47,7 +47,7 @@ class UMAPCoordinateService:
         :return: UMAP model instance.
         """
         # TODO: do de-hardcode model confis
-        model_path = os.path.join(self.umap_model_dir,f"config_15_0.1_2", f"SDG{sdg}.joblib")
+        model_path = os.path.join(self.umap_model_dir,f"config_15_0.0_2", f"SDG{sdg}.joblib")
         print(f"Loading UMAP model from {model_path}")
         if not os.path.exists(model_path):
             raise Exception(f"UMAP model for SDG{sdg}, Level{level} not found.")

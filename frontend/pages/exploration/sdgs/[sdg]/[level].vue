@@ -1,33 +1,21 @@
 <template>
-  <div class="flex flex-col h-screen">
-    <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
+  <div class="flex flex-col h-screen overflow-auto">
 
-      <div class="row-span-10 col-span-1 bg-green-400 p-1">
-        <div class="grid grid-rows-2 grid-cols-1 h-full">
-          <div class="row-span-1 col-span-1 bg-purple-400">
-            <BarPlot
-              :width="barPlotWidth"
-              :height="barPlotHeight"
-            />
+
+    <div class="grid grid-rows-10 grid-cols-10 h-full">
+
+
+      <div class="row-span-3 col-span-5 bg-red-400 p-1">
+
+
+        <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
+          <div class="row-span-6 col-span-4 bg-violet-400">
+            <CollectionSelector></CollectionSelector>
           </div>
-          <div class="row-span-1 col-span-1 bg-orange-400">
-            <div class="flex justify-center">
-              <RainPlot
-                :width="rainPlotWidth"
-                :height="rainPlotHeight"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row-span-1 col-span-4 bg-green-400 p-1">
-        <div class="grid grid-rows-2 grid-cols-6 grid-flow-col h-full">
-          <div class="col-span-2 row-span-2 bg-purple-400">
-            <div class="flex items-center justify-center">
-              <FilterState></FilterState>
-            </div>
-          </div>
-          <div class="col-span-4 row-span-2 bg-pink-400">
+
+
+
+          <div class="row-span-3 col-span-2 bg-pink-400">
             <div class="flex items-center justify-center">
               <h1>Quests</h1>
             </div>
@@ -58,34 +46,46 @@
               />
             </div>
           </div>
-        </div>
-      </div>
-      <div class="row-span-8 col-span-4 bg-red-400 p-1">
-        <div class="grid grid-rows-2 grid-cols-1 grid-flow-col h-full">
-          <div class="col-span-1 row-span-1 bg-purple-400">
-            <ScatterPlotSDGCollections
-              v-if="selectedSDG !== null && selectedLevel !== null"
-              :width="scatterPlotWidth"
-              :height="scatterPlotHeight"/>
-          </div>
-          <div class="col-span-1 row-span-1 bg-pink-400">
-            <ScatterSDGPlot
-              v-if="selectedSDG !== null && selectedLevel !== null"
-              :width="scatterPlotWidth"
-              :height="scatterPlotHeight"/>
+
+          <div class="row-span-3 col-span-2">
+            <ExplorationUserQuery></ExplorationUserQuery>
           </div>
         </div>
-      </div>
-      <div class="row-span-1 col-span-4 bg-blue-400 p-1">
-        Options SDG {{selectedSDG}} - Level {{selectedLevel}}
-        <ExplorationUserQuery></ExplorationUserQuery>
       </div>
 
-      <div class="row-span-3 col-span-5 bg-blue-400 h-full overflow-auto p-1">
+      <div class="row-span-4 col-span-5 bg-blue-400 h-full overflow-auto p-1">
         <PublicationDetails></PublicationDetails>
       </div>
+
+      <div class="row-span-4 col-span-5 bg-blue-400 p-1">
+        <ScatterSDGPlot
+          v-if="selectedSDG !== null && selectedLevel !== null"
+          :width="scatterPlotWidth"
+          :height="scatterPlotHeight"/>
+      </div>
+
       <div class="row-span-6 col-span-5 bg-yellow-400 p-1">
         <PublicationsTable></PublicationsTable>
+      </div>
+
+      <div class="row-span-3 col-span-5 bg-yellow-400 p-1">
+
+        <div class="grid grid-rows-2 grid-cols-3 h-full">
+          <div class="row-span-1 col-span-1 bg-green-400">
+            <div class="flex justify-center">
+              <FilterState></FilterState>
+            </div>
+          </div>
+          <div class="row-span-2 col-span-2 bg-orange-400">
+            <div class="flex justify-center">
+              <RainPlot />
+            </div>
+          </div>
+          <div class="row-span-1 col-span-1 bg-purple-400">
+            <BarPlot />
+          </div>
+
+        </div>
       </div>
     </div>
   </div>
@@ -149,8 +149,8 @@ onMounted(() => {
 
   const optionContainer = document.querySelector('.row-span-2.col-span-4');
   if (optionContainer) {
-    barPlotWidth.value = optionContainer.clientWidth / 6;
-    barPlotHeight.value = optionContainer.clientHeight / 6;
+    barPlotWidth.value = optionContainer.clientWidth;
+    barPlotHeight.value = optionContainer.clientHeight;
 
     rainPlotWidth.value = optionContainer.clientWidth / 3; // 1/3 of container width
     rainPlotHeight.value = optionContainer.clientHeight / 3; // 1/3 of container height

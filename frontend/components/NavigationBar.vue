@@ -18,6 +18,47 @@
         </NuxtLink>
       </div>
 
+      <!-- World Display -->
+      <div class="flex items-center space-x-4">
+        <span>World:</span>
+        <div class="w-8 h-8 flex items-center justify-center">
+          <img
+            :src="sdgIconSrc"
+            :alt="`SDG ${gameStore.getSDG} Icon`"
+            class="w-full h-full object-contain"
+          />
+        </div>
+      </div>
+
+      <!-- Level Display -->
+      <div class="flex items-center space-x-4">
+        <span>Level:</span>
+        <span
+          class="px-3 py-1 rounded-md border font-semibold"
+          :class="getLevelClass(gameStore.getLevel)"
+        >
+          {{ getRomanLevel(gameStore.getLevel) }}
+        </span>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <span>Stage:</span>
+        <span class="font-semibold">
+          <template v-if="gameStore.getStage === 'Exploring'">
+            <Icon name="mdi-person-search" /> {{ gameStore.getStage }}
+          </template>
+          <template v-else-if="gameStore.getStage === 'Labeling'">
+            <Icon name="mdi-tag-outline" /> {{ gameStore.getStage }}
+          </template>
+          <template v-else-if="gameStore.getStage === 'Voting'">
+            <Icon name="mdi-vote" /> {{ gameStore.getStage }}
+          </template>
+          <template v-else>
+            {{ gameStore.getStage }}
+          </template>
+        </span>
+      </div>
+
       <!-- Quadrant Display -->
       <div class="flex items-center space-x-4">
         <span>Situation:</span>
@@ -62,35 +103,6 @@
             <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
           </template>
         </div>
-      </div>
-
-      <!-- Level Display -->
-      <div class="flex items-center space-x-4">
-        <span>Level:</span>
-        <span
-          class="px-3 py-1 rounded-md border font-semibold"
-          :class="getLevelClass(gameStore.getLevel)"
-        >
-          {{ getRomanLevel(gameStore.getLevel) }}
-        </span>
-      </div>
-
-      <div class="flex items-center space-x-4">
-        <span>Stage:</span>
-        <span class="font-semibold">
-          <template v-if="gameStore.getStage === 'Exploring'">
-            <Icon name="mdi-person-search" /> {{ gameStore.getStage }}
-          </template>
-          <template v-else-if="gameStore.getStage === 'Labeling'">
-            <Icon name="mdi-tag-outline" /> {{ gameStore.getStage }}
-          </template>
-          <template v-else-if="gameStore.getStage === 'Voting'">
-            <Icon name="mdi-vote" /> {{ gameStore.getStage }}
-          </template>
-          <template v-else>
-            {{ gameStore.getStage }}
-          </template>
-        </span>
       </div>
 
       <div>Top SDGs</div>
@@ -372,6 +384,11 @@ const getLevelClass = (level: number | null) => {
   if (level === 3) return "bg-yellow-200 border-yellow-500 text-yellow-800"; // Gold
   else return "bg-gray-200 border-gray-400 text-gray-700";
 };
+
+const sdgIconSrc = computed(() => {
+  const sdg = sdgsStore.sdgs.find(sdg => sdg.id === gameStore.getSDG);
+  return `data:image/svg+xml;base64,${sdg.icon}`;
+});
 
 onMounted(fetchData);
 </script>

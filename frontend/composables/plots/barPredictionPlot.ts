@@ -82,5 +82,5 @@ export function createBarPlot(container: HTMLElement, values: number[], width: n
     .attr('dy', '.35em')
     .style('fill', '#000')
     .style('font-size', '12px')
-    .text((d) => d.value.toFixed(2)); // Display prediction value
+    .text((d) => Math.floor(d.value * 100) / 100); // This will round down to two decimal places
 }

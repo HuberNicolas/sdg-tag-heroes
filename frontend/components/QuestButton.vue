@@ -1,14 +1,14 @@
 <template>
   <UTooltip :text="tooltip">
     <UButton
-      size="md"
+      size="sm"
       shape="round"
       :ui="{ base: 'ring-0' }"
       @click="handleClick"
       :disabled="isLoading"
     >
       <template #default>
-        <UAvatar v-if="!isLoading" :icon="icon" size="xl" />
+        <UAvatar v-if="!isLoading" :icon="icon" size="sm" />
         <span v-else>Loading...</span>
       </template>
     </UButton>

@@ -4,6 +4,7 @@ import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReducti
 import { usePublicationsStore } from "~/stores/publications";
 import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
+import { useCollectionsStore } from "~/stores/collections";
 import { useGameStore } from "~/stores/game";
 import { useSDGsStore } from "~/stores/sdgs";
 
@@ -14,6 +15,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const labelDecisionsStore = useLabelDecisionsStore();
   const gameStore = useGameStore();
   const sdgsStore = useSDGsStore();
+  const collectionsStore = useCollectionsStore();
 
   const level = gameStore.getLevel;
   const sdg = gameStore.getSDG;
@@ -29,6 +31,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       publicationsStore.fetchPublicationsForDimensionalityReductions(sdg, reductionShorthand, level),
       sdgPredictionsStore.fetchSDGPredictionsByLevel(sdg, reductionShorthand, level),
       sdgsStore.fetchSDGs(),
+      collectionsStore.fetchCollections(),
       labelDecisionsStore.fetchSDGLabelDecisionsForReduction(sdg, reductionShorthand, level),
     ]);
   };
@@ -38,9 +41,20 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     const publicationsData = publicationsStore.sdgLevelPublications;
     const sdgPredictionsData = sdgPredictionsStore.sdgLevelSDGPredictions;
 
+    // Get selected collections
+    const selectedCollectionIds = new Set(collectionsStore.selectedCollections.map(c => c.collectionId));
+
+    console.log(publicationsData);
+    console.log(selectedCollectionIds);
+    // Filter publications
+    const filteredPublicationsData = publicationsData.filter(publication =>
+      publication.collectionId && selectedCollectionIds.has(publication.collectionId)
+    );
+
+    console.log(publicationsData)
     let combinedData = dimensionalityReductionsData.map((reduction, index) => ({
       dimensionalityReduction: reduction,
-      publication: publicationsData[index],
+      publication: filteredPublicationsData[index],
       sdgPrediction: sdgPredictionsData[index],
     }));
 
@@ -103,6 +117,18 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     // Render the plot
     scatterPlotInstance = Plotly.newPlot(container, userMarker ? [scatterData, userMarker] : [scatterData], layout);
 
+
+    // Watch for changes in selected collections and update the plot
+    watch(
+      () => collectionsStore.selectedCollections,
+      () => {
+        console.log("Selected collections updated! Redrawing scatter plot...");
+        updateScatterPlot();
+      },
+      { deep: true }
+    );
+
+
     // Listen for user coordinate updates
     watch(
       () => gameStore.getUserCoordinates,
@@ -125,7 +151,6 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       },
       { deep: true }
     );
-
 
     // Selection events
     container.on('plotly_selected', function (eventData) {
@@ -231,21 +256,55 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       const scenarioPublicationsData = publicationsStore.scenarioTypePublications;
       const scenarioPredictionsData = sdgPredictionsStore.scenarioTypeSDGPredictions;
 
+      // Get selected collections
+      const selectedCollectionIds = new Set(collectionsStore.selectedCollections.map(c => c.collectionId));
+
+
+      // Identify collections used in scenario publications but not yet selected
+      const missingCollections = scenarioPublicationsData
+        .filter(pub => pub.collectionId && !selectedCollectionIds.has(pub.collectionId)) // Find missing ones
+        .map(pub => pub.collectionId);
+
+      if (missingCollections.length > 0) {
+        console.log("Adding missing scenario collections:", missingCollections);
+
+        // Update store to include missing collections
+        collectionsStore.setSelectedCollections([...collectionsStore.selectedCollections, ...missingCollections]);
+      }
+
+      // Update selected collection IDs after adding missing ones
+      const updatedCollectionIds = new Set(collectionsStore.selectedCollections.map(c => c.collectionId));
+
+      // Filter publications
+      const filteredPublicationsData = publicationsData.filter(publication =>
+        publication.collectionId && updatedCollectionIds.has(publication.collectionId)
+      );
+      console.log(filteredPublicationsData);
+
+
       // Merge data while tagging scenario points
       combinedData = [
-        ...dimensionalityReductionsData.map((reduction, index) => ({
-          dimensionalityReduction: reduction,
-          publication: publicationsData[index],
-          sdgPrediction: sdgPredictionsData[index],
-          isScenario: false,
-        })),
-        ...scenarioReductionsData.map((reduction, index) => ({
-          dimensionalityReduction: reduction,
-          publication: scenarioPublicationsData[index],
-          sdgPrediction: scenarioPredictionsData[index],
-          isScenario: true,
-        })),
+        ...dimensionalityReductionsData
+          .map((reduction) => {
+            const publication = filteredPublicationsData.find(pub => pub.publicationId === reduction.publicationId);
+            const sdgPrediction = sdgPredictionsData.find(pred => pred.publicationId === reduction.publicationId);
+            return publication && sdgPrediction
+              ? { dimensionalityReduction: reduction, publication, sdgPrediction, isScenario: false }
+              : null;
+          })
+          .filter(Boolean), // Remove null values
+
+        ...scenarioReductionsData
+          .map((reduction, index) => {
+            const publication = scenarioPublicationsData[index];
+            const sdgPrediction = scenarioPredictionsData[index];
+            return publication && sdgPrediction
+              ? { dimensionalityReduction: reduction, publication, sdgPrediction, isScenario: true }
+              : null;
+          })
+          .filter(Boolean), // Remove null values
       ];
+
 
       console.log(combinedData)
 
@@ -294,8 +353,6 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       // Update the plot with both default and scenario points
       Plotly.react(container, [scatterData], layout);
     }
-
-
 
 
     // Function to update user marker dynamically
