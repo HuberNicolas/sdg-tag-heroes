@@ -44,14 +44,15 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useSDGsStore } from "~/stores/sdgs";
 import LevelSelector from "~/components/LevelSelector.vue";
+import { useGameStore } from "~/stores/game";
+import {useSDGsStore} from "~/stores/sdgs";
 
+const gameStore = useGameStore();
 const sdgsStore = useSDGsStore();
 
 // Get the selected SDG from the store
 const currentSDG = computed(() => {
-  const sdgId = sdgsStore.getSelectedSDG;
-  return sdgsStore.sdgs.find((sdg) => sdg.id === sdgId) || null;
+  return sdgsStore.sdgs.find((sdg) => sdg.id === gameStore.getSDG) || null;
 });
 </script>

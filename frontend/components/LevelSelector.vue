@@ -31,39 +31,38 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { useGameStore } from '@/stores/game';
+import { useRouter } from 'vue-router';
+import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
-export default {
-  name: 'LevelSelector',
-  setup() {
-    const gameStore = useGameStore();
-    const { level } = storeToRefs(gameStore);
+// Use the router and store in the setup function
+const router = useRouter();
+const gameStore = useGameStore();
+const { level, sdg } = storeToRefs(gameStore);
 
-    return {
-      gameStore,
-      level,
-    };
-  },
-  data() {
-    return {
-      selectedLevel: null,
-      levels: [
-        { id: 1, name: 'Bronze', tier: 'bronze' },
-        { id: 2, name: 'Silver', tier: 'silver' },
-        { id: 3, name: 'Gold', tier: 'gold' }
-      ]
-    };
-  },
-  methods: {
-    selectLevel(levelId) {
-      this.selectedLevel = levelId;
-      this.gameStore.setLevel(levelId);
-    },
-    play() {
-      alert(`Playing ${this.levels.find(level => level.id === this.selectedLevel).name} Level`);
-    }
+// Reactive state for the selected level
+const selectedLevel = ref(null);
+
+// Levels data
+const levels = [
+  { id: 1, name: 'Bronze', tier: 'bronze' },
+  { id: 2, name: 'Silver', tier: 'silver' },
+  { id: 3, name: 'Gold', tier: 'gold' }
+];
+
+// Method to select a level
+const selectLevel = (levelId) => {
+  selectedLevel.value = levelId;
+  gameStore.setLevel(levelId);
+};
+
+// Method to navigate to the exploration page
+const play = () => {
+  if (selectedLevel.value && sdg.value) {
+    router.push(`/exploration/sdgs/${sdg.value}/${selectedLevel.value}`);
   }
 };
 </script>
+

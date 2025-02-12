@@ -28,6 +28,7 @@ export const useGameStore = defineStore("game", {
     },
 
     setSDG(sdg: number) {
+      console.log("setSDG", sdg);
       this.sdg = sdg;
     },
 

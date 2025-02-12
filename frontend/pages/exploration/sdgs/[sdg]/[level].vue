@@ -5,17 +5,17 @@
     <div class="grid grid-rows-10 grid-cols-10 h-full">
 
 
-      <div class="row-span-3 col-span-5 bg-red-400 p-1">
+      <div class="row-span-3 col-span-5 p-1">
 
 
         <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
-          <div class="row-span-6 col-span-4 bg-violet-400">
+          <div class="row-span-6 col-span-4">
             <CollectionSelector></CollectionSelector>
           </div>
 
 
 
-          <div class="row-span-3 col-span-2 bg-pink-400">
+          <div class="row-span-3 col-span-2">
             <div class="flex items-center justify-center">
               <h1>Quests</h1>
             </div>
@@ -53,35 +53,35 @@
         </div>
       </div>
 
-      <div class="row-span-6 col-span-5 bg-yellow-400 p-1">
+      <div class="row-span-6 col-span-5 p-1">
         <PublicationsTable></PublicationsTable>
       </div>
 
-      <div class="row-span-4 col-span-5 bg-blue-400 p-1">
+      <div class="row-span-4 col-span-5 p-1">
         <ScatterSDGPlot
           v-if="selectedSDG !== null && selectedLevel !== null"
           :width="scatterPlotWidth"
           :height="scatterPlotHeight"/>
       </div>
 
-      <div class="row-span-4 col-span-5 bg-blue-400 h-full overflow-auto p-1">
+      <div class="row-span-4 col-span-5  h-full overflow-auto p-1">
         <PublicationDetails></PublicationDetails>
       </div>
 
-      <div class="row-span-3 col-span-5 bg-yellow-400 p-1">
+      <div class="row-span-3 col-span-5  p-1">
 
         <div class="grid grid-rows-2 grid-cols-3 h-full">
-          <div class="row-span-1 col-span-1 bg-green-400">
+          <div class="row-span-1 col-span-1 ">
             <div class="flex justify-center">
               <FilterState></FilterState>
             </div>
           </div>
-          <div class="row-span-2 col-span-2 bg-orange-400">
+          <div class="row-span-2 col-span-2 ">
             <div class="flex justify-center">
               <RainPlot />
             </div>
           </div>
-          <div class="row-span-1 col-span-1 bg-purple-400">
+          <div class="row-span-1 col-span-1 ">
             <BarPlot />
           </div>
 
