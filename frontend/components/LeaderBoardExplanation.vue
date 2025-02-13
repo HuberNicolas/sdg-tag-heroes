@@ -10,7 +10,7 @@
     </div>
     <div v-if="!currentSDG && !loading" class="text-center text-gray-600 text-lg">Please select an SDG to view rank tiers.</div>
 
-    <div v-if="tiers.length > 0" class="overflow-x-auto">
+    <div v-if="currentSDG && tiers.length > 0" class="overflow-x-auto">
       <table class="w-full border-collapse">
         <thead class="bg-gray-100">
         <tr class="text-left text-gray-700">
@@ -56,8 +56,6 @@
         </tbody>
       </table>
     </div>
-
-    <p v-else-if="!loading" class="text-gray-600 text-center text-lg">No ranks available for this SDG.</p>
   </div>
 </template>
 
@@ -65,9 +63,11 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
 import { useSDGsStore } from "~/stores/sdgs";
+import { useGameStore} from "~/stores/game";
 
 const rankStore = useSDGRanksStore();
 const sdgStore = useSDGsStore();
+const gameStore = useGameStore();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -75,7 +75,7 @@ const tiers = ref([]);
 
 // Get the selected SDG
 const currentSDG = computed(() => {
-  const sdgId = sdgStore.getSelectedSDG;
+  const sdgId = gameStore.getSDG;
   return sdgStore.sdgs.find((sdg) => sdg.id === sdgId) || null;
 });
 
@@ -94,9 +94,12 @@ onMounted(async () => {
   await rankStore.fetchSDGRanks(); // Load all ranks
   if (currentSDG.value) {
     await updateTiers();
-    loading.value = false;
+    loading.value = false; // Set loading to false after updating tiers
+  } else {
+    loading.value = false; // Set loading to false if no SDG is selected
   }
 });
+
 
 async function updateTiers() {
   if (!currentSDG.value) {

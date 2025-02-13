@@ -43,12 +43,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useSDGsStore } from "~/stores/sdgs";
+import { useGameStore } from  "~/stores/game";
 
 const sdgsStore = useSDGsStore();
+const gameStore = useGameStore();
 
 // Get the selected SDG from the store
 const currentSDG = computed(() => {
-  const sdgId = sdgsStore.getSelectedSDG;
+  const sdgId = gameStore.getSDG;
   return sdgsStore.sdgs.find((sdg) => sdg.id === sdgId) || null;
 });
 </script>

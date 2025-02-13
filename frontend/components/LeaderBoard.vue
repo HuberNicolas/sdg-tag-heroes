@@ -18,7 +18,7 @@
     </div>
 
     <!-- Scrollable Leaderboard Table -->
-    <div v-if="leaderboard.length > 0" class="overflow-x-auto">
+    <div v-if="currentSDG && leaderboard.length > 0" class="overflow-x-auto">
       <div class="max-h-[800px] overflow-y-auto border border-gray-300 rounded-lg shadow-lg">
         <table class="w-full border-collapse">
           <thead class="bg-gray-100 sticky top-0">
@@ -131,9 +131,6 @@
         </button>
       </div>
     </div>
-
-    <!-- No Users Found -->
-    <p v-else class="text-gray-600 text-center text-lg">No users found.</p>
   </div>
 </template>
 
@@ -144,6 +141,7 @@ import { useUsersStore } from "~/stores/users";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
 import { useXPBanksStore } from "~/stores/xpBanks";
 import { useSDGsStore } from "~/stores/sdgs";
+import { useGameStore } from "~/stores/game";
 import { generateAvatar } from "~/utils/avatar";
 
 // Stores
@@ -151,6 +149,7 @@ const userStore = useUsersStore();
 const rankStore = useSDGRanksStore();
 const xpBankStore = useXPBanksStore();
 const sdgStore = useSDGsStore();
+const gameStore = useGameStore();
 
 // Reactive State
 const loading = ref(true);
@@ -162,7 +161,7 @@ const visibleCount = ref(10); // Start with 10 players visible
 
 // Get the currently selected SDG
 const currentSDG = computed(() => {
-  const sdgId = sdgStore.getSelectedSDG;
+  const sdgId = gameStore.getSDG;
   return sdgStore.sdgs.find((sdg) => sdg.id === sdgId) || null;
 });
 
