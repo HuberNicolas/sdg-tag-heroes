@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="bg-white p-6 rounded-lg shadow-md">
     <!-- SDG Cards -->
     <div class="flex flex-wrap gap-1 p-1">
       <div

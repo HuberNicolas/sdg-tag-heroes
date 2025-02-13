@@ -1,5 +1,5 @@
 <template>
-  <nav class="w-full bg-white shadow-md dark:bg-gray-800">
+  <nav class="w-full h-16 bg-white shadow-md dark:bg-gray-800 flex items-center">
     <div v-if="loading" class="flex justify-center items-center">
       <span class="text-gray-500">Loading...</span>
     </div>

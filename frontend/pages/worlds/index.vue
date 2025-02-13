@@ -1,40 +1,44 @@
 <template>
-  <div class="flex h-full flex-row">
-    <!-- Left Section -->
-    <div class="relative h-full basis-1/2">
-      <div class="grid grid-rows-[2fr_2fr] h-full">
-        <!-- First Section: 50% -->
-        <div class="row-span-1">
-          <div class="flex h-full">
-            <!-- First 50% of the Green Container -->
-            <div class="basis-1/2 p-4">
-              <GlyphOverview :values="values" :height="300" :width="300"></GlyphOverview>
-            </div>
-            <div class="basis-1/2 p-4">
-              <SDGExplorerLeaderboard></SDGExplorerLeaderboard>
-            </div>
+  <div class="h-full overflow-hidden">
+    <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
+
+      <!-- Left Section (Takes Half of the Grid) -->
+      <div class="row-span-10 col-span-5 grid grid-rows-10">
+
+        <!-- First Section: Top Half -->
+
+        <div class="row-span-5 grid grid-cols-2">
+          <div class="col-span-1 p-4 flex items-center justify-center">
+            <GlyphOverview :values="values" :height="300" :width="300" />
+          </div>
+          <div class="col-span-1 p-4 flex items-center justify-center">
+            <SDGExplorerLeaderboard />
           </div>
         </div>
 
-        <!-- Second Section: 50% -->
-        <div class="row-span-1 flex items-center justify-center">
-          <LeaderBoardExplanation></LeaderBoardExplanation>
+        <!-- Second Section: Bottom Half -->
+        <div class="row-span-5 items-center justify-center">
+          <LeaderBoardExplanation />
         </div>
       </div>
-    </div>
 
-    <!-- Right Section -->
-    <div class="flex h-full basis-1/2 flex-col items-center justify-center">
-      <LeaderBoard></LeaderBoard>
+      <!-- Right Section (Takes Half of the Grid) -->
+      <div class="row-span-10 col-span-5">
+        <LeaderBoard />
+      </div>
+
     </div>
   </div>
 </template>
+
+
+
 
 <script setup lang="ts">
 import SDGExplorerLeaderboard from "~/components/SDGExplorerLeaderboard.vue";
 import LeaderBoardExplanation from "~/components/LeaderBoardExplanation.vue";
 
-// Values for the HexGlyph component (example)
+// Values for the HexGlyph component
 const values = Array(17).fill(0.6);
 
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="h-full overflow-hidden">
     <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
       <div class="row-span-1 col-span-3">
         <SDGSelector></SDGSelector>

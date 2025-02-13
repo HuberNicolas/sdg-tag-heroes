@@ -1,22 +1,11 @@
 <template>
-  <div class="flex flex-col h-screen overflow-auto">
-
-
+  <div class="h-full overflow-hidden">
     <div class="grid grid-rows-10 grid-cols-10 h-full">
-
-
       <div class="row-span-3 col-span-5 p-1">
-
-
         <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
-
-
           <div class="row-span-4 col-span-6">
             <CollectionSelector></CollectionSelector>
           </div>
-
-
-
           <div class="row-span-2 col-span-3">
             <div class="flex items-center justify-around">
 
