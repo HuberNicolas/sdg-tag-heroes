@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import {baseSdgTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
+import {trimValue} from "~/utils/trim";
 
 export default function createGlyph(values: number[]) {
   const hexRadius = 50; // Hexagon radius in pixels
@@ -128,7 +129,7 @@ export default function createGlyph(values: number[]) {
             .style('visibility', 'visible')
             .style('background', color?.toString() || 'gray')
             .style('color', '#fff')
-            .html(`<strong>${sdgTitles[i]}</strong><br>Value: ${value.toFixed(2)}`);
+            .html(`<strong>${sdgTitles[i]}</strong><br>Value: ${trimValue(value)}`);
         })
         .on('mousemove', (event) => {
           tooltip

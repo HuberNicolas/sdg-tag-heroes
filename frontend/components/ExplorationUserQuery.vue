@@ -27,38 +27,26 @@
     </div>
 
     <!-- Submit button with loading state -->
-    <Button
-      type="submit"
-      class="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-md px-4 text-sm font-medium transition-colors duration-200 relative overflow-hidden"
-      :disabled="isLoading"
-    >
-      <svg
-        v-if="isLoading"
-        class="animate-spin absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          cx="12"
-          cy="12"
-          r="10"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="4"
-        />
-        <circle
-          cx="12"
-          cy="12"
-          r="8"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="4"
-          stroke-dasharray="80"
-          stroke-dashoffset="60"
-          class="opacity-50"
-        />
-      </svg>
-      {{ isLoading ? 'Processing...' : 'Show User Point' }}
-    </Button>
+    <!-- icon="mdi-map-marker-outline" -->
+    <UButton
+    type="submit"
+    color="primary"
+    variant="solid"
+    :loading="isLoading"
+    :disabled="isLoading"
+    class="w-full"
+  >
+
+    <!-- Button text -->
+      {{ isLoading ? 'Processing...' : 'Calculate Point of Interest 📍' }}
+
+      <!-- Trailing loading indicator -->
+      <template #trailing>
+        <div v-if="isLoading">
+          <i class="animate-spin i-heroicons-spinner"></i>
+        </div>
+      </template>
+    </UButton>
   </form>
 </template>
 

@@ -33,11 +33,21 @@ const glyphContainer = ref<HTMLElement | null>(null);
 // Use the prop directly
 const { renderHexGrid } = createGlyph(props.values);
 
-onMounted(() => {
+const renderGlyph = () => {
   if (glyphContainer.value) {
     renderHexGrid(glyphContainer.value, props.width, props.height);
   }
+};
+
+onMounted(() => {
+  renderGlyph();
 });
+
+
+// Watch for changes in the `values` prop and re-render the glyph
+watch(() => props.values, () => {
+  renderGlyph();
+}, { deep: true });
 </script>
 
 <style scoped>

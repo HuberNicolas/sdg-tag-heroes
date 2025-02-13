@@ -59,7 +59,7 @@
       </USelectMenu>
     </div>
 
-    <div class="mb-1">
+    <div class="">
       <div class="flex flex-wrap gap-1">
         <UBadge
           v-for="(collection, index) in selectedCollections"
@@ -102,8 +102,8 @@ onMounted(async () => {
 const iconMapping = {
   'Cancer Imaging': 'mdi:radiology-box',
   'Heart Imaging': 'mdi:heart-box',
-  'Swiss Research': 'twemoji:flag-switzerland',
-  'Cell Signaling': 'mdi:signal',
+  'Swiss Research': 'gg:swiss',
+  'Cell Signaling': 'mdi:bio',
   'Mental Health': 'mdi:meditation',
   'Brain Function': 'mdi:head-cog',
   'Ecosystem Changes': 'material-symbols:nature',

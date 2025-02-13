@@ -9,16 +9,15 @@
 
 
         <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
-          <div class="row-span-6 col-span-4">
+
+
+          <div class="row-span-4 col-span-6">
             <CollectionSelector></CollectionSelector>
           </div>
 
 
 
-          <div class="row-span-3 col-span-2">
-            <div class="flex items-center justify-center">
-              <h1>Quests</h1>
-            </div>
+          <div class="row-span-2 col-span-3">
             <div class="flex items-center justify-around">
 
               <QuestButton
@@ -47,10 +46,13 @@
             </div>
           </div>
 
-          <div class="row-span-3 col-span-2">
+          <div class="row-span-2 col-span-3">
             <ExplorationUserQuery></ExplorationUserQuery>
           </div>
         </div>
+
+
+
       </div>
 
       <div class="row-span-6 col-span-5 p-1">

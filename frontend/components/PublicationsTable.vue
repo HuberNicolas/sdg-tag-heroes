@@ -4,13 +4,56 @@
     <table class="w-full border-collapse">
       <thead>
       <tr class="bg-gray-100">
-        <th @click="sortTable('title')" class="border border-gray-300 p-2 cursor-pointer">Title</th>
+        <th
+          @click="sortTable('title')"
+          class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
+          :class="{ 'font-bold text-gray-800': sortKey === 'title' }"
+        >
+          Title
+          <span v-if="sortKey === 'title'">
+              {{ sortOrder === 'asc' ? '▲' : '▼' }}
+            </span>
+          <span v-else class="text-gray-400">↕</span>
+        </th>
         <th class="border border-gray-300 p-2">Glyph</th>
         <th class="border border-gray-300 p-2">Top SDGs</th>
-        <th @click="sortTable('coins')" class="border border-gray-300 p-2 cursor-pointer">Coins</th>
-        <th @click="sortTable('year')" class="border border-gray-300 p-2 cursor-pointer">Year</th>
-        <th @click="sortTable('collectionName')" class="border border-gray-300 p-2 cursor-pointer">Collection</th>
-        <th @click="sortTable('scenarioType')" class="border border-gray-300 p-2 cursor-pointer">Scenario</th>
+        <th @click="sortTable('coins')"
+            class="border border-gray-300 p-2 sortable-header"
+            :class="{ 'active-sort': sortKey === 'coins' }">
+          Coins
+          <span v-if="sortKey === 'coins'">
+            {{ sortOrder === 'asc' ? '▲' : '▼' }}
+          </span>
+          <span v-else class="text-gray-400">↕</span>
+        </th>
+        <th @click="sortTable('year')"
+            class="border border-gray-300 p-2 sortable-header"
+            :class="{ 'active-sort': sortKey === 'year' }">
+          Year
+          <span v-if="sortKey === 'year'">
+            {{ sortOrder === 'asc' ? '▲' : '▼' }}
+          </span>
+          <span v-else class="text-gray-400">↕</span>
+        </th>
+        <th @click="sortTable('collectionName')"
+            class="border border-gray-300 p-2 sortable-header"
+            :class="{ 'active-sort': sortKey === 'collectionName' }">
+          Topic
+          <span v-if="sortKey === 'collectionName'">
+            {{ sortOrder === 'asc' ? '▲' : '▼' }}
+          </span>
+          <span v-else class="text-gray-400">↕</span>
+        </th>
+
+        <th @click="sortTable('scenarioType')"
+            class="border border-gray-300 p-2 sortable-header"
+            :class="{ 'active-sort': sortKey === 'scenarioType' }">
+          Scenario
+          <span v-if="sortKey === 'scenarioType'">
+            {{ sortOrder === 'asc' ? '▲' : '▼' }}
+          </span>
+          <span v-else class="text-gray-400">↕</span>
+        </th>
       </tr>
       </thead>
       <tbody>
@@ -20,7 +63,7 @@
           {{ item.title }}
         </td>
         <td class="border border-gray-300 p-2 flex items-center justify-center">
-          <HexGlyph :values="item.values" :height="80" :width="60" />
+          <HexGlyph :values="item.values" :height="80" :width="70" :key="item.publicationId + '-' + sortKey + '-' + sortOrder" />
         </td>
         <td class="border border-gray-300 p-2">
           <BarPredictionPlot :values="item.values" :width="80" :height="60" />
@@ -43,6 +86,8 @@
     </table>
   </div>
 </template>
+
+
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { usePublicationsStore } from '~/stores/publications';
@@ -111,7 +156,7 @@ const iconMapping = {
   'Cancer Imaging': 'mdi:radiology-box',
   'Heart Imaging': 'mdi:heart-box',
   'Swiss Research': 'twemoji:flag-switzerland',
-  'Cell Signaling': 'mdi:signal',
+  'Cell Signaling': 'mdi:bio',
   'Mental Health': 'mdi:meditation',
   'Brain Function': 'mdi:head-cog',
   'Ecosystem Changes': 'material-symbols:nature',
