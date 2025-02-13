@@ -2,71 +2,76 @@
   <div class="mt-6 w-full max-w-4xl rounded-lg bg-white p-4 shadow-md">
     <!-- Explanation Section -->
     <div class="mb-4 text-sm text-gray-600">
-      <p>Not sure which Sustainable Development Goal (SDG) aligns with your skills or interests? Enter your skills or interests below to get a suggestion! You can try both options for better insights.</p>
+      <p>Not sure which Sustainable Development Goal (SDG) aligns with your skills or interests? Enter your input below and get a suggestion!</p>
     </div>
 
-    <div class="grid grid-flow-col grid-rows-1 gap-4">
-      <!-- SDG Suggestion Interface Based on Skills -->
-      <div class="col-span-1">
-        <p class="mb-2 text-base font-medium text-gray-800">Find SDG Based on Your Skills</p>
-        <input
-          v-model="skillsInput"
-          type="text"
-          class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          placeholder="e.g., programming, problem-solving"
-        />
-        <button
-          @click="handleGenerateSuggestion('skills')"
-          class="w-full rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
-        >
-          Get SDG Suggestion
-        </button>
-        <div v-if="proposedSdgFromSkills" class="mt-4 rounded-md bg-green-100 p-3 text-gray-800">
-          <div v-if="proposedSdgFromSkills.proposedSdgId">
-            <!-- SDG Icon Rendering -->
-            <img
-              v-if="sdgIconFromSkills"
-              :src="`data:image/svg+xml;base64,${sdgIconFromSkills}`"
-              :alt="`SDG ${proposedSdgFromSkills.proposedSdgId} Icon`"
-              class="w-8 h-8 object-contain mt-2"
-            />
-          </div>
-          <p><strong>SDG:</strong> {{ proposedSdgFromSkills.proposedSdgId }}</p>
-          <p><strong>Reasoning:</strong> {{ proposedSdgFromSkills.reasoning }}</p>
-        </div>
-      </div>
+    <!-- Toggle Switch -->
+    <div class="mb-4 flex items-center justify-center">
+      <div class="flex items-center gap-4">
+        <!-- Skills Radio Button -->
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            v-model="selectedOption"
+            value="skills"
+            @change="updateMode('skills')"
+            class="radio"
+          />
+          <span :class="{'text-gray-500': selectedOption !== 'skills'}">Skills</span>
+        </label>
 
-      <!-- SDG Suggestion Interface Based on Interests -->
-      <div class="col-span-1">
-        <p class="mb-2 text-base font-medium text-gray-800">Find SDG Based on Your Interests</p>
-        <input
-          v-model="interestsInput"
-          type="text"
-          class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          placeholder="e.g., environment, education"
-        />
-        <button
-          @click="handleGenerateSuggestion('interests')"
-          class="w-full rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
-        >
-          Get SDG Suggestion
-        </button>
-        <div v-if="proposedSdgFromInterests" class="mt-4 rounded-md bg-green-100 p-3 text-gray-800">
-          <!-- SDG Icon Rendering -->
-          <div v-if="proposedSdgFromInterests.proposedSdgId">
-            <img
-              v-if="sdgIconFromInterests"
-              :src="`data:image/svg+xml;base64,${sdgIconFromInterests}`"
-              :alt="`SDG ${proposedSdgFromInterests.proposedSdgId} Icon`"
-              class="w-8 h-8 object-contain mt-2"
-            />
-          </div>
-          <p><strong>SDG:</strong> {{ proposedSdgFromInterests.proposedSdgId }}</p>
-          <p><strong>Reasoning:</strong> {{ proposedSdgFromInterests.reasoning }}</p>
-
-        </div>
+        <!-- Interests Radio Button -->
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            v-model="selectedOption"
+            value="interests"
+            @change="updateMode('interests')"
+            class="radio"
+          />
+          <span :class="{'text-gray-500': selectedOption !== 'interests'}">Interests</span>
+        </label>
       </div>
     </div>
+
+    <!-- Input Section -->
+    <div>
+      <input
+        v-model="userInput"
+        type="text"
+        class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        :placeholder="selectedOption === 'interests' ? 'e.g., environment, education' : 'e.g., programming, problem-solving'"
+      />
+      <button
+        @click="handleGenerateSuggestion"
+        class="w-full rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
+        :disabled="loading"
+      >
+        <span v-if="loading" class="flex items-center justify-center">
+          <svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          Loading...
+        </span>
+        <span v-else>Get SDG Suggestion</span>
+      </button>
+    </div>
+
+    <!-- SDG Suggestion Output -->
+    <div v-if="proposedSdg" class="mt-4 rounded-md p-3 text-gray-800">
+      <div v-if="proposedSdg.proposedSdgId" class="mt-4 rounded-md p-3">
+        <img
+          v-if="sdgIcon"
+          :src="`data:image/svg+xml;base64,${sdgIcon}`"
+          :alt="`SDG ${proposedSdg.proposedSdgId} Icon`"
+          class="w-8 h-8 object-contain mt-2"
+        />
+      </div>
+      <p :style="{ backgroundColor: suggestedSdgColor }" ><strong>SDG:</strong> {{ proposedSdg.proposedSdgId }}</p>
+      <p :style="{ backgroundColor: suggestedSdgColor }"><strong>Reasoning:</strong> {{ proposedSdg.reasoning }}</p>
+    </div>
+
   </div>
 </template>
 
@@ -78,57 +83,59 @@ import useGPTAssistantService from "@/composables/useGPTAssistantService";
 export default {
   data() {
     return {
-      skillsInput: "",
-      interestsInput: "",
+      selectedOption: 'skills', // Default to 'skills'
+      userInput: "",
+      loading: false,
     };
   },
   computed: {
-    proposedSdgFromSkills() {
-      return useGameStore().proposedSdgFromSkills;
+    proposedSdg() {
+      return this.selectedOption === 'interests' ? useGameStore().proposedSdgFromInterests : useGameStore().proposedSdgFromSkills;
     },
-    proposedSdgFromInterests() {
-      return useGameStore().proposedSdgFromInterests;
-    },
-    sdgIconFromSkills() {
+    sdgIcon() {
       const sdgsStore = useSDGsStore();
-      const sdgId = this.proposedSdgFromSkills?.proposedSdgId;
-
+      const sdgId = this.proposedSdg?.proposedSdgId;
       if (sdgId && sdgsStore.sdgs.length > 0) {
         const sdg = sdgsStore.sdgs.find((goal) => goal.id === sdgId);
         return sdg ? sdg.icon : null;
       }
       return null;
     },
-    sdgIconFromInterests() {
+    suggestedSdgColor() {
       const sdgsStore = useSDGsStore();
-      const sdgId = this.proposedSdgFromInterests?.proposedSdgId;
-
+      const sdgId = this.proposedSdg?.proposedSdgId;
       if (sdgId && sdgsStore.sdgs.length > 0) {
         const sdg = sdgsStore.sdgs.find((goal) => goal.id === sdgId);
-        return sdg ? sdg.icon : null;
+        return sdg ? sdg.color : '#F0F0F0'; // Fallback to a light color if no color is found
       }
-      return null;
+      return '#F0F0F0'; // Fallback color
     },
   },
   methods: {
-    async handleGenerateSuggestion(type) {
+    updateMode(option) {
+      this.selectedOption = option;
+    },
+
+    async handleGenerateSuggestion() {
+      this.loading = true;
       const gameStore = useGameStore();
       const { proposeSdgBasedOnSkills, proposeSdgBasedOnInterests } = useGPTAssistantService();
-
       try {
-        if (type === "skills" && this.skillsInput) {
-          const response = await proposeSdgBasedOnSkills({
-            skills: this.skillsInput,
-          }); // Pass an object with "skills" key
-          gameStore.setProposedSdgFromSkills(response);
-        } else if (type === "interests" && this.interestsInput) {
-          const response = await proposeSdgBasedOnInterests({
-            interests: this.interestsInput,
-          }); // Pass an object with "interests" key
-          gameStore.setProposedSdgFromInterests(response);
+        if (this.userInput) {
+          const response = this.selectedOption === 'interests'
+            ? await proposeSdgBasedOnInterests({ interests: this.userInput })
+            : await proposeSdgBasedOnSkills({ skills: this.userInput });
+
+          if (this.selectedOption === 'interests') {
+            gameStore.setProposedSdgFromInterests(response);
+          } else {
+            gameStore.setProposedSdgFromSkills(response);
+          }
         }
       } catch (error) {
         console.error("Error generating SDG suggestion:", error);
+      } finally {
+        this.loading = false;
       }
     },
   },

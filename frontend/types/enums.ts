@@ -62,6 +62,7 @@ export enum Quadrant {
 }
 
 export enum Stage {
+  PREPARATION = "Preparation",
   EXPLORING = "Exploring",
   LABELING = "Labeling",
   VOTING = "Voting"

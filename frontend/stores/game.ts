@@ -11,6 +11,7 @@ export const useGameStore = defineStore("game", {
   state: () => ({
     level: null as number,
     sdg: null as number,
+    showLeaderboard: false,
     quadrant: null as Quadrant | null,
     stage: null as Stage | null,
 
@@ -30,6 +31,10 @@ export const useGameStore = defineStore("game", {
     setSDG(sdg: number) {
       console.log("setSDG", sdg);
       this.sdg = sdg;
+    },
+
+    setShowLeaderboard(showLeaderboard: boolean) {
+      this.showLeaderboard = showLeaderboard;
     },
 
     setQuadrant(quadrant: Quadrant) {
