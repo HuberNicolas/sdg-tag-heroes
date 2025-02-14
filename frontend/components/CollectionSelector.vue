@@ -35,27 +35,37 @@
       >
         <template #label>
         <span v-if="selectedCollections.length">
-          {{ selectedCollections.length }} Collection{{ selectedCollections.length > 1 ? 's' : '' }}
+          {{ selectedCollections.length }} Topic{{ selectedCollections.length > 1 ? "s" : "" }}
+          ({{ selectedCollections.reduce((sum, col) => sum + (collectionsStore.collectionsCount[col.collectionId] || 0), 0)
+          }} Publications)
         </span>
           <span v-else class="text-gray-500">
-          Select Collection
+          Select Topics
         </span>
         </template>
 
         <template #option="{ option }">
-          <div class="flex items-center">
-            <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
-            <span class="truncate">{{ option.shortName }}</span>
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center">
+              <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
+              <span>{{ option.shortName }}</span>
+            </div>
+            <span class="text-gray-500 text-sm"> ({{ collectionsStore.collectionsCount[option.collectionId] || 0 }} Publications) </span>
           </div>
         </template>
 
+
         <template #option-create="{ option }">
-          <div class="flex items-center">
-            <span>New Collection: </span>
-            <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
-            <span class="truncate">{{ option.shortName }}</span>
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center">
+              <span>New Topic:</span>
+              <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
+              <span>{{ option.shortName }}</span>
+            </div>
+            <span class="text-gray-500 text-sm"></span>
           </div>
         </template>
+
       </USelectMenu>
     </div>
 
@@ -70,7 +80,8 @@
           variant="solid"
           class="flex items-center gap-1 px-1 py-1"
         >
-          <span class="truncate">{{ collection.shortName }}</span>
+          <span class="truncate">{{ collection.shortName
+            }} ({{ collectionsStore.collectionsCount[collection.collectionId] || 0 }}) </span>
           <button @click.stop="removeCollection(collection)" class="ml-1">
             <UIcon name="i-heroicons-x-circle" class="w-2 h-4 text-white hover:text-gray-300" />
           </button>
@@ -81,14 +92,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useCollectionsStore } from '~/stores/collections'
+import { ref, onMounted, watch } from "vue";
+import { useCollectionsStore } from "~/stores/collections";
 
 // Access store
 const collectionsStore = useCollectionsStore();
 const collections = ref([]);
 const selectedCollections = ref([]);
 
+
+// Watch for changes in the selectedCollections array
+watch(selectedCollections, (newSelectedCollections) => {
+  // Update the store whenever the selected collections change
+  collectionsStore.setSelectedCollections(newSelectedCollections);
+});
 
 
 // Fetch collections on mount
@@ -100,32 +117,32 @@ onMounted(async () => {
 
 // Map collection names to corresponding icons
 const iconMapping = {
-  'Cancer Imaging': 'mdi:radiology-box',
-  'Heart Imaging': 'mdi:heart-box',
-  'Swiss Research': 'gg:swiss',
-  'Cell Signaling': 'mdi:bio',
-  'Mental Health': 'mdi:meditation',
-  'Brain Function': 'mdi:head-cog',
-  'Ecosystem Changes': 'material-symbols:nature',
-  'Pandemic Studies': 'fa-solid:virus',
-  'Sustainability Policies': 'carbon:sustainability',
-  'Particle Physics': 'ion:planet',
-  'Molecular Chemistry': 'material-symbols:science',
-  'Dental Implants': 'mdi:tooth',
-  'Financial Models': 'fa-solid:chart-line',
-  'Bacterial Resistance': 'mdi:bacteria',
-  'Data Processing': 'icon-park-outline:data',
-  'Mathematical Models': 'mdi:math-compass',
-  'Neural Networks': 'mdi:brain',
-  'Environmental Sensing': 'mdi:leaf',
-  'Tech Governance': 'mdi:shield-account',
-  'Genetic Mutations': 'mdi:dna',
-  'Material Science': 'mdi:flask',
+  "Cancer Imaging": "mdi:radiology-box",
+  "Heart Imaging": "mdi:heart-box",
+  "Swiss Research": "gg:swiss",
+  "Cell Signaling": "mdi:bio",
+  "Mental Health": "mdi:meditation",
+  "Brain Function": "mdi:head-cog",
+  "Ecosystem Changes": "material-symbols:nature",
+  "Pandemic Studies": "fa-solid:virus",
+  "Sustainability Policies": "carbon:sustainability",
+  "Particle Physics": "ion:planet",
+  "Molecular Chemistry": "material-symbols:science",
+  "Dental Implants": "mdi:tooth",
+  "Financial Models": "fa-solid:chart-line",
+  "Bacterial Resistance": "mdi:bacteria",
+  "Data Processing": "icon-park-outline:data",
+  "Mathematical Models": "mdi:math-compass",
+  "Neural Networks": "mdi:brain",
+  "Environmental Sensing": "mdi:leaf",
+  "Tech Governance": "mdi:shield-account",
+  "Genetic Mutations": "mdi:dna",
+  "Material Science": "mdi:flask"
 };
 
 // Function to get the corresponding icon component for each collection name
 const getIconComponent = (name: string) => {
-  return iconMapping[name] || 'mdi:help-circle'
+  return iconMapping[name] || "mdi:help-circle";
 };
 
 const removeCollection = (collectionToRemove) => {

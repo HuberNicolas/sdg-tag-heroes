@@ -57,7 +57,9 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(item, index) in sortedTableData" :key="index" class="hover:bg-gray-50">
+      <tr v-for="(item, index) in sortedTableData" :key="index"
+          class="hover:bg-gray-50"
+          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSdg) : '' }">
         <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
             @click="handlePublicationClick(item)">
           {{ item.title }}
@@ -94,6 +96,7 @@ import { usePublicationsStore } from '~/stores/publications';
 import { useSDGPredictionsStore } from '~/stores/sdgPredictions';
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useCollectionsStore} from "~/stores/collections";
+import { useSDGsStore} from "~/stores/sdgs";
 import HexGlyph from '@/components/PredictionGlyph.vue';
 import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
 
@@ -101,6 +104,7 @@ const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const labelDecisionsStore = useLabelDecisionsStore();
 const collectionsStore = useCollectionsStore();
+const sdgsStore = useSDGsStore();
 
 
 watch(
@@ -155,7 +159,7 @@ const scenarioMapping: Record<string, { icon: string; name: string; tooltip: str
 const iconMapping = {
   'Cancer Imaging': 'mdi:radiology-box',
   'Heart Imaging': 'mdi:heart-box',
-  'Swiss Research': 'twemoji:flag-switzerland',
+  "Swiss Research": "gg:swiss",
   'Cell Signaling': 'mdi:bio',
   'Mental Health': 'mdi:meditation',
   'Brain Function': 'mdi:head-cog',
@@ -247,4 +251,11 @@ const sortedTableData = computed(() => {
 function handlePublicationClick(publication: PublicationSchemaBase) {
   publicationsStore.setSelectedPublication(publication);
 }
+
+const getSDGColor = (sdgName: string) => {
+  if (!sdgName) return 'transparent'; // Default if no SDG
+  const sdgId = parseInt(sdgName.replace('SDG ', ''), 10); // Extract SDG number
+  return sdgsStore.getColorBySDG(sdgId) || 'transparent';
+};
+
 </script>

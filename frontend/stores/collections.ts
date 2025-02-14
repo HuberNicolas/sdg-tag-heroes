@@ -10,6 +10,7 @@ export const useCollectionsStore = defineStore("collections", {
     collections: [] as CollectionSchemaFull[],
     selectedCollections: [] as CollectionSchemaFull[],
     collectionDetails: null as CollectionSchemaFull | null,
+    collectionsCount: {} as Record<number, number>, // Collection ID -> Publication Count
     isLoading: false,
     error: null as string | null,
   }),

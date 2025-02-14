@@ -247,7 +247,7 @@ async def get_sdg_predictions_for_dimensionality_reductions(
                 getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
                 SDGPrediction.prediction_model == "Aurora"
             )
-            .order_by(SDGPrediction.prediction_id)
+            .order_by(SDGPrediction.publication_id)
             #.limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
             .all()
         )

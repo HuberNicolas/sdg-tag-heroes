@@ -44,6 +44,21 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     // Get selected collections
     const selectedCollectionIds = new Set(collectionsStore.selectedCollections.map(c => c.collectionId));
 
+    // Calculate publication count per collection
+    const collectionPublicationCounts = {};
+    publicationsData.forEach((pub) => {
+      if (pub.collectionId) {
+        if (!collectionPublicationCounts[pub.collectionId]) {
+          collectionPublicationCounts[pub.collectionId] = 0;
+        }
+        collectionPublicationCounts[pub.collectionId]++;
+      }
+    });
+
+    // Update the store with new collection publication counts
+    collectionsStore.collectionsCount = collectionPublicationCounts;
+
+
     console.log(publicationsData);
     console.log(selectedCollectionIds);
     // Filter publications
@@ -196,6 +211,20 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       }
     });
 
+    container.on('plotly_hover', function (eventData) {
+      if (eventData && eventData.points.length > 0) {
+        const hoveredIndex = eventData.points[0].pointNumber;
+        const hoveredPub = combinedData[hoveredIndex]?.publication;
+        if (hoveredPub) {
+          publicationsStore.setHoveredPublication(hoveredPub);
+        }
+      }
+    });
+
+    container.on('plotly_unhover', function () {
+      publicationsStore.setHoveredPublication(null);
+    });
+
 
     // Function to create user marker
     function createUserMarker() {
@@ -274,6 +303,20 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
 
       // Update selected collection IDs after adding missing ones
       const updatedCollectionIds = new Set(collectionsStore.selectedCollections.map(c => c.collectionId));
+
+      // Recalculate publication counts for the updated collection list
+      const updatedCollectionPublicationCounts = {};
+      publicationsData.forEach((pub) => {
+        if (pub.collectionId && updatedCollectionIds.has(pub.collectionId)) {
+          if (!updatedCollectionPublicationCounts[pub.collectionId]) {
+            updatedCollectionPublicationCounts[pub.collectionId] = 0;
+          }
+          updatedCollectionPublicationCounts[pub.collectionId]++;
+        }
+      });
+
+      // Update the store with recalculated collection publication counts
+      collectionsStore.collectionsCount = updatedCollectionPublicationCounts;
 
       // Filter publications
       const filteredPublicationsData = publicationsData.filter(publication =>

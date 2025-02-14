@@ -29,6 +29,8 @@ export const usePublicationsStore = defineStore("publications", {
     scenarioTypePublications: [] as PublicationSchemaBase[],
 
     selectedPartitionedPublications: [] as PublicationSchemaBase[],
+
+    hoveredPublication: null as PublicationSchemaBase | null,
     isLoading: false,
     error: null as string | null,
   }),
@@ -44,6 +46,10 @@ export const usePublicationsStore = defineStore("publications", {
     setSelectedPublication(publication: PublicationSchemaBase) {
       this.selectedPublication = publication;
       this.selectedPartitionedPublications = [publication];
+    },
+
+    setHoveredPublication(publication: PublicationSchemaBase | null) {
+      this.hoveredPublication = publication;
     },
 
     // Fetch publications by IDs
