@@ -1,12 +1,30 @@
 <template>
   <div class="h-full overflow-hidden">
     <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
-      <div class="row-span-1 col-span-3">
-        <SDGSelector></SDGSelector>
+
+      <div class="row-span-2 col-span-3">
+        <div class="grid grid-cols-4">
+          <div class="col-span-3">
+            <SDGSelector></SDGSelector>
+          </div>
+          <div class="col-span-1">
+            <SDGExplorerLabeling></SDGExplorerLabeling>
+
+          </div>
+        </div>
+
+
       </div>
-      <div class="row-span-9 col-span-3">
+
+
+      <div class="row-span-8 col-span-3">
+        <ShapToggle />
         <ShapAbstract></ShapAbstract>
       </div>
+
+
+
+
       <div class="row-span-10 col-span-4">
         <AnnotationSection></AnnotationSection>
         <div class="flex justify-between">
@@ -15,9 +33,12 @@
         </div>
       </div>
 
+
+
+
+
+
       <div class="row-span-2 col-span-3">
-
-
         <div class="row-span-1 col-span-1 flex justify-evenly items-center">
           <div>
             <label for="content-toggle" class="mr-2 text-lg font-medium text-gray-700">Show User Labels</label>

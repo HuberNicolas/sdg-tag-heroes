@@ -9,6 +9,7 @@ export const useExplanationsStore = defineStore("explanations", {
     error: null as string | null,
     markedText: "" as string,
     comment: "" as string,
+    showShap: true,
   }),
   getters: {
     explanationDetails: (state) => state.explanation,
@@ -39,5 +40,9 @@ export const useExplanationsStore = defineStore("explanations", {
     setComment(text: string) {
       this.comment = text;
     },
+
+    setShowShap(showShap: boolean) {
+      this.showShap = showShap;
+    }
   },
 });
