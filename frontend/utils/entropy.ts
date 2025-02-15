@@ -1,3 +1,4 @@
+// probably wrong
 export function calculateEntropy(predictions) {
   const probabilities = Object.values(predictions).filter(value => typeof value === 'number');
   const total = probabilities.reduce((sum, value) => sum + value, 0);

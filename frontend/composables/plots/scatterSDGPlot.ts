@@ -439,8 +439,6 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
         },
       };
 
-      console.log(userMarker);
-
       // Re-render the plot with the hover marker included.
       // Make sure to merge it with your existing data (e.g., scatterData and any other markers)
       Plotly.react(container, [scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
