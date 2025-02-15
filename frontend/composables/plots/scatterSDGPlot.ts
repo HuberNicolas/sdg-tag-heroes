@@ -21,6 +21,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const sdg = gameStore.getSDG;
   let scatterPlotInstance = null; // Store Plotly instance
   let selectedPoint = null; // Store clicked point coordinates
+  let highlightMarker = null;
   let hoverHighlightMarker = null
   let userMarker = null;
   let scatterData = null;
@@ -278,7 +279,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     function updateHighlightedPoint() {
       if (!selectedPoint) return;
 
-      const highlightMarker = {
+      highlightMarker = {
         x: [selectedPoint.x],
         y: [selectedPoint.y],
         mode: "markers",
@@ -412,7 +413,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
           opacity: 0.7,
         },
         text: combinedData.map(d =>
-          `Title: ${d.publication.title} <br> X: ${d.dimensionalityReduction.xCoord.toFixed(2)} <br> Y: ${d.dimensionalityReduction.yCoord.toFixed(2)}`
+          `${d.publication.title} <br> X: ${d.dimensionalityReduction.xCoord.toFixed(2)} <br> Y: ${d.dimensionalityReduction.yCoord.toFixed(2)}`
         ),
         hoverinfo: "text",
       };

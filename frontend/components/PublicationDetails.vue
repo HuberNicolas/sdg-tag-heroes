@@ -1,9 +1,22 @@
 <template>
-  <div v-if="selectedPublication" class="mx-auto p-6 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
-    <!-- Title -->
-    <h2 class="text-xl font-bold text-gray-800 mb-4">
-      {{ selectedPublication.title || "Untitled Publication" }}
-    </h2>
+  <div v-if="selectedPublication" class="relative mx-auto p-6 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
+
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">
+        {{ selectedPublication.title || "Untitled Publication" }}
+      </h2>
+
+      <UButton
+        icon="mdi-tag-outline"
+        size="sm"
+        color="primary"
+        variant="solid"
+        label="Button"
+        :trailing="false"
+      >
+        <NuxtLink :to="`/labeling2/${selectedPublication.publicationId}`">Label</NuxtLink>
+      </UButton>
+    </div>
 
     <!-- Authors & Year -->
     <p class="text-gray-600">
@@ -16,33 +29,44 @@
     </p>
 
     <!-- Keywords -->
-    <div v-if="keywords && keywords.keywords.length > 0" class="mt-4">
-      <strong class="text-gray-700">Keywords:</strong>
-      <span v-for="(keyword, index) in keywords.keywords" :key="index" class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2">
-        {{ keyword }}
-      </span>
+    <div class="mt-4">
+      <div v-if="keywordsLoading" class="text-center">
+        <span class="loading loading-bars loading-lg"></span> Loading Keywords...
+      </div>
+      <div v-else-if="keywords && keywords.keywords.length > 0">
+        <strong class="text-gray-700">Keywords:</strong>
+        <span v-for="(keyword, index) in keywords.keywords" :key="index" class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2">
+          {{ keyword }}
+        </span>
+      </div>
     </div>
 
     <!-- Fact -->
-    <div v-if="fact && fact.content" class="mt-4 bg-blue-100 p-3 rounded-lg">
-      <h3 class="text-lg font-semibold text-blue-700">Did You Know?</h3>
-      <p class="text-blue-700">{{ fact.content }}</p>
+    <div class="mt-4">
+      <div v-if="factLoading" class="text-center">
+        <span class="loading loading-bars loading-lg"></span> Loading Fact...
+      </div>
+      <div v-else-if="fact && fact.content" class="mt-4 bg-blue-100 p-3 rounded-lg">
+        <h3 class="text-lg font-semibold text-blue-700">Did You Know?</h3>
+        <p class="text-blue-700">{{ fact.content }}</p>
+      </div>
     </div>
 
     <!-- Summary -->
-    <div v-if="summary && summary.summary" class="mt-4">
-      <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
-      <p class="text-gray-700">{{ summary.summary }}</p>
+    <div class="mt-4">
+      <div v-if="summaryLoading" class="text-center">
+        <span class="loading loading-bars loading-lg"></span> Loading Summary...
+      </div>
+      <div v-else-if="summary && summary.summary" class="mt-4">
+        <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
+        <p class="text-gray-700">{{ summary.summary }}</p>
+      </div>
     </div>
-
-    <button class="btn btn-primary">
-      <NuxtLink :to="`/labeling2/${selectedPublication.publicationId}`">Label</NuxtLink>
-    </button>
-
   </div>
 
   <div v-else class="text-center text-gray-500 mt-6">No publication selected.</div>
 </template>
+
 
 <script>
 import { ref, watch, onMounted } from "vue";
@@ -59,16 +83,38 @@ export default {
     const fact = ref(null);
     const summary = ref(null);
 
+    const keywordsLoading = ref(false);
+    const factLoading = ref(false);
+    const summaryLoading = ref(false);
+
     // Function to fetch additional details when publication changes
     const fetchPublicationDetails = async () => {
       if (selectedPublication.value) {
         const publicationId = selectedPublication.value.publicationId;
+
+        // Set loading flags
+        keywordsLoading.value = true;
+        factLoading.value = true;
+        summaryLoading.value = true;
+
         try {
+          // Clear previous content while loading new data
+          keywords.value = null;
+          fact.value = null;
+          summary.value = null;
+
+          // Fetch data
           keywords.value = await getPublicationKeywords(publicationId);
           fact.value = await getPublicationFact(publicationId);
           summary.value = await getPublicationSummary(publicationId);
+
         } catch (error) {
           console.error("Error fetching additional publication details:", error);
+        } finally {
+          // Set loading flags to false after data is fetched
+          keywordsLoading.value = false;
+          factLoading.value = false;
+          summaryLoading.value = false;
         }
       }
     };
@@ -90,8 +136,12 @@ export default {
       selectedPublication,
       keywords,
       fact,
-      summary
+      summary,
+      keywordsLoading,
+      factLoading,
+      summaryLoading
     };
   }
 };
 </script>
+
