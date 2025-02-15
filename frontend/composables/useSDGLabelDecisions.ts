@@ -1,5 +1,9 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type { SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull } from "~/types/sdgLabelDecision";
+import type {
+  SDGLabelDecisionSchemaBase,
+  SDGLabelDecisionSchemaExtended,
+  SDGLabelDecisionSchemaFull
+} from "~/types/sdgLabelDecision";
 import { snakeToCamel } from "~/utils/snakeToCamel";
 import type { SDGUserLabelsCommentSummarySchema } from "~/types/sdgUserLabel";
 
@@ -84,11 +88,31 @@ export default function useSDGLabelDecisions() {
     }
   }
 
+  // Retrieve all SDGLabelDecisions that a user has interacted with.
+  async function getSDGLabelDecisionsForUser(
+    userId: number,
+  ): Promise<SDGLabelDecisionSchemaExtended[]> {
+    try {
+      const response = await $fetch<SDGLabelDecisionSchemaExtended[]>(
+        `${config.public.apiUrl}/label-decisions/users/${userId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch SDG label decisions: ${error}`);
+    }
+  }
+
 
   return {
     getSDGLabelDecisionsByPublicationId,
     createCommentSummary,
     getSDGLabelDecisionsForReduction,
-    getScenarioSDGLabelDecisionsForReduction
+    getScenarioSDGLabelDecisionsForReduction,
+    getSDGLabelDecisionsForUser,
   };
 }

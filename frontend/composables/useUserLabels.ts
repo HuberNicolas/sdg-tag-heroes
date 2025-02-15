@@ -75,12 +75,29 @@ export default function useUserLabels() {
     }
   }
 
+  async function getSDGUserLabelsByUserId(userId: number): Promise<SDGUserLabelSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGUserLabelSchemaFull[]>(
+        `${config.public.apiUrl}/user-labels/users/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch user labels for user ID ${userId}: ${error}`);
+    }
+  }
+
 
 
   return {
     getSDGUserLabels,
     getSDGUserLabelById,
     getSDGUserLabelsByPublicationId,
-    createOrLinkSDGUserLabel
+    createOrLinkSDGUserLabel,
+    getSDGUserLabelsByUserId
   };
 }

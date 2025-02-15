@@ -30,3 +30,17 @@ class SDGLabelDecisionSchemaFull(SDGLabelDecisionSchemaBase):
     model_config = {
         "from_attributes": True
     }
+
+class SDGLabelDecisionSchemaExtended(SDGLabelDecisionSchemaBase):
+    created_at: datetime
+    updated_at: datetime
+
+    # Include all user labels associated with the decision
+    user_labels: List["SDGUserLabelSchemaFull"]
+
+    # Include all annotations directly attached to the decision
+    annotations: List["AnnotationSchemaFull"]
+
+    model_config = {
+        "from_attributes": True
+    }

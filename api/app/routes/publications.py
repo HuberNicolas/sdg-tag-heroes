@@ -11,7 +11,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qdrant_client
 from enums.enums import LevelType, ScenarioType
-from models import SDGPrediction, SDGLabelDecision
+from models import SDGPrediction, SDGLabelDecision, SDGUserLabel
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from request_models.publication import PublicationIdsRequest
@@ -351,4 +351,47 @@ async def get_publications_for_dimensionality_reductions_partitioned(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching publications: {e}",
+        )
+
+
+@router.get(
+    "/users/{user_id}/labeled",
+    response_model=List[PublicationSchemaBase],
+    description="Get all publications labeled by a specific user"
+)
+async def get_user_labeled_publications(
+    user_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[PublicationSchemaBase]:
+    """
+    Retrieve all publications that a specific user has labeled.
+    """
+    try:
+        # Ensure user is authenticated
+        user = verify_token(token, db)
+
+        # Fetch all publications the user has labeled
+        publications = (
+            db.query(Publication)
+            .join(SDGUserLabel, Publication.publication_id == SDGUserLabel.publication_id)
+            .filter(SDGUserLabel.user_id == user_id)
+            .all()
+        )
+
+        if not publications:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No labeled publications found for user ID {user_id}",
+            )
+
+        return [PublicationSchemaBase.model_validate(pub) for pub in publications]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching labeled publications for user {user_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching labeled publications for user {user_id}: {e}",
         )

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 
 import type { AnnotationSchemaBase, AnnotationSchemaFull } from "~/types/annotation";
-import type { SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull } from "~/types/sdgLabelDecision";
+import type { SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull, SDGLabelDecisionSchemaExtended  } from "~/types/sdgLabelDecision";
 import type { SDGUserLabelSchemaBase, SDGUserLabelSchemaFull, SDGUserLabelsCommentSummarySchema } from "~/types/sdgUserLabel";
 import type { VoteSchemaBase, VoteSchemaFull } from "~/types/vote";
 
@@ -30,6 +30,8 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     annotations: [] as AnnotationSchemaFull[],
     votes: [] as VoteSchemaFull[],
     commentSummary: null as SDGUserLabelsCommentSummarySchema | null,
+
+    userSDGLabelDecisions: [] as SDGLabelDecisionSchemaExtended[],
 
     isLoading: false,
     error: null as string | null,
@@ -200,8 +202,21 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
       }
     },
 
+    async fetchSDGLabelDecisionsForUser(userId: number) {
+      this.isLoading = true;
+      this.error = null;
 
-
+      try {
+        const { getSDGLabelDecisionsForUser } = useSDGLabelDecisions();
+        const decisions = await getSDGLabelDecisionsForUser(userId);
+        this.userSDGLabelDecisions = decisions || [];
+      } catch (error) {
+        this.error = `Failed to fetch scenario SDG Label Decisions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
 
 
     // Select a User Label

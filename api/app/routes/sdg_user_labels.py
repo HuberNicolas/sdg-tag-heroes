@@ -9,7 +9,7 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from enums import SDGType
-from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, Vote
+from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, Vote, Annotation
 from models.publications.publication import Publication
 from models.sdg_label_summary import SDGLabelSummary
 from request_models.annotations_gpt import AnnotationEvaluationRequest
@@ -17,6 +17,7 @@ from request_models.sdg_user_label import UserLabelRequest, UserLabelIdsRequest
 from schemas import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
 from schemas.gpt_assistant_service import GPTResponseCommentSummarySchema, SDGUserLabelsCommentSummarySchema, \
     AnnotationEvaluationSchema
+from schemas.sdg_label_decision import SDGLabelDecisionSchemaExtended
 from schemas.sdg_user_label import SDGUserLabelStatisticsSchema, SDGLabelDistribution, UserVotingDetails
 from schemas.vote import VoteSchemaFull
 from services.gpt.gpt_assistant_service import GPTAssistantService
@@ -535,3 +536,80 @@ async def get_sdg_user_labels_statistics(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching SDGUserLabel statistics with entities",
         )
+
+@router.get(
+    "/users/{user_id}",
+    response_model=List[SDGLabelDecisionSchemaExtended],
+    description="Retrieve all SDG label decisions a user has interacted with, along with their associated labels and annotations."
+)
+async def get_user_interacted_sdg_label_decisions(
+    user_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGLabelDecisionSchemaExtended]:
+    """
+    Retrieve all SDGLabelDecisions that a user has interacted with, including:
+    - All associated SDGUserLabels
+    - All annotations linked to those labels
+    - All annotations directly linked to the decision
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Fetch all SDGLabelDecisions where the user has created an SDGUserLabel
+        user_label_decisions = (
+            db.query(SDGLabelDecision)
+            .join(SDGLabelDecision.user_labels)
+            .filter(SDGUserLabel.user_id == user_id)
+            .options(
+                joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
+                joinedload(SDGLabelDecision.annotations)
+            )
+            .all()
+        )
+
+        # Fetch all SDGLabelDecisions where the user has created an annotation directly linked to the decision
+        annotation_decisions = (
+            db.query(SDGLabelDecision)
+            .join(SDGLabelDecision.annotations)
+            .filter(Annotation.user_id == user_id)
+            .options(
+                joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
+                joinedload(SDGLabelDecision.annotations)
+            )
+            .all()
+        )
+
+        # Fetch all SDGLabelDecisions where the user has created an annotation linked to an SDGUserLabel associated with a decision
+        annotation_user_label_decisions = (
+            db.query(SDGLabelDecision)
+            .join(SDGLabelDecision.user_labels)
+            .join(SDGUserLabel.annotations)
+            .filter(Annotation.user_id == user_id)
+            .options(
+                joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
+                joinedload(SDGLabelDecision.annotations)
+            )
+            .all()
+        )
+
+        # Combine results and remove duplicates
+        all_decisions = list(set(user_label_decisions + annotation_decisions + annotation_user_label_decisions))
+
+        if not all_decisions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No SDGLabelDecisions found for user ID {user_id}",
+            )
+
+        return [SDGLabelDecisionSchemaExtended.model_validate(decision) for decision in all_decisions]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching SDGLabelDecisions for user {user_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching SDGLabelDecisions for user {user_id}.",
+        )
+

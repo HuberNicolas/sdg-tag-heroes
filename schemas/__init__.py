@@ -24,7 +24,7 @@ from .sdg_prediction import SDGPredictionSchemaBase, SDGPredictionSchemaFull
 from .sdg_target_prediction import SDGTargetPredictionSchemaBase, SDGTargetPredictionSchemaFull
 from .sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull
 from .sdg_label_history import SDGLabelHistorySchemaBase, SDGLabelHistorySchemaFull
-from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull
+from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull, SDGLabelDecisionSchemaExtended
 from .sdg_user_label import SDGUserLabelSchemaBase, SDGUserLabelSchemaFull
 from .sdg_user_label import SDGLabelDistribution, UserVotingDetails, SDGUserLabelStatisticsSchema # NON-Entity-derived
 
@@ -115,6 +115,7 @@ __all__ = [
 
     "SDGLabelDecisionSchemaBase",
     "SDGLabelDecisionSchemaFull",
+    "SDGLabelDecisionSchemaExtended",
 
     "SDGUserLabelSchemaBase",
     "SDGUserLabelSchemaFull",
@@ -221,6 +222,7 @@ SDGLabelHistorySchemaBase.model_rebuild()
 SDGLabelHistorySchemaFull.model_rebuild()
 SDGLabelDecisionSchemaBase.model_rebuild()
 SDGLabelDecisionSchemaFull.model_rebuild()
+SDGLabelDecisionSchemaExtended.model_rebuild()
 SDGUserLabelSchemaBase.model_rebuild()
 SDGUserLabelSchemaFull.model_rebuild()
 SDGLabelDistribution.model_rebuild()
