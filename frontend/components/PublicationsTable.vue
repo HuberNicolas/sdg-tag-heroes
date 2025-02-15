@@ -1,7 +1,10 @@
 <template>
   <div class="max-h-[600px] overflow-y-auto h-full">
     <!-- Scrollable container -->
-    <table class="w-full border-collapse">
+    <table
+      class="w-full border-collapse"
+      @mouseleave="publicationsStore.setHoveredPublication(null)"
+    >
       <thead>
       <tr class="bg-gray-100">
         <th
@@ -57,9 +60,14 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(item, index) in sortedTableData" :key="index"
-          class="hover:bg-gray-50"
-          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSdg) : '' }">
+      <tr
+        v-for="(item, index) in sortedTableData"
+        :key="index"
+        class="hover:bg-gray-50"
+        @mouseover="publicationsStore.setHoveredPublication(item)"
+        @mouseleave="publicationsStore.setHoveredPublication(null)"
+        :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSdg) : '' }">
+
         <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
             @click="handlePublicationClick(item)">
           {{ item.title }}
@@ -77,12 +85,16 @@
             <Icon :name="item.collectionSymbol" class="w-8 h-8 text-gray-400" />
           </UTooltip>
         </td>
-        <td v-if="item.scenarioType">
-          <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
+
+        <td class="border border-gray-300 p-2">
+          <template v-if="item.scenarioType !== 'No Scenario'">
+            <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
+          </template>
+          <template v-else>
+            No Scenario
+          </template>
         </td>
-        <td v-else>
-          No Scenario
-        </td>
+
       </tr>
       </tbody>
     </table>
@@ -133,7 +145,7 @@ const scenarioMapping: Record<string, { icon: string; name: string; tooltip: str
     name: 'Explore',
     tooltip: 'Look at a variety of predictions to explore uncertainty'
   },
-  'Investment': {
+  'Investigate': {
     icon: 'i-heroicons-magnifying-glass',
     name: 'Investigate',
     tooltip: 'Analyze and investigate data'
@@ -213,6 +225,7 @@ const tableData = computed(() => {
     const collectionName = collection ? collection.shortName : 'Unknown Collection';
     const collectionSymbol = collection ? getIconComponent(collection.shortName) : '';
 
+    const scenarioType = decision?.scenarioType || 'No Scenario';
     return {
       title: pub.title,
       publicationId: pub.publicationId,
@@ -220,7 +233,7 @@ const tableData = computed(() => {
       coins,
       topSdg,
       year: pub.year,
-      scenarioType: decision?.scenarioType || null,
+      scenarioType,
       collectionName,
       collectionSymbol
     };

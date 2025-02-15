@@ -21,6 +21,9 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const sdg = gameStore.getSDG;
   let scatterPlotInstance = null; // Store Plotly instance
   let selectedPoint = null; // Store clicked point coordinates
+  let hoverHighlightMarker = null
+  let userMarker = null;
+  let scatterData = null;
 
   // Fetch partitioned data from all stores
   const fetchData = async () => {
@@ -79,7 +82,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     const selectedSDGColor = sdgsStore.getColorBySDG(sdg);
 
     // Scatter plot data
-    const scatterData = {
+    scatterData = {
       x: combinedData.map(d => d.dimensionalityReduction.xCoord),
       y: combinedData.map(d => d.dimensionalityReduction.yCoord),
       mode: 'markers',
@@ -113,10 +116,10 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     };
 
     // Initial user marker
-    let userMarker = createUserMarker();
+    //userMarker = createUserMarker();
 
     const layout = {
-      title: `Scatter Plot for Level ${level}`,
+      title: ``, //`Scatter Plot for Level ${level}`,
       type: 'scattergl',
       width: width,
       height: height,
@@ -167,10 +170,38 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       { deep: true }
     );
 
+    watch(
+      () => publicationsStore.hoveredPublication,
+      (newHoveredPublication) => {
+        if (newHoveredPublication) {
+          // Find the corresponding point in the combinedData
+          const hoveredPoint = combinedData.find(
+            (d) => d.publication.publicationId === newHoveredPublication.publicationId
+          );
+
+          if (hoveredPoint) {
+            // Update the highlighted point in the scatter plot
+            updateHighlightedPointFromHover({
+              x: hoveredPoint.dimensionalityReduction.xCoord,
+              y: hoveredPoint.dimensionalityReduction.yCoord,
+            });
+          }
+        } else {
+          // If no publication is hovered, remove the highlight
+          removeHoverHighlightMarker();
+        }
+      },
+      { deep: true }
+    );
+
+
     // Selection events
     container.on('plotly_selected', function (eventData) {
       if (eventData && eventData.points) {
-        const selectedIndices = eventData.points.map(pt => pt.pointNumber);
+        // Filter out any points that are user markers (star symbol)
+        const selectedIndices = eventData.points
+          .filter(pt => pt.data.text[0] !== '📍') // Exclude user markers with '📍'
+          .map(pt => pt.pointNumber); // Map to indices of valid points
 
         const selectedSDGPredictions = selectedIndices.map(index => combinedData[index].sdgPrediction);
         const selectedPublications = selectedIndices.map(index => combinedData[index].publication);
@@ -191,8 +222,8 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
         const clickedPoint = eventData.points[0];
         const clickedIndex = clickedPoint.pointNumber;
 
-        // Ensure the clicked marker is NOT the user marker (gold star)
-        if (clickedPoint.data.marker.symbol === "star") return;
+        // Ensure the clicked marker is NOT the user marker
+        if (clickedPoint.data.text === "📍") return;
 
         // Get the selected publication
         const selectedPublication = combinedData[clickedIndex]?.publication;
@@ -232,22 +263,15 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       if (!userCoordinates) return null;
 
       return {
+        mode: 'text',
         x: [userCoordinates.x_coord],
         y: [userCoordinates.y_coord],
-        mode: "markers",
-        type: "scatter",
-        marker: {
-          size: 30, // Bigger for visibility
-          symbol: "star",
-          color: "gold",
-          line: {
-            width: 3,
-            color: "black",
-          },
-          opacity: 1.0,
-        },
-        text: [`User Location<br>X: ${userCoordinates.x_coord.toFixed(2)}<br>Y: ${userCoordinates.y_coord.toFixed(2)}`],
-        hoverinfo: "text",
+        text: ['📍'],
+        type: 'scatter',
+        textfont: {
+          size: 25,
+          color: 'black'
+        }
       };
     }
 
@@ -362,7 +386,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       });
 
       // Define scatter data
-      const scatterData = {
+      scatterData = {
         x: combinedData.map(d => d.dimensionalityReduction.xCoord),
         y: combinedData.map(d => d.dimensionalityReduction.yCoord),
         mode: "markers",
@@ -394,16 +418,46 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       };
 
       // Update the plot with both default and scenario points
-      Plotly.react(container, [scatterData], layout);
+      Plotly.react(container, [scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
+    }
+
+    function updateHighlightedPointFromHover(coordinates) {
+      // Create a highlight marker for hover (you can style it differently from the selected marker)
+      hoverHighlightMarker = {
+        x: [coordinates.x],
+        y: [coordinates.y],
+        mode: "markers",
+        type: "scatter",
+        marker: {
+          size: 40,
+          symbol: "circle",
+          color: "rgba(0, 0, 0, 0.1)", // semi-transparent overlay
+          line: {
+            width: 4,
+            color: "black" // selectedSDGColor,
+          },
+        },
+      };
+
+      console.log(userMarker);
+
+      // Re-render the plot with the hover marker included.
+      // Make sure to merge it with your existing data (e.g., scatterData and any other markers)
+      Plotly.react(container, [scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
+    }
+
+    function removeHoverHighlightMarker() {
+      // Remove the hover highlight by re-rendering without the marker.
+      Plotly.react(container, [scatterData, userMarker].filter(Boolean), layout);
     }
 
 
     // Function to update user marker dynamically
     function updateUserMarker() {
-      const newUserMarker = createUserMarker();
-      if (!newUserMarker) return;
+      userMarker = createUserMarker();
+      if (!userMarker) return;
 
-      Plotly.react(container, [scatterData, newUserMarker], layout);
+      Plotly.react(container, [scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
     }
   });
 }

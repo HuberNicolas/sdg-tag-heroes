@@ -3,7 +3,7 @@
     <UButton
       size="sm"
       shape="round"
-      :ui="{ base: 'ring-0' }"
+      :ui="{ base: 'ring-0', active: gameStore.isSelected(name) ? 'bg-primary-500 text-white' : '' }"
       @click="handleClick"
       :disabled="isLoading"
     >
@@ -66,17 +66,30 @@ const handleClick = async () => {
       throw new Error("No SDG selected.");
     }
 
-    const scenarioType = scenarioMapping[props.name] || ScenarioType.NO_SPECIFIC_SCENARIO;
+    // Toggle scenario
+    const previousScenario = gameStore.selectedScenario;
+    gameStore.toggleScenario(props.name);
 
-    await dimensionalityStore.fetchDimensionalityReductionsBySDGAndScenario(selectedSDG, "UMAP-15-0.0-2", scenarioType);
-    await publicationsStore.fetchPublicationsForDimensionalityReductionsWithScenario(selectedSDG, "UMAP-15-0.0-2", scenarioType);
-    await sdgPredictionsStore.fetchSDGPredictionsForDimensionalityReductionsWithScenario(selectedSDG, "UMAP-15-0.0-2", scenarioType);
-    await labelDecisionsStore.fetchScenarioSDGLabelDecisionsForReduction(selectedSDG, "UMAP-15-0.0-2", scenarioType);
+    if (previousScenario === props.name) {
+      // Scenario was removed, directly reset arrays
+      dimensionalityStore.scenarioTypeReductions = [];
+      publicationsStore.scenarioTypePublications = [];
+      sdgPredictionsStore.scenarioTypeSDGPredictions = [];
+      labelDecisionsStore.scenarioTypeSDGLabelDecisions = [];
+    } else {
+      // Scenario was selected, fetch new data
+      const scenarioType = scenarioMapping[props.name] || ScenarioType.NO_SPECIFIC_SCENARIO;
 
+      await dimensionalityStore.fetchDimensionalityReductionsBySDGAndScenario(selectedSDG, "UMAP-15-0.0-2", scenarioType);
+      await publicationsStore.fetchPublicationsForDimensionalityReductionsWithScenario(selectedSDG, "UMAP-15-0.0-2", scenarioType);
+      await sdgPredictionsStore.fetchSDGPredictionsForDimensionalityReductionsWithScenario(selectedSDG, "UMAP-15-0.0-2", scenarioType);
+      await labelDecisionsStore.fetchScenarioSDGLabelDecisionsForReduction(selectedSDG, "UMAP-15-0.0-2", scenarioType);
+    }
   } catch (err) {
     error.value = `Error loading data: ${err}`;
   } finally {
     isLoading.value = false;
   }
 };
+
 </script>

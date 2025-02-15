@@ -6,34 +6,7 @@
           <div class="row-span-4 col-span-6">
             <CollectionSelector></CollectionSelector>
           </div>
-          <div class="row-span-2 col-span-3">
-            <div class="flex items-center justify-around">
-
-              <QuestButton
-                icon="i-heroicons-check-badge"
-                name="Confirm the King"
-                tooltip="Crown the most prominent instance"
-              />
-
-              <QuestButton
-                icon="i-heroicons-map"
-                name="Explore"
-                tooltip="Look at a variety of predictions to explore uncertainty"
-              />
-
-              <QuestButton
-                icon="i-heroicons-magnifying-glass"
-                name="Investigate"
-                tooltip="Analyze and investigate data"
-              />
-
-              <QuestButton
-                icon="i-heroicons-scale"
-                name="Tiebreaker"
-                tooltip="Resolve conflicts with a balanced approach"
-              />
-            </div>
-          </div>
+          <QuestSection></QuestSection>
 
           <div class="row-span-2 col-span-3">
             <ExplorationUserQuery></ExplorationUserQuery>
@@ -92,6 +65,7 @@ import { onMounted, ref, watch } from "vue";
 import { useGameStore } from "~/stores/game";
 import PublicationDetails from "~/components/PublicationDetails.vue";
 import { Quadrant, Stage } from "~/types/enums";
+import QuestSection from "~/components/QuestSection.vue";
 
 
 const route = useRoute()
