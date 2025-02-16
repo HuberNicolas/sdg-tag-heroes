@@ -1,6 +1,9 @@
 <template>
   <div class="flex flex-col items-center justify-center bg-gray-100 pt-0 pb-0 pr-4 pl-4 rounded-sm shadow-md w-full">
     <!-- D3 Bar Chart -->
+    <p class="text-sm text-gray-600">
+      Top SDG-Goal Distribution
+    </p>
     <div ref="chartContainer" class="w-full"></div>
   </div>
 </template>
@@ -102,7 +105,8 @@ export default {
         .attr("rx", 4)
         .on("mouseover", (event, d) => {
           tooltip.style("visibility", "visible")
-            .text(`SDG ${d.sdgId}: ${d.count}`);
+            .text(`SDG ${d.sdgId}: ${d.count}`)
+            .style("background-color", d.color); // Set the tooltip background color to the SDG's color
         })
         .on("mousemove", (event) => {
           tooltip.style("top", `${event.pageY - 30}px`)

@@ -73,7 +73,7 @@
       </thead>
       <tbody>
       <tr v-if="sortedTableData.length === 0">
-        <td colspan="7" class="border border-gray-300 p-4 text-center text-gray-500">
+        <td colspan="8" class="border border-gray-300 p-4 text-center text-gray-500">
           No publications selected. Please use the lasso selection tool in the scatter plot to select data points.
         </td>
       </tr>
@@ -249,8 +249,8 @@ watchEffect(async () => {
       }
 
       const collection = collectionsStore.collections.find(col => col.collectionId === pub.collectionId);
-      const collectionName = collection?.shortName || 'Unknown Collection';
-      const collectionSymbol = collection ? getIconComponent(collection.shortName) : 'mdi:help-circle';
+      const collectionName = pub.collectionName || collection?.shortName || 'Unknown Collection';
+      const collectionSymbol = pub.collectionSymbol || (collection ? getIconComponent(collection.shortName) : 'mdi:help-circle');
 
       const scenarioType = decision?.scenarioType || 'No Scenario';
 

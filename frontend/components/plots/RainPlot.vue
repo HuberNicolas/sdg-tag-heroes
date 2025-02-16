@@ -1,6 +1,9 @@
 <template>
   <div class="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg shadow-md w-full">
     <!-- D3 Raincloud Plot -->
+    <p class="text-sm text-gray-600">
+      XP-Distribution of selected Publications
+    </p>
     <div ref="chartContainer" class="w-full h-80 relative" ></div>
   </div>
 </template>
@@ -34,7 +37,7 @@ watch(() => publicationsStore.hoveredPublication, (newVal) => {
     const prediction = sdgPredictionsStore.selectedPartitionedSDGPredictions.find(
       p => p.publicationId === newVal.publicationId
     );
-    hoveredEntropy.value = prediction ? prediction.entropy : null;
+    hoveredEntropy.value = prediction ? parseInt(Math.round(prediction.entropy * 100)) : null;
   } else {
     hoveredEntropy.value = null;
   }
@@ -43,7 +46,7 @@ watch(() => publicationsStore.hoveredPublication, (newVal) => {
 
 // Compute entropy values from predictions
 const entropyData = computed(() => {
-  return sdgPredictionsStore.selectedPartitionedSDGPredictions.map(prediction => prediction.entropy);
+  return sdgPredictionsStore.selectedPartitionedSDGPredictions.map(prediction => parseInt(Math.round(prediction.entropy * 100)));
 });
 
 // Persistent jitter mapping
@@ -56,7 +59,7 @@ const updateChart = () => {
   const data = entropyData.value;
   const width = chartContainer.value.clientWidth;
   const height = 240;
-  const margin = { top: 5, right: 40, bottom: 30, left: 40 };
+  const margin = { top: 5, right: 80, bottom: 30, left: 80 };
 
   if (!data || data.length === 0) {
     d3.select(chartContainer.value).select("svg").remove();
@@ -140,7 +143,7 @@ const updateChart = () => {
 
   // Boxplot with whiskers
   const boxHeight = 8;
-  const yBoxplot = height * 0.6;
+  const yBoxplot = height * 0.45;
 
   // Whiskers
   svg.append("line")
@@ -162,6 +165,55 @@ const updateChart = () => {
     .attr("width", xScale(q3) - xScale(q1)).attr("height", boxHeight)
     .attr("fill", "grey").attr("opacity", 0.6);
   svg.append("line").attr("x1", xScale(median)).attr("x2", xScale(median)).attr("y1", yBoxplot - boxHeight / 2).attr("y2", yBoxplot + boxHeight / 2).attr("stroke", "black");
+
+
+  // Create a function to generate hexagon points
+  function hexagonPoints(x, y, radius) {
+    const points = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i;
+      points.push([
+        x + radius * Math.cos(angle),
+        y + radius * Math.sin(angle)
+      ]);
+    }
+    return points;
+  }
+
+// Replace the two polygon sections with this code
+// Left whisker marker (at minimum value)
+  const leftHexPoints = hexagonPoints(xScale(min)-50, yBoxplot, 10);
+  const leftPathData = `M ${leftHexPoints.map(p => p.join(',')).join(' L ')} Z`;
+  svg.append("path")
+    .attr("d", leftPathData)
+    .attr("fill", selectedSDGColor.value);
+
+// Right whisker marker (at maximum value)
+  const rightHexPoints = hexagonPoints(xScale(max)+50, yBoxplot, 25);
+  const rightPathData = `M ${rightHexPoints.map(p => p.join(',')).join(' L ')} Z`;
+  svg.append("path")
+    .attr("d", rightPathData)
+    .attr("fill", selectedSDGColor.value);
+
+
+  // Left whisker marker label
+  svg.append("text")
+    .attr("x", xScale(min)-50)
+    .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
+    .attr("text-anchor", "middle")
+    .attr("fill", "black")
+    .style("font-size", "12px")
+    .text("Low XP");
+
+// Right whisker marker label
+  svg.append("text")
+    .attr("x", xScale(max)+50)
+    .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
+    .attr("text-anchor", "middle")
+    .attr("fill", "black")
+    .style("font-size", "12px")
+    .text("High XP");
+
 
   // Position the labels **above** the whiskers
   const labelYOffset = -15; // Move labels up
@@ -198,21 +250,21 @@ const updateChart = () => {
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
     .attr("fill", "black")
-    .text(min.toFixed(2));
+    .text(min.toFixed(0));
 
   svg.append("text")
     .attr("x", xScale(median))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
     .attr("fill", "black")
-    .text(median.toFixed(2));
+    .text(median.toFixed(0));
 
   svg.append("text")
     .attr("x", xScale(max))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
     .attr("fill", "black")
-    .text(max.toFixed(2));
+    .text(max.toFixed(0));
 
 
   // Highlight the line in the boxplot for hovered publication

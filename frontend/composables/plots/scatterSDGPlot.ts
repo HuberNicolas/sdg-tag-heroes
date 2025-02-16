@@ -230,6 +230,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
         const selectedPublication = combinedData[clickedIndex]?.publication;
         if (selectedPublication) {
           publicationsStore.setSelectedPublication(selectedPublication);
+          publicationsStore.selectedPartitionedPublications([selectedPublication]);
           console.log("Selected Publication:", selectedPublication);
 
           // Store the clicked point's coordinates

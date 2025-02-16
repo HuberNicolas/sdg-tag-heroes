@@ -10,203 +10,271 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted, watch, computed } from "vue";
-import { select } from "d3-selection";
-import { scaleLinear, scaleOrdinal } from "d3-scale";
-import { max } from "d3-array";
-import { transition } from "d3-transition";
-import { usePublicationsStore } from "@/stores/publications";
-import { useSDGPredictionsStore} from "~/stores/sdgPredictions.js";
-import { useGameStore } from "@/stores/game";
-import { useSDGsStore } from "@/stores/sdgs";
+<script setup>
+import { ref, onMounted, watch, computed } from 'vue';
+import * as d3 from "d3";
+import { select, scaleLinear } from 'd3';
+import { transition } from 'd3-transition';
+import { usePublicationsStore } from '@/stores/publications';
+import { useSDGPredictionsStore } from '@/stores/sdgPredictions';
+import { useGameStore } from '@/stores/game';
+import { useSDGsStore } from '@/stores/sdgs';
+import {useCollectionsStore} from "@/stores/collections";
 
+// Store hooks
+const publicationsStore = usePublicationsStore();
+const sdgPredictionsStore = useSDGPredictionsStore();
+const gameStore = useGameStore();
+const sdgsStore = useSDGsStore();
+const collectionsStore = useCollectionsStore();
 
-export default {
-  setup() {
-    const publicationsStore = usePublicationsStore();
-    const sdgPredictionsStore = useSDGPredictionsStore();
+// Refs
+const chartContainer = ref(null);
+const selectedCount = ref(publicationsStore.selectedPartitionedPublications.length);
+const totalCount = ref(publicationsStore.sdgLevelPublications.length + publicationsStore.scenarioTypePublications.length);
 
-    const gameStore = useGameStore();
-    const sdgsStore = useSDGsStore();
-    const chartContainer = ref(null);
+// Computed properties
+const sdgColor = computed(() => {
+  const sdgId = gameStore.getSDG;
+  return sdgsStore.getColorBySDG(sdgId) || '#464a50';
+});
 
-    // Reactive values for selected and total publications
-    const selectedCount = ref(publicationsStore.selectedPartitionedPublications.length);
-    const totalCount = ref(publicationsStore.sdgLevelPublications.length);
+const computeSDGStackedData = (predictions) => {
+  const sdgCounts = Array(17).fill(0); // Array to store highest SDG counts
 
-    // Get the SDG color dynamically
-    const sdgColor = computed(() => {
-      const sdgId = gameStore.getSDG;
-      return sdgsStore.getColorBySDG(sdgId) || "#3B82F6"; // Default Blue if SDG color is not found
-    });
+  predictions.forEach(prediction => {
+    const sdgValues = [
+      { id: 1, value: prediction.sdg1 },
+      { id: 2, value: prediction.sdg2 },
+      { id: 3, value: prediction.sdg3 },
+      { id: 4, value: prediction.sdg4 },
+      { id: 5, value: prediction.sdg5 },
+      { id: 6, value: prediction.sdg6 },
+      { id: 7, value: prediction.sdg7 },
+      { id: 8, value: prediction.sdg8 },
+      { id: 9, value: prediction.sdg9 },
+      { id: 10, value: prediction.sdg10 },
+      { id: 11, value: prediction.sdg11 },
+      { id: 12, value: prediction.sdg12 },
+      { id: 13, value: prediction.sdg13 },
+      { id: 14, value: prediction.sdg14 },
+      { id: 15, value: prediction.sdg15 },
+      { id: 16, value: prediction.sdg16 },
+      { id: 17, value: prediction.sdg17 },
+    ];
 
+    const highestSDG = sdgValues.reduce((max, sdg) => (sdg.value > max.value ? sdg : max), { id: null, value: 0 });
 
-    const computeSDGStackedData = (predictions) => {
-      const sdgCounts = Array(17).fill(0); // Array to store highest SDG counts
+    if (highestSDG.id !== null) {
+      sdgCounts[highestSDG.id - 1]++;
+    }
+  });
 
-      predictions.forEach(prediction => {
-        // Extract all SDG scores and find the highest one
-        const sdgValues = [
-          { id: 1, value: prediction.sdg1 },
-          { id: 2, value: prediction.sdg2 },
-          { id: 3, value: prediction.sdg3 },
-          { id: 4, value: prediction.sdg4 },
-          { id: 5, value: prediction.sdg5 },
-          { id: 6, value: prediction.sdg6 },
-          { id: 7, value: prediction.sdg7 },
-          { id: 8, value: prediction.sdg8 },
-          { id: 9, value: prediction.sdg9 },
-          { id: 10, value: prediction.sdg10 },
-          { id: 11, value: prediction.sdg11 },
-          { id: 12, value: prediction.sdg12 },
-          { id: 13, value: prediction.sdg13 },
-          { id: 14, value: prediction.sdg14 },
-          { id: 15, value: prediction.sdg15 },
-          { id: 16, value: prediction.sdg16 },
-          { id: 17, value: prediction.sdg17 },
-        ];
+  const total = sdgCounts.reduce((sum, val) => sum + val, 0) || 1;
 
-        // Find the SDG with the highest score
-        const highestSDG = sdgValues.reduce((max, sdg) => (sdg.value > max.value ? sdg : max), { id: null, value: 0 });
-
-        if (highestSDG.id !== null) {
-          sdgCounts[highestSDG.id - 1]++; // Increase the count for the highest SDG
-        }
-      });
-
-      // Calculate total occurrences
-      const total = sdgCounts.reduce((sum, val) => sum + val, 0) || 1;
-
-      // Format for stacked bar chart
-      return sdgCounts.map((count, index) => ({
-        sdgId: index + 1,
-        count,
-        proportion: count / total, // Convert to percentage width
-        color: sdgsStore.getColorBySDG(index + 1),
-      })).filter(d => d.count > 0); // Remove SDGs that are not present
-    };
-
-// Compute separate distributions
-    const selectedSDGDistribution = computed(() =>
-      computeSDGStackedData(sdgPredictionsStore.selectedPartitionedSDGPredictions)
-    );
-    const trueSDGDistribution = computed(() =>
-      computeSDGStackedData(sdgPredictionsStore.scenarioTypeSDGPredictions)
-    );
-
-
-
-
-
-    // Function to update the D3 stacked bar chart
-    const updateChart = () => {
-      if (!chartContainer.value) return;
-
-      // Compute counts
-      const selected = selectedCount.value;
-      const filteredOut = Math.max(totalCount.value - selected, 0);
-
-      // Compute distributions
-      const selectedDistribution = selectedSDGDistribution.value;
-      const trueDistribution = trueSDGDistribution.value;
-
-      // Scale: Converts publication count into a width percentage
-      const widthScale = scaleLinear()
-        .domain([0, totalCount.value || 1]) // Prevent division by zero
-        .range([0, 100]);
-
-      // Select the SVG container
-      const svg = select(chartContainer.value)
-        .html("") // Clear previous content
-        .append("svg")
-        .attr("width", "100%")
-        .attr("height", "100%");
-
-      // Draw the Selected Publications (Uses SDG Color)
-      svg.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("height", "40%") // Set height of the first bar
-        //.attr("rx", 6)
-        //.attr("ry", 6)
-        .attr("fill", sdgColor.value) // Use SDG Color
-        .transition(transition().duration(500))
-        .attr("width", widthScale(selected) + "%");
-
-      // Draw the Filtered-Out Publications (Gray)
-      svg.append("rect")
-        .attr("x", widthScale(selected) + "%") // Start where SDG bar ends
-        .attr("y", 0)
-        .attr("height", "40%") // Same height as first bar
-        //.attr("rx", 6)
-        //.attr("ry", 6)
-        .attr("fill", "#D1D5DB") // Gray
-        .transition(transition().duration(500))
-        .attr("width", widthScale(filteredOut) + "%");
-
-      // 🔹 2nd Bar: Stacked SDG Distribution (Selected Publications)
-      let xOffset = 0; // Start stacking from 0%
-
-      selectedDistribution.forEach(({ proportion, color }) => {
-        svg.append("rect")
-          .attr("x", xOffset + "%")
-          .attr("y", "40%") // Move below the first bar with some space
-          .attr("height", "40%") // Same height as first bar
-          //.attr("rx", 6)
-          //.attr("ry", 6)
-          .attr("fill", color) // Use correct SDG color
-          .transition(transition().duration(500))
-          .attr("width", proportion * widthScale(selected) + "%"); // Scale width based on selected count
-
-        xOffset += proportion * widthScale(selected); // Move xOffset forward for stacking
-      });
-    };
-
-    // Watch for changes in selected publications and update chart
-    watch(
-      () => publicationsStore.selectedPartitionedPublications.length,
-      (newCount) => {
-        selectedCount.value = newCount;
-        updateChart();
-      }
-    );
-
-    // Watch for changes in total publications and update chart
-    watch(
-      () => publicationsStore.sdgLevelPublications.length,
-      (newTotal) => {
-        totalCount.value = newTotal;
-        updateChart();
-      }
-    );
-
-    // Watch for SDG color change
-    watch(
-      () => gameStore.getSDG,
-      () => {
-        updateChart();
-      }
-    );
-
-    // Initialize the chart when mounted
-    onMounted(() => {
-      updateChart();
-    });
-
-    return {
-      selectedCount,
-      totalCount,
-      chartContainer,
-      sdgColor,
-    };
-  },
+  return sdgCounts.map((count, index) => ({
+    sdgId: index + 1,
+    count,
+    proportion: count / total,
+    color: sdgsStore.getColorBySDG(index + 1),
+  })).filter(d => d.count > 0);
 };
+
+const selectedSDGDistribution = computed(() =>
+  computeSDGStackedData(sdgPredictionsStore.selectedPartitionedSDGPredictions)
+);
+const trueSDGDistribution = computed(() =>
+  computeSDGStackedData(sdgPredictionsStore.scenarioTypeSDGPredictions)
+);
+
+const updateChart = () => {
+  if (!chartContainer.value) return;
+
+  const selected = selectedCount.value;
+  const filteredOut = Math.max(totalCount.value - selected, 0);
+  const selectedDistribution = selectedSDGDistribution.value;
+  const widthScale = d3.scaleLinear()
+    .domain([0, totalCount.value || 1])
+    .range([0, 100]);
+
+  // Clear existing SVG and tooltip
+  d3.select(chartContainer.value)
+    .selectAll('svg')
+    .remove();
+  d3.select(chartContainer.value)
+    .selectAll('.tooltip')
+    .remove();
+
+  // Create tooltip
+  const tooltip = d3.select(chartContainer.value)
+    .append('div')
+    .attr('class', 'tooltip')
+    .style('opacity', 0);
+
+  // Create SVG
+  const svg = d3.select(chartContainer.value)
+    .append('svg')
+    .attr('width', '100%')
+    .attr('height', '100%');
+
+  // Selected publications bar
+  const selectedBar = svg.append('rect')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('height', '40%')
+    .attr('fill', sdgColor.value)
+    .attr('width', 0);
+
+  selectedBar
+    .on('mouseover', function() {
+      tooltip
+        .style('opacity', 1)
+        .html(`Selected publications: ${selectedCount.value}`)
+        .style('background-color', sdgColor.value);
+    })
+    .on('mousemove', function(event) {
+      tooltip
+        .style('top', (event.pageY - 30) + 'px')
+        .style('left', (event.pageX + 10) + 'px');
+    })
+    .on('mouseout', function() {
+      tooltip.style('opacity', 0);
+    })
+    .transition()
+    .duration(500)
+    .attr('width', widthScale(selected) + '%');
+
+  // Filtered out publications bar
+  const filteredBar = svg.append('rect')
+    .attr('x', widthScale(selected) + '%')
+    .attr('y', 0)
+    .attr('height', '40%')
+    .attr('fill', '#D1D5DB')
+    .attr('width', 0);
+
+  filteredBar
+    .on('mouseover', function() {
+      tooltip
+        .style('opacity', 1)
+        .html(`Filtered out publications: ${filteredOut}`)
+        .style('background-color', '#D1D5DB');
+    })
+    .on('mousemove', function(event) {
+      tooltip
+        .style('top', (event.pageY - 30) + 'px')
+        .style('left', (event.pageX + 10) + 'px');
+    })
+    .on('mouseout', function() {
+      tooltip.style('opacity', 0);
+    })
+    .transition()
+    .duration(500)
+    .attr('width', widthScale(filteredOut) + '%');
+
+  // SDG distribution bars
+  let xOffset = 0;
+  selectedDistribution.forEach(({ proportion, color, sdgId }) => {
+    const sdgBar = svg.append('rect')
+      .attr('x', xOffset + '%')
+      .attr('y', '40%')
+      .attr('height', '40%')
+      .attr('fill', color)
+      .attr('width', 0);
+
+    sdgBar
+      .on('mouseover', function() {
+        tooltip
+          .style('opacity', 1)
+          .html(`SDG ${sdgId}: ${(proportion * 100).toFixed(1)}%`)
+          .style('background-color', color);
+      })
+      .on('mousemove', function(event) {
+        tooltip
+          .style('top', (event.pageY - 30) + 'px')
+          .style('left', (event.pageX + 10) + 'px');
+      })
+      .on('mouseout', function() {
+        tooltip.style('opacity', 0);
+      })
+      .transition()
+      .duration(500)
+      .attr('width', proportion * widthScale(selected) + '%');
+
+    xOffset += proportion * widthScale(selected);
+  });
+};
+
+// Watchers
+watch(
+  () => publicationsStore.selectedPartitionedPublications.length,
+  (newCount) => {
+    selectedCount.value = newCount;
+    updateChart();
+  }
+);
+
+watch(
+  () => publicationsStore.sdgLevelPublications.length,
+  (newTotal) => {
+    totalCount.value = newTotal + publicationsStore.scenarioTypePublications.length;
+    updateChart();
+  }
+);
+
+watch(
+  () => publicationsStore.scenarioTypePublications.length,
+  (newTotal) => {
+    totalCount.value = newTotal + publicationsStore.sdgLevelPublications.length;
+    updateChart();
+  }
+);
+
+watch(
+  () => collectionsStore.selectedCollections,
+  (newCollections) => {
+    // Get all publications that belong to the selected collections
+    const selectedCollectionIds = new Set(newCollections.map(c => c.collectionId));
+
+    const filteredPublications = publicationsStore.sdgLevelPublications.filter(pub =>
+      selectedCollectionIds.has(pub.collectionId)
+    ).length + publicationsStore.scenarioTypePublications.filter(pub =>
+      selectedCollectionIds.has(pub.collectionId)
+    ).length;
+
+    totalCount.value = filteredPublications;
+    selectedCount.value = 0;
+    updateChart();
+  },
+  { deep: true }
+);
+
+
+watch(
+  () => gameStore.getSDG,
+  () => {
+    updateChart();
+  }
+);
+
+// Lifecycle hooks
+onMounted(() => {
+  updateChart();
+});
 </script>
 
 <style scoped>
-/* Ensure full width */
 .w-full {
   width: 100%;
+}
+.tooltip {
+  position: absolute;
+  padding: 5px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  box-shadow: 0px 0px 6px rgba(0,0,0,0.2);
+  pointer-events: none;
+  z-index: 1000;
 }
 </style>

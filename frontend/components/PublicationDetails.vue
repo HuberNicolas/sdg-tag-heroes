@@ -3,7 +3,7 @@
 
     <div class="flex justify-between items-center">
       <h2 class="text-xl font-bold text-gray-800 mb-4">
-        {{ selectedPublication.title || "Untitled Publication" }}
+        {{ selectedPublication.title || "Untitled Publication" }} ({{selectedPublication.year}})
       </h2>
 
       <UButton
@@ -19,6 +19,8 @@
     </div>
 
     <!-- Authors & Year -->
+
+    <!--
     <p class="text-gray-600">
       <span v-if="selectedPublication.authors && selectedPublication.authors.length > 0">
         <strong>Authors:</strong> {{ selectedPublication.authors.map(a => a.name).join(", ") }}
@@ -27,6 +29,7 @@
         <strong>Year:</strong> {{ selectedPublication.year }}
       </span>
     </p>
+     -->
 
     <!-- Keywords -->
     <div class="mt-4">
