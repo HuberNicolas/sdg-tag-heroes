@@ -20,6 +20,7 @@
         </th>
         <th class="border border-gray-300 p-2">Glyph</th>
         <th class="border border-gray-300 p-2">Top SDGs</th>
+
         <th @click="sortTable('coins')"
             class="border border-gray-300 p-2 sortable-header"
             :class="{ 'active-sort': sortKey === 'coins' }">
@@ -29,6 +30,17 @@
           </span>
           <span v-else class="text-gray-400">↕</span>
         </th>
+
+        <th @click="sortTable('xp')"
+            class="border border-gray-300 p-2 sortable-header"
+            :class="{ 'active-sort': sortKey === 'xp' }">
+          XP
+          <span v-if="sortKey === 'xp'">
+            {{ sortOrder === 'asc' ? '▲' : '▼' }}
+          </span>
+          <span v-else class="text-gray-400">↕</span>
+        </th>
+
         <th @click="sortTable('year')"
             class="border border-gray-300 p-2 sortable-header"
             :class="{ 'active-sort': sortKey === 'year' }">
@@ -84,6 +96,7 @@
           <BarPredictionPlot :values="item.values" :width="80" :height="60" />
         </td>
         <td class="border border-gray-300 p-2">{{ item.coins }}</td>
+        <td class="border border-gray-300 p-2">{{ item.xp }}</td>
         <td class="border border-gray-300 p-2">{{ item.year }}</td>
         <td class="border border-gray-300 p-2 flex flex-auto justify-evenly content-center">
           <UTooltip :text="item.collectionName">
@@ -108,7 +121,7 @@
 
 
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, watch, watchEffect } from 'vue';
 import { usePublicationsStore } from '~/stores/publications';
 import { useSDGPredictionsStore } from '~/stores/sdgPredictions';
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
@@ -116,12 +129,18 @@ import { useCollectionsStore} from "~/stores/collections";
 import { useSDGsStore} from "~/stores/sdgs";
 import HexGlyph from '@/components/PredictionGlyph.vue';
 import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
+import {score}from "@/utils/xp_scorer";
 
 const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const labelDecisionsStore = useLabelDecisionsStore();
 const collectionsStore = useCollectionsStore();
 const sdgsStore = useSDGsStore();
+
+const sortKey = ref('title');
+const sortOrder = ref('asc');
+const tableData = ref([]); // Store resolved data
+const sortedTableData = ref([]); // Store sorted data
 
 
 watch(
@@ -203,68 +222,76 @@ const getIconComponent = (name: string) => {
 };
 
 
+// Load & Watch for changes in table data
+watchEffect(async () => {
+  tableData.value = await Promise.all(
+    publicationsStore.selectedPartitionedPublications.map(async (pub, index) => {
+      const prediction = sdgPredictionsStore.selectedPartitionedSDGPredictions[index];
 
-// Map selected publications and predictions to table data
-const tableData = computed(() => {
-  return publicationsStore.selectedPartitionedPublications.map((pub, index) => {
-    const prediction = sdgPredictionsStore.selectedPartitionedSDGPredictions[index];
+      const decision = [...labelDecisionsStore.sdgLevelSDGLabelDecisions, ...labelDecisionsStore.scenarioTypeSDGLabelDecisions]
+        .find(d => d.publicationId === pub.publicationId);
 
-    const decision = [...labelDecisionsStore.sdgLevelSDGLabelDecisions, ...labelDecisionsStore.scenarioTypeSDGLabelDecisions]
-      .find(d => d.publicationId === pub.publicationId);
+      const values = [
+        prediction.sdg1, prediction.sdg2, prediction.sdg3, prediction.sdg4, prediction.sdg5,
+        prediction.sdg6, prediction.sdg7, prediction.sdg8, prediction.sdg9, prediction.sdg10,
+        prediction.sdg11, prediction.sdg12, prediction.sdg13, prediction.sdg14, prediction.sdg15,
+        prediction.sdg16, prediction.sdg17
+      ].filter(v => typeof v === 'number' && !isNaN(v));
 
-    const values = [
-      prediction.sdg1, prediction.sdg2, prediction.sdg3, prediction.sdg4, prediction.sdg5,
-      prediction.sdg6, prediction.sdg7, prediction.sdg8, prediction.sdg9, prediction.sdg10,
-      prediction.sdg11, prediction.sdg12, prediction.sdg13, prediction.sdg14, prediction.sdg15,
-      prediction.sdg16, prediction.sdg17
-    ];
+      const P_max = values.length > 0 ? Math.max(...values) : 0.95;
+      const N = Array.isArray(decision?.userLabels) ? decision.userLabels.length : 0;
 
-    const sdgKeys = Array.from({ length: 17 }, (_, i) => `sdg${i + 1}`);
-    const topSdgKey = sdgKeys.reduce((a, b) => prediction[a] > prediction[b] ? a : b);
-    const topSdg = `SDG ${topSdgKey.replace('sdg', '')}`;
+      let xp = 0;
+      try {
+        xp = await score(N, P_max);
+      } catch (error) {
+        console.error("Error computing score:", error);
+      }
 
-    const coins = Math.round(prediction.entropy * 100);
+      const collection = collectionsStore.collections.find(col => col.collectionId === pub.collectionId);
+      const collectionName = collection?.shortName || 'Unknown Collection';
+      const collectionSymbol = collection ? getIconComponent(collection.shortName) : 'mdi:help-circle';
 
-    // Fetch the collection name and symbol (assuming collectionId is available)
-    const collection = collectionsStore.collections.find(col => col.collectionId === pub.collectionId);
-    const collectionName = collection ? collection.shortName : 'Unknown Collection';
-    const collectionSymbol = collection ? getIconComponent(collection.shortName) : '';
+      const scenarioType = decision?.scenarioType || 'No Scenario';
 
-    const scenarioType = decision?.scenarioType || 'No Scenario';
-    return {
-      title: pub.title,
-      publicationId: pub.publicationId,
-      values,
-      coins,
-      topSdg,
-      year: pub.year,
-      scenarioType,
-      collectionName,
-      collectionSymbol
-    };
-  });
+      return {
+        title: pub.title,
+        publicationId: pub.publicationId,
+        values,
+        coins: Math.round(prediction.entropy * 100),
+        xp,
+        topSdg: `SDG ${values.indexOf(P_max) + 1}`,
+        year: pub.year,
+        scenarioType,
+        collectionName,
+        collectionSymbol
+      };
+    })
+  );
+
+  // Initial sort after loading
+  sortTable(sortKey.value);
 });
 
-const sortKey = ref('title');
-const sortOrder = ref('asc');
 
-const sortTable = (key: string) => {
+const sortTable = (key) => {
   if (sortKey.value === key) {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
   } else {
     sortKey.value = key;
     sortOrder.value = 'asc';
   }
-};
 
-const sortedTableData = computed(() => {
-  return [...tableData.value].sort((a, b) => {
+  // Perform sorting
+  sortedTableData.value = [...tableData.value].sort((a, b) => {
     let result = 0;
-    if (a[sortKey.value] < b[sortKey.value]) result = -1;
-    if (a[sortKey.value] > b[sortKey.value]) result = 1;
+    if (a[key] < b[key]) result = -1;
+    if (a[key] > b[key]) result = 1;
     return sortOrder.value === 'asc' ? result : -result;
   });
-});
+};
+
+
 
 function handlePublicationClick(publication: PublicationSchemaBase) {
   publicationsStore.setSelectedPublication(publication);

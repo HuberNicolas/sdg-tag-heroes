@@ -91,7 +91,7 @@ async def get_sdg_label_decisions_for_scenario(
 
 @router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
-    response_model=List[SDGLabelDecisionSchemaFull],
+    response_model=List[SDGLabelDecisionSchemaExtended],
     description="Retrieve the newest SDG Label Decisions corresponding to the publications selected by dimensionality reduction."
 )
 async def get_newest_sdg_label_decisions_for_reduction(
@@ -100,7 +100,7 @@ async def get_newest_sdg_label_decisions_for_reduction(
     level: int,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> List[SDGLabelDecisionSchemaFull]:
+) -> List[SDGLabelDecisionSchemaExtended]:
     try:
         user = verify_token(token, db)
 
@@ -128,14 +128,20 @@ async def get_newest_sdg_label_decisions_for_reduction(
         decisions = (
             db.query(SDGLabelDecision)
             .join(SDGLabelSummary, SDGLabelDecision.history_id == SDGLabelSummary.history_id)
-            .filter(SDGLabelSummary.publication_id.in_(publication_ids),
-                    SDGLabelDecision.decided_label == 0)
+            .filter(
+                SDGLabelSummary.publication_id.in_(publication_ids),
+                SDGLabelDecision.decided_label == 0
+            )
+            .options(
+                joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
+                joinedload(SDGLabelDecision.annotations)
+            )
             .all()
         )
 
         logging.info(f"Retrieved {len(decisions)} newest SDGLabelDecisions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
 
-        return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in decisions]
+        return [SDGLabelDecisionSchemaExtended.model_validate(decision) for decision in decisions]
     except HTTPException:
         raise
     except Exception as e:

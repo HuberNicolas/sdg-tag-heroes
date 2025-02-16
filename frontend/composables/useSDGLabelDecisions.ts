@@ -52,9 +52,9 @@ export default function useSDGLabelDecisions() {
     sdg: number,
     reductionShorthand: string,
     level: number
-  ): Promise<SDGLabelDecisionSchemaFull[]> {
+  ): Promise<SDGLabelDecisionSchemaExtended[]> {
     try {
-      const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
+      const response = await $fetch<SDGLabelDecisionSchemaExtended[]>(
         `${config.public.apiUrl}/label-decisions/dimensionality-reductions/sdgs/${sdg}/${reductionShorthand}/${level}/`,
         {
           headers: {

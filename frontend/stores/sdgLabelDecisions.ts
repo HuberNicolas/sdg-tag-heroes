@@ -15,7 +15,7 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     sdgLabelDecisions: null as SDGLabelDecisionSchemaFull[] | null,
 
     partitionedSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[], // All SDGs
-    sdgLevelSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[], // 1 SDG
+    sdgLevelSDGLabelDecisions: [] as SDGLabelDecisionSchemaExtended[], // 1 SDG
 
     showAllSDGUserLabels: false, // Default: show only the latest SDG User Labels
 
