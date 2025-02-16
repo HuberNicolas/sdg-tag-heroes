@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import * as d3 from 'd3';
 import LeaderLine from 'leader-line-new';
 import { baseCoords, baseSdgColors, baseSdgShortTitles, sdgNullColor, sdgNullCoord, sdgNullShortTitle } from '@/constants/constants';
@@ -15,6 +15,22 @@ export default function useConnect() {
   const coords = [...baseCoords, sdgNullCoord];
   const sdgColors = [...baseSdgColors, sdgNullColor];
   const sdgShortTitles = [...baseSdgShortTitles, sdgNullShortTitle];
+
+  // Move cleanup functions to the top
+  const cleanupLeaderLines = () => {
+    arrowLines.value.forEach(line => {
+      safeRemoveLine(line);
+    });
+    arrowLines.value = [];
+  };
+
+  const safeRemoveLine = (line) => {
+    try {
+      line.remove();
+    } catch (error) {
+      console.warn('Failed to remove LeaderLine:', error);
+    }
+  };
 
   const renderHexGrid = (selector, width, height) => {
     const xSpacing = hexRadius * 2 * 0.9;
@@ -137,7 +153,6 @@ export default function useConnect() {
       .style('fill', 'black');
   };
 
-
   const initArrows = () => {
     const hexagons = document.querySelectorAll('.hexagon');
     const targetHex = document.querySelector('#target-box svg g');  // Select the entire group (G) instead of just the polygon
@@ -199,6 +214,13 @@ export default function useConnect() {
       hex.addEventListener('click', () => toggleArrow(hex));
     });
   };
+
+  // Add cleanup listeners
+  onUnmounted(() => {
+    cleanupLeaderLines();
+  });
+
+  window.addEventListener('beforeunload', cleanupLeaderLines);
 
   onMounted(() => {
     renderHexGrid('#glyph-container', 260, 260);
