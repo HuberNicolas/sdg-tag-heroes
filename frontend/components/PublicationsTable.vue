@@ -241,9 +241,9 @@ watchEffect(async () => {
       const P_max = values.length > 0 ? Math.max(...values) : 0.95;
       const N = Array.isArray(decision?.userLabels) ? decision.userLabels.length : 0;
 
-      let xp = 0;
+      let coins = 0;
       try {
-        xp = await score(N, P_max);
+        coins = await score(N, P_max);
       } catch (error) {
         console.error("Error computing score:", error);
       }
@@ -258,8 +258,8 @@ watchEffect(async () => {
         title: pub.title,
         publicationId: pub.publicationId,
         values,
-        coins: Math.round(prediction.entropy * 100),
-        xp,
+        xp: Math.round(prediction.entropy * 100),
+        coins,
         topSdg: `SDG ${values.indexOf(P_max) + 1}`,
         year: pub.year,
         scenarioType,
