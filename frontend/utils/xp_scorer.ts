@@ -1,12 +1,12 @@
 // Define parameters
 const X = 20;         // Initial starting score (adjustable)
-const alpha = 2;      // Confidence influence in bootstrap
-const beta = 1;       // Confidence influence in interest
-const lambda_ = 0.05; // Slower decay rate of bootstrap to keep higher initial scores
-const mu = 0.25;      // Faster growth rate of interest-based score
-const L_max = 3;      // Maximum luck effect
-const N_luck = 8;     // Peak of the luck effect in vote count
-const sigma = 4;      // Controls spread of the luck effect
+const alpha = 1.5;      // Confidence influence in bootstrap
+const beta = 8;       // Confidence influence in interest
+const lambda_ = 0.5; // Slower decay rate of bootstrap to keep higher initial scores
+const mu = 0.01;      // Faster growth rate of interest-based score
+const L_max = 2      // Maximum luck effect
+const N_luck = 4;     // Peak of the luck effect in vote count
+const sigma = 3;      // Controls spread of the luck effect
 const offset = 10;    // No negative values
 
 async function deterministicLuck(N, P_max) {
@@ -32,13 +32,15 @@ export async function score(N, P_max) {
   /**
    * Computes a dynamic score for SDG user labels based on voting behavior.
    */
-  const S_B = X * (P_max * P_max) * Math.exp(-lambda_ * N);  // Using P_max^2 instead of P_max^alpha
+    // Adjusted Bootstrap Score (S_B) - Slower decay
+  const S_B = X * Math.pow(P_max, alpha) * Math.exp(-lambda_ * N);
 
-  const S_I = X * (1 - Math.exp(-mu * N)) * P_max;
+  // Adjusted Interest-Based Score (S_I) - Faster growth
+  const S_I = X * (1 - Math.exp(-mu * N)) * Math.pow(P_max, beta);
 
-  // U-shape adjustment: Fast drop at 4-6 votes, rises again at 8-13
-  const U_S = ((0.4 * X) - X) * Math.exp(-((N - 5) / 1.5) * ((N - 5) / 1.5)) +
-    ((1.2 * X) - 0.4 * X) * Math.exp(-((N - 10) / 3) * ((N - 10) / 3));
+  // Enhanced U-Shape Adjustment (U_S)
+  const U_S = ((0.5 * X) - X) * Math.exp(-Math.pow((N - 5) / 1.8, 2)) +  // Dip at 5
+    ((1.5 * X) - 0.5 * X) * Math.exp(-Math.pow((N - 10) / 2.5, 2)); // Boost at 10
 
   // Apply deterministic luck effect
   const S_L = await deterministicLuck(N, P_max);
