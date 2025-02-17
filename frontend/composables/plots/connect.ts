@@ -1,11 +1,13 @@
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import * as d3 from 'd3';
 import LeaderLine from 'leader-line-new';
 import { baseCoords, baseSdgColors, baseSdgShortTitles, sdgNullColor, sdgNullCoord, sdgNullShortTitle } from '@/constants/constants';
-import { useSDGsStore } from "@/stores/sdgs";  // Add this import
+import { useSDGsStore } from "@/stores/sdgs";
+import {useLabelDecisionsStore} from "~/stores/sdgLabelDecisions";
 
 export default function useConnect() {
   const sdgsStore = useSDGsStore();  // Initialize the store
+  const labelDecisionsStore = useLabelDecisionsStore();
 
   const fixedConnections = ref([]);
   const currentHex = ref(null);
@@ -15,6 +17,25 @@ export default function useConnect() {
   const coords = [...baseCoords, sdgNullCoord];
   const sdgColors = [...baseSdgColors, sdgNullColor];
   const sdgShortTitles = [...baseSdgShortTitles, sdgNullShortTitle];
+
+  watch(
+    () => labelDecisionsStore.userLabels,
+    async (newLabels) => {
+      if (newLabels.length > 0) {
+        console.log("User labels are ready, redrawing hex grid...");
+
+        await nextTick(); // Ensures DOM updates before rendering
+
+        renderHexGrid("#glyph-container", 260, 260);
+
+        await nextTick(); // Ensure hexagons are present before binding events
+        initHoverAndClick();
+      }
+    },
+    { deep: true, immediate: true } // Immediate ensures it runs if `userLabels` is already set
+  );
+
+
 
   // Move cleanup functions to the top
   const cleanupLeaderLines = () => {
@@ -33,6 +54,9 @@ export default function useConnect() {
   };
 
   const renderHexGrid = (selector, width, height) => {
+    //if (!labelDecisionsStore.userLabels.length) return; // Prevent rendering if data isn't ready
+
+
     const xSpacing = hexRadius * 2 * 0.9;
     const ySpacing = Math.sqrt(3) * hexRadius * 0.9;
 
@@ -48,10 +72,40 @@ export default function useConnect() {
     const contentGroup = svg.append('g')
       .attr('transform', `translate(${width / 4}, ${height / 2})`);  // Adjusted to position on the left
 
+    // Count occurrences of each votedLabel once instead of inside the loop
+    const labelCounts = labelDecisionsStore.userLabels.reduce((acc, label) => {
+      if (label.votedLabel >= 1 && label.votedLabel <= 17) {
+        acc[label.votedLabel] = (acc[label.votedLabel] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    console.log(labelCounts);
+
+    const maxVotes = Math.max(...Object.values(labelCounts), 1);
+    const minValue = 0.3;
+    const maxValue = 1.0;
+
+    console.log(maxVotes, minValue, maxValue);
+
     coords.forEach(([x, y], i) => {
-      const color = d3.color(sdgColors[i % sdgColors.length]);
-      const value = 1.0;
-      const innerRadius = (1 - value) * hexRadius;
+      const sdgId = i + 1; // SDG IDs are 1-based
+      const totalVotes = Object.values(labelCounts).reduce((sum, count) => sum + count, 0); // Avoid division by zero
+      const votes = labelCounts[sdgId] || 0;
+      const voteRatio = votes / totalVotes; // Calculate ratio of votes
+
+      // Opacity scaling
+      const minOpacity = 0.25; // Minimum opacity (20%)
+      const maxOpacity = 1.0; // Maximum opacity (100%)
+      const opacity = totalVotes > 0 ?
+        minOpacity + (maxOpacity - minOpacity) * 3*voteRatio // Scale opacity based on votes, *3 to scale
+        : maxOpacity;
+
+      console.log(`SDG ${sdgId}: ${votes} votes, opacity: ${opacity.toFixed(2)}`);
+
+      const color = d3.color(sdgColors[i % sdgColors.length]); // Keep the same color
+      const fillColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity})`; // Adjust only the opacity
+
 
       const hexagonGroup = contentGroup.append('g');
       const rotation = 30;
@@ -70,7 +124,7 @@ export default function useConnect() {
             })
             .join(' ')
         )
-        .attr('fill', color?.toString() || 'gray')
+        .attr('fill', fillColor) // Keep the color but adjust opacity
         .attr('stroke', 'black')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
@@ -83,8 +137,8 @@ export default function useConnect() {
             .map((k) => {
               const angle = Math.PI / 3 * k;
               return [
-                x * xSpacing + innerRadius * Math.cos(angle),
-                y * ySpacing + innerRadius * Math.sin(angle),
+                x * xSpacing + 0 * Math.cos(angle),
+                y * ySpacing + 0 * Math.sin(angle),
               ].join(',');
             })
             .join(' ')
@@ -101,8 +155,8 @@ export default function useConnect() {
         .attr('text-anchor', 'middle')
         .attr('dy', '0.35em')
         .attr('class', 'hexagon')
-        .attr('data-id', sdgShortTitles[i])
         .attr('data-color', color?.toString())
+        .attr('data-id', sdgShortTitles[i])
         .text(sdgShortTitles[i])
         .style('font-size', '8px')
         .style('fill', 'black');
@@ -154,10 +208,15 @@ export default function useConnect() {
   };
 
   const initArrows = () => {
+    arrowLines.value = []; // Clear existing arrows
+
     const hexagons = document.querySelectorAll('.hexagon');
     const targetHex = document.querySelector('#target-box svg g');  // Select the entire group (G) instead of just the polygon
 
     hexagons.forEach((hex) => {
+      const hexIndex = sdgShortTitles.indexOf(hex.getAttribute('data-id')); // Get SDG index
+      if (hexIndex === -1) return; // Skip if not found
+
       const hexColor = hex.getAttribute('data-color');
 
       const line = new LeaderLine(
@@ -175,7 +234,7 @@ export default function useConnect() {
           visibility: 'hidden',
         }
       );
-
+      arrowLines.value[hexIndex] = line; // Store the arrow in the correct index
       arrowLines.value.push(line);
     });
   };
@@ -209,7 +268,7 @@ export default function useConnect() {
 
   const initHoverAndClick = () => {
     const hexagons = document.querySelectorAll('.hexagon');
-
+    console.log(hexagons)
     hexagons.forEach((hex) => {
       hex.addEventListener('click', () => toggleArrow(hex));
     });
@@ -222,10 +281,11 @@ export default function useConnect() {
 
   window.addEventListener('beforeunload', cleanupLeaderLines);
 
-  onMounted(() => {
+  onMounted(async () => {
     renderHexGrid('#glyph-container', 260, 260);
     renderDecisionHex('#target-box', 60, 60, 'whitesmoke', 'Publication');
     initArrows();
+    await nextTick();
     initHoverAndClick();
   });
 

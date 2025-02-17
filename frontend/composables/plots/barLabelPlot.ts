@@ -103,6 +103,19 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
   g.append("g")
     .call(d3.axisLeft(y).ticks(d3.max(labelDistribution, d => d.count) || 1).tickFormat(d3.format("d")));
 
+  // Create tooltip div
+  const tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0)
+    .style("pointer-events", "none")
+    .style("position", "absolute")
+    .style("padding", "8px")
+    .style("background-color", "rgba(255, 255, 255, 0.95)")
+    .style("border-radius", "4px")
+    .style("font-size", "14px")
+    .style("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
+
   // Draw bars
   g.selectAll(".bar")
     .data(labelDistribution)
@@ -113,8 +126,34 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("width", x.bandwidth())
     .attr("height", d => chartHeight - y(d.count))
     .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
-    .append("title")
-    .text(d => `${d.count} votes`);
+    .on("mouseover", function(event, d) {
+      // Show tooltip
+      const text = `${d.label === -1 ? "Not relevant" : ``} ${d.count} ${d.count === 1 ? 'Label' : 'Labels'}`;
+
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", 0.9);
+
+      tooltip.html(text)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 28) + "px");
+
+      // Highlight bar
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("fill-opacity", 1);
+    })
+    .on("mouseout", function() {
+      // Hide tooltip
+      tooltip.style("opacity", 0);
+
+      // Reset bar opacity
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("fill-opacity", 0.7);
+    });
 
   // Update the D3 bar chart to display vote count above each bar
   g.selectAll(".label")

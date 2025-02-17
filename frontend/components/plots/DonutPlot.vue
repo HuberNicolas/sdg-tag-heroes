@@ -45,6 +45,19 @@ function drawDonutChart() {
     return sdgsStore.getColorBySDG(Number(label)) || "#CCCCCC"; // Default gray if no color is found
   }
 
+  // Create tooltip div
+  const tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0)
+    .style("pointer-events", "none")
+    .style("position", "absolute")
+    .style("padding", "8px")
+    .style("background-color", "rgba(255, 255, 255, 0.95)")
+    .style("border-radius", "4px")
+    .style("font-size", "14px")
+    .style("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
+
   svg.selectAll("allSlices")
     .data(data_ready)
     .enter()
@@ -53,7 +66,37 @@ function drawDonutChart() {
     .attr("fill", d => getSDGColor(d.data.key))
     .attr("stroke", "white")
     .style("stroke-width", "2px")
-    .style("opacity", 0.7);
+    .style("opacity", 0.7)
+    // Replace the existing mouseover/mouseout handlers with:
+    .on("mouseover", function(event, d) {
+      // Show tooltip
+      const percentage = ((d.value / labelDecisionsStore.totalVotes) * 100).toFixed(1);
+      const text = `${d.data.key === -1 ? "Not Relevant" : ``} ${d.value}/${labelDecisionsStore.totalVotes} Votes`;
+
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", 0.9);
+
+      tooltip.html(text)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 28) + "px");
+
+      // Highlight segment
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("fill-opacity", 1);
+    })
+    .on("mouseout", function() {
+      // Hide tooltip immediately
+      tooltip.style("opacity", 0);
+
+      // Reset segment opacity
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("fill-opacity", 0.7);
+    });
 
   svg.selectAll("allPolylines")
     .data(data_ready)
@@ -87,7 +130,8 @@ function drawDonutChart() {
       return midangle < Math.PI ? "start" : "end";
     })
     .style("font-size", "12px")
-    .style("font-weight", "bold");
+    .style("font-weight", "bold")
+    .style("fill", d => getSDGColor(d.data.key)); // Add this line
 }
 
 // Watch for changes in vote data

@@ -355,7 +355,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
 import { useSDGsStore } from "~/stores/sdgs";
@@ -402,14 +402,6 @@ const showAllLabels = ref(false);
 // Fetch user labels for a publication on component mount
 const route = useRoute();
 const publicationId = route.params.publicationId; // 88466
-
-onMounted(async () => {
-  await labelDecisionsStore.fetchUserLabelsByPublicationId(publicationId);
-  await labelDecisionsStore.fetchSDGLabelDecisionByPublicationId(publicationId);
-  await usersStore.fetchUsers(); // Fetch users for avatars
-  await sdgsStore.fetchSDGs(); // Fetch SDGs for icons
-  await rankStore.fetchSDGRanksForUsers(); // For user rank info
-});
 
 // Toggle annotations visibility
 const toggleAnnotations = (labelId: number) => {

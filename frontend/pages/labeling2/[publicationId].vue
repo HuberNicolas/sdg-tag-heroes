@@ -129,8 +129,16 @@ import { useGameStore } from "~/stores/game";
 import ContinueLabelingDialog from "~/components/ContinueLabelingDialog.vue";
 import ContinueExplorationDialog from "~/components/ContinueExplorationDialog.vue";
 import SDGExplorerLabeling from "~/components/SDGExplorerLabeling.vue";
+import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
+import { useUsersStore } from "~/stores/users";
+import { useSDGsStore } from "~/stores/sdgs";
+import { useSDGRanksStore } from "~/stores/sdgRanks";
 
 const gameStore = useGameStore();
+const labelDecisionsStore = useLabelDecisionsStore();
+const usersStore = useUsersStore();
+const sdgsStore = useSDGsStore();
+const rankStore = useSDGRanksStore();
 
 const route = useRoute()
 
@@ -140,9 +148,15 @@ const showAnnotations = ref(false); // State to toggle between components
 const showContent = ref(false); // State to toggle the visibility of the sections
 
 
-onMounted(() => {
+onMounted(async () => {
   gameStore.setStage(Stage.LABELING);
   gameStore.setQuadrant(Quadrant.ONE_PUB_ALL_SDG);
+
+  await labelDecisionsStore.fetchUserLabelsByPublicationId(publicationId);
+  await labelDecisionsStore.fetchSDGLabelDecisionByPublicationId(publicationId);
+  await usersStore.fetchUsers(); // Fetch users for avatars
+  await sdgsStore.fetchSDGs(); // Fetch SDGs for icons
+  await rankStore.fetchSDGRanksForUsers(); // For user rank info
 })
 
 </script>
