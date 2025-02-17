@@ -84,7 +84,7 @@ export default function usePublications() {
   async function getSimilarPublications(
     topK: number,
     userQuery: string,
-    publicationIds: number[]
+    publicationIds: number[] = null
   ): Promise<PublicationSimilaritySchema> {
     try {
       const response = await $fetch<PublicationSimilaritySchema>(

@@ -52,3 +52,18 @@ export interface PublicationSchemaFull extends PublicationSchemaBase {
   createdAt: string;
   updatedAt: string;
 }
+
+// Not directly derived from models
+// API Response Schemas
+export interface FunctionResponsePublicationSimilaritySchema {
+  publicationId: number;
+  title: string;
+  abstract: string;
+  score: number;
+}
+export interface PublicationSimilaritySchema {
+  queryBuildingTime: number;
+  searchTime: number;
+  userQuery: string;
+  results: FunctionResponsePublicationSimilaritySchema[];
+}

@@ -1,74 +1,193 @@
 <template>
   <div>
-    <!-- You can open the modal using ID.showModal() method -->
-    <button class="btn" onclick="model_labeling.showModal()">Continue Labeling</button>
+    <!-- Button to open modal -->
+    <button class="btn" @click="openModal">Continue Labeling</button>
+
+    <!-- Modal Dialog -->
     <dialog id="model_labeling" class="modal">
-      <div class="modal-box">
+      <div class="modal-box max-w-3xl">
         <form method="dialog">
+          <!-- Close Button -->
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
 
-          <!-- Container for the cards -->
-          <div class="card-container flex space-x-4">
+          <!-- Loading Indicator -->
+          <div v-if="loading" class="text-center">
+            <span class="loading loading-bars loading-lg"></span>
+            <p>Fetching publication details...</p>
+          </div>
 
-            <!-- Similar Publication -->
-            <div class="card bg-base-100 w-96 shadow-xl">
-              <figure>
-                <img
-                  src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                  alt="Shoes" />
-              </figure>
-              <div class="card-body">
-                <h2 class="card-title">Similar Publication</h2>
-                <p>Description</p>
-                <div class="card-actions justify-end">
-                  <UButton>Link</UButton>
+          <!-- Display Similar Publications Once Loaded -->
+          <div v-else class="relative mx-auto p-4 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
+
+            <!-- Header -->
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Select a Similar Publication</h2>
+
+            <!-- Scrollable List of Similar Publications -->
+            <div class="max-h-64 overflow-y-auto space-y-4">
+              <div
+                v-for="pub in similarPublications"
+                :key="pub.publicationId"
+                class="p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition"
+                @click="selectPublication(pub)"
+              >
+                <div class="flex justify-between items-center">
+                  <h3 class="text-lg font-semibold">{{ pub.title || "Untitled Publication" }}</h3>
+                  <span class="text-gray-600">Similarity: {{ (pub.score * 100).toFixed(2) }}%</span>
+                  <UButton v-if="selectedPublication" size="sm" color="primary" variant="solid">
+                    <NuxtLink :to="`/labeling2/${pub.publicationId}`">Continue Labeling</NuxtLink>
+                  </UButton>
+                </div>
+
+                <!-- <p class="text-gray-700 text-sm mt-1">{{ pub.abstract || "No description available." }}</p> -->
+
+
+                <!-- Keywords -->
+                <div class="mt-2">
+                  <div v-if="keywordsLoading[pub.publicationId]" class="text-center">
+                    <span class="loading loading-bars loading-sm"></span> Loading Keywords...
+                  </div>
+                  <div v-else-if="keywords[pub.publicationId]?.keywords?.length">
+                    <strong class="text-gray-700">Keywords:</strong>
+                    <span
+                      v-for="(keyword, index) in keywords[pub.publicationId].keywords"
+                      :key="index"
+                      class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2"
+                    >
+                      {{ keyword }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Fact -->
+                <div class="mt-2">
+                  <div v-if="factLoading[pub.publicationId]" class="text-center">
+                    <span class="loading loading-bars loading-sm"></span> Loading Fact...
+                  </div>
+                  <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-blue-100 p-2 rounded-lg">
+                    <h3 class="text-sm font-semibold text-blue-700">Did You Know?</h3>
+                    <p class="text-blue-700 text-sm">{{ fact[pub.publicationId].content }}</p>
+                  </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="mt-2">
+                  <div v-if="summaryLoading[pub.publicationId]" class="text-center">
+                    <span class="loading loading-bars loading-sm"></span> Loading Summary...
+                  </div>
+                  <div v-else-if="summary[pub.publicationId]?.summary" class="mt-2">
+                    <h3 class="text-sm font-semibold text-gray-700">Summary</h3>
+                    <p class="text-gray-700 text-sm">{{ summary[pub.publicationId].summary }}</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Similar SDG -->
-            <div class="card bg-base-100 w-96 shadow-xl">
-              <figure>
-                <img
-                  src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                  alt="Shoes" />
-              </figure>
-              <div class="card-body">
-                <h2 class="card-title">Similar SDGs</h2>
-                <p>Description</p>
-                <div class="card-actions justify-end">
-                  <UButton>Link</UButton>
-                </div>
-              </div>
+            <!-- No Similar Publications Found -->
+            <div v-if="similarPublications.length === 0" class="text-center text-gray-500 mt-6">
+              <p>No similar publications found.</p>
             </div>
 
-            <!-- Similar Scenario -->
-            <div class="card bg-base-100 w-96 shadow-xl">
-              <figure>
-                <img
-                  src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                  alt="Shoes" />
-              </figure>
-              <div class="card-body">
-                <h2 class="card-title">Similar Scenarios</h2>
-                <p>Description</p>
-                <div class="card-actions justify-end">
-                  <UButton>Link</UButton>
-                </div>
-              </div>
+            <!-- Continue to Labeling Button -->
+            <div class="mt-6 text-right">
+              <UButton v-if="selectedPublication" size="sm" color="primary" variant="solid">
+                <NuxtLink :to="`/labeling2/${selectedPublication.publicationId}`">Continue Labeling</NuxtLink>
+              </UButton>
             </div>
 
           </div>
-
-          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
         </form>
-        <h3 class="text-lg font-bold">Hello!</h3>
-        <p class="py-4">Press ESC key or click on ✕ button to close</p>
       </div>
     </dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+import { useRoute } from "vue-router";
+import usePublications from "~/composables/usePublications";
 
+const route = useRoute();
+const { getPublicationById, getSimilarPublications, getPublicationKeywords, getPublicationFact, getPublicationSummary } = usePublications();
+
+const publication = ref(null);
+const similarPublications = ref([]);
+const selectedPublication = ref(null);
+
+const loading = ref(false);
+const keywords = ref<Record<number, any>>({});
+const fact = ref<Record<number, any>>({});
+const summary = ref<Record<number, any>>({});
+const keywordsLoading = ref<Record<number, boolean>>({});
+const factLoading = ref<Record<number, boolean>>({});
+const summaryLoading = ref<Record<number, boolean>>({});
+
+// Function to open modal and start loading
+const openModal = async () => {
+  document.getElementById("model_labeling").showModal();
+  await fetchPublicationAndSimilarResults();
+};
+
+// Function to fetch the publication and find similar ones
+const fetchPublicationAndSimilarResults = async () => {
+  const publicationId = Number(route.params.publicationId);
+  if (!publicationId) return;
+
+  loading.value = true;
+  try {
+    // Fetch the publication by ID
+    publication.value = await getPublicationById(publicationId);
+
+    if (publication.value) {
+      const userQuery = publication.value.title || publication.value.description || "";
+
+      // Fetch top 4 similar publications (so we can skip the first one)
+      const response = await getSimilarPublications(4, userQuery);
+      let results = response?.results || [];
+
+      // Skip the first result (assuming it's the same publication)
+      if (results.length > 1) {
+        results = results.slice(1);
+      }
+
+      similarPublications.value = results;
+
+      // Fetch additional details for each similar publication
+      results.forEach((pub) => fetchAdditionalDetails(pub.publicationId));
+    }
+  } catch (error) {
+    console.error("Error fetching publication and similar results:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Function to fetch keywords, fact, and summary for a given publication
+const fetchAdditionalDetails = async (publicationId: number) => {
+  keywordsLoading.value[publicationId] = true;
+  factLoading.value[publicationId] = true;
+  summaryLoading.value[publicationId] = true;
+
+  try {
+    const [kw, fc, sm] = await Promise.all([
+      getPublicationKeywords(publicationId),
+      getPublicationFact(publicationId),
+      getPublicationSummary(publicationId)
+    ]);
+
+    keywords.value[publicationId] = kw;
+    fact.value[publicationId] = fc;
+    summary.value[publicationId] = sm;
+  } catch (error) {
+    console.error("Error fetching additional details:", error);
+  } finally {
+    keywordsLoading.value[publicationId] = false;
+    factLoading.value[publicationId] = false;
+    summaryLoading.value[publicationId] = false;
+  }
+};
+
+// Function to select a publication from the list
+const selectPublication = (pub) => {
+  selectedPublication.value = pub;
+};
 </script>
-
