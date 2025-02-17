@@ -269,6 +269,28 @@ export default function usePublications() {
     }
   }
 
+  // Fetch publications by scenario type
+  async function getPublicationsByScenario(
+    scenarioType: string,
+    topK: number,
+  ): Promise<PublicationSchemaBase[]> {
+    try {
+      const response = await $fetch<PublicationSchemaBase[]>(
+        `${config.public.apiUrl}/publications/scenarios/${scenarioType}/${topK}/`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch publications for scenario type ${scenarioType}: ${error}`);
+    }
+  }
+
+
 
 
 
@@ -286,5 +308,6 @@ export default function usePublications() {
     getPublicationsForDimensionalityReductionsPartitioned,
     getPublicationsForDimensionalityReductions,
     getPublicationsForDimensionalityReductionsWithScenario,
+    getPublicationsByScenario,
   };
 }

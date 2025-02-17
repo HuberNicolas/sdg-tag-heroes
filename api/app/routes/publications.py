@@ -355,6 +355,49 @@ async def get_publications_for_dimensionality_reductions_partitioned(
 
 
 @router.get(
+    "/scenarios/{scenario_type}/{top_k}",
+    response_model=List[PublicationSchemaBase],
+    description="Retrieve publications associated with a specific scenario type."
+)
+async def get_publications_by_scenario(
+    scenario_type: ScenarioType,
+    top_k: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[PublicationSchemaBase]:
+    """
+    Retrieve publications associated with a specific scenario type.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        publications = (
+            db.query(Publication)
+            .join(SDGLabelDecision, Publication.publication_id == SDGLabelDecision.publication_id)
+            .filter(SDGLabelDecision.scenario_type == scenario_type)
+            .order_by(Publication.publication_id)
+            .limit(top_k)
+        )
+
+        if not publications:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No publications found for scenario type {scenario_type}",
+            )
+
+        return [PublicationSchemaBase.model_validate(pub) for pub in publications]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching publications for scenario type {scenario_type}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching publications for scenario type {scenario_type}: {e}",
+        )
+
+
+@router.get(
     "/users/{user_id}/labeled",
     response_model=List[PublicationSchemaBase],
     description="Get all publications labeled by a specific user"
