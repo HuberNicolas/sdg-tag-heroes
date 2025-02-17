@@ -173,5 +173,38 @@ export const useDimensionalityReductionsStore = defineStore("dimensionalityReduc
       }
     },
 
+    // Fetch Least-Labeled Dimensionality Reductions and update scenarioTypeReductions
+    async fetchLeastLabeledDimensionalityReductions(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getLeastLabeledDimensionalityReductions } = useDimensionalityReductions();
+        this.scenarioTypeReductions = await getLeastLabeledDimensionalityReductions(topK);
+      } catch (error) {
+        this.error = `Failed to fetch least-labeled dimensionality reductions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+// Fetch Max-Entropy Dimensionality Reductions and update scenarioTypeReductions
+    async fetchMaxEntropyDimensionalityReductions(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getMaxEntropyDimensionalityReductions } = useDimensionalityReductions();
+        this.scenarioTypeReductions = await getMaxEntropyDimensionalityReductions(topK);
+      } catch (error) {
+        this.error = `Failed to fetch max-entropy dimensionality reductions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+
   },
 });

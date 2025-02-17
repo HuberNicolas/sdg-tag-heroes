@@ -217,6 +217,43 @@ export default function useDimensionalityReductions() {
     }
   }
 
+  // Fetch Dimensionality Reductions for the Least-Labeled SDG
+  async function getLeastLabeledDimensionalityReductions(topK: number): Promise<DimensionalityReductionSchemaFull[]> {
+    try {
+      const response = await $fetch<DimensionalityReductionSchemaFull[]>(
+        `${config.public.apiUrl}/dimensionality-reductions/global/scenarios/least-labeled/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch least-labeled dimensionality reductions: ${error}`);
+    }
+  }
+
+// Fetch Dimensionality Reductions for the SDGs with the Highest Entropy
+  async function getMaxEntropyDimensionalityReductions(topK: number): Promise<DimensionalityReductionSchemaFull[]> {
+    try {
+      const response = await $fetch<DimensionalityReductionSchemaFull[]>(
+        `${config.public.apiUrl}/dimensionality-reductions/global/scenarios/max-entropy/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch max-entropy dimensionality reductions: ${error}`);
+    }
+  }
+
+
+
+
 
   return {
     getDimensionalityReductions,
@@ -227,6 +264,8 @@ export default function useDimensionalityReductions() {
     calculateUserCoordinates,
     getDimensionalityReductionsPartitioned,
     getSDGPredictionsByLevel,
-    getDimensionalityReductionsBySDGAndScenario
+    getDimensionalityReductionsBySDGAndScenario,
+    getLeastLabeledDimensionalityReductions,
+    getMaxEntropyDimensionalityReductions,
   };
 }

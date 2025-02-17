@@ -153,7 +153,7 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
       }
     },
 
-    // Fetch Newest SDG Label Decisions for Reduction
+    // Fetch Newest SDG Label Decisions for Reduction: SDG
     async fetchSDGLabelDecisionsForReduction(sdg: number, reductionShorthand: string, level: number) {
       this.isLoading = true;
       this.error = null;
@@ -170,6 +170,24 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
         this.isLoading = false;
       }
     },
+
+    // Fetch Newest SDG Label Decisions for Reduction: Global
+    async fetchPartitionedSDGLabelDecisions(reductionShorthand: string, partNumber: number, totalParts: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getPartitionedSDGLabelDecisions } = useSDGLabelDecisions();
+        const decisions = await getPartitionedSDGLabelDecisions(reductionShorthand, partNumber, totalParts);
+        this.partitionedSDGLabelDecisions = decisions || [];
+      } catch (error) {
+        this.error = `Failed to fetch partitioned SDG Label Decisions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
 
     async fetchAnnotationsByDecisionId(decisionId: number) {
       this.isLoading = true;
@@ -217,6 +235,41 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
         this.isLoading = false;
       }
     },
+
+    // Fetch SDG Label Decisions for the least-labeled SDG
+    async fetchLeastLabeledSDGDecisions(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getLeastLabeledSDGDecisions } = useSDGLabelDecisions();
+        const decisions = await getLeastLabeledSDGDecisions(topK);
+        this.scenarioTypeSDGLabelDecisions = decisions || [];
+      } catch (error) {
+        this.error = `Failed to fetch least-labeled SDG Label Decisions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+// Fetch SDG Label Decisions for the SDGs with the highest entropy
+    async fetchMaxEntropySDGDecisions(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getMaxEntropySDGDecisions } = useSDGLabelDecisions();
+        const decisions = await getMaxEntropySDGDecisions(topK);
+        this.scenarioTypeSDGLabelDecisions = decisions || [];
+      } catch (error) {
+        this.error = `Failed to fetch max-entropy SDG Label Decisions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
 
 
     // Select a User Label

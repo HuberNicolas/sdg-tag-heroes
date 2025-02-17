@@ -198,5 +198,39 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
         this.isLoading = false;
       }
     },
+
+    // Fetch Least-Labeled SDG Predictions and update scenarioTypeSDGPredictions
+    async fetchLeastLabeledSDGPredictions(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getLeastLabeledSDGPredictions } = useSDGPredictions();
+        this.scenarioTypeSDGPredictions = await getLeastLabeledSDGPredictions(topK);
+      } catch (error) {
+        this.error = `Failed to fetch least-labeled SDG predictions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+// Fetch Max-Entropy SDG Predictions and update scenarioTypeSDGPredictions
+    async fetchMaxEntropySDGPredictions(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getMaxEntropySDGPredictions } = useSDGPredictions();
+        this.scenarioTypeSDGPredictions = await getMaxEntropySDGPredictions(topK);
+      } catch (error) {
+        this.error = `Failed to fetch max-entropy SDG predictions: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    
   },
 });

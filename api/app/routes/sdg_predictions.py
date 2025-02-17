@@ -1,14 +1,14 @@
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session, sessionmaker, aliased
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from enums.enums import LevelType, ScenarioType
-from models import SDGPrediction, SDGLabelDecision
+from models import SDGPrediction, SDGLabelDecision, SDGLabelSummary
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from request_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, SDGPredictionsIdsRequest
@@ -302,6 +302,80 @@ async def get_sdg_predictions_for_dimensionality_reductions_with_scenario(
         logging.error(f"Error fetching SDG predictions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching SDG predictions: {e}")
 
+@router.get(
+    "/global/scenarios/max-entropy/{top_k}",
+    response_model=List[SDGPredictionSchemaFull],
+    description="Retrieve SDG Predictions for the top-k SDGs with the highest entropy."
+)
+async def get_top_k_entropy_sdg_predictions(
+    top_k: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[SDGPredictionSchemaFull]:
+    try:
+        user = verify_token(token, db)
+
+        top_entropy_sdgs = (
+            db.query(SDGPrediction)
+            .order_by(SDGPrediction.entropy.desc())
+            .filter(
+                SDGPrediction.prediction_model == "Aurora",
+            )
+            .limit(top_k)
+            .all()
+        )
+
+        if not top_entropy_sdgs:
+            raise HTTPException(status_code=404, detail="No SDG predictions found.")
+
+        return top_entropy_sdgs
+
+    except Exception as e:
+        logging.error(f"Error fetching SDG predictions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching SDG predictions: {e}")
+
+
+@router.get(
+    "/global/scenarios/least-labeled/{top_k}",
+    response_model=List[SDGPredictionSchemaFull],
+    description="Retrieve SDG Predictions for the top-k publications associated with the least-labeled SDG."
+)
+async def get_least_labeled_sdg_predictions(
+        top_k: int,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+) -> List[SDGPredictionSchemaFull]:
+    try:
+        user = verify_token(token, db)
+
+        sdg_counts = (
+            db.query(
+                *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
+            )
+            .first()
+        )
+        least_labeled_sdg = min(
+            (i for i in range(1, 18) if getattr(sdg_counts, f"sdg{i}") is not None),
+            key=lambda i: getattr(sdg_counts, f"sdg{i}"),
+        )
+        logging.info(f"Least labeled SDG is SDG{least_labeled_sdg}.")
+
+        predictions = (
+            db.query(SDGPrediction)
+            .join(Publication, SDGPrediction.publication_id == Publication.publication_id)
+            .join(SDGLabelSummary, Publication.publication_id == SDGLabelSummary.publication_id)
+            .filter(getattr(SDGLabelSummary, f"sdg{least_labeled_sdg}") == 1, SDGPrediction.prediction_model == "Aurora",)
+            .limit(top_k)
+            .order_by(SDGPrediction.publication_id)
+            .all()
+        )
+
+        return predictions
+
+    except Exception as e:
+        logging.error(f"Error fetching least-labeled SDG predictions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching least-labeled SDG predictions: {e}")
+
 
 @router.get(
     "/dimensionality-reductions/{reduction_shorthand}/{part_number}/{total_parts}/",
@@ -361,7 +435,7 @@ async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
         # Fetch the specific part of dimensionality reductions
         dimensionality_reductions = db.query(DimensionalityReduction).filter(
             DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).order_by(DimensionalityReduction.dim_red_id).offset(start_index).limit(end_index - start_index).all()
+        ).order_by(DimensionalityReduction.publication_id).offset(start_index).limit(end_index - start_index).all()
 
         logging.debug(f"SDG - Dimensionality Reductions: {len(dimensionality_reductions)}")
 

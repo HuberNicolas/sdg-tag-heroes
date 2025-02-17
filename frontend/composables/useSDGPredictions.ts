@@ -181,6 +181,41 @@ export default function useSDGPredictions() {
     }
   }
 
+  // Fetch SDG Predictions for the Least-Labeled SDG
+  async function getLeastLabeledSDGPredictions(topK: number): Promise<SDGPredictionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGPredictionSchemaFull[]>(
+        `${config.public.apiUrl}/sdg-predictions/global/scenarios/least-labeled/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch least-labeled SDG predictions: ${error}`);
+    }
+  }
+
+// Fetch SDG Predictions for the SDGs with the Highest Entropy
+  async function getMaxEntropySDGPredictions(topK: number): Promise<SDGPredictionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGPredictionSchemaFull[]>(
+        `${config.public.apiUrl}/sdg-predictions/global/scenarios/max-entropy/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch max-entropy SDG predictions: ${error}`);
+    }
+  }
+
+
 
   return {
     getSDGPredictionsByIds,
@@ -193,5 +228,7 @@ export default function useSDGPredictions() {
     getSDGPredictionsForDimensionalityReductionsPartitioned,
     getSDGPredictionsByLevel,
     getSDGPredictionsForDimensionalityReductionsWithScenario,
+    getLeastLabeledSDGPredictions,
+    getMaxEntropySDGPredictions,
   };
 }

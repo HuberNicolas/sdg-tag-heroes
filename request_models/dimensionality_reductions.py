@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 class UserCoordinatesRequest(BaseModel):
-    sdg: int # (1..17)
-    level: int # (1..3)
+    sdg: Optional[int] = None # (1..17)
+    level: Optional[int] = None # (1..3)
     user_query: str
 
     class Config:

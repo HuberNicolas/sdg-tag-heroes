@@ -108,11 +108,70 @@ export default function useSDGLabelDecisions() {
   }
 
 
+
+  async function getPartitionedSDGLabelDecisions(
+    reductionShorthand: string,
+    partNumber: number,
+    totalParts: number
+  ): Promise<SDGLabelDecisionSchemaExtended[]> {
+    try {
+      const response = await $fetch<SDGLabelDecisionSchemaExtended[]>(
+        `${config.public.apiUrl}/label-decisions/${reductionShorthand}/${partNumber}/${totalParts}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch partitioned SDG Label Decisions: ${error}`);
+    }
+  }
+
+  async function getLeastLabeledSDGDecisions(topK: number): Promise<SDGLabelDecisionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
+        `${config.public.apiUrl}/global/scenarios/least-labeled/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch least-labeled SDG label decisions: ${error}`);
+    }
+  }
+
+  async function getMaxEntropySDGDecisions(topK: number): Promise<SDGLabelDecisionSchemaFull[]> {
+    try {
+      const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
+        `${config.public.apiUrl}/global/scenarios/max-entropy/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch max-entropy SDG label decisions: ${error}`);
+    }
+  }
+
+
+
+
   return {
     getSDGLabelDecisionsByPublicationId,
     createCommentSummary,
     getSDGLabelDecisionsForReduction,
     getScenarioSDGLabelDecisionsForReduction,
     getSDGLabelDecisionsForUser,
+    getPartitionedSDGLabelDecisions,
+    getLeastLabeledSDGDecisions,
+    getMaxEntropySDGDecisions,
   };
 }

@@ -91,6 +91,11 @@ export default {
               userQuery: response.enrichedDescription});
             gameStore.setUserCoordinates(response);
           }
+          else if (gameStore.getLevel) {
+            response = await getUserCoordinates({
+              userQuery: response.enrichedDescription});
+            gameStore.setUserCoordinates(response);
+            }
         } else {
           this.enrichedDescription = "No enriched description available.";
         }

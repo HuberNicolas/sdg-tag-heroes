@@ -212,7 +212,7 @@ export default function usePublications() {
     totalParts: number
   ): Promise<PublicationSchemaBase[]> {
     try {
-      return await $fetch<PublicationSchemaBase[]>(
+      const response =  await $fetch<PublicationSchemaBase[]>(
         `${config.public.apiUrl}/publications/dimensionality-reductions/${reductionShorthand}/${partNumber}/${totalParts}`,
         {
           headers: {
@@ -220,6 +220,7 @@ export default function usePublications() {
           },
         }
       );
+      return snakeToCamel(response);
     } catch (error) {
       throw new Error(`Failed to fetch publications for partitioned dimensionality reductions: ${error}`);
     }
@@ -290,6 +291,44 @@ export default function usePublications() {
     }
   }
 
+  // Fetch Publications for the Least-Labeled SDG
+  async function getLeastLabeledPublications(topK: number): Promise<PublicationSchemaBase[]> {
+    try {
+      const response = await $fetch<PublicationSchemaBase[]>(
+        `${config.public.apiUrl}/publications/global/scenarios/least-labeled/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch least-labeled publications: ${error}`);
+    }
+  }
+
+// Fetch Publications for the SDGs with the Highest Entropy
+  async function getMaxEntropyPublications(topK: number): Promise<PublicationSchemaBase[]> {
+    try {
+      const response = await $fetch<PublicationSchemaBase[]>(
+        `${config.public.apiUrl}/publications/global/scenarios/max-entropy/${topK}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return snakeToCamel(response);
+    } catch (error) {
+      throw new Error(`Failed to fetch max-entropy publications: ${error}`);
+    }
+  }
+
+
+
+
+
 
 
 
@@ -309,5 +348,7 @@ export default function usePublications() {
     getPublicationsForDimensionalityReductions,
     getPublicationsForDimensionalityReductionsWithScenario,
     getPublicationsByScenario,
+    getLeastLabeledPublications,
+    getMaxEntropyPublications,
   };
 }

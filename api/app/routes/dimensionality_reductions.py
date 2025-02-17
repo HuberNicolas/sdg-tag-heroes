@@ -2,14 +2,14 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session, sessionmaker, aliased
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from enums.enums import LevelType, ScenarioType
-from models import DimensionalityReduction, SDGPrediction, SDGLabelDecision
+from models import DimensionalityReduction, SDGPrediction, SDGLabelDecision, SDGLabelSummary
 from models.publications.publication import Publication
 from request_models.dimensionality_reductions import UserCoordinatesRequest, \
     DimensionalityReductionPublicationIdsRequest
@@ -252,7 +252,7 @@ async def get_dimensionality_reductions_partitioned(
         # Fetch the specific part of dimensionality reductions
         dimensionality_reductions = db.query(DimensionalityReduction).filter(
             DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).order_by(DimensionalityReduction.dim_red_id).offset(start_index).limit(end_index - start_index).all()
+        ).order_by(DimensionalityReduction.publication_id).offset(start_index).limit(end_index - start_index).all()
 
         logging.debug(f"Dimensionality Reductions: {len(dimensionality_reductions)}")
 
@@ -333,6 +333,94 @@ async def get_dimensionality_reductions_by_sdg_and_level(
 
 
 @router.get(
+    "/global/scenarios/max-entropy/{top_k}",
+    response_model=List[DimensionalityReductionSchemaFull],
+    description="Retrieve Dimensionality Reductions for the top-k SDGs with the highest entropy."
+)
+async def get_top_k_entropy_dimensionality_reductions(
+        top_k: int,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    try:
+        user = verify_token(token, db)
+
+        top_entropy_sdgs = (
+            db.query(SDGPrediction)
+            .order_by(SDGPrediction.entropy.desc())
+            .filter(
+                SDGPrediction.prediction_model == "Aurora",
+            )
+            .limit(top_k)
+            .all()
+        )
+
+        if not top_entropy_sdgs:
+            raise HTTPException(status_code=404, detail="No SDG predictions found.")
+
+        dim_reductions = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.publication_id.in_([sdg.publication_id for sdg in top_entropy_sdgs]))
+            .order_by(DimensionalityReduction.publication_id)
+            .all()
+        )
+
+        return dim_reductions
+
+    except Exception as e:
+        logging.error(f"Error fetching dimensionality reductions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching dimensionality reductions: {e}")
+
+
+
+@router.get(
+    "/global/scenarios/least-labeled/{top_k}",
+    response_model=List[DimensionalityReductionSchemaFull],
+    description="Retrieve Dimensionality Reductions for the top-k publications associated with the least-labeled SDG."
+)
+async def get_least_labeled_dimensionality_reductions(
+        top_k: int,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+) -> List[DimensionalityReductionSchemaFull]:
+    try:
+        user = verify_token(token, db)
+
+        sdg_counts = (
+            db.query(
+                *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
+            )
+            .first()
+        )
+        least_labeled_sdg = min(
+            (i for i in range(1, 18) if getattr(sdg_counts, f"sdg{i}") is not None),
+            key=lambda i: getattr(sdg_counts, f"sdg{i}"),
+        )
+        logging.info(f"Least labeled SDG is SDG{least_labeled_sdg}.")
+
+        publications = (
+            db.query(Publication)
+            .join(SDGLabelSummary, Publication.publication_id == SDGLabelSummary.publication_id)
+            .filter(getattr(SDGLabelSummary, f"sdg{least_labeled_sdg}") == 1)
+            .limit(top_k)
+            .all()
+        )
+
+        dim_reductions = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.publication_id.in_([pub.publication_id for pub in publications]))
+            .order_by(DimensionalityReduction.publication_id)
+            .all()
+        )
+
+        return dim_reductions
+
+    except Exception as e:
+        logging.error(f"Error fetching least-labeled dimensionality reductions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching least-labeled dimensionality reductions: {e}")
+
+
+@router.get(
     "/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
     response_model=List[DimensionalityReductionSchemaFull],
     description="Retrieve dimensionality reductions for a given reduction shorthand, SDG, and scenario type."
@@ -399,9 +487,15 @@ async def get_user_coordinates(
 
         umap_service = UMAPCoordinateService() # Takes long to load
 
-        coordinates = umap_service.get_coordinates(
-            query=request.user_query, sdg=request.sdg, level=request.level
-        )
+        # Determine whether to use specific or default UMAP model
+        if request.sdg is not None and request.level is not None:
+            coordinates = umap_service.get_coordinates(
+                query=request.user_query, sdg=request.sdg, level=request.level
+            )
+        else:
+            # Use a default UMAP model
+            coordinates = umap_service.get_coordinates_using_default_model(request.user_query)
+
         return UserCoordinatesSchema.model_validate(coordinates)
     except Exception as e:
         raise HTTPException(

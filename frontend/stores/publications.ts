@@ -8,7 +8,7 @@ import type {
   FactSchemaFull,
   PublicationSummarySchema,
   PublicationsCollectiveSummarySchema,
-} from "~/types/publications";
+} from "~/types/publication";
 import usePublications from "~/composables/usePublications";
 
 export const usePublicationsStore = defineStore("publications", {
@@ -260,5 +260,39 @@ export const usePublicationsStore = defineStore("publications", {
         this.isLoading = false;
       }
     },
+
+    // Fetch Least-Labeled Publications and update scenarioTypePublications
+    async fetchLeastLabeledPublications(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getLeastLabeledPublications } = usePublications();
+        this.scenarioTypePublications = await getLeastLabeledPublications(topK);
+      } catch (error) {
+        this.error = `Failed to fetch least-labeled publications: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+// Fetch Max-Entropy Publications and update scenarioTypePublications
+    async fetchMaxEntropyPublications(topK: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getMaxEntropyPublications } = usePublications();
+        this.scenarioTypePublications = await getMaxEntropyPublications(topK);
+      } catch (error) {
+        this.error = `Failed to fetch max-entropy publications: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+
   },
 });

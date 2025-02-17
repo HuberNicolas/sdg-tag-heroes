@@ -29,6 +29,15 @@ class UMAPCoordinateService:
         if not os.path.exists(self.umap_model_dir):
             raise ValueError(f"UMAP model directory does not exist: {self.umap_model_dir}")
 
+        # Load a default UMAP model (predefined path)
+        #self.default_umap_model_path = os.path.join(self.umap_model_dir, "umap_model_UZH.joblib")
+        self.default_umap_model_path = os.path.join(self.umap_model_dir, f"config_15_0.0_2", f"SDG1.joblib") # TODO: takes ages to load
+
+        if os.path.exists(self.default_umap_model_path):
+            self.default_umap_model = joblib.load(self.default_umap_model_path)
+        else:
+            self.default_umap_model = None  # Handle missing default model
+
     def _embed_query(self, query: str):
         """
         Generate an embedding for the user query.
@@ -90,6 +99,43 @@ class UMAPCoordinateService:
                 z_coord=0.0,
                 embedding_time=embedding_time,
                 model_loading_time=model_loading_time,
+                umap_reduction_transform_time=umap_reduction_transform_time
+            )
+
+        except Exception as e:
+            raise e
+
+
+    def get_coordinates_using_default_model(self, query: str) -> UserCoordinatesSchema:
+        """
+        Calculate UMAP coordinates using a default UMAP model.
+
+        :param query: User query as a string.
+        :return: UserCoordinatesSchema instance containing the x, y, z coordinates and timing data.
+        """
+        if self.default_umap_model is None:
+            raise Exception("Default UMAP model is not available.")
+
+        try:
+            start = time.time()
+            # Generate embedding for the query
+            embedding = self._embed_query(query)
+            end = time.time()
+            embedding_time = end - start
+
+            # Transform the embedding using the default UMAP model
+            start = time.time()
+            reduced_coordinates = self.default_umap_model.transform([embedding])[0]  # Transform returns a list
+            end = time.time()
+            umap_reduction_transform_time = end - start
+
+            # Return coordinates as a structured schema
+            return UserCoordinatesSchema(
+                x_coord=reduced_coordinates[0],
+                y_coord=reduced_coordinates[1],
+                z_coord=0.0,
+                embedding_time=embedding_time,
+                model_loading_time=0.0,  # No loading time, as default is preloaded
                 umap_reduction_transform_time=umap_reduction_transform_time
             )
 

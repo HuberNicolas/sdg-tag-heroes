@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session, sessionmaker, aliased
 
 from api.app.routes.authentication import verify_token
@@ -11,7 +11,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qdrant_client
 from enums.enums import LevelType, ScenarioType
-from models import SDGPrediction, SDGLabelDecision, SDGUserLabel
+from models import SDGPrediction, SDGLabelDecision, SDGUserLabel, SDGLabelSummary
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from request_models.publication import PublicationIdsRequest
@@ -226,6 +226,87 @@ async def get_publications_for_dimensionality_reductions(
 
 
 @router.get(
+    "/global/scenarios/max-entropy/{top_k}",
+    response_model=List[PublicationSchemaBase],
+    description="Retrieve Publications for the top-k SDGs with the highest entropy."
+)
+async def get_top_k_entropy_publications(
+        top_k: int,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+) -> List[PublicationSchemaBase]:
+    try:
+        user = verify_token(token, db)
+
+        top_entropy_sdgs = (
+            db.query(SDGPrediction)
+            .order_by(SDGPrediction.entropy.desc())
+            .filter(
+                SDGPrediction.prediction_model == "Aurora",
+            )
+            .limit(top_k)
+            .all()
+        )
+
+        if not top_entropy_sdgs:
+            raise HTTPException(status_code=404, detail="No SDG predictions found.")
+
+        publications = (
+            db.query(Publication)
+            .filter(Publication.publication_id.in_([sdg.publication_id for sdg in top_entropy_sdgs]))
+            .order_by(Publication.publication_id)
+            .all()
+        )
+
+        return publications
+
+    except Exception as e:
+        logging.error(f"Error fetching publications: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching publications: {e}")
+
+
+@router.get(
+    "/global/scenarios/least-labeled/{top_k}",
+    response_model=List[PublicationSchemaBase],
+    description="Retrieve Publications for the top-k publications associated with the least-labeled SDG."
+)
+async def get_least_labeled_publications(
+        top_k: int,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+) -> List[PublicationSchemaBase]:
+    try:
+        user = verify_token(token, db)
+
+        sdg_counts = (
+            db.query(
+                *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
+            )
+            .first()
+        )
+        least_labeled_sdg = min(
+            (i for i in range(1, 18) if getattr(sdg_counts, f"sdg{i}") is not None),
+            key=lambda i: getattr(sdg_counts, f"sdg{i}"),
+        )
+        logging.info(f"Least labeled SDG is SDG{least_labeled_sdg}.")
+
+        publications = (
+            db.query(Publication)
+            .join(SDGLabelSummary, Publication.publication_id == SDGLabelSummary.publication_id)
+            .filter(getattr(SDGLabelSummary, f"sdg{least_labeled_sdg}") == 1)
+            .limit(top_k)
+            .order_by(Publication.publication_id)
+            .all()
+        )
+
+        return publications
+
+    except Exception as e:
+        logging.error(f"Error fetching least-labeled publications: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching least-labeled publications: {e}")
+
+
+@router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
     response_model=List[PublicationSchemaBase],
     description="Retrieve the corresponding publications for a given SDG, reduction shorthand, and scenario type."
@@ -341,7 +422,7 @@ async def get_publications_for_dimensionality_reductions_partitioned(
         # Fetch the corresponding publications
         publications = db.query(Publication).filter(
             Publication.publication_id.in_(publication_ids)
-        ).all()
+        ).order_by(Publication.publication_id).all()
         return publications
         # return [PublicationSchemaFull.model_validate(pub) for pub in publications] # slows it down very hard
 
