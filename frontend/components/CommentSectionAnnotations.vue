@@ -52,11 +52,23 @@
 
             <!-- Votes for the Annotation -->
             <div class="flex items-center gap-2 mt-2">
-              <button @click="voteAnnotation(annotation.annotationId, 'positive')" class="text-green-500">
-                👍 {{ getAnnotationVotes(annotation.annotationId).positive }}
+              <button
+                @click="voteAnnotation(annotation.annotationId, VoteType.POSITIVE)"
+                class="flex items-center gap-1 text-blue-500 hover:text-blue-700"
+                aria-label="Vote Positive"
+              >
+                <Icon name="mdi-thumb-up-outline" class="w-4 h-4" />
+                <span>{{ getAnnotationVotes(annotation.annotationId).positive }}</span>
               </button>
-              <button @click="voteAnnotation(annotation.annotationId, 'negative')" class="text-red-500">
-                👎 {{ getAnnotationVotes(annotation.annotationId).negative }}
+
+              <!-- Negative Vote Button -->
+              <button
+                @click="voteAnnotation(annotation.annotationId, VoteType.NEGATIVE)"
+                class="flex items-center gap-1 text-red-500 hover:text-red-700"
+                aria-label="Vote Negative"
+              >
+                <Icon name="mdi-thumb-down-outline" class="w-4 h-4" />
+                <span>{{ getAnnotationVotes(annotation.annotationId).negative }}</span>
               </button>
             </div>
           </div>
@@ -67,12 +79,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
 import { generateAvatar } from "~/utils/avatar";
 import { formatDate } from "~/utils/formatDate";
 import { VoteType } from "~/types/enums";
+import type { VoteSchemaFull } from "~/types/vote";
 
 const labelDecisionsStore = useLabelDecisionsStore();
 const usersStore = useUsersStore();
@@ -107,7 +120,22 @@ const getAnnotationVotes = (annotationId: number) => {
   };
 };
 
-const voteAnnotation = async (annotationId: number, voteType: VoteType.POSITIVE | VoteType.NEGATIVE) => {
+// Vote for an annotation
+async function voteAnnotation(annotationId: number, voteType: VoteType): Promise<VoteSchemaFull> {
+  const userId = usersStore.user.userId;
+  const score = 1
+  const {createVote} = useVotes();
   console.log(`Voted ${voteType} on annotation ${annotationId}`);
-};
+  try {
+    const voteData = {
+      user_id: userId,
+      annotation_id: annotationId,
+      vote_type: voteType,
+      score: score,
+    };
+    return await createVote(voteData);
+  } catch (error) {
+    throw new Error(`Failed to vote on label: ${error}`);
+  }
+}
 </script>

@@ -167,7 +167,7 @@
               <div class="flex items-center gap-2 mt-2">
                 <!-- Positive Vote Button -->
                 <button
-                  @click="voteLabel(label.labelId, 'positive')"
+                  @click="voteLabel(label.labelId, VoteType.POSITIVE)"
                   class="flex items-center gap-1 text-blue-500 hover:text-blue-700"
                   aria-label="Vote Positive"
                 >
@@ -177,7 +177,7 @@
 
                 <!-- Neutral Vote Button -->
                 <button
-                  @click="voteLabel(label.labelId, 'neutral')"
+                  @click="voteLabel(label.labelId, VoteType.NEUTRAL)"
                   class="flex items-center gap-1 text-gray-500 hover:text-gray-700"
                   aria-label="Vote Neutral"
                 >
@@ -187,7 +187,7 @@
 
                 <!-- Negative Vote Button -->
                 <button
-                  @click="voteLabel(label.labelId, 'negative')"
+                  @click="voteLabel(label.labelId, VoteType.NEGATIVE)"
                   class="flex items-center gap-1 text-red-500 hover:text-red-700"
                   aria-label="Vote Negative"
                 >
@@ -311,7 +311,7 @@
                       <div class="flex items-center gap-2 mt-2">
                         <!-- Positive Vote Button -->
                         <button
-                          @click="voteAnnotation(annotation.annotationId, 'positive')"
+                          @click="voteAnnotation(annotation.annotationId, VoteType.POSITIVE)"
                           class="flex items-center gap-1 text-blue-500 hover:text-blue-700"
                           aria-label="Vote Positive"
                         >
@@ -321,7 +321,7 @@
 
                         <!-- Neutral Vote Button -->
                         <button
-                          @click="voteAnnotation(annotation.annotationId, 'neutral')"
+                          @click="voteAnnotation(annotation.annotationId, VoteType.NEUTRAL)"
                           class="flex items-center gap-1 text-gray-500 hover:text-gray-700"
                           aria-label="Vote Neutral"
                         >
@@ -331,7 +331,7 @@
 
                         <!-- Negative Vote Button -->
                         <button
-                          @click="voteAnnotation(annotation.annotationId, 'negative')"
+                          @click="voteAnnotation(annotation.annotationId, VoteType.NEGATIVE)"
                           class="flex items-center gap-1 text-red-500 hover:text-red-700"
                           aria-label="Vote Negative"
                         >
@@ -344,9 +344,6 @@
                 </div>
               </div>
             </div>
-
-
-
           </div>
         </div>
       </div>
@@ -364,6 +361,8 @@ import { generateAvatar } from "~/utils/avatar";
 import { formatDate } from "~/utils/formatDate";
 import { VoteType } from "~/types/enums";
 import BarVotePlot from "~/components/plots/BarVotePlot.vue";
+import type { VoteSchemaFull } from "~/types/vote";
+import useVotes from "~/composables/useVotes";
 
 const labelDecisionsStore = useLabelDecisionsStore();
 const usersStore = useUsersStore();
@@ -440,28 +439,57 @@ const getLabelVotes = (labelId: number) => {
 
 // Get votes for an annotation
 const getAnnotationVotes = (annotationId: number) => {
+  console.log("getAnnotationVotes", annotationId);
   const annotation = userLabels.value
     .flatMap((label) => label.annotations)
     .find((annotation) => annotation.annotationId === annotationId);
   if (!annotation) return { positive: 0, neutral: 0, negative: 0 };
-  return {
+  const dict =  {
     positive: annotation.votes.filter((vote) => vote.voteType === VoteType.POSITIVE).length,
     neutral: annotation.votes.filter((vote) => vote.voteType === VoteType.NEUTRAL).length,
     negative: annotation.votes.filter((vote) => vote.voteType === VoteType.NEGATIVE).length
   };
+  console.log(dict);
+  return dict
 };
 
 // Vote for a label
-const voteLabel = async (labelId: number, voteType: VoteType.POSITIVE | VoteType.NEGATIVE) => {
-  // Implement vote logic here
-  console.log(`Voted ${voteType} on label ${labelId}`);
-};
+async function voteLabel(sdgUserLabelId: number, voteType: VoteType): Promise<VoteSchemaFull> {
+  const userId = usersStore.user.userId;
+  const score = 1
+  const {createVote} = useVotes();
+  console.log(`Voted ${voteType} on label ${sdgUserLabelId}`);
+  try {
+    const voteData = {
+      user_id: userId,
+      sdg_user_label_id: sdgUserLabelId,
+      vote_type: voteType,
+      score: score,
+    };
+    return await createVote(voteData);
+  } catch (error) {
+    throw new Error(`Failed to vote on label: ${error}`);
+  }
+}
 
 // Vote for an annotation
-const voteAnnotation = async (annotationId: number, voteType: VoteType.POSITIVE | VoteType.NEGATIVE) => {
-  // Implement vote logic here
+async function voteAnnotation(annotationId: number, voteType: VoteType): Promise<VoteSchemaFull> {
+  const userId = usersStore.user.userId;
+  const score = 1
+  const {createVote} = useVotes();
   console.log(`Voted ${voteType} on annotation ${annotationId}`);
-};
+  try {
+    const voteData = {
+      user_id: userId,
+      annotation_id: annotationId,
+      vote_type: voteType,
+      score: score,
+    };
+    return await createVote(voteData);
+  } catch (error) {
+    throw new Error(`Failed to vote on label: ${error}`);
+  }
+}
 
 const filteredAndSortedUserLabels = computed(() => {
   let filteredLabels = userLabels.value;

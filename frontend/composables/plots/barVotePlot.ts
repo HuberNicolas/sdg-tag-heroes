@@ -4,7 +4,6 @@ import { useSDGsStore } from "~/stores/sdgs";
 
 export function createBarVotePlot(container, width, height, votesData) {
   d3.select(container).selectAll('*').remove();
-  console.log("votesData", votesData);
 
   const svg = d3.select(container)
     .append("svg")
