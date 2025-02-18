@@ -62,26 +62,28 @@
           <div class="flex flex-col items-center p-4">
             <!-- Check if the user exists (has an email) -->
             <template v-if="usersStore.users.find(user => user.userId === label.userId)?.email">
-              <!-- Avatar with Frame -->
-              <div
-                v-if="getUserRank(label.userId, label.votedLabel) && getUserRank(label.userId, label.votedLabel).tier !== 0"
-                :style="{ borderColor: sdgsStore.getColorBySDG(label.votedLabel) }"
-                :class="['w-12 h-12 rounded-full border-4 flex items-center justify-center', getBorderStyle(getUserRank(label.userId, label.votedLabel).tier)]"
-              >
-                <img
-                  :src="generateAvatar(usersStore.users.find(user => user.userId === label.userId)?.email)"
-                  alt="User Avatar"
-                  class="w-10 h-10 rounded-full"
-                />
-              </div>
-              <!-- Plain Avatar if no rank -->
-              <template v-else>
-                <img
-                  :src="generateAvatar(usersStore.users.find(user => user.userId === label.userId)?.email)"
-                  alt="User Avatar"
-                  class="w-12 h-12 rounded-full"
-                />
-              </template>
+              <NuxtLink :to="`/users/${label.userId}`" class="flex items-center justify-center">
+                <!-- Avatar with Frame -->
+                <div
+                  v-if="getUserRank(label.userId, label.votedLabel) && getUserRank(label.userId, label.votedLabel).tier !== 0"
+                  :style="{ borderColor: sdgsStore.getColorBySDG(label.votedLabel) }"
+                  :class="['w-12 h-12 rounded-full border-4 flex items-center justify-center', getBorderStyle(getUserRank(label.userId, label.votedLabel).tier)]"
+                >
+                  <img
+                    :src="generateAvatar(usersStore.users.find(user => user.userId === label.userId)?.email)"
+                    alt="User Avatar"
+                    class="w-10 h-10 rounded-full"
+                  />
+                </div>
+                <!-- Plain Avatar if no rank -->
+                <template v-else>
+                  <img
+                    :src="generateAvatar(usersStore.users.find(user => user.userId === label.userId)?.email)"
+                    alt="User Avatar"
+                    class="w-12 h-12 rounded-full"
+                  />
+                </template>
+              </NuxtLink>
             </template>
             <!-- Fallback if user data is missing -->
             <template v-else>

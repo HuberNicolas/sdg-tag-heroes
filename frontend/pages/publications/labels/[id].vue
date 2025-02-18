@@ -16,28 +16,7 @@
     </div>
 
     <!-- Display SDG Label Summary -->
-
-
     <div v-if="sdgLabelSummary" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-
-      <!--
-     <div class="flex items-center space-x-2">
-       <strong class="text-gray-700 w-32">Summary ID:</strong>
-       <span class="text-gray-900">{{ sdgLabelSummary.sdgLabelSummaryId }}</span>
-     </div>
-     <div class="flex items-center space-x-2">
-       <strong class="text-gray-700 w-32">Publication ID:</strong>
-       <span class="text-gray-900">{{ sdgLabelSummary.publicationId }}</span>
-     </div>
-     <div class="flex items-center space-x-2">
-       <strong class="text-gray-700 w-32">History ID:</strong>
-       <span class="text-gray-900">{{ sdgLabelSummary.historyId }}</span>
-     </div>
-     <div class="flex items-center space-x-2">
-       <strong class="text-gray-700 w-32">Created At:</strong>
-       <span class="text-gray-900">{{ sdgLabelSummary.createdAt }}</span>
-     </div>
-     -->
 
       <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">SDG Labels:</h2>
       <!-- SDG Goals Grid -->

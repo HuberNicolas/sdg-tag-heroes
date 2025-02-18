@@ -221,7 +221,7 @@ export default function useConnect() {
 
       const line = new LeaderLine(
         LeaderLine.pointAnchor(hex, { x: '50%', y: '200%' }), // Start at hexagon center
-        LeaderLine.pointAnchor(targetHex, { x: '50%', y: '100%' }), // End at decision hexagon center
+        LeaderLine.pointAnchor(targetHex, { x: '50%', y: '50%' }), // End at decision hexagon center
         {
           color: hexColor || 'blue',
           startPlug: 'behind',

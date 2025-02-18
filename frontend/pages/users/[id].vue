@@ -53,6 +53,64 @@
 
         <!-- Expandable Sections -->
         <div class="space-y-4">
+
+          <details class="border p-3 rounded">
+            <summary class="cursor-pointer text-md font-semibold">Lables</summary>
+            <div>
+              Publication ID: {{ selectedDecision?.publicationId }}
+            </div>
+
+            <div v-if="sdgLabelSummary" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+
+              <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">SDG Labels:</h2>
+              <!-- SDG Goals Grid -->
+              <div v-if="!isLoading && sdgs.length" class="grid grid-cols-4 gap-4">
+                <div
+                  v-for="sdg in sdgs"
+                  :key="sdg.id"
+                  class="flex flex-col items-center justify-center border rounded-lg p-4 shadow-md transition-opacity"
+                  :class="{
+            'opacity-100': sdg.label === 1,
+            'bg-gray-200': sdg.label === 0,
+            'bg-red-200 opacity-80': sdg.label === -1,
+          }"
+                  :style="sdg.label === 1 ? { backgroundColor: sdg.color } : {}"
+                >
+                  <!-- SDG Icon -->
+                  <img
+                    v-if="sdg.icon && sdg.label === 1"
+                    :src="`data:image/svg+xml;base64,${sdg.icon}`"
+                    :alt="`SDG ${sdg.id} Icon`"
+                    class="w-8 h-8 object-contain"
+                  />
+                  <!-- Placeholder for Not Defined -->
+                  <div
+                    v-else-if="sdg.label === 0"
+                    class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center"
+                  >
+                    <span class="text-sm text-gray-800">?</span>
+                  </div>
+                  <!-- Placeholder for Definitely Not Related -->
+                  <div
+                    v-else-if="sdg.label === -1"
+                    class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center"
+                  >
+                    <span class="text-sm text-white">X</span>
+                  </div>
+
+                  <!-- SDG Title -->
+                  <p
+                    class="mt-2 text-center font-semibold"
+                    :class="sdg.label === 1 ? 'text-white' : 'text-gray-600'"
+                  >
+                    SDG {{ sdg.id }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+
           <!-- User Labels -->
           <details class="border p-3 rounded">
             <summary class="cursor-pointer text-md font-semibold">User Labels</summary>
@@ -141,35 +199,6 @@
 
 
                 <p class="text-gray-600">{{ label.comment }}</p>
-
-
-                <!-- Votes for User Label -->
-                <!--
-<details class="border p-2 rounded mt-2">
-  <summary class="cursor-pointer font-semibold">Votes</summary>
-  <ul>
-    <li
-      v-for="vote in label.votes"
-      :key="vote.voteId"
-      class="p-2 border-b flex items-center space-x-3"
-    >
-      <div
-        :style="{ borderColor: getSDGColor(getUserVotedSDG(vote.userId)) }"
-        :class="['w-10 h-10 rounded-full border-4 flex items-center justify-center', getBorderStyle(getUserRank(vote.userId)?.tier)]"
-      >
-        <img
-          :src="getUserAvatar(vote.userId)"
-          class="w-8 h-8 rounded-full"
-          :alt="getUserName(vote.userId)"
-        />
-      </div>
-      <span><strong>{{ getUserName(vote.userId) }}</strong></span>
-      <span>Type: {{ vote.vote_type }}</span>
-      <span>Score: {{ vote.score }}</span>
-    </li>
-  </ul>
-</details>
--->
               </li>
             </ul>
           </details>
@@ -208,13 +237,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useUsersStore } from "~/stores/users";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useSDGsStore } from "~/stores/sdgs";
 import { generateAvatar } from "~/utils/avatar";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
+import { useSDGLabelSummariesStore } from "~/stores/sdgLabelSummaries";
 
 
 // Router
@@ -226,9 +256,13 @@ const usersStore = useUsersStore();
 const labelDecisionsStore = useLabelDecisionsStore();
 const sdgsStore = useSDGsStore();
 const rankStore = useSDGRanksStore();
+const sdgLabelSummariesStore = useSDGLabelSummariesStore();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
+
+const isLoading = computed(() => sdgLabelSummariesStore.isLoading || sdgsStore.isLoading);
+const sdgLabelSummary = computed(() => sdgLabelSummariesStore.sdgLabelSummaryForPublication);
 
 // Store data
 const userSDGLabelDecisions = computed(() => labelDecisionsStore.userSDGLabelDecisions);
@@ -238,6 +272,25 @@ const selectedDecisionId = ref<number | null>(null);
 const selectedDecision = computed(() =>
   userSDGLabelDecisions.value.find(decision => decision.decisionId === selectedDecisionId.value) || null
 );
+// Watch for changes in selectedDecisionId and fetch the corresponding sdgLabelSummary
+watch(selectedDecisionId, async (newDecisionId) => {
+  if (newDecisionId && selectedDecision.value) {
+    await sdgLabelSummariesStore.fetchSDGLabelSummaryByPublicationId(selectedDecision.value.publicationId);
+  }
+});
+
+const sdgs = computed(() => {
+  if (!sdgLabelSummary.value || !sdgsStore.sdgs.length) return [];
+
+  // Map SDGs and determine their label state
+  return sdgsStore.sdgs.map((sdg, index) => {
+    const sdgKey = `sdg${sdg.id}`; // Match SDG key (e.g., sdg1, sdg2)
+    return {
+      ...sdg,
+      label: sdgLabelSummary.value[sdgKey], // 1, 0, or -1
+    };
+  });
+});
 
 // Fetch contributors (annotators & voters)
 const getContributors = (decision) => {
