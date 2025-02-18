@@ -35,13 +35,6 @@ import QuestButtonExploration from "~/components/QuestButtonExploration.vue";
 const gameStore = useGameStore();
 
 const buttons = [
-  /*
-  { icon: "i-heroicons-check-badge", name: "Confirm the King", tooltip: "Crown the most prominent instance" },
-  { icon: "i-heroicons-map", name: "Explore", tooltip: "Look at a variety of predictions to explore uncertainty" },
-  { icon: "i-heroicons-magnifying-glass", name: "Investigate", tooltip: "Analyze and investigate data" },
-  { icon: "i-heroicons-scale", name: "Tiebreaker", tooltip: "Resolve conflicts with a balanced approach" },
-*/
-
   { icon: "i-heroicons-light-bulb", name: "Sparse Instances", tooltip: "Label an instance with the least annotations" },
   { icon: "i-heroicons-fire", name: "High Stakes", tooltip: "Sort the most uncertain instances based on entropy" },
 ];

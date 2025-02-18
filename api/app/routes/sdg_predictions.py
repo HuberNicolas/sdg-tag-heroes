@@ -365,8 +365,8 @@ async def get_least_labeled_sdg_predictions(
             .join(Publication, SDGPrediction.publication_id == Publication.publication_id)
             .join(SDGLabelSummary, Publication.publication_id == SDGLabelSummary.publication_id)
             .filter(getattr(SDGLabelSummary, f"sdg{least_labeled_sdg}") == 1, SDGPrediction.prediction_model == "Aurora",)
-            .limit(top_k)
             .order_by(SDGPrediction.publication_id)
+            .limit(top_k)
             .all()
         )
 

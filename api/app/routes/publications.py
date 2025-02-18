@@ -294,8 +294,8 @@ async def get_least_labeled_publications(
             db.query(Publication)
             .join(SDGLabelSummary, Publication.publication_id == SDGLabelSummary.publication_id)
             .filter(getattr(SDGLabelSummary, f"sdg{least_labeled_sdg}") == 1)
-            .limit(top_k)
             .order_by(Publication.publication_id)
+            .limit(top_k)
             .all()
         )
 

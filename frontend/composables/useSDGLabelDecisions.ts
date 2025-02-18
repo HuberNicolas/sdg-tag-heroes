@@ -132,7 +132,7 @@ export default function useSDGLabelDecisions() {
   async function getLeastLabeledSDGDecisions(topK: number): Promise<SDGLabelDecisionSchemaFull[]> {
     try {
       const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
-        `${config.public.apiUrl}/global/scenarios/least-labeled/${topK}`,
+        `${config.public.apiUrl}/label-decisions/global/scenarios/least-labeled/${topK}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken.value}`,
@@ -148,7 +148,7 @@ export default function useSDGLabelDecisions() {
   async function getMaxEntropySDGDecisions(topK: number): Promise<SDGLabelDecisionSchemaFull[]> {
     try {
       const response = await $fetch<SDGLabelDecisionSchemaFull[]>(
-        `${config.public.apiUrl}/global/scenarios/max-entropy/${topK}`,
+        `${config.public.apiUrl}/label-decisions/global/scenarios/max-entropy/${topK}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken.value}`,

@@ -18,7 +18,7 @@ export const useGameStore = defineStore("game", {
     showLeaderboard: false,
     quadrant: null as Quadrant | null,
     stage: null as Stage | null,
-    selectedScenarios: null as string | null, // Multiple scenarios new Set<string>(),
+    selectedScenario: null as string | null, // Multiple scenarios new Set<string>(),
 
     skillsDescription: {} as UserEnrichedSkillsDescription | null,
     interestsDescription: {} as UserEnrichedInterestsDescription | null,

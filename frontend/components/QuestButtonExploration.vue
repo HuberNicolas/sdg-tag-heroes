@@ -21,86 +21,74 @@ import { usePublicationsStore } from "~/stores/publications";
 import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useGameStore } from "~/stores/game";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { ScenarioType } from "~/types/enums";
 
 const props = defineProps({
-  icon: {
-    type: String,
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  tooltip: {
-    type: String,
-    required: false
-  }
+  icon: { type: String, required: true },
+  name: { type: String, required: true },
+  tooltip: { type: String, required: false }
 });
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
+const gameStore = useGameStore();
+
 const dimensionalityStore = useDimensionalityReductionsStore();
 const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const labelDecisionsStore = useLabelDecisionsStore();
-const gameStore = useGameStore();
 
-// Updated scenario mapping
-const scenarioMapping: Record<string, ScenarioType> = {
-  "Confirm the King": ScenarioType.CONFIRM,
-  "Tiebreaker": ScenarioType.TIEBREAKER,
-  "Investigate": ScenarioType.INVESTIGATE,
-  "Explore": ScenarioType.EXPLORE,
-
-  "Sparse Instances": ScenarioType.SCARCE_LABELS, // New type for instances with few annotations
-  "High Stakes": ScenarioType.HIGH_UNCERTAINTY // New type for cases with high entropy
-};
+watch(
+  () => gameStore.selectedScenarios,
+  (newScenarios) => {
+    if (!newScenarios?.includes(props.name)) {
+      // Reset loading state when scenario is deselected
+      isLoading.value = false;
+    }
+  }
+);
 
 const handleClick = async () => {
   isLoading.value = true;
   error.value = null;
 
   try {
-    if (!selectedSDG) {
-      throw new Error("No SDG selected.");
-    }
-
-    // Toggle scenario
-    const previousScenario = gameStore.selectedScenario;
     gameStore.toggleScenario(props.name);
-
-    if (previousScenario === props.name) {
-      // Scenario was removed, reset arrays
-      dimensionalityStore.scenarioTypeReductions = [];
-      publicationsStore.scenarioTypePublications = [];
-      sdgPredictionsStore.scenarioTypeSDGPredictions = [];
-      labelDecisionsStore.scenarioTypeSDGLabelDecisions = [];
-    } else {
-      const scenarioType = scenarioMapping[props.name];
-
-      if (props.name === "Sparse Instances") {
-        // Fetch least-labeled data
-        await dimensionalityStore.fetchLeastLabeledDimensionalityReductions(5);
-        await publicationsStore.fetchLeastLabeledPublications(5);
-        await sdgPredictionsStore.fetchLeastLabeledSDGPredictions(5);
-        await labelDecisionsStore.fetchLeastLabeledSDGDecisions(5);
-      } else if (props.name === "High Stakes") {
-        // Fetch highest entropy data
-        await dimensionalityStore.fetchMaxEntropyDimensionalityReductions(5);
-        await publicationsStore.fetchMaxEntropyPublications(5);
-        await sdgPredictionsStore.fetchMaxEntropySDGPredictions(5);
-        await labelDecisionsStore.fetchMaxEntropySDGDecisions(5);
-      } else {
-        // Default behavior for other scenarios
-      }
-    }
+    await handleScenarioSelection();
   } catch (err) {
     error.value = `Error loading data: ${err}`;
   } finally {
     isLoading.value = false;
+  }
+};
+
+const handleScenarioSelection = async () => {
+  if (!gameStore.selectedScenario) {
+    // Scenario was deselected
+    gameStore.clearScenarioData();
+    return;
+  }
+
+  switch (gameStore.selectedScenario) {
+    case "Sparse Instances":
+      await Promise.all([
+        dimensionalityStore.fetchLeastLabeledDimensionalityReductions(5),
+        publicationsStore.fetchLeastLabeledPublications(5),
+        sdgPredictionsStore.fetchLeastLabeledSDGPredictions(5),
+        labelDecisionsStore.fetchLeastLabeledSDGDecisions(5),
+      ]);
+      break;
+
+    case "High Stakes":
+      await Promise.all([
+        dimensionalityStore.fetchMaxEntropyDimensionalityReductions(5),
+        publicationsStore.fetchMaxEntropyPublications(5),
+        sdgPredictionsStore.fetchMaxEntropySDGPredictions(5),
+        labelDecisionsStore.fetchMaxEntropySDGDecisions(5),
+      ]);
+      break;
   }
 };
 </script>
