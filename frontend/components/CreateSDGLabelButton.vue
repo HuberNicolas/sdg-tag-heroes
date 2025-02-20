@@ -15,7 +15,7 @@
 
       <!-- Comment Input -->
       <div class="flex flex-col">
-        <label for="comment" class="text-lg font-medium text-gray-700">Comment (Optional)</label>
+        <label for="comment" class="text-lg font-medium text-gray-700">Share your thoughts (Optional)</label>
         <textarea
           id="comment"
           v-model="comment"
@@ -65,13 +65,7 @@ const submitUserLabel = async () => {
   const currentUser = usersStore.getCurrentUser;
   const selectedSDGLabel = sdgsStore.getSelectedSDGLabel;
 
-  if (!currentUser) {
-    alert("You need to be logged in to submit an SDG label.");
-    return;
-  }
-
   if (selectedSDGLabel === 0) {
-    alert("Please select an SDG before submitting.");
     return;
   }
 
@@ -88,19 +82,14 @@ const submitUserLabel = async () => {
       decision_type: "CONSENSUS_MAJORITY", // Default decision type
     };
 
-
-    console.log(userLabelRequest);
-
     // Send data to the function
     await createOrLinkSDGUserLabel(userLabelRequest);
-    alert("SDG Label submitted successfully!");
 
     // Reset fields after submission
     includeAbstractSection.value = false;
     comment.value = "";
     sdgsStore.setSelectedSDGLabel(0);
   } catch (error) {
-    alert("Failed to submit SDG label. Please try again.");
     console.error("Error submitting SDG label:", error);
   } finally {
     isSubmitting.value = false;

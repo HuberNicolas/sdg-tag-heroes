@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia';
+import useCoinWalletHistories from '~/composables/useCoinWalletHistories';
 import useCoinWallets from '~/composables/useCoinWallets';
-import type { SDGCoinWalletSchemaFull, SDGCoinWalletHistorySchemaFull } from '~/types/sdgCoinWallet';
+import type { SDGCoinWalletSchemaFull  } from '~/types/sdgCoinWallet';
+import type {SDGCoinWalletHistorySchemaFull} from '~/types/sdgCoinWalletHistory'
 
 export const useCoinWalletsStore = defineStore('coinWallets', {
   state: () => ({
     sdgCoinWallets: [] as SDGCoinWalletSchemaFull[],
     userSDGCoinWallet: null as SDGCoinWalletSchemaFull | null,
     sdgCoinWalletHistory: null as SDGCoinWalletHistorySchemaFull | null,
+    latestSDGCoinWalletHistory: null as SDGCoinWalletHistorySchemaFull | null,
   }),
 
   actions: {
@@ -34,6 +37,12 @@ export const useCoinWalletsStore = defineStore('coinWallets', {
       this.sdgCoinWalletHistory = await getSDGCoinWalletHistory(userId);
     },
 
+    // Fetch the latest SDG coin wallet history
+    async fetchLatestSDGCoinWalletHistory() {
+      const { getLatestSDGCoinWalletHistory } = useCoinWalletHistories();
+      this.latestSDGCoinWalletHistory = await getLatestSDGCoinWalletHistory();
+    },
+
     // Add a wallet increment for a specific user
     async addSDGCoinWalletIncrement(userId: number, incrementData: { increment: number; reason?: string }) {
       const { addSDGCoinWalletIncrement } = useCoinWallets();
@@ -54,5 +63,8 @@ export const useCoinWalletsStore = defineStore('coinWallets', {
 
     // Get SDG coin wallet history
     getSDGCoinWalletHistory: (state) => state.sdgCoinWalletHistory,
+
+    // Get latest SDG coin wallet history
+    getLatestSDGCoinWalletHistory: (state) => state.latestSDGCoinWalletHistory,
   },
 });

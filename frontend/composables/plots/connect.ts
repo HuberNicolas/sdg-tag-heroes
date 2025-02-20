@@ -54,9 +54,6 @@ export default function useConnect() {
   };
 
   const renderHexGrid = (selector, width, height) => {
-    //if (!labelDecisionsStore.userLabels.length) return; // Prevent rendering if data isn't ready
-
-
     const xSpacing = hexRadius * 2 * 0.9;
     const ySpacing = Math.sqrt(3) * hexRadius * 0.9;
 
@@ -80,36 +77,29 @@ export default function useConnect() {
       return acc;
     }, {});
 
-    console.log(labelCounts);
-
     const maxVotes = Math.max(...Object.values(labelCounts), 1);
-    const minValue = 0.3;
-    const maxValue = 1.0;
-
-    console.log(maxVotes, minValue, maxValue);
+    const minVotes = 0;
+    const maxVotesForScaling = 9; // 10 votes correspond to 100% filling
 
     coords.forEach(([x, y], i) => {
       const sdgId = i + 1; // SDG IDs are 1-based
-      const totalVotes = Object.values(labelCounts).reduce((sum, count) => sum + count, 0); // Avoid division by zero
       const votes = labelCounts[sdgId] || 0;
-      const voteRatio = votes / totalVotes; // Calculate ratio of votes
+      const voteRatio = votes / maxVotesForScaling; // Calculate ratio of votes
 
-      // Opacity scaling
-      const minOpacity = 0.25; // Minimum opacity (20%)
-      const maxOpacity = 1.0; // Maximum opacity (100%)
-      const opacity = totalVotes > 0 ?
-        minOpacity + (maxOpacity - minOpacity) * 3*voteRatio // Scale opacity based on votes, *3 to scale
-        : maxOpacity;
+      // Filling level scaling
+      const minFilling = 0.1; // 10% filling for 0 votes
+      const maxFilling = 1.0; // 100% filling for 10 votes
+      const fillingLevel = Math.min(minFilling + (maxFilling - minFilling) * voteRatio, maxFilling);
 
-      console.log(`SDG ${sdgId}: ${votes} votes, opacity: ${opacity.toFixed(2)}`);
+      //console.log(`SDG ${sdgId}: ${votes} votes, filling level: ${fillingLevel.toFixed(2)}`);
 
       const color = d3.color(sdgColors[i % sdgColors.length]); // Keep the same color
-      const fillColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity})`; // Adjust only the opacity
-
+      const fillColor = color.toString(); // Use the full color for the outer hexagon
 
       const hexagonGroup = contentGroup.append('g');
       const rotation = 30;
 
+      // Outer hexagon (full color)
       hexagonGroup
         .append('polygon')
         .attr(
@@ -124,10 +114,13 @@ export default function useConnect() {
             })
             .join(' ')
         )
-        .attr('fill', fillColor) // Keep the color but adjust opacity
+        .attr('fill', fillColor)
         .attr('stroke', 'black')
         .attr('stroke-width', 1)
-        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
+        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
+
+      // Inner hexagon (white with adjusted radius based on filling level)
+      const innerRadius = hexRadius * (1-fillingLevel);
 
       hexagonGroup
         .append('polygon')
@@ -137,8 +130,8 @@ export default function useConnect() {
             .map((k) => {
               const angle = Math.PI / 3 * k;
               return [
-                x * xSpacing + 0 * Math.cos(angle),
-                y * ySpacing + 0 * Math.sin(angle),
+                x * xSpacing + innerRadius * Math.cos(angle),
+                y * ySpacing + innerRadius * Math.sin(angle),
               ].join(',');
             })
             .join(' ')
@@ -148,6 +141,7 @@ export default function useConnect() {
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
+      // Text label
       contentGroup
         .append('text')
         .attr('x', x * xSpacing)
@@ -268,7 +262,6 @@ export default function useConnect() {
 
   const initHoverAndClick = () => {
     const hexagons = document.querySelectorAll('.hexagon');
-    console.log(hexagons)
     hexagons.forEach((hex) => {
       hex.addEventListener('click', () => toggleArrow(hex));
     });

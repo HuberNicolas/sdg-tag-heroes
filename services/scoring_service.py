@@ -12,7 +12,6 @@ N_luck = 8  # Peak of the luck effect in vote count
 sigma = 4  # Controls spread of the luck effect
 offset = 10  # Ensures non-negative values
 
-
 def deterministic_luck(N: int, P_max: float) -> float:
     """
     Generates deterministic luck using hashing, ensuring varied but consistent luck effects.
@@ -28,7 +27,6 @@ def deterministic_luck(N: int, P_max: float) -> float:
     hash_value = int(hashlib.sha256(hash_input).hexdigest(), 16) % 1000  # Convert hash to int
     scaled_value = 0.9 + (hash_value / 1000) * 0.2  # Scale to range [0.9, 1.1]
     return (L_max * np.exp(-((N - N_luck) / sigma) ** 2) * scaled_value) + offset  # Offset avoids negative values
-
 
 def score(N: int, P_max: float) -> int:
     """

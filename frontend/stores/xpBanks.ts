@@ -1,12 +1,14 @@
 import { defineStore } from 'pinia';
 import useXPBanks from '~/composables/useXPBanks';
 import type { SDGXPBankSchemaFull, SDGXPBankHistorySchemaFull } from '~/types/sdgXpBank';
+import useXPBankHistories from "~/composables/useXPBankHistories";
 
 export const useXPBanksStore = defineStore('xpBanks', {
   state: () => ({
     xpBanks: [] as SDGXPBankSchemaFull[],
     userXPBank: null as SDGXPBankSchemaFull | null,
     xpBankHistory: [] as SDGXPBankHistorySchemaFull[],
+    latestXPBankHistory: null as SDGXPBankHistorySchemaFull | null,
   }),
 
   actions: {
@@ -26,6 +28,12 @@ export const useXPBanksStore = defineStore('xpBanks', {
     async fetchPersonalXPBank() {
       const { getPersonalXPBank } = useXPBanks();
       this.userXPBank = await getPersonalXPBank();
+    },
+
+    // Fetch the latest XP bank history
+    async fetchLatestXPBankHistory() {
+      const { getLatestXPBankHistory } = useXPBankHistories();
+      this.latestXPBankHistory = await getLatestXPBankHistory();
     },
 
     // Fetch XP bank history for a specific user

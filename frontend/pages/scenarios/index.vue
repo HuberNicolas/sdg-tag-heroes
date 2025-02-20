@@ -6,8 +6,12 @@
       <div class="row-span-10 col-span-5 grid grid-rows-10">
 
         <!-- First Section: Top Half -->
-        <div class="row-span-5 grid grid-cols-2">
-          <p class="mb-4 text-xl font-bold">SDG-Centered</p>
+        <div class="row-span-5 grid grid-cols-2 text-center">
+          <div>
+            <p class="mb-4 text-xl font-bold text-white">SDG-Centered</p>
+            <p class="mb-4 text-xl font-bold">Help us linking publications to SDGs</p>
+          </div>
+
 
           <div class="col-span-1 p-4 flex items-center justify-center">
             <SDGExplorer />

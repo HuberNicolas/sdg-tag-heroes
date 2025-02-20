@@ -14,7 +14,7 @@
         label="Button"
         :trailing="false"
       >
-        <NuxtLink :to="`/labeling2/${selectedPublication.publicationId}`">Label</NuxtLink>
+        <NuxtLink :to="`/labeling/${selectedPublication.publicationId}`">Label</NuxtLink>
       </UButton>
     </div>
 

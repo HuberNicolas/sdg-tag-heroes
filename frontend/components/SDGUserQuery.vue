@@ -39,23 +39,25 @@
       <input
         v-model="userInput"
         type="text"
-        class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500"
         :placeholder="selectedOption === 'interests' ? 'e.g., environment, education' : 'e.g., programming, problem-solving'"
       />
-      <button
+      <UButton
         @click="handleGenerateSuggestion"
-        class="w-full rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
+        :color="'primary'"
+        :variant="'solid'"
         :disabled="loading"
+        :loading="loading"
       >
-        <span v-if="loading" class="flex items-center justify-center">
-          <svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-          </svg>
-          Loading...
-        </span>
-        <span v-else>Get SDG Suggestion</span>
-      </button>
+        <template v-if="loading">
+          <div class="flex items-center justify-center">
+            Loading...
+          </div>
+        </template>
+        <template v-else>
+          Get SDG Suggestion
+        </template>
+      </UButton>
     </div>
 
     <!-- SDG Suggestion Output -->

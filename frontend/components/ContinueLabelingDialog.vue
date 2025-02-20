@@ -48,7 +48,7 @@
                 <h3 class="text-lg font-semibold">{{ pub.title || "Untitled Publication" }}</h3>
                 <span class="text-gray-600">Similarity: {{ (pub.score * 100).toFixed(2) }}%</span>
                 <UButton size="sm" color="primary" variant="solid">
-                  <NuxtLink :to="`/labeling2/${pub.publicationId}`">Continue Labeling</NuxtLink>
+                  <NuxtLink :to="`/labeling/${pub.publicationId}`">Continue Labeling</NuxtLink>
                 </UButton>
               </div>
 
@@ -101,7 +101,7 @@
           <!-- Continue to Labeling Button -->
           <div class="mt-6 text-right">
             <UButton v-if="selectedPublication" size="sm" color="primary" variant="solid">
-              <NuxtLink :to="`/labeling2/${selectedPublication.publicationId}`">Continue Labeling</NuxtLink>
+              <NuxtLink :to="`/labeling/${selectedPublication.publicationId}`">Continue Labeling</NuxtLink>
             </UButton>
           </div>
         </div>
@@ -132,7 +132,7 @@
               <div class="flex justify-between items-center">
                 <h3 class="text-lg font-semibold">{{ pub.title || "Untitled Publication" }}</h3>
                 <UButton size="sm" color="primary" variant="solid">
-                  <NuxtLink :to="`/labeling2/${pub.publicationId}`">Continue Labeling</NuxtLink>
+                  <NuxtLink :to="`/labeling/${pub.publicationId}`">Continue Labeling</NuxtLink>
                 </UButton>
               </div>
 

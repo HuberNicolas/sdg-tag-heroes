@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-center justify-center">
-    <p class="mb-4 text-xl font-bold">Worlds (publication-centered)</p>
+    <p class="mb-4 text-xl font-bold">Explore and link publications from different Worlds</p>
     <ul class="steps">
       <li data-content="1" class="step" :class="getStepClass(1)" @click="selectLevel(1)"></li>
       <li data-content="2" class="step" :class="getStepClass(2)" @click="selectLevel(2)"></li>
@@ -18,7 +18,7 @@
         >
           <div class="text-lg font-bold text-gray-800">World {{ level.level }}</div>
           <div class="text-lg font-bold text-gray-800 press-start-font">{{ level.name }}</div>
-          <div v-if="!isLevelUnlocked(level.level)" class="text-red-500 font-semibold">LOCKED</div>
+          <div v-if="!isLevelUnlocked(level.level)" class="font-semibold">Almost There!</div>
           <div v-if="shouldShowProgress(level.level)" class="w-full bg-gray-300 rounded-md mt-4">
             <div class="bg-gray-500 text-xs text-white text-center rounded-md p-2" :style="{ width: getProgress(level.level) + '%' }">
               {{ userXP }} / {{ level.requiredXP }} XP
@@ -32,8 +32,27 @@
         <div class="card-body">
           <h2 class="card-title press-start-font">{{ selectedWorld.name }}</h2>
           <p>{{ selectedWorld.description }}</p>
-          <button v-if="isLevelUnlocked(selectedLevel)" @click="playWorld" class="btn btn-primary mt-4">Play {{ selectedWorld.name }}</button>
-          <button v-else class="btn btn-disabled disabled mt-4">LOCKED</button>
+          <!-- Play Button -->
+          <UButton
+            v-if="isLevelUnlocked(selectedLevel)"
+            @click="playWorld"
+            :color="'primary'"
+            :variant="'solid'"
+            class="mt-4"
+          >
+            Play {{ selectedWorld.name }}
+          </UButton>
+
+          <!-- Locked Button -->
+          <UButton
+            v-else
+            :color="'primary'"
+            :variant="'solid'"
+            :disabled="true"
+            class="mt-4"
+          >
+            Almost There!
+          </UButton>
         </div>
         <figure>
           <img :src="selectedWorld.image" alt="World Image" />

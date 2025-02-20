@@ -9,6 +9,7 @@
           </div>
           <div class="col-span-1">
             <SDGExplorerLabeling></SDGExplorerLabeling>
+            <HexGlyph :values=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] :height="80" :width="70" />
 
           </div>
         </div>
@@ -87,7 +88,7 @@
       </div>
 
       <div v-if="showContent" class="row-span-1 col-span-3">
-        <!-- <CommentSummary></CommentSummary> -->
+        <CommentSummary></CommentSummary>
       </div>
 
 
@@ -133,6 +134,7 @@ import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
 import { useSDGsStore } from "~/stores/sdgs";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
+import HexGlyph from "~/components/PredictionGlyph.vue";
 
 const gameStore = useGameStore();
 const labelDecisionsStore = useLabelDecisionsStore();

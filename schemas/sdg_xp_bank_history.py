@@ -27,3 +27,10 @@ class SDGXPBankHistorySchemaFull(SDGXPBankHistorySchemaBase):
     model_config = {
         "from_attributes": True
     }
+
+# Not directly derived from models
+# Todo: Generate TS type
+class NoSDGXPBankHistorySchemaBase(BaseModel):
+    message: str = "No bank history found for the user."
+    increment: float = 0.0
+    reason: Optional[str] = "No updates available."

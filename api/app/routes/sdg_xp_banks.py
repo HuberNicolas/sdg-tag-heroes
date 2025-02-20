@@ -9,6 +9,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from models import SDGXPBank, SDGXPBankHistory
 from request_models.sdg_xp_bank import BankIncrementRequest
 from schemas import SDGXPBankHistorySchemaFull, SDGXPBankSchemaFull
+from schemas.sdg_xp_bank_history import NoSDGXPBankHistorySchemaBase
 from settings.settings import XPBanksRouterSettings
 from utils.logger import logger
 
@@ -151,6 +152,41 @@ async def add_bank_increment(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while adding the bank increment",
+        )
+
+@router.get("/latest", response_model=SDGXPBankHistorySchemaFull | NoSDGXPBankHistorySchemaBase)
+async def get_latest_bank_history(
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Get the latest bank history entry for the authenticated user.
+    """
+    try:
+        # Ensure user is authenticated
+        user = verify_token(token, db)
+        user_id = user.user_id
+
+        # Fetch the most recent bank history entry for the user
+        latest_history = (
+            db.query(SDGXPBankHistory)
+            .join(SDGXPBank, SDGXPBank.sdg_xp_bank_id == SDGXPBankHistory.xp_bank_id)
+            .filter(SDGXPBank.user_id == user_id)
+            .order_by(SDGXPBankHistory.timestamp.desc())
+            .first()
+        )
+
+        if latest_history and latest_history.is_shown != 1:  # Ensure it's not already shown
+            latest_history.is_shown = True
+            db.commit()
+            return SDGXPBankHistorySchemaFull.model_validate(latest_history)
+
+        return NoSDGXPBankHistorySchemaBase()
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching the latest bank history: {e}"
         )
 
 

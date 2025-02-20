@@ -11,32 +11,26 @@
 
             <!-- User Profile -->
             <div class="card bg-base-100 w-96 shadow-xl">
-              <figure>
-                <img
-                  src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                  alt="Shoes" />
-              </figure>
               <div class="card-body">
                 <h2 class="card-title">User Profile</h2>
-                <p>Description</p>
+                <p>Explore your profile details</p>
                 <div class="card-actions justify-end">
-                  <UButton>Link</UButton>
+                  <NuxtLink :to="{ name: 'users-id', params: { id: 1 } }" class="btn btn-primary">
+                    View Profile
+                  </NuxtLink>
                 </div>
               </div>
             </div>
 
             <!-- Go back to Worlds -->
             <div class="card bg-base-100 w-96 shadow-xl">
-              <figure>
-                <img
-                  src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                  alt="Shoes" />
-              </figure>
               <div class="card-body">
                 <h2 class="card-title">Worlds</h2>
-                <p>Description</p>
+                <p>Discover new scenarios</p>
                 <div class="card-actions justify-end">
-                  <UButton>Link</UButton>
+                  <NuxtLink :to="{ name: 'scenarios' }" class="btn btn-primary">
+                    Explore Worlds
+                  </NuxtLink>
                 </div>
               </div>
             </div>
@@ -45,14 +39,10 @@
 
           <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
         </form>
-        <h3 class="text-lg font-bold">Hello!</h3>
-        <p class="py-4">Press ESC key or click on ✕ button to close</p>
       </div>
     </dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-
 </script>
-

@@ -5,7 +5,7 @@
     </h1>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-blue-500 text-lg text-center">Loading leaderboard...</div>
+    <div v-if="loading" class="text-lg text-center">Loading leaderboard...</div>
 
     <!-- Error State -->
     <div v-if="error" class="text-red-500 text-lg text-center">
@@ -123,12 +123,14 @@
 
       <!-- Load More Button -->
       <div v-if="visibleCount < leaderboard.length" class="text-center mt-4">
-        <button
+        <UButton
           @click="loadMore"
-          class="px-5 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+          :color="'primary'"
+          :variant="'solid'"
+          class="px-5 py-2"
         >
           Load More
-        </button>
+        </UButton>
       </div>
     </div>
   </div>

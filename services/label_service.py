@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 from enums import SDGType
 from enums.enums import ScenarioType, LevelType
 from models import SDGUserLabel, sdg_label_decision_user_label_association, SDGPrediction, SDGXPBankHistory, \
-    SDGCoinWalletHistory
+    SDGCoinWalletHistory, SDGCoinWallet, SDGXPBank
 from request_models.sdg_user_label import UserLabelRequest
 from schemas import SDGLabelDistribution, SDGUserLabelStatisticsSchema, SDGUserLabelSchemaFull, UserVotingDetails
 from services.decision_service import DecisionService
@@ -27,47 +27,6 @@ class LabelService:
 
     This service ensures fair allocation of **XP (experience points)** and **coins** to incentivize
     user participation and improve labeling quality.
-
-    ## **Reward Logic**
-    ---
-    1. **User submits a label (i.e., votes for an SDG):**
-       - **XP is only awarded after the decision is finalized** (not immediate).
-       - **Coins are awarded in fixed amounts (100, 200, or 300)** based on task difficulty.
-
-    2. **User submits a label with a comment:**
-       - Earns XP and coins as described above.
-       - Additionally, **immediate XP** is granted for knowledge externalization (comment quality).
-       - If the label was correct, an **extra 100% XP is awarded after finalization**.
-
-    3. **User submits a label with a comment & abstract selection:**
-       - Follows the same reward pattern as above.
-       - Earns **higher XP rewards** due to detailed knowledge externalization.
-
-    ## **XP vs. Coin Rewards**
-    ---
-    **Coins:**
-    - **Fixed** rewards (static amounts) based on task difficulty:
-      - **Bronze Task** → 100 Coins
-      - **Silver Task** → 200 Coins
-      - **Gold Task** → 300 Coins
-    - **Only awarded after decision finalization** to users who voted for the final SDG label.
-
-    **XP:**
-    - **Dynamically calculated** based on multiple factors:
-      - **Immediate XP** → Based on **comment quality** (evaluated using Annotation Evaluation).
-      - **Final XP (post-decision)** → Based on SDG correctness and decision entropy.
-    - **Exploration Case (Multiple SDGs):**
-      - XP is determined by entropy, rewarding users based on decision complexity.
-      - Formula: `XP = 10 * entropy` (ranging from **7 - 85 XP**).
-    - **Single SDG Case:**
-      - XP is calculated using a scoring function based on **vote confidence**.
-
-    ## **Notes**
-    ---
-    - **XP from comments is granted immediately**, while XP from labeling is **only given after decision finalization**.
-    - **Coins are static**, while **XP is dynamic and changes based on user input and decision confidence**.
-    - Users submitting **low-quality or spam comments may receive reduced XP rewards**.
-    - The system ensures that contributions are meaningful and aligned with the correct SDG labels.
     """
 
     def __init__(self, db: Session):
@@ -75,14 +34,12 @@ class LabelService:
         self.reward_service = RewardService(db)
         logging.info("LabelService initialized.")
 
-    def create_or_link_label(self, request: UserLabelRequest, is_single_sdg: bool = True) -> SDGUserLabel:
+    def create_or_link_label(self, request: UserLabelRequest) -> SDGUserLabel:
         """
         Create or link an SDGUserLabel, evaluate rewards, and apply a dynamic scoring function.
 
         Args:
             request (UserLabelRequest): The request containing user label data.
-            is_single_sdg (bool, optional): A flag to determine if the decision involves a single SDG.
-                                            If not provided, it will be computed dynamically.
         """
         logging.info("Creating or linking a label.")
         decision_service = DecisionService(self.db)
@@ -121,48 +78,49 @@ class LabelService:
 
         if not prediction:
             logging.warning(f"No SDG prediction found for publication {request.publication_id}. Using default values.")
-            P_max = 1.0  # Fallback if no prediction exists
-            entropy_xp = 10  # Placeholder entropy
         else:
             # Get probability of the SDG the user voted for
             voted_sdg_key = f"sdg{request.voted_label}"
-            P_max = getattr(prediction, voted_sdg_key, 0.0)  # Probability of the voted SDG
-            entropy_xp = prediction.entropy  # Entropy from prediction model
-
-
-
-        """
-            score_value = 0
-            if is_single_sdg:
-            # **Single SDG Case → Scoring Function Based on Votes**
-            user_votes = len(decision.user_labels)
-            score_value = score(user_votes, P_max)
-            logging.info(f"Computed score for Single SDG case (Label {new_user_label.label_id}): {score_value:.2f}")
-
-        else:
-            # **Multiple SDG Case → Use Entropy-Based XP**
-            score_value = 10 * entropy_xp  # Scaling entropy to XP system
-            logging.info(f"Computed score for Multiple SDG case (Label {new_user_label.label_id}): {score_value:.2f}")
-        """
-
 
         # **Immediate XP Reward Calculation**
-        xp_reward = self.reward_service._calculate_xp(new_user_label)
-        logging.info(f"XP Rewarded: {xp_reward} for user label {new_user_label.label_id}")
+
+        base_xp = prediction.entropy * 10
+        additional_xp = self.reward_service._calculate_xp(new_user_label)
+        total_xp = additional_xp + base_xp
+
+        logging.info(
+            f"User {new_user_label.user_id} gets {total_xp} = {base_xp} (Base) + {additional_xp} (Additional) XP.")
 
         # **Convert voted_label (int) to SDGType Enum**
         new_user_sdg_enum_value = SDGType[f"SDG_{new_user_label.voted_label}"]
 
+        # **Fetch the user's XP bank**
+        xp_bank = self.db.query(SDGXPBank).filter(SDGXPBank.user_id == request.user_id).first()
+
+        if not xp_bank:
+            raise ValueError(f"No XP bank found for user {request.user_id}")
+
+        # **Update total XP and specific SDG XP**
+        xp_bank.total_xp += total_xp
+
+        # **Determine which SDG field to update**
+        sdg_xp_field = f"sdg{request.voted_label}_xp"
+
+        if hasattr(xp_bank, sdg_xp_field):
+            setattr(xp_bank, sdg_xp_field, getattr(xp_bank, sdg_xp_field) + total_xp)
+        else:
+            raise ValueError(f"Invalid SDG XP field: {sdg_xp_field}")
+
         # **Log XP Gain in SDGXPBankHistory**
         xp_history_entry = SDGXPBankHistory(
-            xp_bank_id=request.user_id,  # Assuming XP bank is linked to user ID
+            xp_bank_id=request.user_id,
             sdg=new_user_sdg_enum_value,
-            increment=xp_reward,
+            increment=total_xp,
             reason="Initial XP reward for SDG labeling",
-            is_shown=True,
+            is_shown=False,
         )
         self.db.add(xp_history_entry)
-        logging.info(f"Logged XP transaction for user {request.user_id}: {xp_reward} XP.")
+        logging.info(f"Logged XP transaction for user {request.user_id}: {total_xp} XP.")
 
         # **Final Coin & XP Reward if Consensus is Reached**
         if decision.decided_label:
@@ -170,56 +128,37 @@ class LabelService:
             # **Determine Task Difficulty Based on SDG Probability**
             voted_sdg_key = f"sdg{request.voted_label}"
             P_max = getattr(prediction, voted_sdg_key, 0.0)  # Probability of the voted SDG
-
             level = LevelType.get_level(P_max)
-            coin_reward = level.coins
 
             logging.info(
-                f"Consensus reached! Awarding {coin_reward} Coins (Level: {level}, ({level.min_prob}) -  ({level.max_prob}), (Prediction: {P_max} for {voted_sdg_key})) to users who voted correctly.")
+                f"Consensus reached! (Level: {level}, ({level.min_prob}) -  ({level.max_prob}), (Prediction: {P_max} for {voted_sdg_key})) to users who voted correctly.")
 
             # **Sort labels by created_at to calculate score incrementally**
             sorted_labels = sorted(decision.user_labels, key=lambda x: x.labeled_at)
 
+            rewarded_user_ids = []
+
             # **Award XP & Coins to All Users Who Voted Correctly**
             for idx, label in enumerate(sorted_labels):
                 if label.voted_label == decision.decided_label:
+
+                    if label.user_id in rewarded_user_ids:
+                        logging.info(f"User {label.user_id} has already received a coin reward. Skipping reward.")
+                        continue  # Skip if user has already been rewarded
+
                     # **Calculate score based on the number of votes up to this point**
                     user_votes = idx + 1  # Incremental votes
-                    score_value = score(user_votes, P_max) if is_single_sdg else 10 * entropy_xp
 
-                    # **Base XP is now the score_value**
-                    base_xp = score_value
+                    coin_reward = score(user_votes, P_max)
 
-                    additional_xp = self.reward_service._calculate_xp(label)
-                    total_xp = additional_xp + base_xp
-                    logging.info(f"User {label.user_id} gets {total_xp} XP and {coin_reward} Coins.")
+                    # **Retrieve or Create SDGCoinWallet**
+                    user_wallet = self.db.query(SDGCoinWallet).filter(SDGCoinWallet.user_id == label.user_id).first()
+                    if not user_wallet:
+                        user_wallet = SDGCoinWallet(user_id=label.user_id, total_coins=0.0)
+                        self.db.add(user_wallet)
 
-                    # **Convert voted_label (int) to SDGType Enum**
-                    sdg_enum_value = SDGType[f"SDG_{label.voted_label}"]
-
-                    # **Log Base XP in SDGXPBankHistory**
-                    base_xp_entry = SDGXPBankHistory(
-                        xp_bank_id=label.user_id,
-                        sdg=sdg_enum_value,
-                        increment=base_xp,
-                        reason=f"Base XP for SDG {label.voted_label} after decision consensus (Publication {decision.publication_id})",
-                        is_shown=False,
-                    )
-                    self.db.add(base_xp_entry)
-                    logging.info(f"Logged Base XP transaction for user {label.user_id}: +{base_xp} XP.")
-
-                    # **Log Comment Bonus XP in SDGXPBankHistory (If Applicable)**
-                    if label.comment:
-                        comment_xp_entry = SDGXPBankHistory(
-                            xp_bank_id=label.user_id,
-                            sdg=sdg_enum_value,
-                            increment=additional_xp,
-                            reason=f"Bonus XP for providing a comment on SDG {label.voted_label} (Publication {decision.publication_id})",
-                            is_shown=False,
-                        )
-                        self.db.add(comment_xp_entry)
-                        logging.info(
-                            f"Logged Comment Bonus XP transaction for user {label.user_id}: +{additional_xp} XP.")
+                    # **Update the total coins**
+                    user_wallet.total_coins += coin_reward
 
                     # **Log Coin Reward in SDGCoinWalletHistory**
                     coin_entry = SDGCoinWalletHistory(
@@ -229,7 +168,10 @@ class LabelService:
                         is_shown=False,
                     )
                     self.db.add(coin_entry)
-                    logging.info(f"Logged coin transaction for user {label.user_id}: +{coin_reward} Coins.")
+                    logging.info(
+                        f"Logged coin transaction for user {label.user_id}: +{coin_reward} Coins. Updated total: {user_wallet.total_coins}")
+
+                    rewarded_user_ids.append(label.user_id)
 
         self.db.commit()
         self.db.refresh(new_user_label)

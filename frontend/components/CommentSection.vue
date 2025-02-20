@@ -163,7 +163,7 @@
             <div class="flex items-center gap-4 mt-2 h-[50px]">
               <p class="font-semibold text-gray-700">User Votes</p>
               <!-- Vote Plot -->
-              <BarVotePlot :width="150" :height="50" :votesData="getLabelVotes(label.labelId)" />
+              <BarVotePlot :width="150" :height="100" :votesData="getLabelVotes(label.labelId)" />
 
               <!-- Vote Buttons -->
               <div class="flex items-center gap-2 mt-2">
