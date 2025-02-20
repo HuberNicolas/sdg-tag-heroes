@@ -121,7 +121,7 @@ const updateChart = () => {
   const selectedBar = svg.append('rect')
     .attr('x', 0)
     .attr('y', 0)
-    .attr('height', '40%')
+    .attr('height', '20%')
     .attr('fill', sdgColor.value)
     .attr('width', 0);
 
@@ -148,7 +148,7 @@ const updateChart = () => {
   const filteredBar = svg.append('rect')
     .attr('x', widthScale(selected) + '%')
     .attr('y', 0)
-    .attr('height', '40%')
+    .attr('height', '20%')
     .attr('fill', '#D1D5DB')
     .attr('width', 0);
 
@@ -175,11 +175,11 @@ const updateChart = () => {
   let xOffset = 0;
 
 
-// Stack the SDG colors inside the same bar
+  // Stack the SDG colors inside the same bar
   selectedDistribution.forEach(({ proportion, color, sdgId }) => {
     const sdgBar = svg.append('rect')
       .attr('x', xOffset + '%') // Position horizontally
-      .attr('y', '40%') // Same Y position as grey bar
+      .attr('y', '20%') // Same Y position as grey bar
       .attr('height', '40%') // Maintain same bar height
       .attr('fill', color) // Use each SDG's color
       .attr('width', 0); // Start at 0 for animation

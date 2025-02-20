@@ -1,27 +1,25 @@
 <template>
   <div class="h-full overflow-hidden">
     <div class="grid grid-rows-10 grid-cols-10 h-full">
-      <div class="row-span-3 col-span-5 p-1">
+      <div class="row-span-4 col-span-5 p-1">
         <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
           <div class="row-span-4 col-span-6">
             <CollectionSelector></CollectionSelector>
           </div>
-          <QuestSectionPublications></QuestSectionPublications>
-
+          <div class="row-span-2 col-span-3">
+            <QuestSectionPublications></QuestSectionPublications>
+          </div>
           <div class="row-span-2 col-span-3">
             <ExplorationUserQuery></ExplorationUserQuery>
           </div>
         </div>
-
-
-
       </div>
 
       <div class="row-span-6 col-span-5 p-1">
         <PublicationsTableExploration></PublicationsTableExploration>
       </div>
 
-      <div class="row-span-4 col-span-5 p-1">
+      <div class="row-span-3 col-span-5 p-1">
         <ScatterPlot
           v-if="selectedLevel !== null"
           :width="scatterPlotWidth"
@@ -32,25 +30,28 @@
         <PublicationDetails></PublicationDetails>
       </div>
 
-      <div class="row-span-3 col-span-5  p-1">
+      <div class="row-span-3 col-span-5 p-1">
+        <div class="grid grid-rows-11 grid-cols-3 h-full">
+          <div class="row-span-1 col-span-3 "> <div class="frame-title"><b>Investigate</b> the machine-scores and the XP distribution of the selected Publications</div></div>
 
-        <div class="grid grid-rows-2 grid-cols-3 h-full">
-          <div class="row-span-1 col-span-1 ">
+
+          <div class="row-span-5 col-span-1 ">
             <div class="flex justify-center">
               <FilterStateExploration></FilterStateExploration>
             </div>
           </div>
-          <div class="row-span-2 col-span-2 ">
+          <div class="row-span-10 col-span-2 ">
             <div class="flex justify-center">
               <RainPlotExploration />
             </div>
           </div>
-          <div class="row-span-1 col-span-1 ">
+          <div class="row-span-5 col-span-1 ">
             <BarPlot />
           </div>
-
         </div>
       </div>
+
+
     </div>
   </div>
 </template>

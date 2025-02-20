@@ -6,7 +6,7 @@
       <div class="row-span-10 col-span-5 grid grid-rows-10">
 
         <!-- First Section: Top Half -->
-        <div class="row-span-5 grid grid-cols-2 text-center">
+        <div class="row-span-6 grid grid-cols-2 text-center">
           <div>
             <p class="mb-4 text-xl font-bold text-white">SDG-Centered</p>
             <p class="mb-4 text-xl font-bold">Help us linking publications to SDGs</p>
@@ -22,7 +22,7 @@
         </div>
 
         <!-- Second Section: Bottom Half -->
-        <div class="row-span-5 flex items-center justify-center">
+        <div class="row-span-4 flex items-center justify-center">
           <SDGUserQuery />
         </div>
       </div>

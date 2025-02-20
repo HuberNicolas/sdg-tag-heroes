@@ -1,54 +1,54 @@
 <template>
-  <form @submit.prevent="handleUserPointGenerator" class="max-w-md mx-auto space-y-6 bg-card rounded-lg shadow-sm p-6">
-    <!-- Radio group -->
-    <div class="flex items-center space-x-4">
-      <label class="text-sm font-medium text-muted-foreground">Mode:</label>
-      <label v-for="option in ['skills', 'interests']"
-             :key="option"
-             class="flex items-center space-x-2 cursor-pointer">
-        <input
-          type="radio"
-          :value="option"
-          :checked="mode === option"
-          @change="mode = $event.target.value"
-          class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-primary rounded-full"
-        >
-        <span class="text-sm">{{ option }}</span>
-      </label>
-    </div>
+  <div class="frame-container">
+    <div class="frame-title"><b>Generate</b> your personalized Point of Interest 📍</div>
 
-    <!-- Input field -->
-    <div class="relative">
-      <input v-model="inputValue"
-             type="text"
-             class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 placeholder:text-muted-foreground transition-colors duration-200"
-             :placeholder="mode === 'skills' ? 'e.g., programming, problem-solving' : 'e.g., environment, education'"
-      />
-    </div>
+    <form @submit.prevent="handleUserPointGenerator" class="">
+      <!-- Radio group and button in the same row -->
+      <div class="flex items-center justify-between">
+        <!-- Nuxt UI Radio Group with horizontal alignment -->
+        <URadioGroup
+          v-model="mode"
+          legend="Sharing: "
+          :options="[
+          { value: 'skills', label: 'skills' },
+          { value: 'interests', label: 'interests' }
+        ]"
+          class="flex space-x-4"
+        />
 
-    <!-- Submit button with loading state -->
-    <!-- icon="mdi-map-marker-outline" -->
-    <UButton
-    type="submit"
-    color="primary"
-    variant="solid"
-    :loading="isLoading"
-    :disabled="isLoading"
-    class="w-full"
-  >
-
-    <!-- Button text -->
-      {{ isLoading ? 'Processing...' : 'Calculate Point of Interest 📍' }}
-
-      <!-- Trailing loading indicator -->
-      <template #trailing>
-        <div v-if="isLoading">
-          <i class="animate-spin i-heroicons-spinner"></i>
+        <!-- Input field -->
+        <div class="relative">
+          <input
+            v-model="inputValue"
+            type="text"
+            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 placeholder:text-muted-foreground transition-colors duration-200"
+            :placeholder="mode === 'skills' ? 'e.g., programming, problem-solving' : 'e.g., environment, education'"
+          />
         </div>
-      </template>
-    </UButton>
-  </form>
+
+        <!-- Submit button -->
+        <UButton
+          type="submit"
+          color="primary"
+          variant="solid"
+          :loading="isLoading"
+          :disabled="isLoading"
+          class="w-auto"
+        >
+          {{ isLoading ? 'Processing...' : 'Calculate POI 📍' }}
+          <template #trailing>
+            <div v-if="isLoading">
+              <i class="animate-spin i-heroicons-spinner"></i>
+            </div>
+          </template>
+        </UButton>
+      </div>
+    </form>
+  </div>
+
+
 </template>
+
 
 <script>
 import useGPTAssistantService from "@/composables/useGPTAssistantService";
@@ -109,4 +109,3 @@ export default {
   },
 };
 </script>
-

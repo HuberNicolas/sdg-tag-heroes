@@ -1,22 +1,30 @@
 <template>
-  <div>
+  <div class="frame-container">
+    <div class="frame-title"><b>Select</b> Topics you are interested to find interesting publications from the <b> Topic List</b></div>
     <!-- Selected filter badges summary -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-4">
 
-      <div class="flex items-center gap-3">
-        <div class="flex gap-2">
-          <button
+      <div class="flex items-center gap-4">
+        <div class="flex gap-2 p-2">
+          <!-- Reset Button -->
+          <UButton
+            icon="i-heroicons-arrow-path"
             @click="resetSelection"
-            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            :color="'primary'"
+            :variant="'solid'"
           >
             Reset
-          </button>
-          <button
+          </UButton>
+
+          <!-- Select All Button -->
+          <UButton
+            icon="i-heroicons-check-circle"
             @click="selectAllCollections"
-            class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            :color="'primary'"
+            :variant="'solid'"
           >
             Select All
-          </button>
+          </UButton>
         </div>
       </div>
 

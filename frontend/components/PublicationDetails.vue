@@ -49,9 +49,9 @@
       <div v-if="factLoading" class="text-center">
         <span class="loading loading-bars loading-lg"></span> Loading Fact...
       </div>
-      <div v-else-if="fact && fact.content" class="mt-4 bg-blue-100 p-3 rounded-lg">
-        <h3 class="text-lg font-semibold text-blue-700">Did You Know?</h3>
-        <p class="text-blue-700">{{ fact.content }}</p>
+      <div v-else-if="fact && fact.content" class="mt-4 p-3 rounded-lg" :style="{ backgroundColor: sdgColor }">
+        <h3 class="text-lg font-semibold" :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">Did You Know?</h3>
+        <p :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">{{ fact.content }}</p>
       </div>
     </div>
 
@@ -74,11 +74,15 @@
 <script>
 import { ref, watch, onMounted } from "vue";
 import { usePublicationsStore } from "@/stores/publications";
+import { useSDGsStore } from "~/stores/sdgs";
+import { useGameStore } from "~/stores/game";
 import usePublications from "@/composables/usePublications";
 
 export default {
   setup() {
     const publicationsStore = usePublicationsStore();
+    const gameStore = useGameStore();
+    const sdgsStore = useSDGsStore();
     const { getPublicationKeywords, getPublicationFact, getPublicationSummary } = usePublications();
 
     const selectedPublication = ref(publicationsStore.selectedPublication);
@@ -122,6 +126,18 @@ export default {
       }
     };
 
+    // Get the currently selected SDG
+    const currentSDG = computed(() => {
+      const sdgId = gameStore.getSDG;
+      return sdgsStore.sdgs.find((sdg) => sdg.id === sdgId) || null;
+    });
+
+    // Computed property to get the color of the selected SDG
+    const sdgColor = computed(() => {
+      return currentSDG.value ? sdgsStore.getColorBySDG(currentSDG.value.id) : "#525252"; // Default gray if no SDG
+    });
+
+
     // Watch for changes in the selected publication and fetch additional data
     watch(() => publicationsStore.selectedPublication, (newPublication) => {
       selectedPublication.value = newPublication;
@@ -142,7 +158,9 @@ export default {
       summary,
       keywordsLoading,
       factLoading,
-      summaryLoading
+      summaryLoading,
+      currentSDG,
+      sdgColor,
     };
   }
 };

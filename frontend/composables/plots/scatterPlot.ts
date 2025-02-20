@@ -140,13 +140,31 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       type: 'scattergl',
       width: width,
       height: height,
-      margin: { t: 40, r: 20, b: 40, l: 40 },
+      //margin: { t: 40, r: 20, b: 40, l: 40 },
       xaxis: { visible: false },
       yaxis: { visible: false },
       dragmode: 'lasso',
       showlegend: false,
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
+
+      margin: { t: 5, r: 5, b: 20, l: 5 },
+      // Frame properties
+      // Frame properties
+      shapes: [{
+        type: 'rect',
+        xref: 'paper',
+        yref: 'paper',
+        x0: 0,
+        y0: 0,
+        x1: 1,
+        y1: 1,
+        line: {
+          width: 1,
+          color: '#e2e8f0', // Similar to border-gray-300
+        },
+        fillcolor: 'rgba(0,0,0,0)',
+      }],
     };
 
     // Render the plot

@@ -1,121 +1,124 @@
 <template>
-  <div class="max-h-[600px] overflow-y-auto h-full">
-    <!-- Scrollable container -->
-    <table
-      class="w-full border-collapse"
-      @mouseleave="publicationsStore.setHoveredPublication(null)"
-    >
-      <thead>
-      <tr class="bg-gray-100">
-        <th
-          @click="sortTable('title')"
-          class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
-          :class="{ 'font-bold text-gray-800': sortKey === 'title' }"
-        >
-          Title
-          <span v-if="sortKey === 'title'">
+  <div class="frame-container">
+    <div class="frame-title"><b>Scroll</b> through the selected Publications</div>
+    <div class="max-h-[600px] overflow-y-auto h-full">
+      <!-- Scrollable container -->
+      <table
+        class="w-full border-collapse"
+        @mouseleave="publicationsStore.setHoveredPublication(null)"
+      >
+        <thead>
+        <tr class="bg-gray-100">
+          <th
+            @click="sortTable('title')"
+            class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
+            :class="{ 'font-bold text-gray-800': sortKey === 'title' }"
+          >
+            Title
+            <span v-if="sortKey === 'title'">
               {{ sortOrder === 'asc' ? '▲' : '▼' }}
             </span>
-          <span v-else class="text-gray-400">↕</span>
-        </th>
-        <th class="border border-gray-300 p-2">Glyph</th>
-        <th class="border border-gray-300 p-2">Top SDGs</th>
+            <span v-else class="text-gray-400">↕</span>
+          </th>
+          <th class="border border-gray-300 p-2">Glyph</th>
+          <th class="border border-gray-300 p-2">Top SDGs</th>
 
-        <th @click="sortTable('coins')"
-            class="border border-gray-300 p-2 sortable-header"
-            :class="{ 'active-sort': sortKey === 'coins' }">
-          Coins
-          <span v-if="sortKey === 'coins'">
+          <th @click="sortTable('coins')"
+              class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'coins' }">
+            Coins
+            <span v-if="sortKey === 'coins'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-          <span v-else class="text-gray-400">↕</span>
-        </th>
+            <span v-else class="text-gray-400">↕</span>
+          </th>
 
-        <th @click="sortTable('xp')"
-            class="border border-gray-300 p-2 sortable-header"
-            :class="{ 'active-sort': sortKey === 'xp' }">
-          XP
-          <span v-if="sortKey === 'xp'">
+          <th @click="sortTable('xp')"
+              class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'xp' }">
+            XP
+            <span v-if="sortKey === 'xp'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-          <span v-else class="text-gray-400">↕</span>
-        </th>
+            <span v-else class="text-gray-400">↕</span>
+          </th>
 
-        <th @click="sortTable('year')"
-            class="border border-gray-300 p-2 sortable-header"
-            :class="{ 'active-sort': sortKey === 'year' }">
-          Year
-          <span v-if="sortKey === 'year'">
+          <th @click="sortTable('year')"
+              class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'year' }">
+            Year
+            <span v-if="sortKey === 'year'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-          <span v-else class="text-gray-400">↕</span>
-        </th>
-        <th @click="sortTable('collectionName')"
-            class="border border-gray-300 p-2 sortable-header"
-            :class="{ 'active-sort': sortKey === 'collectionName' }">
-          Topic
-          <span v-if="sortKey === 'collectionName'">
+            <span v-else class="text-gray-400">↕</span>
+          </th>
+          <th @click="sortTable('collectionName')"
+              class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'collectionName' }">
+            Topic
+            <span v-if="sortKey === 'collectionName'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-          <span v-else class="text-gray-400">↕</span>
-        </th>
+            <span v-else class="text-gray-400">↕</span>
+          </th>
 
-        <th @click="sortTable('scenarioType')"
-            class="border border-gray-300 p-2 sortable-header"
-            :class="{ 'active-sort': sortKey === 'scenarioType' }">
-          Scenario
-          <span v-if="sortKey === 'scenarioType'">
+          <th @click="sortTable('scenarioType')"
+              class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'scenarioType' }">
+            Quest
+            <span v-if="sortKey === 'scenarioType'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-          <span v-else class="text-gray-400">↕</span>
-        </th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-if="sortedTableData.length === 0">
-        <td colspan="8" class="border border-gray-300 p-4 text-center text-gray-500">
-          No publications selected. Please use the lasso selection tool in the scatter plot to select data points.
-        </td>
-      </tr>
-      <tr
-        v-for="(item, index) in sortedTableData"
-        :key="index"
-        class="hover:bg-gray-50"
-        @mouseover="publicationsStore.setHoveredPublication(item)"
-        @mouseleave="publicationsStore.setHoveredPublication(null)"
-        :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSdg) : '' }">
+            <span v-else class="text-gray-400">↕</span>
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-if="sortedTableData.length === 0">
+          <td colspan="8" class="border border-gray-300 p-4 text-center text-gray-500">
+            No publications selected. Please use the lasso selection tool in the scatter plot to select data points.
+          </td>
+        </tr>
+        <tr
+          v-for="(item, index) in sortedTableData"
+          :key="index"
+          class="hover:bg-gray-50"
+          @mouseover="publicationsStore.setHoveredPublication(item)"
+          @mouseleave="publicationsStore.setHoveredPublication(null)"
+          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSdg) : '' }">
 
-        <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
-            @click="handlePublicationClick(item)">
-          {{ item.title }}
-        </td>
-        <td class="border border-gray-300 p-2 flex items-center justify-center">
-          <HexGlyph :values="item.values" :height="80" :width="70" :key="item.publicationId + '-' + sortKey + '-' + sortOrder" />
-        </td>
-        <td class="border border-gray-300 p-2">
-          <BarPredictionPlot :values="item.values" :width="80" :height="60" />
-        </td>
-        <td class="border border-gray-300 p-2">{{ item.coins }}</td>
-        <td class="border border-gray-300 p-2">{{ item.xp }}</td>
-        <td class="border border-gray-300 p-2">{{ item.year }}</td>
-        <td class="border border-gray-300 p-2 flex flex-auto justify-evenly content-center">
-          <UTooltip :text="item.collectionName">
-            <Icon :name="item.collectionSymbol" class="w-8 h-8 text-gray-400" />
-          </UTooltip>
-        </td>
+          <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
+              @click="handlePublicationClick(item)">
+            {{ item.title }}
+          </td>
+          <td class="border border-gray-300 p-2 flex items-center justify-center">
+            <HexGlyph :values="item.values" :height="80" :width="70" :key="item.publicationId + '-' + sortKey + '-' + sortOrder" />
+          </td>
+          <td class="border border-gray-300 p-2">
+            <BarPredictionPlot :values="item.values" :width="80" :height="60" />
+          </td>
+          <td class="border border-gray-300 p-2">{{ item.coins }}</td>
+          <td class="border border-gray-300 p-2">{{ item.xp }}</td>
+          <td class="border border-gray-300 p-2">{{ item.year }}</td>
+          <td class="border border-gray-300 p-2 flex flex-auto justify-evenly content-center">
+            <UTooltip :text="item.collectionName">
+              <Icon :name="item.collectionSymbol" class="w-8 h-8 text-gray-400" />
+            </UTooltip>
+          </td>
 
-        <td class="border border-gray-300 p-2">
-          <template v-if="item.scenarioType !== 'No Scenario'">
-            <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
-          </template>
-          <template v-else>
-            No Scenario
-          </template>
-        </td>
+          <td class="border border-gray-300 p-2">
+            <template v-if="item.scenarioType !== 'No Scenario'">
+              <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
+            </template>
+            <template v-else>
+              No Quest
+            </template>
+          </td>
 
-      </tr>
-      </tbody>
-    </table>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 

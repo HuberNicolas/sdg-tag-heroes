@@ -59,7 +59,7 @@ const updateChart = () => {
   const data = entropyData.value;
   const width = chartContainer.value.clientWidth;
   const height = 240;
-  const margin = { top: 5, right: 80, bottom: 30, left: 80 };
+  const margin = { top: 5, right: 80, bottom: 50, left: 80 };
 
   if (!data || data.length === 0) {
     d3.select(chartContainer.value).select("svg").remove();
@@ -301,7 +301,7 @@ const updateChart = () => {
     .append("circle")
     .attr("r", 5)
     .attr("cx", d => xScale(d))
-    .attr("cy", d => height * 0.8 + jitterMap.get(d)) // Use stored jitter value
+    .attr("cy", d => height * 0.7 + jitterMap.get(d)) // Use stored jitter value
     .style("fill", d => {
       const prediction = entropyLookup.get(d);
       if (!prediction) return "grey";

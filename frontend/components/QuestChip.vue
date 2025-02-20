@@ -1,8 +1,8 @@
 <template>
   <UTooltip :text="tooltip">
-    <UChip size="md" position="bottom-right" :ui="{ base: '-mx-2 rounded-none ring-0', background: '' }">
+    <UChip size="md" position="bottom-right" :ui="{ base: 'rounded-none ring-0', background: '' }">
       <template #content>
-        <UAvatar :icon="icon" size="xl" />
+        <UAvatar :icon="icon" size="md" />
       </template>
     </UChip>
   </UTooltip>
