@@ -1,33 +1,39 @@
 <template>
-  <div class="bg-white p-6 rounded-lg shadow-md">
-    <!-- SDG Cards -->
-    <div class="flex flex-wrap gap-1 p-1">
-      <div
-        v-for="sdg in sdgs"
-        :key="sdg.id"
-        @click="selectSDG(sdg.id)"
-        :class="[
-          'cursor-pointer flex flex-col items-center justify-center rounded-lg p-2 w-14 h-14 transition-all duration-200',
+
+  <div class="frame-container">
+    <div class="frame-title"><b>Select</b> the SDG you want to see the machine explanation</div>
+    <div class="bg-white p-1 rounded-lg shadow-md">
+      <!-- SDG Cards -->
+      <div class="flex flex-wrap gap-1 p-1">
+        <div
+          v-for="sdg in sdgs"
+          :key="sdg.id"
+          @click="selectSDG(sdg.id)"
+          :class="[
+          'cursor-pointer flex flex-col items-center justify-center rounded-lg p-3 w-10 h-10 transition-all duration-200',
           selectedSDG === sdg.id
-            ? 'bg-gray-600 text-white shadow-lg border-2 border-black' // Selected state
+            ? 'bg-gray-300 border-2 border-black' // Selected state
             : 'bg-white hover:bg-gray-100 border-2 border-transparent hover:border-gray-200', // Default and hover states
         ]"
-      >
-        <!-- SDG Icon -->
-        <img
-          v-if="sdg.icon"
-          :src="`data:image/svg+xml;base64,${sdg.icon}`"
-          :alt="`SDG ${sdg.id} Icon`"
-          class="w-8 h-8 object-contain"
-        />
+        >
+          <!-- SDG Icon -->
+          <img
+            v-if="sdg.icon"
+            :src="`data:image/svg+xml;base64,${sdg.icon}`"
+            :alt="`SDG ${sdg.id} Icon`"
+            class="w-8 h-8 object-contain"
+          />
 
-        <!-- SDG Short Title -->
-        <span class="text-xs text-center mt-1">
+          <!-- SDG Short Title -->
+          <span class="text-xs text-center mt-1">
           {{ sdg.shortTitle }}
         </span>
+        </div>
       </div>
     </div>
   </div>
+
+
 </template>
 
 

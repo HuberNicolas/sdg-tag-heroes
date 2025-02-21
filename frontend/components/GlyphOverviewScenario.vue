@@ -39,7 +39,7 @@ const glyphStyles = computed(() => {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: 'translate(-220%, -90%)',
+    transform: 'translate(-230%, -70%)',
   };
 });
 

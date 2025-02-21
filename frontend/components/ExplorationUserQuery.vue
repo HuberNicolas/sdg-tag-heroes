@@ -8,7 +8,7 @@
         <!-- Nuxt UI Radio Group with horizontal alignment -->
         <URadioGroup
           v-model="mode"
-          legend="Sharing: "
+          legend=""
           :options="[
           { value: 'skills', label: 'skills' },
           { value: 'interests', label: 'interests' }
@@ -22,7 +22,7 @@
             v-model="inputValue"
             type="text"
             class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 placeholder:text-muted-foreground transition-colors duration-200"
-            :placeholder="mode === 'skills' ? 'e.g., programming, problem-solving' : 'e.g., environment, education'"
+            :placeholder="mode === 'skills' ? 'I work as a nurse' : 'I like to play the piano'"
           />
         </div>
 

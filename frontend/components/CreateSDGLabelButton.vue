@@ -2,40 +2,44 @@
   <div class="container mx-auto p-4">
     <!-- Form Section -->
     <form @submit.prevent="submitUserLabel" class="space-y-4">
-      <!-- Checkbox for Abstract Section -->
-      <div class="flex items-center">
-        <input
-          type="checkbox"
-          v-model="includeAbstractSection"
-          id="include_abstract_section"
-          class="mr-2"
-        />
-        <label for="include_abstract_section" class="text-lg font-medium text-gray-700">Include Abstract Section</label>
-      </div>
-
       <!-- Comment Input -->
       <div class="flex flex-col">
-        <label for="comment" class="text-lg font-medium text-gray-700">Share your thoughts (Optional)</label>
+        <label for="comment" class="text-lg font-medium text-gray-700">Tell the community, why you labeled it like this (Optional)</label>
         <textarea
           id="comment"
           v-model="comment"
-          rows="4"
-          class="mt-1 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          rows="1"
+          class="mt-1 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
           placeholder="Add a comment (optional)"
         ></textarea>
       </div>
 
-      <!-- Submit Button -->
-      <UButton
-        icon="i-heroicons-check-circle"
-      size="sm"
-      color="primary"
-      variant="solid"
-      :label="isSubmitting ? 'Submitting...' : 'Submit SDG Label'"
-      :disabled="isSubmitting"
-      :trailing="false"
-      type="submit"
-      />
+
+      <div class="flex items-center justify-between mt-4">
+        <div>
+          <!-- Checkbox for Abstract Section -->
+          <input
+            type="checkbox"
+            v-model="includeAbstractSection"
+            class="form-checkbox h-5 w-5 text-gray-600 mr-2"
+            id="include_abstract_section"
+
+          />
+          <label for="include_abstract_section" class="text-lg font-medium text-gray-700">Include Abstract Section</label>
+        </div>
+
+        <!-- Submit Button -->
+        <UButton
+          icon="i-heroicons-check-circle"
+          size="sm"
+          color="primary"
+          variant="solid"
+          :label="isSubmitting ? 'Submitting...' : 'Submit SDG Label'"
+          :disabled="isSubmitting"
+          :trailing="false"
+          type="submit"
+        />
+      </div>
     </form>
   </div>
 </template>

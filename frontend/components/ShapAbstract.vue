@@ -1,23 +1,30 @@
 <template>
-  <div class="container mx-auto p-4">
-    <!-- Abstract Display -->
-    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col min-h-[400px]">
-      <h1 class="text-2xl font-bold">{{ publication?.title }}</h1>
+  <div class="frame-container">
+    <!-- Frame Title with ShapToggle -->
+    <div class="frame-title flex justify-between items-center">
+      <span><b>Read Publication</b> either with or without Machine Explanations</span>
+      <ShapToggle />
+    </div>
 
-      <!-- Abstract content that fills the remaining space -->
-      <div
-        v-if="showShap && explanation"
-        class="h-[500px] overflow-y-auto text-justify"
-        @mouseup="handleAbstractSelection"
-        v-html="shapHighlightedAbstract"
-      ></div>
-      <div v-else class="h-[500px] overflow-y-auto text-justify">
-        {{ publication?.description || "No abstract available." }}
+    <div class="container mx-auto p-2">
+      <!-- Abstract Display -->
+      <div class="bg-white p-2 rounded-lg shadow-md flex flex-col min-h-[400px]">
+        <h1 class="text-xl font-bold mb-1">{{ publication?.title }}</h1>
+
+        <!-- Abstract content that fills the remaining space -->
+        <div
+          v-if="showShap && explanation"
+          class="h-[500px] overflow-y-auto text-justify"
+          @mouseup="handleAbstractSelection"
+          v-html="shapHighlightedAbstract"
+        ></div>
+        <div v-else class="h-[500px] overflow-y-auto text-justify">
+          {{ publication?.description || "No abstract available." }}
+        </div>
       </div>
     </div>
   </div>
 </template>
-
 
 
 <script setup lang="ts">
@@ -27,6 +34,7 @@ import { useExplanationsStore } from "~/stores/explanations";
 import { usePublicationsStore } from "~/stores/publications";
 import { useSDGsStore } from "~/stores/sdgs";
 import * as d3 from "d3";
+import SDGExplorerLabeling from "~/components/SDGExplorerLabeling.vue";
 
 const route = useRoute();
 const explanationStore = useExplanationsStore();

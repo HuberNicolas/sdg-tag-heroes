@@ -10,6 +10,8 @@ import useSDGLabelDecisions from "~/composables/useSDGLabelDecisions";
 import useUserLabels from "~/composables/useUserLabels";
 import useVotes from "~/composables/useVotes";
 
+import { ScenarioType } from "~/types/enums";
+
 export const useLabelDecisionsStore = defineStore("labelDecisions", {
   state: () => ({
     sdgLabelDecisions: null as SDGLabelDecisionSchemaFull[] | null,
@@ -245,6 +247,10 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
         const { getLeastLabeledSDGDecisions } = useSDGLabelDecisions();
         const decisions = await getLeastLabeledSDGDecisions(topK);
         this.scenarioTypeSDGLabelDecisions = decisions || [];
+
+        this.scenarioTypeSDGLabelDecisions.forEach(decision => {
+          decision.scenarioType = ScenarioType.SCARCE_LABELS;
+        })
       } catch (error) {
         this.error = `Failed to fetch least-labeled SDG Label Decisions: ${error}`;
         throw error;
@@ -262,6 +268,10 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
         const { getMaxEntropySDGDecisions } = useSDGLabelDecisions();
         const decisions = await getMaxEntropySDGDecisions(topK);
         this.scenarioTypeSDGLabelDecisions = decisions || [];
+
+        this.scenarioTypeSDGLabelDecisions.forEach(decision => {
+          decision.scenarioType = ScenarioType.HIGH_UNCERTAINTY;
+        })
       } catch (error) {
         this.error = `Failed to fetch max-entropy SDG Label Decisions: ${error}`;
         throw error;

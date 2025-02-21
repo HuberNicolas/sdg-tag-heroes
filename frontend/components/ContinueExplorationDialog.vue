@@ -1,7 +1,11 @@
 <template>
   <div>
-    <!-- You can open the modal using ID.showModal() method -->
-    <button class="btn" onclick="modal_exploration.showModal()">Continue Exploration</button>
+    <!-- Open Modal Button -->
+    <UButton color="primary" variant="solid" @click="openModal">
+      Continue Exploration
+    </UButton>
+
+    <!-- Modal -->
     <dialog id="modal_exploration" class="modal">
       <div class="modal-box">
         <form method="dialog">
@@ -13,11 +17,11 @@
             <div class="card bg-base-100 w-96 shadow-xl">
               <div class="card-body">
                 <h2 class="card-title">User Profile</h2>
-                <p>Explore your profile details</p>
+                <p>Explore your profile history</p>
                 <div class="card-actions justify-end">
-                  <NuxtLink :to="{ name: 'users-id', params: { id: 1 } }" class="btn btn-primary">
+                  <UButton color="primary" variant="solid" :to="{ name: 'users-id', params: { id: 1 } }">
                     View Profile
-                  </NuxtLink>
+                  </UButton>
                 </div>
               </div>
             </div>
@@ -25,24 +29,35 @@
             <!-- Go back to Worlds -->
             <div class="card bg-base-100 w-96 shadow-xl">
               <div class="card-body">
-                <h2 class="card-title">Worlds</h2>
-                <p>Discover new scenarios</p>
+                <h2 class="card-title">Game Mode</h2>
+                <p>Decide between specialization and sandboxing</p>
                 <div class="card-actions justify-end">
-                  <NuxtLink :to="{ name: 'scenarios' }" class="btn btn-primary">
-                    Explore Worlds
-                  </NuxtLink>
+                  <UButton color="primary" variant="solid" :to="{ name: 'scenarios' }">
+                    Choose Game Mode
+                  </UButton>
                 </div>
               </div>
             </div>
 
           </div>
 
-          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          <!-- Close Button -->
+          <UButton color="gray" variant="soft" class="absolute right-2 top-2" @click="closeModal">
+            ✕
+          </UButton>
+
         </form>
       </div>
     </dialog>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
+const openModal = () => {
+  document.getElementById('modal_exploration').showModal();
+};
+
+const closeModal = () => {
+  document.getElementById('modal_exploration').close();
+};
 </script>

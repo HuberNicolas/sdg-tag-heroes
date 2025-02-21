@@ -45,7 +45,7 @@
       </div>
       <div class="flex items-center gap-2">
         <input id="showAllLabels" type="checkbox" v-model="showAllLabels" class="h-4 w-4" />
-        <label for="showAllLabels" class="text-sm font-medium">Show all labels</label>
+        <label for="showAllLabels" class="text-sm font-medium">Show Community Votes</label>
       </div>
     </div>
 
@@ -151,7 +151,7 @@
 
             <!-- User Comment -->
             <p class="text-sm text-gray-700 mt-1">
-              <span class="font-medium">Comment:</span> {{ label.comment || "No comment provided" }}
+              <span class="font-medium">Reason:</span> {{ label.comment || "-" }}
             </p>
 
             <!-- Label Date -->

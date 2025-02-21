@@ -1,34 +1,45 @@
 <template>
   <div class="h-full overflow-hidden">
-    <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
+    <div class="grid grid-rows-11 grid-cols-10 grid-flow-col h-full">
+
+      <!-- Title Section (Spanning Across All Columns) -->
+      <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center p-4 bg-gray-50">
+        <h1 class="text-3xl font-bold w-full">Wanna be an SDG-Tag Hero? Then help us linking publications either</h1>
+        <div class="w-full flex justify-center mt-2">
+          <div class="w-1/2 flex items-center justify-center">
+            <p class="text-xl">by <b>specializing</b> for any SDG</p>
+          </div>
+          <div class="w-1/2 flex items-center justify-center">
+            <p class="text-xl">by <b>exploring</b> publications from different Worlds</p>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Left Section (Takes Half of the Grid) -->
       <div class="row-span-10 col-span-5 grid grid-rows-10">
 
+
         <!-- First Section: Top Half -->
-        <div class="row-span-6 grid grid-cols-2 text-center">
-          <div>
-            <p class="mb-4 text-xl font-bold text-white">SDG-Centered</p>
-            <p class="mb-4 text-xl font-bold">Help us linking publications to SDGs</p>
-          </div>
-
-
+        <div class="row-span-7 grid grid-cols-2 text-center">
           <div class="col-span-1 p-4 flex items-center justify-center">
-            <SDGExplorer />
-          </div>
-          <div class="col-span-1 p-4 flex flex-col items-center justify-center">
             <GlyphOverviewScenario :values="values" :height="400" :width="400" />
+          </div>
+
+          <div class="col-span-1 p-4 flex flex-col items-center justify-center">
+            <SDGExplorer />
           </div>
         </div>
 
         <!-- Second Section: Bottom Half -->
-        <div class="row-span-4 flex items-center justify-center">
+        <div class="row-span-3 flex items-center justify-center">
           <SDGUserQuery />
         </div>
       </div>
 
       <!-- Right Section (Takes Half of the Grid) -->
-      <div class="row-span-10 col-span-5 flex items-center justify-center">
+      <div class="row-span-10 col-span-5 flex items-center justify-center border-l-8 border-gray-500 relative">
+        <span class="absolute top-1/2 right-full transform translate-x-8 -translate-y-1/2 bg-white px-6 py-3 text-gray-700 text-sm font-bold">OR</span>
         <div v-if="!gameStore.showLeaderboard" class="w-full h-full flex items-center justify-center">
           <WorldSelector />
         </div>
@@ -51,7 +62,7 @@ import GlyphOverviewScenario from "~/components/GlyphOverviewScenario.vue";
 const gameStore = useGameStore();
 
 // Values for the HexGlyph component (example)
-const values = Array(17).fill(0.6);
+const values = Array(17).fill(1);
 
 onMounted(() => {
   gameStore.setStage(Stage.PREPARATION);

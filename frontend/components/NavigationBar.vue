@@ -72,7 +72,7 @@
       </div>
 
       <!-- Quadrant Display -->
-      <div class="flex items-center space-x-4">
+      <div v-if="gameStore.getQuadrant!== null" class="flex items-center space-x-4">
         <span>Situation:</span>
         <!-- Render only the active quadrant -->
         <div class="p-1 border rounded-md w-10 h-10 text-xs flex flex-col items-center justify-between">
@@ -125,7 +125,7 @@
         <span>{{ link.label }}</span>
       </div>
 
-      <div>Your Top SDGs</div>
+      <div>Your Top SDGs:</div>
       <div
         v-for="(link, index) in links.slice(3)"
         :key="index"
@@ -213,42 +213,50 @@
           <div class="drawer-side">
             <label for="drawer-help" aria-label="close sidebar" class="drawer-overlay"></label>
 
-            <div class="menu bg-base-200 text-base-content min-h-full w-1/5 p-4">
+            <div class="menu bg-base-200 text-base-content min-h-full w-1/5 p-4 flex flex-col items-center">
 
-              <div class="flex justify-center h-full">
-                <div class="grid grid-flow-col grid-cols-3 grid-rows-3 gap-4 w-80 h-80 border border-gray-300 bg-white p-2 rounded-md">
+              <h1 class="text-lg font-bold mb-4 text-center w-full">Situations</h1>
 
-                  <div class="col-span-1 row-span-1flex flex-col items-center justify-center bg-white text-black font-bold p-2 rounded-md">
-                  </div>
+              <div class="grid grid-flow-col grid-cols-3 grid-rows-3 gap-4 w-80 h-80 border border-gray-300 bg-white p-2 rounded-md">
 
-                  <!-- Publications Label (Y-axis, Vertical) -->
-                  <div class="row-span-2 flex flex-col items-center justify-center text-black font-bold p-2 rounded-md">
-                    <span class="transform rotate-180 whitespace-nowrap [writing-mode:vertical-lr]">Publications (N - 1)</span>
-                    <Icon name="line-md-document" class="w-5 h-5 text-black mt-1"/>
-                  </div>
+                <div class="col-span-1 row-span-1flex flex-col items-center justify-center bg-white text-black font-bold p-2 rounded-md">
+                </div>
 
-                  <!-- SDGs Label (X-axis) -->
-                  <div class="col-span-2 flex flex-col items-center justify-center text-black font-bold p-2 rounded-md">
-                    <span>SDGs (17 - 1)</span>
-                    <Icon name="ph-hexagon-light" class="w-5 h-5 text-black mt-1"/>
-                  </div>
+                <!-- Publications Label (Y-axis, Vertical) -->
+                <div class="row-span-2 flex flex-col items-center justify-center text-black font-bold p-2 rounded-md">
+                  <span class="transform rotate-180 whitespace-nowrap [writing-mode:vertical-lr]">Publications (N - 1)</span>
+                  <Icon name="line-md-document" class="w-5 h-5 text-black mt-1"/>
+                </div>
 
-                  <!-- Quadrant: Many Publications, All SDGs -->
-                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md"
+                <!-- SDGs Label (X-axis) -->
+                <div class="col-span-2 flex flex-col items-center justify-center text-black font-bold p-2 rounded-md">
+                  <span>SDGs (17 - 1)</span>
+                  <Icon name="ph-hexagon-light" class="w-5 h-5 text-black mt-1"/>
+                </div>
+
+                <!-- Quadrant: Many Publications, All SDGs -->
+                <UTooltip text="Many Publications, All SDGs" :popper="{ strategy: 'absolute', placement: 'top', arrow: true }">
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md w-full h-full"
                        :class="{ 'bg-gray-300': gameStore.getQuadrant === Quadrant.MANY_PUBS_ALL_SDG }">
+
                     <div class="flex space-x-1">
                       <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
                       <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
                       <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
                     </div>
+
                     <div class="flex space-x-1 mt-1">
                       <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
                       <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
                     </div>
                   </div>
+                </UTooltip>
 
-                  <!-- Quadrant: 1 Publication, All SDGs -->
-                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center  border border-gray-300 rounded-md shadow-md"
+
+
+                <!-- Quadrant: 1 Publication, All SDGs -->
+                <UTooltip text="One Publication, All SDGs" :popper="{ strategy: 'absolute', placement: 'top', arrow: true }">
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center  border border-gray-300 rounded-md shadow-md w-full h-full"
                        :class="{ 'bg-gray-300': gameStore.getQuadrant === Quadrant.ONE_PUB_ALL_SDG }">
                     <div class="flex space-x-1">
                       <Icon name="ph-hexagon-light" class="w-4 h-4 text-gray-600"/>
@@ -257,9 +265,11 @@
                     </div>
                     <Icon name="line-md-document" class="w-5 h-5 text-gray-600 mt-1"/>
                   </div>
+                </UTooltip>
 
-                  <!-- Quadrant: Many Publications, 1 SDG -->
-                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md"
+                <!-- Quadrant: Many Publications, 1 SDG -->
+                <UTooltip text="Many Publications, One SDG" :popper="{ strategy: 'absolute', placement: 'top', arrow: true }">
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md w-full h-full"
                        :class="{ 'bg-gray-300': gameStore.getQuadrant === Quadrant.MANY_PUBS_ONE_SDG }">
                     <Icon name="ph-hexagon-light" class="w-4 h-4" :style="{ color: sdgColor }"/>
                     <div class="flex space-x-1 mt-1">
@@ -267,15 +277,18 @@
                       <Icon name="line-md-document" class="w-4 h-4 text-gray-600"/>
                     </div>
                   </div>
+                </UTooltip>
 
-                  <!-- Quadrant: 1 Publication, 1 SDG -->
-                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md"
+                <!-- Quadrant: 1 Publication, 1 SDG -->
+                <UTooltip text="One Publication, One SDG" :popper="{ strategy: 'absolute', placement: 'top', arrow: true }">
+                  <div class="col-span-1 row-span-1 flex flex-col items-center justify-center border border-gray-300 rounded-md shadow-md w-full h-full"
                        :class="{ 'bg-gray-300': gameStore.getQuadrant === Quadrant.ONE_PUB_ONE_SDG }">
                     <Icon name="ph-hexagon-light" class="w-4 h-4" :style="{ color: sdgColor }"/>
                     <Icon name="line-md-document" class="w-5 h-5 text-gray-600 mt-1"/>
                   </div>
-                </div>
+                </UTooltip>
               </div>
+
             </div>
           </div>
         </div>

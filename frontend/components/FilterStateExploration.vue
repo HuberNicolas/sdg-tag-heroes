@@ -31,7 +31,7 @@ const collectionsStore = useCollectionsStore();
 // Refs
 const chartContainer = ref(null);
 const selectedCount = ref(publicationsStore.selectedPartitionedPublications.length);
-const totalCount = ref(publicationsStore.sdgLevelPublications.length + publicationsStore.scenarioTypePublications.length);
+const totalCount = ref(publicationsStore.partitionedPublications.length + publicationsStore.scenarioTypePublications.length);
 
 // Computed properties
 const sdgColor = computed(() => {
@@ -141,7 +141,7 @@ const updateChart = () => {
       tooltip.style('opacity', 0);
     })
     .transition()
-    .duration(500)
+    .duration(2000)
     .attr('width', widthScale(selected) + '%');
 
   // Filtered out publications bar
@@ -168,7 +168,7 @@ const updateChart = () => {
       tooltip.style('opacity', 0);
     })
     .transition()
-    .duration(500)
+    .duration(2000)
     .attr('width', widthScale(filteredOut) + '%');
 
   // SDG distribution bars
@@ -179,7 +179,7 @@ const updateChart = () => {
   selectedDistribution.forEach(({ proportion, color, sdgId }) => {
     const sdgBar = svg.append('rect')
       .attr('x', xOffset + '%') // Position horizontally
-      .attr('y', '20%') // Same Y position as grey bar
+      .attr('y', '40%') // Same Y position as grey bar
       .attr('height', '40%') // Maintain same bar height
       .attr('fill', color) // Use each SDG's color
       .attr('width', 0); // Start at 0 for animation
@@ -200,10 +200,10 @@ const updateChart = () => {
         tooltip.style('opacity', 0);
       })
       .transition()
-      .duration(500)
-      .attr('width', proportion * 100 + '%'); // Set width based on proportion
+      .duration(2000)
+      .attr('width', proportion * widthScale(selected) + '%'); // Set width based on proportion
 
-    xOffset += proportion * 100; // Move the starting position for the next color
+    xOffset += proportion * widthScale(selected); // Move the starting position for the next color
   });
 
 };
@@ -218,7 +218,7 @@ watch(
 );
 
 watch(
-  () => publicationsStore.sdgLevelPublications.length,
+  () => publicationsStore.partitionedPublications.length,
   (newTotal) => {
     totalCount.value = newTotal + publicationsStore.scenarioTypePublications.length;
     updateChart();
@@ -228,7 +228,7 @@ watch(
 watch(
   () => publicationsStore.scenarioTypePublications.length,
   (newTotal) => {
-    totalCount.value = newTotal + publicationsStore.sdgLevelPublications.length;
+    totalCount.value = newTotal + publicationsStore.partitionedPublications.length;
     updateChart();
   }
 );
@@ -239,7 +239,7 @@ watch(
     // Get all publications that belong to the selected collections
     const selectedCollectionIds = new Set(newCollections.map(c => c.collectionId));
 
-    const filteredPublications = publicationsStore.sdgLevelPublications.filter(pub =>
+    const filteredPublications = publicationsStore.partitionedPublications.filter(pub =>
       selectedCollectionIds.has(pub.collectionId)
     ).length + publicationsStore.scenarioTypePublications.filter(pub =>
       selectedCollectionIds.has(pub.collectionId)

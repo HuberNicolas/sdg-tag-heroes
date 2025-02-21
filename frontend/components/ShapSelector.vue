@@ -1,12 +1,12 @@
 <template>
-  <div class="container mx-auto p-4">
+  <div class="container mx-auto p-2">
     <!-- Display the marked text -->
-    <div v-if="firstLastWords" class="p-4 bg-gray-100 rounded-lg">
-      <h3 class="font-semibold mb-2">Selected Abstract Section</h3>
+    <div v-if="firstLastWords" class="p-2 bg-gray-100 rounded-lg">
+      <h3 class="font-semibold mb-1">Selected Abstract Section (optional)</h3>
       <p class="text-gray-700">{{ firstLastWords }}</p>
     </div>
-    <div v-else class="p-4 bg-gray-100 rounded-lg">
-      <h3 class="font-semibold mb-2">Selected Abstract Section</h3>
+    <div v-else class="p-2 bg-gray-100 rounded-lg">
+      <h3 class="font-semibold mb-1">Selected Abstract Section</h3>
       <p class="text-gray-500">No passage selected yet.</p>
     </div>
   </div>
@@ -26,7 +26,7 @@ const firstLastWords = computed(() => {
     if (words.length === 1) {
       return words[0]; // If there's only one word, display it
     } else if (words.length > 1) {
-      return `${words[0]} ... ${words[words.length - 1]}`;
+      return `${words[0]} ${words[1]} ... ${words[words.length - 2]} ${words[words.length - 1]}`;
     }
   }
   return ''; // Return an empty string if no marked text is selected

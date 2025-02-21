@@ -1,6 +1,16 @@
 <template>
   <div class="frame-container">
     <div class="frame-title"><b>Scroll</b> through the selected Publications</div>
+
+    <div>
+      <UModal v-model="isOpen"  :overlay="false" :ui="{ width: 'w-full sm:max-w-4xl' }">
+        <div
+          v-if="selectedPublication">
+          <PublicationDetails />
+        </div>
+      </UModal>
+    </div>
+
     <div class="max-h-[600px] overflow-y-auto h-full">
       <!-- Scrollable container -->
       <table
@@ -22,6 +32,19 @@
           </th>
           <th class="border border-gray-300 p-2">Glyph</th>
           <th class="border border-gray-300 p-2">Top SDGs</th>
+
+
+          <th
+            @click="sortTable('topSDGNumber')"
+            class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
+            :class="{ 'font-bold text-gray-800': sortKey === 'topSDGNumber' }"
+          >
+            Top SDG
+            <span v-if="sortKey === 'topSDGNumber'">
+              {{ sortOrder === 'asc' ? '▲' : '▼' }}
+            </span>
+            <span v-else class="text-gray-400">↕</span>
+          </th>
 
           <th @click="sortTable('coins')"
               class="border border-gray-300 p-2 sortable-header"
@@ -85,7 +108,7 @@
           class="hover:bg-gray-50"
           @mouseover="publicationsStore.setHoveredPublication(item)"
           @mouseleave="publicationsStore.setHoveredPublication(null)"
-          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSdg) : '' }">
+          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSDG) : '' }">
 
           <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
               @click="handlePublicationClick(item)">
@@ -97,15 +120,34 @@
           <td class="border border-gray-300 p-2">
             <BarPredictionPlot :values="item.values" :width="80" :height="60" />
           </td>
+          <td class="border border-gray-300 p-2">
+            <div class="flex flex-col items-center justify-between h-full">
+              <div class="w-8 h-8 flex items-center justify-center">
+                <img
+                  :src="getSDGIconSrc(item.topSDG)"
+                  class="w-full h-full object-contain"
+                />
+              </div>
+              <span class="text-center">{{ item.topSDGNumber }}</span>
+            </div>
+          </td>
           <td class="border border-gray-300 p-2">{{ item.coins }}</td>
           <td class="border border-gray-300 p-2">{{ item.xp }}</td>
           <td class="border border-gray-300 p-2">{{ item.year }}</td>
-          <td class="border border-gray-300 p-2 flex flex-auto justify-evenly content-center">
-            <UTooltip :text="item.collectionName">
-              <Icon :name="item.collectionSymbol" class="w-8 h-8 text-gray-400" />
-            </UTooltip>
-          </td>
+          <td class="border border-gray-300 p-2">
+            <div class="flex items-center justify-center relative w-full h-full">
+              <div class="relative group flex items-center">
+                <Icon :name="item.collectionSymbol" class="w-8 h-8 text-gray-400" />
 
+                <span
+                  v-if="item.collectionName"
+                  class="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                >
+        {{ item.collectionName }}
+      </span>
+              </div>
+            </div>
+          </td>
           <td class="border border-gray-300 p-2">
             <template v-if="item.scenarioType !== 'No Scenario'">
               <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
@@ -124,7 +166,7 @@
 
 
 <script setup lang="ts">
-import { computed, watch, watchEffect } from 'vue';
+import { computed, ref, watch, watchEffect } from "vue";
 import { usePublicationsStore } from '~/stores/publications';
 import { useSDGPredictionsStore } from '~/stores/sdgPredictions';
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
@@ -134,6 +176,7 @@ import HexGlyph from '@/components/PredictionGlyph.vue';
 import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
 import {score}from "@/utils/xp_scorer";
 import type { PublicationSchemaBase } from "~/types/publication";
+import PublicationDetails from "~/components/PublicationDetails.vue";
 
 const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
@@ -192,7 +235,17 @@ const scenarioMapping: Record<string, { icon: string; name: string; tooltip: str
     icon: 'i-heroicons-check-mark-circle',
     name: 'Decided',
     tooltip: 'Decided'
-  }
+  },
+  'Scarce Labels': {
+    icon: "i-heroicons-light-bulb",
+    name: "Scarce Labels",
+    tooltip: "Label an instance with the least labels"
+  },
+  'High Uncertainty': {
+    icon: "i-heroicons-fire",
+    name: "High Uncertainty",
+    tooltip: "Sort the most uncertain instances based on entropy"
+  },
 };
 
 // Map collection names to corresponding icons
@@ -264,7 +317,8 @@ watchEffect(async () => {
         values,
         xp: Math.round(prediction.entropy * 100),
         coins,
-        topSdg: `SDG ${values.indexOf(P_max) + 1}`,
+        topSDG: `SDG ${values.indexOf(P_max) + 1}`,
+        topSDGNumber: values.indexOf(P_max) + 1,
         year: pub.year,
         scenarioType,
         collectionName,
@@ -295,10 +349,12 @@ const sortTable = (key) => {
   });
 };
 
+const isOpen = ref(false)
 
 
 function handlePublicationClick(publication: PublicationSchemaBase) {
   publicationsStore.setSelectedPublication(publication);
+  this.isOpen = true;
 }
 
 const getSDGColor = (sdgName: string) => {
@@ -306,5 +362,19 @@ const getSDGColor = (sdgName: string) => {
   const sdgId = parseInt(sdgName.replace('SDG ', ''), 10); // Extract SDG number
   return sdgsStore.getColorBySDG(sdgId) || 'transparent';
 };
+
+const getSDGIconSrc = (sdgName: string) => {
+  if (!sdgName) return '';
+  const sdgId = parseInt(sdgName.replace('SDG ', ''), 10); // Extract SDG number
+  const sdg = sdgsStore.sdgs.find(sdg => sdg.id === sdgId);
+  console.log(sdgId, sdg);
+  return sdg ? `data:image/svg+xml;base64,${sdg.icon}` : '';
+};
+
+
+
+
+// Get selected publication from the store
+const selectedPublication = computed(() => publicationsStore.selectedPublication);
 
 </script>

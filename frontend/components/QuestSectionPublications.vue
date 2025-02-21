@@ -4,7 +4,7 @@
     <div class="frame-title"><b>Choose</b> among Quests to load new publications</div>
 
     <div class="row-span-2 col-span-3">
-      <div class="flex items-center justify-around">
+      <div class="flex items-center justify-around mt-4">
         <QuestButtonExploration
           v-for="button in buttons"
           :key="button.name"
@@ -17,6 +17,7 @@
         <UBadge
           v-for="scenario in gameStore.selectedScenarioList"
           :key="scenario"
+          size="xs"
           color="primary"
           variant="solid"
         >

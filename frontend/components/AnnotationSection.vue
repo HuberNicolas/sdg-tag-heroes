@@ -1,17 +1,40 @@
 <template>
-  <div>
-    <!-- Annotation is attached to SDG Label Decision (in general) -->
-    <ShapSelector></ShapSelector>
-    <CommentInput></CommentInput>
-    <CreateAnnotationButton></CreateAnnotationButton>
-    <UDivider></UDivider>
+  <div class="h-full overflow-hidden">
+    <div class="grid grid-rows-12 grid-cols-1 grid-flow-col h-full">
+      <div class="row-span-4 col-span-1">
+        <!-- Annotation is attached to SDG Label Decision (in general) -->
+        <div class="frame-container">
+          <div class="frame-title"><b>Share</b> your thoughts either by commenting a passage or directly</div>
+          <ShapSelector></ShapSelector>
+          <CommentInput></CommentInput>
+          <CreateAnnotationButton></CreateAnnotationButton>
+        </div>
+      </div>
 
-    <!-- SDG User Label is attached to SDG Label decision -->
-    <ConnectingDots></ConnectingDots>
-    <CreateSDGLabelButton></CreateSDGLabelButton>
+      <div class="row-span-7 col-span-1">
+        <!-- SDG User Label is attached to SDG Label decision -->
+        <div class="frame-container">
+          <div class="frame-title"><b>Vote</b> for an SDG Label to help the Community</div>
+          <ConnectingDots></ConnectingDots>
+          <CreateSDGLabelButton></CreateSDGLabelButton>
+        </div>
+      </div>
+
+      <div class="row-span-1 col-span-1">
+        <div class="frame-container">
+          <div class="frame-title"><b>Continue</b> Labeling process</div>
+          <div class="flex justify-between items-center">
+            <ContinueLabelingDialog />
+            <ContinueExplorationDialog />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import CreateSDGLabelButton from "~/components/CreateSDGLabelButton.vue";
+import ContinueLabelingDialog from "~/components/ContinueLabelingDialog.vue";
+import ContinueExplorationDialog from "~/components/ContinueExplorationDialog.vue";
 </script>

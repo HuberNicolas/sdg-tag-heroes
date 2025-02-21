@@ -87,7 +87,12 @@ function renderRaincloudPlot(container, data, width, height) {
       .attr('d', area)
       .style('fill', 'grey')
       .style('opacity', 0.6)
-      .attr('transform', `translate(0, 0)`); // Position in the top segment
+      .attr('transform', `translate(0, 0)`) // Position in top segment
+      .attr('opacity', 0)
+      .transition()
+      .duration(1000)
+      .attr('opacity', 1);
+
   };
 
   // Boxplot - Middle 1/3

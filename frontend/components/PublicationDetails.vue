@@ -1,73 +1,62 @@
 <template>
-  <div v-if="selectedPublication" class="relative mx-auto p-6 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
+  <div class="frame-container">
+    <div class="frame-title"><b>Decide</b> to label an interesting publication</div>
+    <div v-if="selectedPublication" class="relative mx-auto p-6 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
 
-    <div class="flex justify-between items-center">
       <h2 class="text-xl font-bold text-gray-800 mb-4">
         {{ selectedPublication.title || "Untitled Publication" }} ({{selectedPublication.year}})
       </h2>
 
-      <UButton
-        icon="mdi-tag-outline"
-        size="sm"
-        color="primary"
-        variant="solid"
-        label="Button"
-        :trailing="false"
-      >
-        <NuxtLink :to="`/labeling/${selectedPublication.publicationId}`">Label</NuxtLink>
-      </UButton>
-    </div>
-
-    <!-- Authors & Year -->
-
-    <!--
-    <p class="text-gray-600">
-      <span v-if="selectedPublication.authors && selectedPublication.authors.length > 0">
-        <strong>Authors:</strong> {{ selectedPublication.authors.map(a => a.name).join(", ") }}
-      </span>
-      <span v-if="selectedPublication.year" class="ml-4">
-        <strong>Year:</strong> {{ selectedPublication.year }}
-      </span>
-    </p>
-     -->
-
-    <!-- Keywords -->
-    <div class="mt-4">
-      <div v-if="keywordsLoading" class="text-center">
-        <span class="loading loading-bars loading-lg"></span> Loading Keywords...
-      </div>
-      <div v-else-if="keywords && keywords.keywords.length > 0">
-        <strong class="text-gray-700">Keywords:</strong>
-        <span v-for="(keyword, index) in keywords.keywords" :key="index" class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2">
+      <!-- Keywords -->
+      <div class="mt-4">
+        <div v-if="keywordsLoading" class="text-center">
+          <span class="loading loading-bars loading-lg"></span> Loading Keywords...
+        </div>
+        <div v-else-if="keywords && keywords.keywords.length > 0">
+          <strong class="text-gray-700">Keywords:</strong>
+          <span v-for="(keyword, index) in keywords.keywords" :key="index" class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2">
           {{ keyword }}
         </span>
+        </div>
       </div>
-    </div>
 
-    <!-- Fact -->
-    <div class="mt-4">
-      <div v-if="factLoading" class="text-center">
-        <span class="loading loading-bars loading-lg"></span> Loading Fact...
+      <!-- Fact -->
+      <div class="mt-4">
+        <div v-if="factLoading" class="text-center">
+          <span class="loading loading-bars loading-lg"></span> Loading Fact...
+        </div>
+        <div v-else-if="fact && fact.content" class="mt-4 p-3 rounded-lg" :style="{ backgroundColor: sdgColor }">
+          <h3 class="text-lg font-semibold" :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">Did You Know?</h3>
+          <p :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">{{ fact.content }}</p>
+        </div>
       </div>
-      <div v-else-if="fact && fact.content" class="mt-4 p-3 rounded-lg" :style="{ backgroundColor: sdgColor }">
-        <h3 class="text-lg font-semibold" :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">Did You Know?</h3>
-        <p :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">{{ fact.content }}</p>
-      </div>
-    </div>
 
-    <!-- Summary -->
-    <div class="mt-4">
-      <div v-if="summaryLoading" class="text-center">
-        <span class="loading loading-bars loading-lg"></span> Loading Summary...
+      <!-- Summary -->
+      <div class="mt-4">
+        <div v-if="summaryLoading" class="text-center">
+          <span class="loading loading-bars loading-lg"></span> Loading Summary...
+        </div>
+        <div v-else-if="summary && summary.summary" class="mt-4">
+          <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
+          <p class="text-gray-700">{{ summary.summary }}</p>
+        </div>
       </div>
-      <div v-else-if="summary && summary.summary" class="mt-4">
-        <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
-        <p class="text-gray-700">{{ summary.summary }}</p>
+
+      <div class="p-4 mt-4">
+        <UButton
+          icon="mdi-tag-outline"
+          size="lg"
+          color="primary"
+          variant="solid"
+          :trailing="false"
+          :block="true"
+        >
+          <NuxtLink :to="`/labeling/${selectedPublication.publicationId}`">Help us labeling this Publication</NuxtLink>
+        </UButton>
       </div>
     </div>
   </div>
 
-  <div v-else class="text-center text-gray-500 mt-6">No publication selected.</div>
 </template>
 
 

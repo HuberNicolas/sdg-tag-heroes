@@ -1,11 +1,11 @@
 <template>
   <!-- Input field for the marked text -->
-  <div class="container mx-auto p-4">
-    <h3 class="font-semibold mb-2">Your Comment</h3>
+  <div class="container mx-auto p-2">
+    <h3 class="font-semibold mb-0.5">Your Comment</h3>
     <textarea
       v-model="comment"
-      class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-      rows="4"
+      class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500"
+      rows="1"
       placeholder="Add your comment here..."
     ></textarea>
   </div>

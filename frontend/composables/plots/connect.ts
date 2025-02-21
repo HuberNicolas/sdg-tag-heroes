@@ -225,7 +225,7 @@ export default function useConnect() {
           size: 2,  // Small and cleaner arrows
           startSocket: 'right', // Align arrows from right side of hex
           endSocket: 'left', // Align arrows to left side of decision hex
-          visibility: 'hidden',
+          hide: 'true',
         }
       );
       arrowLines.value[hexIndex] = line; // Store the arrow in the correct index

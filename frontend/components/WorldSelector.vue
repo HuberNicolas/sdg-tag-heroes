@@ -1,6 +1,5 @@
 <template>
   <div class="flex flex-col items-center justify-center">
-    <p class="mb-4 text-xl font-bold">Explore and link publications from different Worlds</p>
     <ul class="steps">
       <li data-content="1" class="step" :class="getStepClass(1)" @click="selectLevel(1)"></li>
       <li data-content="2" class="step" :class="getStepClass(2)" @click="selectLevel(2)"></li>

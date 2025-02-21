@@ -1,48 +1,50 @@
 <template>
   <div class="h-full overflow-hidden">
-    <div class="grid grid-rows-10 grid-cols-10 grid-flow-col h-full">
+    <div class="grid grid-rows-12 grid-cols-10 grid-flow-col h-full">
 
-      <div class="row-span-2 col-span-3">
-        <div class="grid grid-cols-4">
-          <div class="col-span-3">
-            <SDGSelector></SDGSelector>
+      <!-- Overarching Title -->
+      <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center bg-gray-50 py-1 min-h-fit leading-none">
+      <h1 class="text-xl font-bold w-full">Tagging with machine and community support</h1>
+        <div class="grid grid-cols-10 w-full text-center">
+          <div class="col-span-3 flex items-center justify-center">
+            <p class="text-xl"><b>Machine Support</b></p>
           </div>
-          <div class="col-span-1">
-            <SDGExplorerLabeling></SDGExplorerLabeling>
-            <HexGlyph :values=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] :height="80" :width="70" />
-
+          <div class="col-span-3 flex items-center justify-center">
+            <p class="text-xl"><b>Your</b> Decision</p>
+          </div>
+          <div class="col-span-4 flex items-center justify-center">
+            <p class="text-xl"><b>Community Support</b></p>
           </div>
         </div>
-
-
       </div>
 
+      <div class="row-span-3 col-span-3">
+
+        <div class="grid grid-cols-6 grid-rows-2">
+          <div class="col-span-3 row-span-2">
+            <SDGSelector></SDGSelector>
+          </div>
+          <div class="col-span-3 row-span-2">
+            <SDGExplorerLabeling></SDGExplorerLabeling>
+          </div>
+          <!-- <HexGlyph :values=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] :height="260" :width="260" /> -->
+        </div>
+      </div>
 
       <div class="row-span-8 col-span-3">
-        <ShapToggle />
         <ShapAbstract></ShapAbstract>
       </div>
 
 
-
-
-      <div class="row-span-10 col-span-4">
+      <div class="row-span-11 col-span-3">
         <AnnotationSection></AnnotationSection>
-        <div class="flex justify-between">
-          <ContinueLabelingDialog></ContinueLabelingDialog>
-          <ContinueExplorationDialog></ContinueExplorationDialog>
-        </div>
       </div>
-
-
-
-
 
 
       <div class="row-span-2 col-span-3">
         <div class="row-span-1 col-span-1 flex justify-evenly items-center">
           <div>
-            <label for="content-toggle" class="mr-2 text-lg font-medium text-gray-700">Show User Labels</label>
+            <label for="content-toggle" class="mr-2 text-lg font-medium text-gray-700">Show Community Votes</label>
             <input
               id="content-toggle"
               type="checkbox"
@@ -50,26 +52,8 @@
               v-model="showContent"
             />
           </div>
-
-          <!-- Help -->
-          <div class="drawer drawer-end">
-            <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
-            <div class="drawer-content">
-              <!-- Page content here -->
-              <label for="my-drawer-4" class="drawer-button btn btn-primary">Help</label>
-            </div>
-            <div class="drawer-side">
-              <label for="my-drawer-4" aria-label="close sidebar" class="drawer-overlay"></label>
-              <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-                <!-- Sidebar content here -->
-                <li><a>Sidebar Item 1</a></li>
-                <li><a>Sidebar Item 2</a></li>
-              </ul>
-            </div>
-          </div>
         </div>
-
-        <div class="grid grid-cols-3">
+        <div class="grid grid-cols-4">
           <div  v-if="showContent" class="row-span-1 col-span-1">
             <DonutPlot></DonutPlot>
           </div>
@@ -83,20 +67,16 @@
             <QuestIndicator></QuestIndicator>
           </div>
         </div>
-
-
       </div>
 
-      <div v-if="showContent" class="row-span-1 col-span-3">
+      <div v-if="showContent" class="row-span-1 col-span-4">
         <CommentSummary></CommentSummary>
       </div>
 
-
-
-      <div v-if="showContent" class="row-span-7 col-span-3">
+      <div v-if="showContent" class="row-span-8 col-span-4 flex flex-col justify-center items-center">
         <!-- Toggle Switch -->
-        <div class="flex justify-start items-center mb-4">
-          <label for="comment-toggle" class="mr-2 text-lg font-medium text-gray-700">Show Annotations</label>
+        <div class="flex items-center justify-center mb-4">
+          <label for="comment-toggle" class="mr-2 text-lg font-medium text-gray-700">Show Community Comments</label>
           <input
             id="comment-toggle"
             type="checkbox"
@@ -108,10 +88,7 @@
         <!-- Conditional Rendering -->
         <CommentSection v-if="!showAnnotations" />
         <CommentSectionAnnotations v-else />
-     </div>
-
-
-
+      </div>
    </div>
  </div>
 </template>
@@ -134,7 +111,7 @@ import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
 import { useSDGsStore } from "~/stores/sdgs";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
-import HexGlyph from "~/components/PredictionGlyph.vue";
+import HexGlyph from "~/components/PredictionGlyphLabeling.vue";
 
 const gameStore = useGameStore();
 const labelDecisionsStore = useLabelDecisionsStore();

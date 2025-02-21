@@ -141,7 +141,7 @@ const updateChart = () => {
       tooltip.style('opacity', 0);
     })
     .transition()
-    .duration(500)
+    .duration(2000)
     .attr('width', widthScale(selected) + '%');
 
   // Filtered out publications bar
@@ -168,7 +168,7 @@ const updateChart = () => {
       tooltip.style('opacity', 0);
     })
     .transition()
-    .duration(500)
+    .duration(2000)
     .attr('width', widthScale(filteredOut) + '%');
 
   // SDG distribution bars
@@ -197,7 +197,7 @@ const updateChart = () => {
         tooltip.style('opacity', 0);
       })
       .transition()
-      .duration(500)
+      .duration(2000)
       .attr('width', proportion * widthScale(selected) + '%');
 
     xOffset += proportion * widthScale(selected);

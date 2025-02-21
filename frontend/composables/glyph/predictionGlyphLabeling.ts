@@ -1,31 +1,42 @@
 import * as d3 from 'd3';
-import {baseSdgColors, baseCoords, baseLabelsNumbers, baseSdgShortTitles} from "@/constants/constants";
-
-
+import {baseSdgTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
+import {trimValue} from "~/utils/trim";
 
 export default function createGlyph(values: number[]) {
-  const hexRadius = 50; // Hexagon radius in pixels
+  const hexRadius = 25; // Hexagon radius in pixels
+
   const scaleFactor = 0.9; // Scaling factor to reduce spacing (less than 1 reduces spacing)
+
+  // New spacing values based on the scale factor
   const xSpacing = hexRadius * 2 * scaleFactor; // Horizontal spacing
   const ySpacing = Math.sqrt(3) * hexRadius * scaleFactor; // Vertical spacing
 
-  const sdgColors = baseSdgColors;
+
   const coords = baseCoords
   const labels = baseLabelsNumbers
-
-
+  const sdgTitles = baseSdgTitles
+  const sdgColors = baseSdgColors
 
   const renderHexGrid = (selector: HTMLElement, width: number, height: number): void => {
     const xCoords = coords.map(([x]) => x * xSpacing);
     const yCoords = coords.map(([_, y]) => y * ySpacing);
 
+    // Calculate the bounds of the glyph content
     const minX = Math.min(...xCoords) - hexRadius;
     const maxX = Math.max(...xCoords) + hexRadius;
     const minY = Math.min(...yCoords) - hexRadius;
     const maxY = Math.max(...yCoords) + hexRadius;
 
-    const gridWidth = maxX - minX;
-    const gridHeight = maxY - minY;
+    const gridWidth = maxX - minX; // Actual content width
+    const gridHeight = maxY - minY; // Actual content height
+
+    // Slight manual adjustments for centering
+    const xShift = hexRadius; // Move slightly to the right
+    const yShift = -hexRadius; // Move slightly up
+
+    // Centering offsets with manual adjustments
+    const xOffset = (width - gridWidth) / 2 + xShift;
+    const yOffset = (height - gridHeight) / 2 + yShift;
 
     const container = d3.select(selector);
     container.selectAll('*').remove();
@@ -38,7 +49,9 @@ export default function createGlyph(values: number[]) {
       .attr('height', height)
       .style('background', 'transparent');
 
-    const contentGroup = svg.append('g');
+    // Create a group to shift content
+    const contentGroup = svg.append('g')
+      .attr('transform', `translate(${xOffset - minX}, ${yOffset - minY})`); // Apply explicit horizontal adjustment
 
     const tooltip = d3.select('body')
       .append('div')
@@ -53,9 +66,6 @@ export default function createGlyph(values: number[]) {
       .style('box-shadow', '0px 4px 8px rgba(0, 0, 0, 0.1)')
       .style('z-index', '1000');
 
-    let selectedHexagon: d3.Selection<SVGPolygonElement, unknown, null, undefined> | null = null;
-    const gameStore = useGameStore();
-
     coords.forEach(([x, y], i) => {
       const color = d3.color(sdgColors[i % sdgColors.length]);
       const value = values[i];
@@ -65,7 +75,7 @@ export default function createGlyph(values: number[]) {
 
       const rotation = 30;
 
-      const hexagon = hexagonGroup
+      hexagonGroup
         .append('polygon')
         .attr(
           'points',
@@ -109,32 +119,27 @@ export default function createGlyph(values: number[]) {
         .attr('y', y * ySpacing)
         .attr('text-anchor', 'middle')
         .attr('dy', '0.35em')
-        .text(baseSdgShortTitles[i]) // Use the short title here
-        .style('font-size', `${hexRadius * 0.3}px`) // 30% of the hexagon radius
-        .style('font-weight', 'bold')
+        .text(labels[i])
+        .style('font-size', '12px')
         .style('fill', 'black');
 
       hexagonGroup
-        .on('click', () => {
-          if (selectedHexagon === hexagon) {
-            // Deselect if already selected
-            selectedHexagon.attr('stroke', 'black').attr('stroke-width', 1);
-            selectedHexagon = null;
-            gameStore.setSDG(null);
-            gameStore.setLevel(null);
-          } else {
-            // Deselect previous selection
-            if (selectedHexagon) {
-              selectedHexagon.attr('stroke', 'black').attr('stroke-width', 1);
-            }
-            // Select the new hexagon
-            selectedHexagon = hexagon;
-            hexagon.attr('stroke', 'black').attr('stroke-width', 3);
-            gameStore.setSDG(i+1);
-          }
+        .on('mouseover', () => {
+          tooltip
+            .style('visibility', 'visible')
+            .style('background', color?.toString() || 'gray')
+            .style('color', '#fff')
+            .html(`<strong>${sdgTitles[i]}</strong><br>Value: ${trimValue(value)}`);
+        })
+        .on('mousemove', (event) => {
+          tooltip
+            .style('top', `${event.pageY + 10}px`)
+            .style('left', `${event.pageX + 10}px`);
+        })
+        .on('mouseout', () => {
+          tooltip.style('visibility', 'hidden');
         });
     });
   };
-
   return { renderHexGrid };
 }

@@ -34,28 +34,28 @@
       <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
       <form @submit.prevent="handleLogin">
         <div class="mb-4">
-          <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+          <label for="email" class="block text-sm font-medium text-white">Email:</label>
           <input
             v-model="email"
             type="email"
             id="email"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
         <div class="mb-6">
-          <label for="password" class="block text-sm font-medium text-gray-700">Password:</label>
+          <label for="password" class="block text-sm font-medium text-white">Password:</label>
           <input
             v-model="password"
             type="password"
             id="password"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            class="mt-1 block w-full px-3 py-2 border text-gray-700 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
         <button
           type="submit"
-          class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
         >
           Login
         </button>

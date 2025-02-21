@@ -1,7 +1,10 @@
 <template>
   <div>
     <!-- Button to open modal -->
-    <button class="btn" @click="openModal">Continue Labeling</button>
+    <UButton color="primary" variant="solid" @click="openModal">
+      Continue Labeling
+    </UButton>
+
 
     <!-- Modal Dialog -->
     <dialog id="model_labeling" class="modal">
@@ -12,18 +15,18 @@
         <!-- Tabs -->
         <div class="tabs">
           <button
-            class="tab tab-bordered"
+            class="tab tab-bordered bg-gray-200 rounded-lg"
             :class="{ 'tab-active': activeTab === 'similar' }"
             @click="activeTab = 'similar'"
           >
             Similar Publications
           </button>
           <button
-            class="tab tab-bordered"
+            class="tab tab-bordered bg-gray-200 rounded-lg"
             :class="{ 'tab-active': activeTab === 'scenarios' }"
             @click="activeTab = 'scenarios'"
           >
-            Scenarios
+            Quests
           </button>
         </div>
 
@@ -36,7 +39,7 @@
         <!-- Display Similar Publications Once Loaded -->
         <div v-if="activeTab === 'similar'" class="relative mx-auto p-4 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
           <!-- Similar Publications Content -->
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Select a Similar Publication</h2>
+          <h2 class="text-xl font-bold text-gray-800 mb-4">Choose a similar Publications</h2>
           <div class="max-h-64 overflow-y-auto space-y-4">
             <div
               v-for="pub in similarPublications"
@@ -48,7 +51,7 @@
                 <h3 class="text-lg font-semibold">{{ pub.title || "Untitled Publication" }}</h3>
                 <span class="text-gray-600">Similarity: {{ (pub.score * 100).toFixed(2) }}%</span>
                 <UButton size="sm" color="primary" variant="solid">
-                  <NuxtLink :to="`/labeling/${pub.publicationId}`">Continue Labeling</NuxtLink>
+                  <NuxtLink :to="`/labeling/${pub.publicationId}`">Label Publication</NuxtLink>
                 </UButton>
               </div>
 
@@ -74,9 +77,9 @@
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
                   <span class="loading loading-bars loading-sm"></span> Loading Fact...
                 </div>
-                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-blue-100 p-2 rounded-lg">
-                  <h3 class="text-sm font-semibold text-blue-700">Did You Know?</h3>
-                  <p class="text-blue-700 text-sm">{{ fact[pub.publicationId].content }}</p>
+                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-gray-100 p-2 rounded-lg">
+                  <h3 class="text-sm font-semibold text-gray-700">Did You Know?</h3>
+                  <p class="text-gray-700 text-sm">{{ fact[pub.publicationId].content }}</p>
                 </div>
               </div>
 
@@ -95,7 +98,7 @@
 
           <!-- No Similar Publications Found -->
           <div v-if="similarPublications.length === 0" class="text-center text-gray-500 mt-6">
-            <p>No similar publications found.</p>
+            <p>Please select a Quest Type to load publication suggestions.</p>
           </div>
 
           <!-- Continue to Labeling Button -->
@@ -109,7 +112,7 @@
         <!-- Display Publications by Scenario Once Loaded -->
         <div v-if="activeTab === 'scenarios'" class="relative mx-auto p-4 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
           <!-- Scenarios Content -->
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Select a Scenario</h2>
+          <h2 class="text-xl font-bold text-gray-800 mb-4">Choose a Quest Type</h2>
           <div class="flex gap-2 mb-4">
             <button
               v-for="scenario in scenarioButtons"
@@ -158,9 +161,9 @@
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
                   <span class="loading loading-bars loading-sm"></span> Loading Fact...
                 </div>
-                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-blue-100 p-2 rounded-lg">
-                  <h3 class="text-sm font-semibold text-blue-700">Did You Know?</h3>
-                  <p class="text-blue-700 text-sm">{{ fact[pub.publicationId].content }}</p>
+                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-gray-100 p-2 rounded-lg">
+                  <h3 class="text-sm font-semibold text-gray-700">Did You Know?</h3>
+                  <p class="text-gray-700 text-sm">{{ fact[pub.publicationId].content }}</p>
                 </div>
               </div>
 
@@ -179,7 +182,7 @@
 
           <!-- No Publications Found for Scenario -->
           <div v-if="scenarioPublications.length === 0" class="text-center text-gray-500 mt-6">
-            <p>No publications found for this scenario.</p>
+            <p>Please select a Quest Type to load publication suggestions.</p>
           </div>
         </div>
       </div>

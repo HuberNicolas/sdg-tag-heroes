@@ -1,11 +1,11 @@
 <template>
-  <div class="container mx-auto p-4">
+  <div class="container mx-auto p-2">
     <UButton
       icon="i-heroicons-paper-clip"
       size="sm"
       color="primary"
       variant="solid"
-      :label="isSubmitting ? 'Submitting...' : 'Submit Annotation'"
+      :label="isSubmitting ? 'Submitting...' : 'Submit your thoughts to the community'"
       :disabled="isSubmitting"
       :trailing="false"
       @click="submitAnnotation"
