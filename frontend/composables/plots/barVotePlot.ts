@@ -1,6 +1,4 @@
 import * as d3 from 'd3';
-import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
-import { useSDGsStore } from "~/stores/sdgs";
 
 export function createBarVotePlot(container, width, height, votesData) {
   d3.select(container).selectAll('*').remove();
@@ -10,37 +8,34 @@ export function createBarVotePlot(container, width, height, votesData) {
     .attr("width", width)
     .attr("height", height);
 
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  const margin = { top: 20, right: 30, bottom: 50, left: 30 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const totalVotes = Object.values(votesData).reduce((acc, val) => acc + val, 0) || 1;
+  const totalVotes = votesData.positive + votesData.negative || 1;
   const proportions = {
     positive: votesData.positive / totalVotes,
-    neutral: votesData.neutral / totalVotes,
     negative: votesData.negative / totalVotes,
   };
 
-  const colors = { positive: "#3845a0", neutral: "#9E9E9E", negative: "#F44336" };
+  // Use grayscale encoding
+  const colors = { positive: "#6D6D6D", negative: "#B0B0B0" };
 
-  // Data for the bar chart
   const data = [
-    { label: "Negative", value: -proportions.negative, count: votesData.negative },
     { label: "Positive", value: proportions.positive, count: votesData.positive },
+    { label: "Negative", value: -proportions.negative, count: votesData.negative }
   ];
 
-  // Adjusted scale for width reduction
-  const barWidthFactor = 0.6; // Reduces the bar width
-  const x = d3.scaleBand()
-    .range([0, chartWidth])
-    .domain(data.map(d => d.label))
-    .padding(barWidthFactor);
-
-  const y = d3.scaleLinear()
+  const x = d3.scaleLinear()
     .domain([-1, 1])
-    .range([chartHeight, 0]);
+    .range([0, chartWidth]);
+
+  const y = d3.scaleBand()
+    .range([0, chartHeight])
+    .domain(["Votes"])
+    .padding(0.4);
 
   // Tooltip
   const tooltip = d3.select(container)
@@ -53,15 +48,15 @@ export function createBarVotePlot(container, width, height, votesData) {
     .style("border-radius", "3px")
     .style("font-size", "12px");
 
-  // Bars for Negative and Positive
-  g.selectAll("mybar")
+  // Bars
+  g.selectAll(".bar")
     .data(data)
     .enter()
     .append("rect")
-    .attr("x", d => x(d.label))
-    .attr("y", d => y(Math.max(0, d.value)))
-    .attr("width", x.bandwidth())
-    .attr("height", d => Math.abs(y(d.value) - y(0)))
+    .attr("y", y("Votes"))
+    .attr("x", d => d.value >= 0 ? x(0) : x(d.value))
+    .attr("width", d => Math.abs(x(d.value) - x(0)))
+    .attr("height", y.bandwidth())
     .attr("fill", d => colors[d.label.toLowerCase()])
     .on("mouseover", (event, d) => {
       tooltip.style("visibility", "visible")
@@ -75,38 +70,36 @@ export function createBarVotePlot(container, width, height, votesData) {
       tooltip.style("visibility", "hidden");
     });
 
-  // Centered Neutral Bar
-  const neutralBarHeight = 20;
-  const neutralBarY = chartHeight / 2 - neutralBarHeight / 2;
+  // Axes
+  g.append("g")
+    .attr("transform", `translate(0,${chartHeight})`)
+    .call(d3.axisBottom(x).tickValues([-1, -0.5, 0, 0.5, 1])
+      .tickFormat(d => `${Math.abs(d * 100)}%`));
 
-  // Center the neutral bar between Negative and Positive bars
-  const neutralStartX = (x("Negative") + x("Positive")) / 2 - (proportions.neutral * chartWidth) / 2;
-  const neutralBarLength = proportions.neutral * chartWidth;
+  //g.append("g")
+    //.call(d3.axisLeft(y).tickFormat(() => ""));
 
-  g.append("rect")
-    .attr("x", neutralStartX)
-    .attr("y", neutralBarY)
-    .attr("width", neutralBarLength)
-    .attr("height", neutralBarHeight)
-    .attr("fill", colors.neutral)
-    .on("mouseover", (event) => {
-      tooltip.style("visibility", "visible")
-        .text(`Neutral: ${votesData.neutral} Vote(s), ${(proportions.neutral * 100).toFixed(1)}%`);
-    })
-    .on("mousemove", (event) => {
-      tooltip.style("top", `${event.pageY - 10}px`)
-        .style("left", `${event.pageX + 10}px`);
-    })
-    .on("mouseout", () => {
-      tooltip.style("visibility", "hidden");
-    });
+  // Add X-axis labels
+  g.append("text")
+    .attr("x", x(-0.5))
+    .attr("y", chartHeight + 30)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "12px")
+    .text("Negative");
 
-  // Horizontal line at zero
+  g.append("text")
+    .attr("x", x(0.5))
+    .attr("y", chartHeight + 30)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "12px")
+    .text("Positive");
+
+  // Vertical zero line
   g.append("line")
-    .attr("x1", 0)
-    .attr("x2", chartWidth)
-    .attr("y1", y(0))
-    .attr("y2", y(0))
+    .attr("x1", x(0))
+    .attr("x2", x(0))
+    .attr("y1", 0)
+    .attr("y2", chartHeight)
     .attr("stroke", "#000")
     .attr("stroke-width", 1);
 }
