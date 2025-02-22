@@ -1,13 +1,13 @@
 <template>
   <div class="flex items-center gap-2">
-    <input
+    <UCheckbox
       id="showAllSDGUserLabels"
       v-model="store.showAllSDGUserLabels"
-      type="checkbox"
-      class="h-4 w-4"
+      color="primary"
+      size="sm"
     />
     <label for="showAllSDGUserLabels" class="text-sm font-medium">
-      Show all SDG User Labels
+      Include All User Votes
     </label>
   </div>
 </template>

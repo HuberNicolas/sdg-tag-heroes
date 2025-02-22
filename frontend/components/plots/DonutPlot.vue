@@ -1,11 +1,15 @@
 <template>
   <div class="flex flex-col items-center">
-    <p>Total Votes: {{ labelDecisionsStore.totalVotes }}</p>
+    <p>Total Community Labels: {{ labelDecisionsStore.totalVotes }}</p>
 
     <div v-if="labelDecisionsStore.totalVotes > 0" ref="chartContainer"></div>
-    <p v-else >No votes available.</p>
+
+    <div v-else class="flex flex-col items-center justify-center h-full">
+      <p>Be the first Labeler.</p>
+    </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted, watch } from "vue";
@@ -22,7 +26,7 @@ function drawDonutChart() {
 
   if (!labelDecisionsStore.totalVotes) return;
 
-  const width = 150, height = 150, margin = 20;
+  const width = 225, height = 225, margin = 5;
   const radius = Math.min(width, height) / 3 - margin;
 
   const svg = d3.select(chartContainer.value)
@@ -30,7 +34,7 @@ function drawDonutChart() {
     .attr("width", width)
     .attr("height", height)
     .append("g")
-    .attr("transform", `translate(${width / 2},${height / 2})`);
+    .attr("transform", `translate(${width / 2},${height / 3})`);
 
   const data = labelDecisionsStore.voteDistribution;
 

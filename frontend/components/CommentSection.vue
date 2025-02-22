@@ -1,11 +1,8 @@
 <template>
-  <div class="max-w-4xl mx-auto p-4">
-    <div v-if="isLoading" class="text-blue-500">Loading...</div>
-
-    <!-- <div v-if="error" class="text-red-500">
-      No Label Decision Yet
-      Error: {{ error }}
-    </div> -->
+  <div>
+    <div class="frame-title"><b>Interact</b> with Community Labels</div>
+    <CommentSummary></CommentSummary>
+    <div v-if="isLoading" class="text-gray-500">Loading...</div>
 
     <div v-if="error">
       Be the first user to make a comment.
@@ -13,50 +10,66 @@
 
 
     <!-- Sorting Controls -->
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">User Labels</h2>
-      <div class="flex items-center gap-2">
-        <label for="sort" class="text-sm font-medium">Sort by:</label>
-        <select
-          id="sort"
-          v-model="sortBy"
-          class="p-2 border rounded"
-          @change="sortLabels"
-        >
-          <option value="date">Date</option>
-          <option value="nickname">Nickname</option>
-          <option value="positiveVotes">Positive Votes</option>
-          <option value="negativeVotes">Negative Votes</option>
-          <option value="votedLabel">Voted Label</option>
-        </select>
-      </div>
-      <div class="flex items-center gap-2">
-        <label for="filter" class="text-sm font-medium">Filter by SDG:</label>
-        <select
-          id="filter"
-          v-model="filterBy"
-          class="p-2 border rounded"
-        >
-          <option value="all">All</option>
-          <option v-for="sdg in sdgsStore.sdgs" :key="sdg.id" :value="sdg.id">
-            SDG {{ sdg.id }}
-          </option>
-        </select>
-      </div>
-      <div class="flex items-center gap-2">
-        <input id="showAllLabels" type="checkbox" v-model="showAllLabels" class="h-4 w-4" />
-        <label for="showAllLabels" class="text-sm font-medium">Show Community Votes</label>
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border rounded-md shadow-sm">
+      <h2 class="text-xl font-semibold">Community Labels</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
+        <!-- Sort By -->
+        <div class="flex flex-wrap items-center gap-x-2">
+          <label for="sort" class="text-sm font-medium">Sort by:</label>
+          <select
+            id="sort"
+            v-model="sortBy"
+            class="p-2 border rounded w-auto"
+            @change="sortLabels"
+          >
+            <option value="date">Date</option>
+            <option value="nickname">Nickname</option>
+            <option value="positiveVotes">Positive Votes</option>
+            <option value="negativeVotes">Negative Votes</option>
+            <option value="votedLabel">Voted Label</option>
+          </select>
+        </div>
+
+        <!-- Filter By SDG -->
+        <div class="flex flex-wrap items-center gap-x-2">
+          <label for="filter" class="text-sm font-medium">Filter by SDG:</label>
+          <select
+            id="filter"
+            v-model="filterBy"
+            class="p-2 border rounded w-auto"
+          >
+            <option value="all">All</option>
+            <option v-for="sdg in sdgsStore.sdgs" :key="sdg.id" :value="sdg.id">
+              SDG {{ sdg.id }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Show All Community Votes -->
+        <div class="flex items-center gap-x-2">
+          <input
+            id="showAllLabels"
+            type="checkbox"
+            v-model="showAllLabels"
+            class="h-4 w-4"
+          />
+          <label for="showAllLabels" class="text-sm font-medium">
+            Show All Community Lables
+          </label>
+        </div>
       </div>
     </div>
+
+
 
     <!-- Scrollable List -->
     <div class="max-h-[600px] overflow-y-auto border rounded p-4">
       <div
         v-for="label in filteredAndSortedUserLabels"
         :key="label.labelId"
-        class="mb-6 border-b pb-4"
-      >
-        <div class="flex items-start gap-4">
+        class="mb-2 border-2 border-gray-600 bg-gray-200 rounded-lg shadow-xl p-3">
+        <div class="flex items-start gap-2">
 
           <!-- User Avatar with Rank -->
           <div class="flex flex-col items-center p-4">
@@ -92,7 +105,7 @@
 
             <!-- Rank Info Card -->
             <div v-if="getUserRank(label.userId, label.votedLabel)"
-                 class="mt-2 bg-white rounded-lg shadow p-2 w-full text-center border">
+                 class="mt-8 bg-white rounded-lg shadow p-2 w-full text-center border">
               <p>Rank</p>
               <Icon
                 v-if="getUserRank(label.userId, label.votedLabel).tier === 1"
@@ -118,7 +131,14 @@
                 class="text-gray-400 w-5 h-5 mx-auto"
               />
             </div>
+
+            <!-- Rank Title Section -->
+            <p class="text-sm border-gray-400 mt-1"
+               :style="{ color: sdgsStore.getColorBySDG(label.votedLabel) }">
+              {{ getUserRank(label.userId, label.votedLabel)?.name || "" }}
+            </p>
           </div>
+
           <div class="flex-1 bg-white rounded-tr-lg rounded-br-lg rounded-bl-lg p-4">
 
             <!-- User Nickname and Voted Label -->
@@ -128,19 +148,16 @@
                   usersStore.users.find(user => user.userId === label.userId)?.nickname || "Unknown User"
                 }}
               </p>
-              <!-- Rank title Section -->
-              <p class="text-sm border-gray-400 mt-1">
-                <span class="text-sm border-gray-400 mt-1">{{ getUserRank(label.userId, label.votedLabel)?.name || ""
-                  }}</span>
-              </p>
+
+              <!-- Voted Label -->
               <div class="flex items-center gap-2 ml-auto">
+                <span>proposed: SDG {{ label.votedLabel }} </span>
                 <img
                   v-if="getSDGIcon(label.votedLabel)"
                   :src="getSDGIcon(label.votedLabel)"
                   alt="SDG Icon"
                   class="w-6 h-6 rounded-full"
                 />
-                <span>SDG {{ label.votedLabel }}</span>
               </div>
             </div>
 
@@ -160,191 +177,59 @@
             </p>
 
             <!-- Votes for the Label -->
-            <div class="flex items-center gap-4 mt-2 h-[50px]">
-              <p class="font-semibold text-gray-700">User Votes</p>
-              <!-- Vote Plot -->
-              <BarVotePlot :width="150" :height="100" :votesData="getLabelVotes(label.labelId)" />
+            <div class="flex items-center gap-2 mt-2 h-[50px]">
+              <p class="font-semibold text-gray-700">Community Votes</p>
+
 
               <!-- Vote Buttons -->
               <div class="flex items-center gap-2 mt-2">
-                <!-- Positive Vote Button -->
-                <button
-                  @click="voteLabel(label.labelId, VoteType.POSITIVE)"
-                  class="flex items-center gap-1 text-blue-500 hover:text-blue-700"
-                  aria-label="Vote Positive"
-                >
-                  <Icon name="mdi-thumb-up-outline" class="w-5 h-5" />
-                  <span>{{ getLabelVotes(label.labelId).positive }}</span>
-                </button>
-
-                <!-- Neutral Vote Button -->
-                <button
-                  @click="voteLabel(label.labelId, VoteType.NEUTRAL)"
-                  class="flex items-center gap-1 text-gray-500 hover:text-gray-700"
-                  aria-label="Vote Neutral"
-                >
-                  <Icon name="mdi-emoticon-neutral-outline" class="w-5 h-5" />
-                  <span>{{ getLabelVotes(label.labelId).neutral }}</span>
-                </button>
 
                 <!-- Negative Vote Button -->
                 <button
                   @click="voteLabel(label.labelId, VoteType.NEGATIVE)"
-                  class="flex items-center gap-1 text-red-500 hover:text-red-700"
+                  class="flex items-center gap-1 text-gray-400 hover:text-gray-600"
                   aria-label="Vote Negative"
                 >
                   <Icon name="mdi-thumb-down-outline" class="w-5 h-5" />
-                  <span>{{ getLabelVotes(label.labelId).negative }}</span>
+                  <span class="text-gray-400">{{ getLabelVotes(label.labelId).negative }}</span>
                 </button>
+
+                <!-- Vote Plot -->
+                <BarVotePlot :width="350" :height="80" :votesData="getLabelVotes(label.labelId)" />
+
+
+                <!-- Positive Vote Button -->
+                <button
+                  @click="voteLabel(label.labelId, VoteType.POSITIVE)"
+                  class="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                  aria-label="Vote Positive"
+                >
+                  <Icon name="mdi-thumb-up-outline" class="w-5 h-5" />
+                  <span class="text-gray-700">{{ getLabelVotes(label.labelId).positive }}</span>
+                </button>
+
+                <!-- Neutral Vote Button -->
+                <!--
+               <button
+                 @click="voteLabel(label.labelId, VoteType.NEUTRAL)"
+                 class="flex items-center gap-1 text-gray-500 hover:text-gray-700"
+                 aria-label="Vote Neutral"
+               >
+                 <Icon name="mdi-emoticon-neutral-outline" class="w-5 h-5" />
+                 <span>{{ getLabelVotes(label.labelId).neutral }}</span>
+               </button>
+                -->
               </div>
-            </div>
+              <!-- Toggle Annotations Button -->
 
-            <!-- Toggle Annotations Button -->
-            <button
-              @click="toggleAnnotations(label.labelId)"
-              class="text-gray-500 mt-2"
-            >
-              {{
-                expandedLabels.includes(label.labelId)
-                  ? "Hide Annotations"
-                  : "Show Annotations"
-              }}
-            </button>
-
-            <!-- Annotations for the User Label -->
-            <!-- Annotations for the User Label -->
-            <div v-if="expandedLabels.includes(label.labelId)" class="mt-4 ml-6">
-              <div
-                v-for="annotation in label.annotations"
-                :key="annotation.annotationId"
-                class="mb-4 border-b pb-4"
-              >
-                <div class="flex items-start gap-4">
-                  <!-- Annotation User Avatar with Rank -->
-                  <div class="flex flex-col items-center p-2">
-                    <template v-if="annotation.user?.email">
-                      <!-- Avatar with Rank Border -->
-                      <div
-                        v-if="annotation.user && getUserRank(annotation.user?.userId, label.votedLabel)?.tier !== 0"
-                        :style="{ borderColor: sdgsStore.getColorBySDG(label.votedLabel) }"
-                        :class="['w-8 h-8 rounded-full border-4 flex items-center justify-center', getBorderStyle(getUserRank(annotation.user?.userId, label.votedLabel)?.tier)]"
-                      >
-                        <img
-                          :src="generateAvatar(annotation.user.email)"
-                          alt="Annotation User Avatar"
-                          class="w-7 h-7 rounded-full"
-                        />
-                      </div>
-                      <!-- Plain Avatar if no rank -->
-                      <template v-else>
-                        <img
-                          :src="generateAvatar(annotation.user.email)"
-                          alt="Annotation User Avatar"
-                          class="w-8 h-8 rounded-full"
-                        />
-                      </template>
-                    </template>
-                    <!-- Fallback if user data is missing -->
-                    <template v-else>
-                      <div class="w-8 h-8 rounded-full bg-gray-300"></div>
-                    </template>
-
-                    <!-- Rank Info Card -->
-                    <div v-if="annotation.user && getUserRank(annotation.user?.userId, label.votedLabel)"
-                         class="mt-2 bg-white rounded-lg shadow p-2 w-full text-center border">
-                      <p>Rank</p>
-                      <Icon
-                        v-if="getUserRank(annotation.user?.userId, label.votedLabel)?.tier === 1"
-                        name="line-md:chevron-up"
-                        :style="{ color: sdgsStore.getColorBySDG(label.votedLabel) }"
-                        class="w-4 h-4 mx-auto"
-                      />
-                      <Icon
-                        v-else-if="getUserRank(annotation.user?.userId, label.votedLabel)?.tier === 2"
-                        name="line-md:chevron-double-up"
-                        :style="{ color: sdgsStore.getColorBySDG(label.votedLabel) }"
-                        class="w-4 h-4 mx-auto"
-                      />
-                      <Icon
-                        v-else-if="getUserRank(annotation.user?.userId, label.votedLabel)?.tier === 3"
-                        name="line-md:chevron-triple-up"
-                        :style="{ color: sdgsStore.getColorBySDG(label.votedLabel) }"
-                        class="w-4 h-4 mx-auto"
-                      />
-                      <Icon
-                        v-else
-                        name="line-md:minus"
-                        class="text-gray-400 w-4 h-4 mx-auto"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Annotation Content -->
-                  <div class="flex-1 bg-white rounded-tr-lg rounded-br-lg rounded-bl-lg p-4">
-                    <!-- User Name and Rank -->
-                    <div class="flex items-center gap-2">
-                      <p class="font-semibold">
-                        {{ annotation.user?.nickname || "Unknown User" }}
-                      </p>
-                      <p class="text-sm border-gray-400 mt-1">
-            <span class="text-sm border-gray-400 mt-1">
-              {{ annotation.user ? getUserRank(annotation.user.userId, label.votedLabel)?.name || "" : "" }}
-            </span>
-                      </p>
-                    </div>
-
-                    <!-- Annotation Comment -->
-                    <p class="text-sm text-gray-700 mt-1">
-                      <span class="font-medium">Comment:</span> {{ annotation.comment }}
-                    </p>
-
-                    <!-- Annotation Date -->
-                    <p class="text-xs text-gray-500 mt-1">
-                      <span class="font-medium">Date:</span> {{ formatDate(annotation.createdAt) }}
-                    </p>
-
-                    <!-- Votes for the Annotation -->
-                    <div class="flex items-center gap-4 mt-2 h-[40px]">
-                      <p class="font-semibold text-gray-700">User Votes</p>
-                      <!-- Vote Plot -->
-                      <BarVotePlot :width="120" :height="40" :votesData="getAnnotationVotes(annotation.annotationId)" />
-
-                      <!-- Vote Buttons -->
-                      <div class="flex items-center gap-2 mt-2">
-                        <!-- Positive Vote Button -->
-                        <button
-                          @click="voteAnnotation(annotation.annotationId, VoteType.POSITIVE)"
-                          class="flex items-center gap-1 text-blue-500 hover:text-blue-700"
-                          aria-label="Vote Positive"
-                        >
-                          <Icon name="mdi-thumb-up-outline" class="w-4 h-4" />
-                          <span>{{ getAnnotationVotes(annotation.annotationId).positive }}</span>
-                        </button>
-
-                        <!-- Neutral Vote Button -->
-                        <button
-                          @click="voteAnnotation(annotation.annotationId, VoteType.NEUTRAL)"
-                          class="flex items-center gap-1 text-gray-500 hover:text-gray-700"
-                          aria-label="Vote Neutral"
-                        >
-                          <Icon name="mdi-emoticon-neutral-outline" class="w-4 h-4" />
-                          <span>{{ getAnnotationVotes(annotation.annotationId).neutral }}</span>
-                        </button>
-
-                        <!-- Negative Vote Button -->
-                        <button
-                          @click="voteAnnotation(annotation.annotationId, VoteType.NEGATIVE)"
-                          class="flex items-center gap-1 text-red-500 hover:text-red-700"
-                          aria-label="Vote Negative"
-                        >
-                          <Icon name="mdi-thumb-down-outline" class="w-4 h-4" />
-                          <span>{{ getAnnotationVotes(annotation.annotationId).negative }}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <!--<UButton
+                icon="i-heroicons-chevron-down"
+                size="sm"
+                color="gray"
+                variant="outline"
+                :label="expandedLabels.includes(label.labelId) ? 'Hide Comments' : 'Show Comments'"
+                @click="toggleAnnotations(label.labelId)"
+              /> -->
             </div>
           </div>
         </div>
@@ -365,6 +250,7 @@ import { VoteType } from "~/types/enums";
 import BarVotePlot from "~/components/plots/BarVotePlot.vue";
 import type { VoteSchemaFull } from "~/types/vote";
 import useVotes from "~/composables/useVotes";
+import CommentSummary from "~/components/CommentSummary.vue";
 
 const labelDecisionsStore = useLabelDecisionsStore();
 const usersStore = useUsersStore();

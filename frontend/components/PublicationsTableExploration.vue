@@ -226,11 +226,13 @@ const scenarioMapping: Record<string, { icon: string; name: string; tooltip: str
     name: 'Tiebreaker',
     tooltip: 'Resolve conflicts with a balanced approach'
   },
+  /*
   'Not enough votes': {
     icon: 'i-heroicons-question-mark-circle',
     name: 'Not enough votes',
     tooltip: 'Not enough votes'
   },
+   */
   'Decided': {
     icon: 'i-heroicons-check-mark-circle',
     name: 'Decided',

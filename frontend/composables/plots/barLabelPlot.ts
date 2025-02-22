@@ -1,43 +1,58 @@
-import * as d3 from 'd3';
+import * as d3 from "d3";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useSDGsStore } from "~/stores/sdgs";
+import { ref, watch } from "vue";
 
-export function createBarLabelPlot(container, width, height) {
+export function createBarLabelPlot(container, width, height, sortDescending) {
   const labelDecisionsStore = useLabelDecisionsStore();
   const sdgsStore = useSDGsStore();
 
   function updateChart() {
     if (labelDecisionsStore.selectedSDGLabelDecision && labelDecisionsStore.userLabels) {
-      const labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showAllSDGUserLabels);
-      updateLabelDistributionBarPlot(container, labelDistribution, width, height, sdgsStore);
+      let labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showAllSDGUserLabels);
+
+      // Apply correct order:
+      if (sortDescending) {
+        labelDistribution.sort((a, b) => b.count - a.count);
+      }
+
+      if (labelDistribution.length === 0) {
+        // Display "No Labels Yet" message
+        displayNoLabelsMessage(container, width, height);
+      } else {
+        updateLabelDistributionBarPlot(container, labelDistribution, width, height, sdgsStore);
+      }
     }
   }
 
   // Subscribe to Pinia store updates and update the plot when data changes
-  labelDecisionsStore.$subscribe((mutation, state) => {
+  labelDecisionsStore.$subscribe(() => {
     updateChart();
   });
 
-  // Watch `showAllSDGUserLabels` and update chart when toggled
-  watch(
-    () => labelDecisionsStore.showAllSDGUserLabels,
-    () => {
-      updateChart();
-    }
-  );
+  // Watch for store changes
+  watch(() => labelDecisionsStore.showAllSDGUserLabels, () => {
+    updateChart();
+  });
+
+  // Watch for sortDescending changes
+  watch(() => sortDescending, () => {
+    updateChart();
+  });
 
   // Initial rendering of the chart
   updateChart();
 }
+
 /**
  * Aggregates user votes, either showing all or only the latest vote per user.
  */
 export function aggregateUserVotes(userLabels, showAll) {
-  const latestLabels = new Map();
+  let latestLabels = new Map();
 
   if (!showAll) {
     // Keep only the latest SDG label per user
-    userLabels.forEach(label => {
+    userLabels.forEach((label) => {
       if (
         !latestLabels.has(label.userId) ||
         new Date(label.createdAt) > new Date(latestLabels.get(label.userId).createdAt)
@@ -48,19 +63,25 @@ export function aggregateUserVotes(userLabels, showAll) {
   }
 
   // Use either all labels or the latest one per user
-  const filteredLabels = showAll ? userLabels : Array.from(latestLabels.values());
+  let filteredLabels = showAll ? userLabels : Array.from(latestLabels.values());
 
   // Count votes for each SDG label
-  const voteCounts = {};
-  filteredLabels.forEach(label => {
-    const votedLabel = label.votedLabel;
+  let voteCounts = {};
+  filteredLabels.forEach((label) => {
+    let votedLabel = label.votedLabel;
     if ((votedLabel >= 1 && votedLabel <= 17) || votedLabel === -1) {
       voteCounts[votedLabel] = (voteCounts[votedLabel] || 0) + 1;
     }
   });
 
-  return Object.entries(voteCounts).map(([label, count]) => ({ label: Number(label), count }));
+  let labelDistribution = Object.entries(voteCounts).map(([label, count]) => ({
+    label: Number(label),
+    count,
+  }));
+
+  return labelDistribution;
 }
+
 
 /**
  * Updates the D3 bar chart with new data.
@@ -126,15 +147,22 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("width", x.bandwidth())
     .attr("height", d => chartHeight - y(d.count))
     .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
-    .on("mouseover", function(event, d) {
+    .attr("fill-opacity", 0.7)
+    .on("mouseover", function (event, d) {
       // Show tooltip
-      const text = `${d.label === -1 ? "Not relevant" : ``} ${d.count} ${d.count === 1 ? 'Label' : 'Labels'}`;
+      const labelText = d.label === -1 ? "Not relevant" : `SDG ${d.label}`;
+      const color = d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC';
 
       tooltip.transition()
         .duration(200)
-        .style("opacity", 0.9);
+        .style("opacity", 1);
 
-      tooltip.html(text)
+      tooltip.html(
+        `<div style="display: flex; align-items: center;">
+          <div style="width: 12px; height: 12px; background-color: ${color}; border-radius: 50%; margin-right: 8px;"></div>
+          <strong>${labelText}:</strong> ${d.count} ${d.count === 1 ? 'Label' : 'Labels'}
+        </div>`
+      )
         .style("left", (event.pageX + 10) + "px")
         .style("top", (event.pageY - 28) + "px");
 
@@ -144,9 +172,12 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
         .duration(200)
         .attr("fill-opacity", 1);
     })
-    .on("mouseout", function() {
+    .on("mouseout", function () {
       // Hide tooltip
-      tooltip.style("opacity", 0);
+      tooltip.transition()
+        .duration(300)
+        .style("opacity", 0)
+        .on("end", () => tooltip.style("left", "-9999px")); // Move out of view
 
       // Reset bar opacity
       d3.select(this)
@@ -163,8 +194,28 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("x", d => x(d.label === -1 ? 'Not relevant' : `SDG ${d.label}`) + x.bandwidth() / 2)
     .attr("y", d => y(d.count) - 5) // Position above the bar
     .attr("text-anchor", "middle")
-    .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
+    .attr("fill", "#000") // Keep text black for visibility
     .attr("font-size", "12px")
     .attr("font-weight", "bold")
     .text(d => d.count);
+}
+
+/**
+ * Displays a "No Labels Yet" message when there are no labels in the dataset.
+ */
+function displayNoLabelsMessage(container, width, height) {
+  d3.select(container).selectAll('*').remove(); // Clear previous chart
+
+  const svg = d3.select(container)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", height / 2)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "18px")
+    .attr("fill", "#333")
+    .text("No Labels available");
 }

@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { createBarLabelPlot } from '@/composables/plots/barLabelPlot';
 
 const props = defineProps({
@@ -19,16 +19,25 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  sortDescending: {
+    type: Boolean,
+    required: true,
+  }
 });
 
 const chartContainer = ref<HTMLDivElement | null>(null);
 
 onMounted(() => {
   if (chartContainer.value) {
-    createBarLabelPlot(chartContainer.value, props.width, props.height);
+    createBarLabelPlot(chartContainer.value, props.width, props.height, props.sortDescending);
   }
 });
 
+watch(() => props.sortDescending, (newVal) => {
+  if (chartContainer.value) {
+    createBarLabelPlot(chartContainer.value, props.width, props.height, newVal);
+  }
+});
 </script>
 
 <style scoped>

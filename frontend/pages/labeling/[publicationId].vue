@@ -1,6 +1,6 @@
 <template>
   <div class="h-full overflow-hidden">
-    <div class="grid grid-rows-12 grid-cols-10 grid-flow-col h-full">
+    <div class="grid grid-rows-12 grid-cols-10 grid-flow-col h-full overflow-hidden">
 
       <!-- Overarching Title -->
       <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center bg-gray-50 py-1 min-h-fit leading-none">
@@ -62,53 +62,67 @@
       </div>
 
 
-      <div class="row-span-2 col-span-3">
-        <div class="row-span-1 col-span-1 flex justify-evenly items-center">
-          <div>
-            <label for="content-toggle" class="mr-2 text-lg font-medium text-gray-700">Show Community Votes</label>
-            <input
-              id="content-toggle"
-              type="checkbox"
-              class="toggle toggle-primary"
-              v-model="showContent"
-            />
-          </div>
-        </div>
-        <div class="grid grid-cols-4">
-          <div  v-if="showContent" class="row-span-1 col-span-1">
-            <DonutPlot></DonutPlot>
-          </div>
+      <div class="row-span-3 col-span-5">
+        <div class="flex justify-evenly items-start">
+          <div class="frame-container w-full">
+            <div class="frame-title"><b>Look at</b> Community Label Distribution</div>
+            <div class="flex items-center justify-end space-x-2">
+              <label for="content-toggle" class="text-lg font-medium text-gray-700">
+                {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}
+              </label>
+              <UToggle id="content-toggle" color="primary" v-model="showContent" />
+            </div>
 
-          <div v-if="showContent" class="row-span-1 col-span-1">
-            <SDGUserLabelToggle />
-            <BarLabelPlot :width="200" :height="100" />
-          </div>
+            <div class="grid grid-cols-3 grid-rows-4">
+              <div class="col-span-1 row-span-4" v-if="showContent">
+                <DonutPlot></DonutPlot>
+              </div>
 
-          <div  v-if="showContent" class="row-span-1 col-span-1  flex justify-center items-center">
-            <QuestIndicator></QuestIndicator>
+              <!-- SDG Bar Chart Section -->
+              <div class="col-span-2 row-span-2 flex flex-col justify-between p-2" v-if="showContent">
+                <!-- Centered Bar Chart -->
+                <div class="flex justify-center">
+                  <BarLabelPlot :width="500" :height="100" :sortDescending="sortDescending" />
+                </div>
+
+                <!-- Centered Controls Below Chart -->
+                <div class="flex justify-center space-x-6 items-center">
+                  <SDGUserLabelCheckbox />
+                  <SortedOrderCheckbox v-model="sortDescending" />
+                </div>
+              </div>
+
+              <div class="col-span-2 row-span-1" v-if="showContent">
+                <QuestIndicator></QuestIndicator>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div v-if="showContent" class="row-span-1 col-span-4">
-        <CommentSummary></CommentSummary>
-      </div>
-
-      <div v-if="showContent" class="row-span-8 col-span-4 flex flex-col justify-center items-center">
-        <!-- Toggle Switch -->
-        <div class="flex items-center justify-center mb-4">
-          <label for="comment-toggle" class="mr-2 text-lg font-medium text-gray-700">Show Community Comments</label>
-          <input
-            id="comment-toggle"
-            type="checkbox"
-            class="toggle toggle-primary"
-            v-model="showAnnotations"
-          />
+      <div class="row-span-8 col-span-5 flex flex-col justify-center items-center overflow-hidden">
+        <div v-if="showContent" class="overflow-hidden h-full w-full" >
+          <!-- Conditional Rendering -->
+          <div class="frame-container overflow-hidden">
+            <!-- Toggle Switch -->
+            <div class="flex items-center justify-end space-x-2">
+              <Icon
+                :name="showAnnotations ? 'mdi-tag' : 'mdi-comment-outline'"
+                class="w-5 h-5 text-gray-700"
+              />
+              <label for="comment-toggle" class="text-lg font-medium text-gray-700">
+                {{ showAnnotations ? 'Show Community Labels' : 'Show Community Comments' }}
+              </label>
+              <UToggle v-model="showAnnotations" color="primary" id="comment-toggle" />
+            </div>
+            <div v-if="!showAnnotations" class="overflow-hidden">
+              <CommentSection  class="overflow-hidden" />
+            </div>
+            <div v-else class="overflow-hidden">
+              <CommentSectionAnnotations class="overflow-hidden" />
+            </div>
+          </div>
         </div>
-
-        <!-- Conditional Rendering -->
-        <CommentSection v-if="!showAnnotations" />
-        <CommentSectionAnnotations v-else />
       </div>
    </div>
  </div>
@@ -146,7 +160,7 @@ const publicationId = route.params.publicationId
 
 const showAnnotations = ref(false); // State to toggle between components
 const showContent = ref(false); // State to toggle the visibility of the sections
-
+const sortDescending = ref(false);
 
 onMounted(async () => {
   gameStore.setStage(Stage.LABELING);
