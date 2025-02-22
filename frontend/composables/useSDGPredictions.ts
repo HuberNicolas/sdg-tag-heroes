@@ -1,6 +1,6 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
 import { snakeToCamel } from "~/utils/snakeToCamel";
-import type { SDGPredictionSchemaFull } from "~/types/sdgPredictions";
+import type { SDGPredictionSchemaFull } from "~/types/sdgPrediction";
 
 export default function useSDGPredictions() {
   const config = useRuntimeConfig();

@@ -3,69 +3,51 @@
     ref="glyphContainer"
     class="hex-glyph"
     :style="{ height: `${height}px`, width: `${width}px`, transform: transformStyle }"
-
   ></div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useSDGsStore } from "~/stores/sdgs";
 import createGlyph from "@/composables/glyph/predictionGlyphLabeling";
 
 const props = defineProps({
-  values: {
-    type: Array as PropType<number[]>,
-    required: true,
-    default: () => Array(17).fill(0), // Default to an array of 17 zeros
-    validator: (arr: number[]) => arr.length === 17, // Ensure 17 values
-  },
   height: {
     type: Number,
-    default: 50, // Default height of the glyph
+    default: 200, // Default height of the glyph
   },
   width: {
     type: Number,
-    default: 50, // Default width of the glyph
+    default: 200, // Default width of the glyph
   },
   transformStyle: {
     type: String,
-    default: "translate(-20%, -10%)", // Default transformation
+    default: "translate(-10%, 2.5%)", // Default transformation
   },
 });
 
 // Reactive reference to the container
 const glyphContainer = ref<HTMLElement | null>(null);
+const route = useRoute();
+const publicationId = ref<number | null>(route.params.publicationId ? Number(route.params.publicationId) : null);
+const sdgsStore = useSDGsStore();
+const { selectedSDG } = storeToRefs(sdgsStore);
 
-// Use the prop directly
-const { renderHexGrid } = createGlyph(props.values);
+// Use the composable
+const { renderHexGrid } = createGlyph();
 
-const renderGlyph = () => {
-  if (glyphContainer.value) {
-    renderHexGrid(glyphContainer.value, props.width, props.height);
-  }
-};
-
+// Render glyph on mount
 onMounted(() => {
-  renderGlyph();
+  if (glyphContainer.value) {
+    renderHexGrid(glyphContainer.value, props.width, props.height, publicationId.value);
+  }
 });
 
-
-// Watch for changes in the `values` prop and re-render the glyph
-watch(() => props.values, () => {
-  renderGlyph();
-}, { deep: true });
+// Watch for changes in publicationId and re-render
+watch([publicationId, selectedSDG], () => {
+  if (glyphContainer.value && publicationId.value) {
+    renderHexGrid(glyphContainer.value, props.width, props.height, publicationId.value);
+  }
+});
 </script>
-
-<style scoped>
-
-
-.hex-glyph {
-  display: inline-block;
-  position: relative;
-  /* transform: rotate(45deg); */
-  aspect-ratio: 1 / 1;
-
-  background: none !important;
-  overflow: hidden; /* Prevent overflow */
-}
-
-</style>

@@ -1,9 +1,14 @@
 import * as d3 from 'd3';
-import {baseSdgTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
+import {baseSdgTitles, baseSdgShortTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
 import {trimValue} from "~/utils/trim";
+import {useSDGsStore} from "~/stores/sdgs";
+import {useSDGPredictionsStore} from "~/stores/sdgPredictions";
+import { storeToRefs } from "pinia";
 
-export default function createGlyph(values: number[]) {
-  const hexRadius = 25; // Hexagon radius in pixels
+export default function createGlyph() {
+  const sdgsStore = useSDGsStore();
+  const sdgPredictionsStore = useSDGPredictionsStore();
+  const hexRadius = 30; // Hexagon radius in pixels
 
   const scaleFactor = 0.9; // Scaling factor to reduce spacing (less than 1 reduces spacing)
 
@@ -15,9 +20,37 @@ export default function createGlyph(values: number[]) {
   const coords = baseCoords
   const labels = baseLabelsNumbers
   const sdgTitles = baseSdgTitles
+  const sdgShortTitles = baseSdgShortTitles
   const sdgColors = baseSdgColors
 
-  const renderHexGrid = (selector: HTMLElement, width: number, height: number): void => {
+  // Fetch predictions based on publicationId
+  const fetchPredictions = async (publicationId: number) => {
+    try {
+      const predictions = await sdgPredictionsStore.fetchDefaultModelSDGPredictionsByPublicationId(publicationId);
+      const prediction = sdgPredictionsStore.getLabelingSDGPrediction
+      if (prediction) {
+        const values =  [
+          prediction.sdg1, prediction.sdg2, prediction.sdg3, prediction.sdg4, prediction.sdg5,
+          prediction.sdg6, prediction.sdg7, prediction.sdg8, prediction.sdg9, prediction.sdg10,
+          prediction.sdg11, prediction.sdg12, prediction.sdg13, prediction.sdg14, prediction.sdg15,
+          prediction.sdg16, prediction.sdg17
+        ];
+        return values;
+      }
+    } catch (error) {
+      console.error("Failed to fetch SDG predictions:", error);
+      return Array(17).fill(0); // Return default values in case of error
+    }
+  };
+
+
+  const renderHexGrid = async (selector: HTMLElement, width: number = 100, height: number = 100, publicationId: number): void => {
+    if (!publicationId) return;
+    const { selectedSDG } = storeToRefs(sdgsStore);
+
+    // Fetch predictions
+    const values = await fetchPredictions(publicationId);
+
     const xCoords = coords.map(([x]) => x * xSpacing);
     const yCoords = coords.map(([_, y]) => y * ySpacing);
 
@@ -51,7 +84,7 @@ export default function createGlyph(values: number[]) {
 
     // Create a group to shift content
     const contentGroup = svg.append('g')
-      .attr('transform', `translate(${xOffset - minX}, ${yOffset - minY})`); // Apply explicit horizontal adjustment
+      //.attr('transform', `translate(${xOffset - minX}, ${yOffset - minY})`); // Apply explicit horizontal adjustment
 
     const tooltip = d3.select('body')
       .append('div')
@@ -91,8 +124,9 @@ export default function createGlyph(values: number[]) {
         )
         .attr('fill', color?.toString() || 'gray')
         .attr('stroke', 'black')
-        .attr('stroke-width', 1)
-        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
+        .attr('stroke-width', selectedSDG.value === i + 1 ? 4 : 1)
+        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
+
 
       hexagonGroup
         .append('polygon')
@@ -111,7 +145,7 @@ export default function createGlyph(values: number[]) {
         .attr('fill', 'white')
         .attr('stroke', 'black')
         .attr('stroke-width', 1)
-        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
+        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
 
       hexagonGroup
         .append('text')
@@ -119,7 +153,7 @@ export default function createGlyph(values: number[]) {
         .attr('y', y * ySpacing)
         .attr('text-anchor', 'middle')
         .attr('dy', '0.35em')
-        .text(labels[i])
+        .text(sdgShortTitles[i])
         .style('font-size', '12px')
         .style('fill', 'black');
 
@@ -129,7 +163,7 @@ export default function createGlyph(values: number[]) {
             .style('visibility', 'visible')
             .style('background', color?.toString() || 'gray')
             .style('color', '#fff')
-            .html(`<strong>${sdgTitles[i]}</strong><br>Value: ${trimValue(value)}`);
+            .html(`<strong>${sdgTitles[i]}</strong><br>Machine Score: ${trimValue(value)}`);
         })
         .on('mousemove', (event) => {
           tooltip
@@ -138,7 +172,21 @@ export default function createGlyph(values: number[]) {
         })
         .on('mouseout', () => {
           tooltip.style('visibility', 'hidden');
-        });
+        })
+        // Click event moved to the entire hexagon group
+        .on('click', (event) => {
+        event.stopPropagation(); // Prevent interference with tooltip
+          // Hide tooltip immediately on click
+        tooltip.style('visibility', 'hidden');
+        if (selectedSDG.value === i + 1) {
+          sdgsStore.setSelectedSDG(0); // Deselect if already selected
+        } else {
+          sdgsStore.setSelectedSDG(i + 1); // Select the SDG
+        }
+        renderHexGrid(selector, width, height, publicationId); // Re-render to update stroke width
+      });
+
+
     });
   };
   return { renderHexGrid };

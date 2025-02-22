@@ -19,6 +19,8 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
 
 
     selectedPartitionedSDGPredictions: [] as SDGPredictionSchemaFull[],
+
+    labelingSDGPrediction: null as SDGPredictionSchemaFull | null,
   }),
   actions: {
     // Fetch SDG predictions by IDs
@@ -76,7 +78,8 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
 
       try {
         const { getDefaultModelSDGPredictionsByPublicationId } = useSDGPredictions();
-        this.sdgPredictionDetails = await getDefaultModelSDGPredictionsByPublicationId(publicationId);
+        const response = await getDefaultModelSDGPredictionsByPublicationId(publicationId);
+        this.labelingSDGPrediction = response[0];
       } catch (error) {
         this.error = `Failed to fetch default model SDG predictions for publication ID ${publicationId}: ${error}`;
         throw error;
@@ -229,8 +232,11 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
       } finally {
         this.isLoading = false;
       }
-    },
-
-    
+    }
   },
+  getters: {
+    getLabelingSDGPrediction(state) {
+      return state.labelingSDGPrediction;
+    },
+  }
 });

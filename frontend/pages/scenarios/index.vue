@@ -7,7 +7,7 @@
         <h1 class="text-3xl font-bold w-full">Wanna be an SDG-Tag Hero? Then help us linking publications either</h1>
         <div class="w-full flex justify-center mt-2">
           <div class="w-1/2 flex items-center justify-center">
-            <p class="text-xl">by <b>specializing</b> for any SDG</p>
+            <p class="text-xl">by <b>selecting</b> an SDG</p>
           </div>
           <div class="w-1/2 flex items-center justify-center">
             <p class="text-xl">by <b>exploring</b> publications from different Worlds</p>

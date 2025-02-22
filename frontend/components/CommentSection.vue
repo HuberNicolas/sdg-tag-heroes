@@ -202,7 +202,7 @@
             <!-- Toggle Annotations Button -->
             <button
               @click="toggleAnnotations(label.labelId)"
-              class="text-blue-500 mt-2"
+              class="text-gray-500 mt-2"
             >
               {{
                 expandedLabels.includes(label.labelId)

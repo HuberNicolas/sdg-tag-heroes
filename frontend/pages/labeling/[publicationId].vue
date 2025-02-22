@@ -4,34 +4,55 @@
 
       <!-- Overarching Title -->
       <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center bg-gray-50 py-1 min-h-fit leading-none">
-      <h1 class="text-xl font-bold w-full">Tagging with machine and community support</h1>
+        <h1 class="text-xl font-bold w-full flex items-center justify-center space-x-2">
+          <Icon name="mdi:robot-outline" class="text-gray-700 w-6 h-6" />
+          <span>Tagging with machine and community support</span>
+          <Icon name="mdi:account-group-outline" class="text-gray-700 w-6 h-6" />
+        </h1>
+
         <div class="grid grid-cols-10 w-full text-center">
-          <div class="col-span-3 flex items-center justify-center">
+          <!-- Machine Support -->
+          <div class="col-span-3 flex items-center justify-center space-x-2">
+            <Icon name="mdi:robot-outline" class="text-gray-700 w-5 h-5" />
             <p class="text-xl"><b>Machine Support</b></p>
           </div>
+
+          <!-- Your Decision -->
           <div class="col-span-3 flex items-center justify-center">
             <p class="text-xl"><b>Your</b> Decision</p>
           </div>
-          <div class="col-span-4 flex items-center justify-center">
+
+          <!-- Community Support -->
+          <div class="col-span-4 flex items-center justify-center space-x-2">
+            <Icon name="mdi:account-group-outline" class="text-gray-700 w-5 h-5" />
             <p class="text-xl"><b>Community Support</b></p>
           </div>
         </div>
       </div>
 
-      <div class="row-span-3 col-span-3">
 
+      <div class="row-span-4 col-span-3">
         <div class="grid grid-cols-6 grid-rows-2">
-          <div class="col-span-3 row-span-2">
+          <div class="col-span-4 row-span-1">
             <SDGSelector></SDGSelector>
           </div>
-          <div class="col-span-3 row-span-2">
+
+          <div class="col-span-2 row-span-1">
+            <div class="frame-container">
+              <div class="frame-title"><b>Investigate</b> machine scores</div>
+              <div ref="glyphContainer">
+                <HexGlyph />
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-6 row-span-1">
             <SDGExplorerLabeling></SDGExplorerLabeling>
           </div>
-          <!-- <HexGlyph :values=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] :height="260" :width="260" /> -->
         </div>
       </div>
 
-      <div class="row-span-8 col-span-3">
+      <div class="row-span-7 col-span-3 flex flex-col h-full overflow-hidden">
         <ShapAbstract></ShapAbstract>
       </div>
 

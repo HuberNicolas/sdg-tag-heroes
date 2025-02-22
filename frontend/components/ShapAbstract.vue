@@ -1,25 +1,18 @@
 <template>
-  <div class="frame-container">
+  <div class="frame-container h-full flex flex-col">
     <!-- Frame Title with ShapToggle -->
     <div class="frame-title flex justify-between items-center">
       <span><b>Read Publication</b> either with or without Machine Explanations</span>
       <ShapToggle />
     </div>
 
-    <div class="container mx-auto p-2">
+    <div class="container mx-auto p-1 flex-1 flex flex-col overflow-hidden">
       <!-- Abstract Display -->
-      <div class="bg-white p-2 rounded-lg shadow-md flex flex-col min-h-[400px]">
+      <div class="bg-white p-4 rounded-lg shadow-md flex flex-col h-full overflow-hidden"
+           @mouseup="handleAbstractSelection">
         <h1 class="text-xl font-bold mb-1">{{ publication?.title }}</h1>
-
-        <!-- Abstract content that fills the remaining space -->
-        <div
-          v-if="showShap && explanation"
-          class="h-[500px] overflow-y-auto text-justify"
-          @mouseup="handleAbstractSelection"
-          v-html="shapHighlightedAbstract"
-        ></div>
-        <div v-else class="h-[500px] overflow-y-auto text-justify">
-          {{ publication?.description || "No abstract available." }}
+        <div class="flex-1 overflow-y-auto text-justify">
+          <span v-html="shapHighlightedAbstract"></span>
         </div>
       </div>
     </div>
@@ -34,7 +27,6 @@ import { useExplanationsStore } from "~/stores/explanations";
 import { usePublicationsStore } from "~/stores/publications";
 import { useSDGsStore } from "~/stores/sdgs";
 import * as d3 from "d3";
-import SDGExplorerLabeling from "~/components/SDGExplorerLabeling.vue";
 
 const route = useRoute();
 const explanationStore = useExplanationsStore();
