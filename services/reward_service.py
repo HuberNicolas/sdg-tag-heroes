@@ -59,7 +59,7 @@ class RewardService:
 
         # XP from knowledge externalization
         comment_xp = self.xp_evaluate_user_label_comment(label) * 10  # Scale to XP system
-        xp += round(comment_xp)
+        xp += int(comment_xp)
 
         logging.info(f"Total XP for label {label.label_id}: {xp}")
         return xp

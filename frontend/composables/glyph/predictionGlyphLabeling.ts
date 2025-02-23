@@ -143,8 +143,8 @@ export default function createGlyph() {
             .join(' ')
         )
         .attr('fill', 'white')
-        .attr('stroke', 'black')
-        .attr('stroke-width', 1)
+        //.attr('stroke', 'black')
+        //.attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
 
       hexagonGroup

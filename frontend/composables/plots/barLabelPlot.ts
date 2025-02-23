@@ -147,10 +147,11 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("width", x.bandwidth())
     .attr("height", d => chartHeight - y(d.count))
     .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
-    .attr("fill-opacity", 0.7)
+    .attr("fill-opacity", 0.8)
     .on("mouseover", function (event, d) {
       // Show tooltip
       const labelText = d.label === -1 ? "Not relevant" : `SDG ${d.label}`;
+      const shortTitle = d.label === -1 ? "General" : sdgsStore.getShortTitleBySDG(d.label); // Fetch short title
       const color = d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC';
 
       tooltip.transition()
@@ -159,9 +160,13 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
 
       tooltip.html(
         `<div style="display: flex; align-items: center;">
-          <div style="width: 12px; height: 12px; background-color: ${color}; border-radius: 50%; margin-right: 8px;"></div>
-          <strong>${labelText}:</strong> ${d.count} ${d.count === 1 ? 'Label' : 'Labels'}
-        </div>`
+      <div style="width: 12px; height: 12px; background-color: ${color}; border-radius: 50%; margin-right: 8px;"></div>
+      <div>
+        <strong>${labelText}:</strong> ${d.count} ${d.count === 1 ? 'Label' : 'Labels'}
+        <br>
+        <span style="font-size: 12px; color: ${color};">${shortTitle}</span>
+      </div>
+    </div>`
       )
         .style("left", (event.pageX + 10) + "px")
         .style("top", (event.pageY - 28) + "px");
@@ -172,12 +177,16 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
         .duration(200)
         .attr("fill-opacity", 1);
     })
+
     .on("mouseout", function () {
-      // Hide tooltip
+      // Hide tooltip properly
       tooltip.transition()
-        .duration(300)
+        .duration(200)
         .style("opacity", 0)
-        .on("end", () => tooltip.style("left", "-9999px")); // Move out of view
+        .on("end", function () {
+          tooltip.style("left", "-9999px"); // Move out of view
+          tooltip.style("top", "-9999px");  // Move out of view
+        });
 
       // Reset bar opacity
       d3.select(this)
@@ -185,6 +194,7 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
         .duration(200)
         .attr("fill-opacity", 0.7);
     });
+
 
   // Update the D3 bar chart to display vote count above each bar
   g.selectAll(".label")

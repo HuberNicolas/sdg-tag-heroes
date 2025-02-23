@@ -26,7 +26,7 @@ def deterministic_luck(N: int, P_max: float) -> float:
     hash_input = f"{N}-{P_max}".encode()
     hash_value = int(hashlib.sha256(hash_input).hexdigest(), 16) % 1000  # Convert hash to int
     scaled_value = 0.9 + (hash_value / 1000) * 0.2  # Scale to range [0.9, 1.1]
-    return (L_max * np.exp(-((N - N_luck) / sigma) ** 2) * scaled_value) + offset  # Offset avoids negative values
+    return int((L_max * np.exp(-((N - N_luck) / sigma) ** 2) * scaled_value) + offset)  # Offset avoids negative values
 
 def score(N: int, P_max: float) -> int:
     """
@@ -48,4 +48,4 @@ def score(N: int, P_max: float) -> int:
     # Apply deterministic luck effect
     S_L = deterministic_luck(N, P_max)
 
-    return max(round(S_B + S_I + U_S + S_L), 0)
+    return int(max(round(S_B + S_I + U_S + S_L), 0))

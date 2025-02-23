@@ -176,7 +176,7 @@ async def get_latest_bank_history(
             .first()
         )
 
-        if latest_history and latest_history.is_shown != 1:  # Ensure it's not already shown
+        if latest_history and not latest_history.is_shown:  # Ensure it's not already shown
             latest_history.is_shown = True
             db.commit()
             return SDGXPBankHistorySchemaFull.model_validate(latest_history)

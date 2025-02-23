@@ -65,6 +65,10 @@ export const useSDGsStore = defineStore("sdgs", {
     },
     getSelectedSDGLabel(state) {
       return state.selectedSDGLabel;
-    }
+    },
+    getShortTitleBySDG: (state) => (sdgId: number) => {
+      const sdg = state.sdgs.find((goal) => goal.id === sdgId);
+      return sdg ? sdg.shortTitle : "Unknown";
+    },
   },
 });

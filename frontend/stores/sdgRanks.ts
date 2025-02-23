@@ -61,7 +61,28 @@ export const useSDGRanksStore = defineStore("sdgRanks", {
         this.isLoading = false;
       }
     },
+  },
+  getters: {
+    // Dynamically generate sdgLevels from the fetched SDG ranks
+    sdgLevels: (state) => {
+      const levels: Record<string, Record<string, { name: string; description: string; xp_required: number }>> = {};
 
+      state.sdgRanks.forEach((rank) => {
+        const sdgKey = `sdg_${rank.sdgGoalId}`;
+        const tierKey = `tier_${rank.tier}`;
 
+        if (!levels[sdgKey]) {
+          levels[sdgKey] = {};
+        }
+
+        levels[sdgKey][tierKey] = {
+          name: rank.name,
+          description: rank.description || "",
+          xp_required: rank.xpRequired,
+        };
+      });
+
+      return levels;
+    },
   },
 });

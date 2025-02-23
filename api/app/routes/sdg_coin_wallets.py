@@ -97,7 +97,7 @@ async def get_latest_wallet_history(
             .first()
         )
 
-        if latest_history and latest_history.is_shown != 1: # Trap, True did not work!
+        if latest_history and not latest_history.is_shown: # Trap, True did not work!
             latest_history.is_shown = True
             db.commit()
             # Return the latest wallet history entry

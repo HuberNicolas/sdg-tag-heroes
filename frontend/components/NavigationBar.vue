@@ -5,7 +5,169 @@
     </div>
 
     <div v-else class="w-full flex justify-between items-center px-1 py-1 flex-nowrap overflow-x-auto">
-    <div class="flex items-center space-x-6">
+      <UModal v-model="isXPModalOpen">
+        <div class="p-8 bg-white rounded-xl shadow-2xl flex flex-col items-center text-center space-y-6 max-w-2xl w-full animate-fade-in scale-105 relative">
+
+          <!-- Large Community / Awareness Icon -->
+          <div class="relative flex items-center justify-center">
+            <Icon
+              name="line-md:group"
+              class="w-[160px] h-[160px] text-gray-600 opacity-10 absolute"
+            />
+
+            <!-- SDG Icon (Smaller) -->
+            <div v-if="xpModalContent?.sdg" class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-4 z-10" :style="{ borderColor: sdgModalColor }">
+              <img
+                :src="getSdgIconSrc(xpModalContent.sdg)"
+                :alt="`SDG ${xpModalContent.sdg} Icon`"
+                class="w-full h-full object-contain rounded-md"
+              />
+            </div>
+          </div>
+
+          <!-- Title -->
+          <h2 v-if="xpModalContent?.title" class="text-3xl font-bold text-gray-900 relative z-10">
+            {{ xpModalContent.title }}
+          </h2>
+
+          <!-- Contribution Message -->
+          <h3 class="text-2xl font-semibold text-gray-800 relative z-10">
+            Your Labeling Helps Build a Smarter & More Sustainable Future!
+          </h3>
+
+          <!-- XP Earned Description -->
+          <p v-if="xpModalContent?.description" class="text-lg text-gray-700 leading-relaxed relative z-10">
+            {{ xpModalContent.description }}
+          </p>
+
+          <!-- Additional Awareness / Community Message -->
+          <p class="text-md text-gray-600 italic relative z-10">
+            Through your participation, you're increasing <b>SDG awareness</b>, improving <b>AI training</b>, and empowering a <b>global community</b> of citizen scientists.
+          </p>
+
+          <!-- Player Rank Section -->
+          <div v-if="playerRankData" class="flex flex-col items-center mt-4 relative z-10">
+            <p class="text-lg font-semibold text-gray-800">
+              Your Rank in SDG {{ xpModalContent?.sdg.replace('sdg', '') }}
+            </p>
+
+            <div class="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg shadow-md">
+              <Icon v-if="playerRankData.tier === 1" name="line-md:chevron-up" class="w-6 h-6" :style="{ color: sdgModalColor }" />
+              <Icon v-else-if="playerRankData.tier === 2" name="line-md:chevron-double-up" class="w-6 h-6" :style="{ color: sdgModalColor }" />
+              <Icon v-else-if="playerRankData.tier === 3" name="line-md:chevron-triple-up" class="w-6 h-6" :style="{ color: sdgModalColor }" />
+              <Icon v-else name="line-md:minus" class="w-6 h-6 text-gray-400" />
+
+              <span class="px-3 py-1 rounded-lg text-white text-sm font-semibold" :style="{ backgroundColor: sdgModalColor }">
+          {{ playerRankData.name }}
+        </span>
+
+              <span class="text-lg font-semibold text-gray-800">
+          Tier {{ playerRankData.tier }}
+        </span>
+            </div>
+          </div>
+
+          <!-- XP Earned Display -->
+          <div v-if="xpModalContent?.increment" class="flex flex-col items-center mt-4 relative z-10">
+            <p class="text-lg font-semibold text-gray-800">Experience Points Earned</p>
+            <span class="text-2xl font-bold" :style="{ color: sdgModalColor }">
+        {{ Math.round(xpModalContent.increment) }} XP
+      </span>
+          </div>
+
+          <!-- Progress Bar Chart -->
+          <ProgressBarChart
+            v-if="xpModalContent?.sdg && playerRankData"
+            :currentXp="Math.round(xpModalContent.xp)"
+            :nextLevelXp="getNextLevelXp(xpModalContent.sdg, playerRankData.tier)"
+            :sdgColor="sdgModalColor"
+            class="relative z-10"
+          />
+
+          <!-- Closing Note -->
+          <p class="text-sm text-gray-500 italic relative z-10">
+            Your contributions fuel AI-driven sustainability efforts while rewarding you with knowledge & recognition!
+          </p>
+
+          <!-- Close Button -->
+          <UButton
+            label="Keep Going!"
+            class="px-8 py-3 text-white text-lg font-semibold rounded-lg hover:bg-opacity-80 transition-all relative z-10"
+            :style="{ backgroundColor: sdgModalColor }"
+            @click="closeXPModal"
+          />
+        </div>
+      </UModal>
+
+
+      <UModal v-model="isCoinModalOpen">
+        <div class="p-8 bg-white rounded-xl shadow-2xl flex flex-col items-center text-center space-y-6 max-w-2xl w-full animate-fade-in scale-105 relative">
+
+          <!-- Title -->
+          <h2 v-if="coinModalContent?.title" class="text-3xl font-bold text-gray-900 relative z-10 mb-4">
+            {{ coinModalContent.title }}
+          </h2>
+
+          <!-- Large Publication Icon (Now wrapping SDG Icon) -->
+          <div class="relative flex items-center justify-center p-4">
+            <Icon
+              name="line-md:document"
+              class="w-[200px] h-[200px] text-gray-600 opacity-10 absolute"
+            />
+
+            <!-- SDG Icon (Smaller) -->
+            <div v-if="coinModalContent?.sdg" class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-4 z-10" :style="{ borderColor: sdgColor }">
+              <img
+                :src="getSdgIconSrc(coinModalContent.sdg)"
+                :alt="`SDG ${coinModalContent.sdg} Icon`"
+                class="w-full h-full object-contain rounded-md"
+              />
+            </div>
+          </div>
+
+
+
+          <!-- Contribution Message -->
+          <h3 v-if="coinModalContent?.title" class="text-2xl font-semibold text-gray-800 relative z-10">
+            Your Contribution Makes a Difference!
+          </h3>
+
+          <!-- Coin Earned Description -->
+          <p v-if="coinModalContent?.description" class="text-lg text-gray-700 leading-relaxed relative z-10">
+            {{ coinModalContent.description }}
+          </p>
+
+          <!-- Additional Value Proposition -->
+          <p class="text-md text-gray-600 italic relative z-10">
+            By participating in labeling, you helped train AI models and advance scientific research while earning rewards!
+          </p>
+
+          <!-- Coins Earned Display -->
+          <div v-if="coinModalContent?.increment" class="flex flex-col items-center mt-4 relative z-10">
+            <p class="text-lg font-semibold">Coins Earned</p>
+            <span class="text-2xl font-bold" :style="{ color: sdgModalColor }">
+        {{ Math.round(coinModalContent.increment) }} Coins
+      </span>
+          </div>
+
+          <!-- Closing Note -->
+          <p class="text-sm text-gray-500 italic relative z-10">
+            Keep labeling and earning—your contributions fuel AI training & SDG research!
+          </p>
+
+          <!-- Close Button -->
+          <UButton
+            label="Awesome!"
+            class="px-8 py-3 text-white text-lg font-semibold rounded-lg hover:bg-opacity-80 transition-all relative z-10"
+            :style="{ backgroundColor: sdgModalColor }"
+            @click="closeCoinModal"
+          />
+        </div>
+      </UModal>
+
+
+
+      <div class="flex items-center space-x-6">
         <NuxtLink
           v-for="(link, index) in links.slice(0, 1)"
           :key="index"
@@ -298,7 +460,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import { useUsersStore } from "~/stores/users";
 import { useXPBanksStore } from "~/stores/xpBanks";
 import { useCoinWalletsStore } from "~/stores/coinWallets";
@@ -307,8 +469,19 @@ import { useGameStore } from "~/stores/game";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
 import { generateAvatar } from "~/utils/avatar";
 import { Quadrant } from "~/types/enums";
-import {useToast} from "#ui/composables/useToast";
+import { usePublicationsStore } from "~/stores/publications";
 
+const publicationsStore = usePublicationsStore();
+
+const getPublicationTitle = async (publicationId: number): Promise<string> => {
+  try {
+    const publication = await publicationsStore.fetchPublicationWithoutStoreById(publicationId);
+    return publication?.title || "Unknown Publication";
+  } catch (error) {
+    console.error(`Failed to fetch publication title: ${error}`);
+    return "Unknown Publication";
+  }
+};
 
 // Pinia stores
 const userStore = useUsersStore();
@@ -322,17 +495,93 @@ const rankStore = useSDGRanksStore();
 const loading = ref(true);
 const links = ref<Array<any>>([]);
 
+
+//const isOpen = ref(false);
+//const modalContent = ref<{ title: string; description: string; xp?: number; increment?: number; sdg?: SDGType; publicationTitle?: string } | null>(null);
+
+const isXPModalOpen = ref(false);
+const isCoinModalOpen = ref(false);
+
+const xpModalContent = ref<{ title: string; description: string; xp?: number; increment?: number; sdg?: SDGType; publicationTitle?: string } | null>(null);
+const coinModalContent = ref<{ title: string; description: string; increment?: number; sdg?: SDGType; publicationTitle?: string } | null>(null);
+
+const playerRankData = ref<{ name: string; tier: number } | null>(null);
+
+const openXPModal = ({ title, description, sdg, publicationTitle, playerRank, increment, xp = 0 }) => {
+  xpModalContent.value = {
+    title,
+    description,
+    sdg,
+    publicationTitle,
+    increment,
+    xp,
+  };
+
+  isXPModalOpen.value = true;
+};
+
+const openCoinModal = ({ title, description, sdg, publicationTitle, playerRank, increment }) => {
+  coinModalContent.value = {
+    title,
+    description,
+    sdg,
+    publicationTitle,
+    increment,
+  };
+
+  // Open Coin modal only after XP modal closes
+  if (isXPModalOpen.value) {
+    setTimeout(() => {
+      isCoinModalOpen.value = true;
+    }, 3000);
+  } else {
+    isCoinModalOpen.value = true;
+  }
+};
+
+const closeXPModal = () => {
+  isXPModalOpen.value = false;
+  xpModalContent.value = null;
+
+  // Ensure XP modal is fully closed before opening Coin modal
+  setTimeout(() => {
+    if (!isXPModalOpen.value && coinModalContent.value) {
+      isCoinModalOpen.value = true;
+    }
+  }, 3000); // Small delay to allow modal transition
+};
+
+const closeCoinModal = () => {
+  isCoinModalOpen.value = false;
+  coinModalContent.value = null;
+};
+
+
 const checkUpdates = async () => {
-  const toast = useToast();
   try {
     await banksStore.fetchLatestXPBankHistory();
+    await banksStore.fetchPersonalXPBank();
     const latestXP = banksStore.latestXPBankHistory;
+
     if (latestXP && latestXP.increment) {
-      toast.add({
+      const publicationId = extractPublicationId(latestXP.reason || "");
+      const publicationTitle = publicationId ? await getPublicationTitle(publicationId) : "Unknown Publication";
+      const playerRank = getPlayerRank(userStore.getCurrentUser?.userId, latestXP.sdg);
+      playerRankData.value = playerRank; // Ensure this is properly set
+
+      const xpForSdg = banksStore.userXPBank ? banksStore.userXPBank[`${latestXP.sdg}Xp`] : 0;
+
+      openXPModal({
         title: `XP Earned!`,
-        description: `You earned ${latestXP.increment} XP! Reason: ${latestXP.reason}`,
-        timeout: 5000
+        description: `You earned ${latestXP.increment} XP for labeling the publication: "${publicationTitle}".`,
+        publicationTitle,
+        sdg: latestXP.sdg,
+        playerRank,
+        increment: latestXP.increment,
+        xp: xpForSdg,
       });
+
+
     }
   } catch (error) {
     console.error("Failed to fetch latest XP update", error);
@@ -340,18 +589,36 @@ const checkUpdates = async () => {
 
   try {
     await walletsStore.fetchLatestSDGCoinWalletHistory();
+    await banksStore.getUserXPBank;
     const latestWallet = walletsStore.latestSDGCoinWalletHistory;
+
     if (latestWallet && latestWallet.increment) {
-      toast.add({
-        title: `Coins Earned!`,
-        description: `You earned ${latestWallet.increment} coins! Reason: ${latestWallet.reason}`,
-        timeout: 5000
-      });
+      const publicationId = extractPublicationId(latestWallet.reason || "");
+      const publicationTitle = publicationId ? await getPublicationTitle(publicationId) : "Unknown Publication";
+
+      const sdg = extractSDGFromReason(latestWallet.reason || "");
+      const playerRank = getPlayerRank(userStore.getCurrentUser?.userId, sdg);
+      const coinsForSdg = walletsStore.userSDGCoinWallet ? walletsStore.userSDGCoinWallet[`${sdg}Coins`] : 0;
+      // Open the coins-earned modal after the XP modal if both exist
+      setTimeout(() => {
+        openCoinModal({
+          title: `Coins Earned!`,
+          description: `You earned ${latestWallet.increment} SDG Coins for the publication: "${publicationTitle}".`,
+          publicationTitle,
+          sdg,
+          playerRank,
+          increment: latestWallet.increment,
+          coins: coinsForSdg,
+        });
+      }, isXPModalOpen.value ? 3000 : 0); // Delay if XP modal is still open
     }
   } catch (error) {
     console.error("Failed to fetch latest wallet update", error);
   }
 };
+
+
+
 
 const fetchData = async () => {
   try {
@@ -364,6 +631,7 @@ const fetchData = async () => {
       banksStore.fetchPersonalXPBank(),
       sdgsStore.fetchSDGs(),
       rankStore.fetchSDGRankByUserId(userStore.getCurrentUser?.userId || 0),
+      rankStore.fetchSDGRanks()
     ]);
 
     const user = userStore.getCurrentUser;
@@ -450,6 +718,66 @@ const getLevelClass = (level: number | null) => {
 const sdgIconSrc = computed(() => {
   const sdg = sdgsStore.sdgs.find(sdg => sdg.id === gameStore.getSDG);
   return `data:image/svg+xml;base64,${sdg.icon}`;
+});
+
+const getSdgIconSrc = (sdgType: SDGType) => {
+  // Extract the numeric ID from the SDGType string (e.g., "sdg1" -> 1, "sdg13" -> 13)
+  const sdgId = parseInt(sdgType.replace('sdg', ''), 10);
+
+  // Find the SDG object in the store using the numeric ID
+  const sdg = sdgsStore.sdgs.find(sdg => sdg.id === sdgId);
+
+  // Return the base64-encoded SVG icon if found
+  return sdg ? `data:image/svg+xml;base64,${sdg.icon}` : null;
+};
+
+const extractPublicationId = (reason: string): number | null => {
+  const match = reason.match(/Publication (\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+};
+
+const getPlayerRank = (userId: number, sdgType: SDGType) => {
+  const sdgId = parseInt(sdgType.replace("sdg", ""), 10);
+  const userRankData = rankStore.userSDGRanks.find((u) => u.userId === userId);
+  const rank = userRankData?.ranks.find((r) => r.sdgGoalId === sdgId);
+
+  return rank ? { name: rank.name, tier: rank.tier } : { name: "No Rank", tier: 0 };
+};
+
+const sdgModalColor = computed(() => {
+  if (!xpModalContent.value?.sdg) return "#A0A0A0"; // Default gray if no SDG selected
+
+  const sdgId = parseInt(xpModalContent.value.sdg.replace("sdg", ""), 10);
+  const sdg = sdgsStore.sdgs.find(sdg => sdg.id === sdgId);
+
+  return sdg ? sdgsStore.getColorBySDG(sdg.id) : "#A0A0A0"; // Use fallback gray if SDG not found
+});
+
+// Function to get the XP required for the next level
+const getNextLevelXp = (sdgType: string, currentTier: number) => {
+  const sdgKey = `sdg_${sdgType.replace('sdg', '')}`;
+  const nextTier = currentTier + 1;
+  const nextTierKey = `tier_${nextTier}`;
+
+  const sdgData = rankStore.sdgLevels[sdgKey];
+  if (sdgData && sdgData[nextTierKey]) {
+    return sdgData[nextTierKey].xp_required;
+  }
+  return 0; // If max level, return 0 or handle accordingly
+};
+
+const extractSDGFromReason = (reason: string): string | null => {
+  const match = reason.match(/SDG (\d+)/);
+  return match ? `sdg${match[1]}` : null;
+};
+
+
+watchEffect(() => {
+  if (!loading.value) {
+    const userWallet = walletsStore.getUserSDGCoinWallet;
+    const userBank = banksStore.getUserXPBank;
+    updateLinks(userWallet?.totalCoins || 0, userBank || { totalXp: 0 });
+  }
 });
 
 onMounted(() => {

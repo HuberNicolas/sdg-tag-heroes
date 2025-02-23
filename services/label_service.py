@@ -86,7 +86,7 @@ class LabelService:
 
         base_xp = prediction.entropy * 10
         additional_xp = self.reward_service._calculate_xp(new_user_label)
-        total_xp = additional_xp + base_xp
+        total_xp = int(additional_xp + base_xp)
 
         logging.info(
             f"User {new_user_label.user_id} gets {total_xp} = {base_xp} (Base) + {additional_xp} (Additional) XP.")
@@ -116,7 +116,7 @@ class LabelService:
             xp_bank_id=request.user_id,
             sdg=new_user_sdg_enum_value,
             increment=total_xp,
-            reason="Initial XP reward for SDG labeling",
+            reason=f"Initial XP reward for SDG labeling of the Publication {request.publication_id}",
             is_shown=False,
         )
         self.db.add(xp_history_entry)
@@ -164,7 +164,7 @@ class LabelService:
                     coin_entry = SDGCoinWalletHistory(
                         wallet_id=label.user_id,
                         increment=coin_reward,
-                        reason=f"Final coin reward for SDG {label.voted_label} after decision consensus (Publication {decision.publication_id})",
+                        reason=f"Final coin reward for SDG {label.voted_label} after decision consensus Publication {decision.publication_id}",
                         is_shown=False,
                     )
                     self.db.add(coin_entry)

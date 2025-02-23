@@ -84,6 +84,22 @@ export const usePublicationsStore = defineStore("publications", {
       }
     },
 
+    // Fetch a single publication by ID
+    async fetchPublicationWithoutStoreById(publicationId: number) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const { getPublicationById } = usePublications();
+        return await getPublicationById(publicationId);
+      } catch (error) {
+        this.error = `Failed to fetch publication: ${error}`;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     // Fetch similar publications
     async fetchSimilarPublications(
       topK: number,

@@ -70,16 +70,32 @@ function drawDonutChart() {
     .attr("fill", d => getSDGColor(d.data.key))
     .attr("stroke", "white")
     .style("stroke-width", "2px")
-    .style("opacity", 0.7)
+    .style("opacity", 0.8)
     // Replace the existing mouseover/mouseout handlers with:
     .on("mouseover", function(event, d) {
-      // Show tooltip
+      // Get SDG details
+      const sdgId = d.data.key;
+      const shortTitle = sdgId === -1 ? "Not Relevant" : sdgsStore.getShortTitleBySDG(sdgId);
+      const color = sdgId === -1 ? "#CCCCCC" : sdgsStore.getColorBySDG(sdgId) || "#CCCCCC";
+
+      // Compute percentage
       const percentage = ((d.value / labelDecisionsStore.totalVotes) * 100).toFixed(1);
-      const text = `${d.data.key === -1 ? "Not Relevant" : ``} ${d.value}/${labelDecisionsStore.totalVotes} Votes`;
+
+      // Create tooltip content
+      const text = `
+    <div style="display: flex; align-items: center;">
+      <div style="width: 12px; height: 12px; background-color: ${color}; border-radius: 50%; margin-right: 8px;"></div>
+      <div>
+        <strong>${sdgId === -1 ? "Not Relevant" : `SDG ${sdgId}`}:</strong> ${d.value}/${labelDecisionsStore.totalVotes} Labels
+        <br>
+        <span style="font-size: 12px; font-weight: bold; color: ${color};">${shortTitle}</span>
+      </div>
+    </div>
+  `;
 
       tooltip.transition()
         .duration(200)
-        .style("opacity", 0.9);
+        .style("opacity", 1);
 
       tooltip.html(text)
         .style("left", (event.pageX + 10) + "px")
@@ -91,15 +107,22 @@ function drawDonutChart() {
         .duration(200)
         .attr("fill-opacity", 1);
     })
+
     .on("mouseout", function() {
-      // Hide tooltip immediately
-      tooltip.style("opacity", 0);
+      // Hide tooltip properly
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", 0)
+        .on("end", function () {
+          tooltip.style("left", "-9999px"); // Move out of view
+          tooltip.style("top", "-9999px");  // Move out of view
+        });
 
       // Reset segment opacity
       d3.select(this)
         .transition()
         .duration(200)
-        .attr("fill-opacity", 0.7);
+        .attr("fill-opacity", 0.8);
     });
 
   svg.selectAll("allPolylines")
