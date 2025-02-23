@@ -1,4 +1,5 @@
 <template>
+  <div class="frame-title"><b>Explore</b> interesting publications in the <b>Publication Map</b>: Use brushing, lasso-selection, hovering and clicking</div>
   <div ref="scatterPlotContainer" class="scatter-plot">
     <!-- D3 Scatter Plot will be rendered here -->
   </div>

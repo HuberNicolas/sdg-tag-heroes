@@ -174,14 +174,17 @@ function renderRaincloudPlot(container, data, width, height) {
   const dots = (selection, data) => {
     const jitterHeight = segmentHeight * 0.5; // Adjust jitter height to fit within the segment
     const dotOffset = 20; // Additional offset to pull dots down
-    const tooltip = d3.select(container).append('div') // Create tooltip
+    const tooltip = d3.select("body")
+      .append('div') // Append to body
+      .attr('class', 'tooltip') // Add class for styling
       .style('position', 'absolute')
       .style('background', 'white')
       .style('border', '1px solid black')
       .style('padding', '5px')
       .style('border-radius', '5px')
       .style('opacity', 0)
-      .style('pointer-events', 'none');
+      .style('pointer-events', 'none')
+      .style('z-index', '1000'); // Ensure it's above other elements
 
     selection
       .append('g')
@@ -197,13 +200,21 @@ function renderRaincloudPlot(container, data, width, height) {
       .style('fill', 'grey')
       .style('opacity', 0.6)
       .attr('stroke', 'none')
-      .on('mouseover', function (event, d) { // Tooltip behavior
+      .on('mouseover', function (event, d) {
+        console.log('Mouseover event:', event); // Debugging log
+        console.log('Data point (d):', d); // Debugging log
         tooltip
           .style('opacity', 1)
-          .html(`Value: ${d.toFixed(2)}`)
+          .style('visibility', 'visible')
+          .html(`XP Score: ${Math.round(d)}`)
           .style('left', `${event.pageX + 10}px`)
-          .style('top', `${event.pageY}px`);
+          .style('top', `${event.pageY - 20}px`);
         d3.select(this).attr('stroke', 'black').attr('stroke-width', 1);
+      })
+      .on("mousemove", (event) => {
+        tooltip
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 20}px`);
       })
       .on('mouseout', function () {
         tooltip.style('opacity', 0);

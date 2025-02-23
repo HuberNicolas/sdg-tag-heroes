@@ -30,10 +30,9 @@
             </span>
             <span v-else class="text-gray-400">↕</span>
           </th>
-          <th class="border border-gray-300 p-2">Glyph</th>
+          <th class="border border-gray-300 p-2">Symbol</th>
+          <th class="border border-gray-300 p-2">Machine Scores</th>
           <th class="border border-gray-300 p-2">Top SDGs</th>
-
-
           <th
             @click="sortTable('topSDGNumber')"
             class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
@@ -109,10 +108,14 @@
           @mouseover="publicationsStore.setHoveredPublication(item)"
           @mouseleave="publicationsStore.setHoveredPublication(null)"
           :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSDG) : '' }">
-
           <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
               @click="handlePublicationClick(item)">
             {{ item.title }}
+          </td>
+          <td class="border border-gray-300 p-2">
+            <div class="relative flex items-center justify-center"
+                 v-html="generateHexagonSVG(Math.round(item.xp), getSDGColor(item.topSDG), getSDGColor(item.topSDG), item.scenarioType)">
+            </div>
           </td>
           <td class="border border-gray-300 p-2 flex items-center justify-center">
             <HexGlyph :values="item.values" :height="80" :width="70" :key="item.publicationId + '-' + sortKey + '-' + sortOrder" />
@@ -149,14 +152,13 @@
             </div>
           </td>
           <td class="border border-gray-300 p-2">
-            <template v-if="item.scenarioType !== 'No Scenario'">
+            <template v-if="item.scenarioType !== 'Not enough votes'">
               <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
             </template>
             <template v-else>
               No Quest
             </template>
           </td>
-
         </tr>
         </tbody>
       </table>
@@ -206,38 +208,6 @@ function getScenarioProps(scenarioType: string) {
 
 // Mapping for scenario types to chip properties
 const scenarioMapping: Record<string, { icon: string; name: string; tooltip: string }> = {
-  'Confirm': {
-    icon: 'i-heroicons-check-badge',
-    name: 'Confirm the King',
-    tooltip: 'Crown the most prominent instance'
-  },
-  'Explore': {
-    icon: 'i-heroicons-map',
-    name: 'Explore',
-    tooltip: 'Look at a variety of predictions to explore uncertainty'
-  },
-  'Investigate': {
-    icon: 'i-heroicons-magnifying-glass',
-    name: 'Investigate',
-    tooltip: 'Analyze and investigate data'
-  },
-  'Tiebreaker': {
-    icon: 'i-heroicons-scale',
-    name: 'Tiebreaker',
-    tooltip: 'Resolve conflicts with a balanced approach'
-  },
-  /*
-  'Not enough votes': {
-    icon: 'i-heroicons-question-mark-circle',
-    name: 'Not enough votes',
-    tooltip: 'Not enough votes'
-  },
-   */
-  'Decided': {
-    icon: 'i-heroicons-check-mark-circle',
-    name: 'Decided',
-    tooltip: 'Decided'
-  },
   'Scarce Labels': {
     icon: "i-heroicons-light-bulb",
     name: "Scarce Labels",
@@ -328,7 +298,7 @@ watchEffect(async () => {
       };
     })
   );
-
+  console.log(tableData);
   // Initial sort after loading
   sortTable(sortKey.value);
 });
@@ -369,7 +339,6 @@ const getSDGIconSrc = (sdgName: string) => {
   if (!sdgName) return '';
   const sdgId = parseInt(sdgName.replace('SDG ', ''), 10); // Extract SDG number
   const sdg = sdgsStore.sdgs.find(sdg => sdg.id === sdgId);
-  console.log(sdgId, sdg);
   return sdg ? `data:image/svg+xml;base64,${sdg.icon}` : '';
 };
 
@@ -379,4 +348,69 @@ const getSDGIconSrc = (sdgName: string) => {
 // Get selected publication from the store
 const selectedPublication = computed(() => publicationsStore.selectedPublication);
 
+const generateHexagonSVG = (xpNormal: number, innerColor: string, outerColor: string, scenarioType: string) => {
+  // Determine size based on xpNormal value
+  let size = 'small';
+
+  const maxXP = 800;  // Define the upper threshold for distribution
+  const step = maxXP / 3;  // Divide into three equal ranges
+
+  switch (true) {
+    case xpNormal >= 2 * step: // 533 and above
+      size = 'large';
+      break;
+    case xpNormal >= step: // 267 - 532
+      size = 'medium';
+      break;
+    default: // 0 - 266
+      size = 'small';
+  }
+
+  // Define dimensions based on size
+  const dimensions = {
+    small: { width: 20, height: 20, strokeWidth: 8 },
+    medium: { width: 40, height: 40, strokeWidth: 10 },
+    large: { width: 80, height: 80, strokeWidth: 12 },
+  };
+
+  const { width, height, strokeWidth } = dimensions[size];
+
+  // If there's a scenario type, render as a diamond (rotated square)
+  if (scenarioType && scenarioType !== 'Not enough votes') {
+    return `
+      <svg width="${width}" height="${height}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect
+          x="25" y="25" width="50" height="50"
+          fill="${innerColor}"
+          transform="rotate(45 50 50)"
+        />
+        <rect
+          x="25" y="25" width="50" height="50"
+          stroke="${outerColor}"
+          stroke-width="${strokeWidth}"
+          fill="transparent"
+          transform="rotate(45 50 50)"
+        />
+      </svg>
+    `;
+  }
+
+  // Default hexagon rendering
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <polygon
+        points="50,2 95,25 95,75 50,98 5,75 5,25"
+        fill="${innerColor}"
+        transform="rotate(90 50 50)"
+      />
+      <polygon
+        points="50,2 95,25 95,75 50,98 5,75 5,25"
+        stroke="${outerColor}"
+        stroke-width="${strokeWidth}"
+        fill="transparent"
+        transform="rotate(90 50 50)"
+      />
+    </svg>
+  `;
+};
 </script>

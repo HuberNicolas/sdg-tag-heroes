@@ -121,7 +121,7 @@ const updateChart = () => {
   const selectedBar = svg.append('rect')
     .attr('x', 0)
     .attr('y', 0)
-    .attr('height', '40%')
+    .attr('height', '20%')
     .attr('fill', sdgColor.value)
     .attr('width', 0);
 
@@ -148,7 +148,7 @@ const updateChart = () => {
   const filteredBar = svg.append('rect')
     .attr('x', widthScale(selected) + '%')
     .attr('y', 0)
-    .attr('height', '40%')
+    .attr('height', '20%')
     .attr('fill', '#D1D5DB')
     .attr('width', 0);
 

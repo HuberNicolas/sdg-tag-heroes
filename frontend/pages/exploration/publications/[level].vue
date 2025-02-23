@@ -45,7 +45,7 @@
       </div>
 
       <div class="row-span-5 col-span-1 p-1">
-       <ScatterPlotLegend></ScatterPlotLegend>
+       <ScatterPlotExplorationLegend></ScatterPlotExplorationLegend>
       </div>
 
       <div class="row-span-5 col-span-4 p-1">
@@ -74,6 +74,7 @@ import ScatterPlot from "~/components/plots/ScatterPlot.vue";
 import PublicationsTableExploration from "~/components/PublicationsTableExploration.vue";
 import RainPlotExploration from "~/components/plots/RainPlotExploration.vue";
 import ScatterPlotLegend from "~/components/ScatterPlotLegend.vue";
+import ScatterPlotExplorationLegend from "~/components/ScatterPlotExplorationLegend.vue";
 
 
 const route = useRoute()

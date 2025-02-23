@@ -14,6 +14,8 @@ import * as d3 from "d3";
 import { usePublicationsStore } from "@/stores/publications";
 import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import { useSDGsStore } from "@/stores/sdgs";
+import {baseSdgTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
+const sdgTitles = baseSdgTitles
 
 export default {
   setup() {
@@ -105,7 +107,7 @@ export default {
         .attr("rx", 4)
         .on("mouseover", (event, d) => {
           tooltip.style("visibility", "visible")
-            .text(`SDG ${d.sdgId}: ${d.count}`)
+            .html(`SDG ${d.sdgId} <br><strong>${sdgTitles[d.sdgId-1]}</strong>: ${d.count} Publications`)
             .style("background-color", d.color); // Set the tooltip background color to the SDG's color
         })
         .on("mousemove", (event) => {

@@ -1,5 +1,8 @@
 import * as d3 from 'd3';
 import { useSDGsStore } from '~/stores/sdgs';
+import {baseSdgTitles} from "@/constants/constants";
+import {trimValue} from "~/utils/trim";
+const sdgTitles = baseSdgTitles
 
 export function createBarPlot(container: HTMLElement, values: number[], width: number, height: number) {
   if (!values || values.length !== 17) {
@@ -59,6 +62,21 @@ export function createBarPlot(container: HTMLElement, values: number[], width: n
   svg.append('g').call(d3.axisLeft(y));
 
   // Bars
+  // Create tooltip div
+  const tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "bar-tooltip")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("background", "#fff")
+    .style("border", "1px solid #ccc")
+    .style("padding", "6px")
+    .style("border-radius", "4px")
+    .style("font-size", "12px")
+    .style("box-shadow", "0px 4px 8px rgba(0, 0, 0, 0.1)")
+    .style("z-index", "1000");
+
+// Bars
   svg
     .selectAll('rect')
     .data(top3Predictions)
@@ -68,7 +86,22 @@ export function createBarPlot(container: HTMLElement, values: number[], width: n
     .attr('y', (d) => y(d.key) || 0)
     .attr('width', (d) => x(d.value))
     .attr('height', y.bandwidth())
-    .attr('fill', (d) => d.color); // Use SDG-specific colors
+    .attr('fill', (d) => d.color) // Use SDG-specific colors
+    .on("mouseover", (event, d) => {
+      tooltip
+        .style("visibility", "visible")
+        .style("background", d.color)
+        .html(`SDG ${d.key}<br><strong>${sdgTitles[d.key - 1]}</strong><br>Machine Score: ${trimValue(d.value)}`);
+    })
+    .on("mousemove", (event) => {
+      tooltip
+        .style("top", `${event.pageY + 10}px`)
+        .style("left", `${event.pageX + 10}px`);
+    })
+    .on("mouseout", () => {
+      tooltip.style("visibility", "hidden");
+    });
+
 
   // Add labels to bars
   svg

@@ -1,8 +1,6 @@
 <template>
-
   <div class="frame-container">
     <div class="frame-title"><b>Choose</b> among Quests to load new publications</div>
-
     <div class="row-span-2 col-span-3">
       <div class="flex items-center justify-around mt-4">
         <QuestButtonExploration
@@ -29,11 +27,10 @@
             <UButton size="xs" icon="i-heroicons-x-mark" @click="gameStore.removeScenario(scenario)" />
           </template>
         </UBadge>
+        <span class="text-gray-500 text-xs max-w-xs">{{ buttons.find(b => b.name === gameStore.selectedScenarioList[0])?.explanation }}</span>
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script setup lang="ts">
@@ -43,7 +40,18 @@ import QuestButtonExploration from "~/components/QuestButtonExploration.vue";
 const gameStore = useGameStore();
 
 const buttons = [
-  { icon: "i-heroicons-light-bulb", name: "Sparse Instances", tooltip: "Label an instance with the least labels" },
-  { icon: "i-heroicons-fire", name: "High Stakes", tooltip: "Sort the most uncertain instances based on entropy" },
+  {
+    icon: "i-heroicons-light-bulb",
+    name: "Sparse Instances",
+    tooltip: "Label an instance with the least labels",
+    explanation: "These instances have received the fewest user labels, making them priority candidates for review."
+  },
+  {
+    icon: "i-heroicons-fire",
+    name: "High Stakes",
+    tooltip: "Sort the most uncertain instances based on entropy",
+    explanation: "These instances have high uncertainty, meaning predictions vary significantly, requiring deeper analysis."
+  },
 ];
+
 </script>

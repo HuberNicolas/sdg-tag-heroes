@@ -1,58 +1,58 @@
 <template>
   <div class="h-full overflow-hidden">
+
+
     <div class="grid grid-rows-10 grid-cols-10 h-full">
-      <div class="row-span-3 col-span-5 p-1">
-        <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
-          <div class="row-span-4 col-span-6">
-            <CollectionSelector></CollectionSelector>
-          </div>
-          <QuestSection></QuestSection>
-
-          <div class="row-span-2 col-span-3">
-            <ExplorationUserQuery></ExplorationUserQuery>
+        <div class="row-span-5 col-span-5 p-1">
+          <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
+            <div class="row-span-4 col-span-6">
+              <CollectionSelector></CollectionSelector>
+            </div>
+            <div class="row-span-2 col-span-3">
+              <QuestSection></QuestSection>
+            </div>
+            <div class="row-span-2 col-span-3">
+              <ExplorationUserQuery></ExplorationUserQuery>
+            </div>
           </div>
         </div>
 
-
-
-      </div>
-
-      <div class="row-span-6 col-span-5 p-1">
-        <PublicationsTable></PublicationsTable>
-      </div>
-
-      <div class="row-span-4 col-span-5 p-1">
-        <ScatterSDGPlot
-          v-if="selectedSDG !== null && selectedLevel !== null"
-          :width="scatterPlotWidth"
-          :height="scatterPlotHeight"/>
-      </div>
-
-      <div class="row-span-4 col-span-5  h-full overflow-auto p-1">
-        <PublicationDetails></PublicationDetails>
-      </div>
-
-      <div class="row-span-3 col-span-5  p-1">
-
-        <div class="grid grid-rows-2 grid-cols-3 h-full">
-          <div class="row-span-1 col-span-1 ">
-            <div class="flex justify-center">
-              <FilterState></FilterState>
+        <div class="row-span-3 col-span-5 p-1">
+          <div class="grid grid-rows-11 grid-cols-3 h-full">
+            <div class="row-span-1 col-span-3 "> <div class="frame-title"><b>Investigate</b> the machine-scores and the XP distribution of the selected Publications</div></div>
+            <div class="row-span-5 col-span-1 ">
+              <div class="flex justify-center">
+                <FilterState></FilterState>
+              </div>
+            </div>
+            <div class="row-span-10 col-span-2 ">
+              <div class="flex justify-center">
+                <RainPlotExploration />
+              </div>
+            </div>
+            <div class="row-span-5 col-span-1 ">
+              <BarPlot />
             </div>
           </div>
-          <div class="row-span-2 col-span-2 ">
-            <div class="flex justify-center">
-              <RainPlot />
-            </div>
-          </div>
-          <div class="row-span-1 col-span-1 ">
-            <BarPlot />
-          </div>
-
         </div>
+
+        <div class="row-span-6 col-span-5 p-1">
+          <PublicationsTable></PublicationsTable>
+        </div>
+
+        <div class="row-span-5 col-span-1 p-1">
+          <ScatterPlotLegend></ScatterPlotLegend>
+        </div>
+
+        <div class="row-span-5 col-span-4 p-1">
+          <ScatterSDGPlot
+            v-if="selectedSDG !== null && selectedLevel !== null"
+            :width="scatterPlotWidth"
+            :height="scatterPlotHeight"/>
+        </div>
+
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -66,6 +66,10 @@ import { useGameStore } from "~/stores/game";
 import PublicationDetails from "~/components/PublicationDetails.vue";
 import { Quadrant, Stage } from "~/types/enums";
 import QuestSection from "~/components/QuestSection.vue";
+import PublicationsTableExploration from "~/components/PublicationsTableExploration.vue";
+import ScatterPlotExplorationLegend from "~/components/ScatterPlotExplorationLegend.vue";
+import RainPlotExploration from "~/components/plots/RainPlotExploration.vue";
+import ScatterPlot from "~/components/plots/ScatterPlot.vue";
 
 
 const route = useRoute()

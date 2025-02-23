@@ -1,18 +1,29 @@
 <template>
-  <UTooltip :text="tooltip">
-    <UButton
-      size="sm"
-      shape="round"
-      :ui="{ base: 'ring-0', active: gameStore.isSelected(name) ? 'bg-primary-500 text-white' : '' }"
+  <div class="relative group">
+    <button
+      class="w-12 h-12 flex items-center justify-center bg-primary-500 text-white rotate-45
+             hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
       @click="handleClick"
       :disabled="isLoading"
     >
-      <template #default>
-        <UAvatar v-if="!isLoading" :icon="icon" size="sm" />
-        <span v-else>Loading...</span>
-      </template>
-    </UButton>
-  </UTooltip>
+      <div class="absolute inset-0 bg-primary-500 rounded-md"></div>
+      <div class="relative flex items-center justify-center w-10 h-10 bg-white rounded-full">
+        <Icon
+          v-if="!isLoading"
+          :name="icon"
+          class="w-6 h-6 text-gray-700 -rotate-45"
+        />
+        <span v-else class="text-xs text-gray-700 -rotate-45">Loading...</span>
+      </div>
+    </button>
+
+    <span
+      v-if="tooltip"
+      class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+    >
+      {{ tooltip }}
+    </span>
+  </div>
 </template>
 
 

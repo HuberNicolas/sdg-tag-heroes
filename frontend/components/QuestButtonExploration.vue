@@ -86,19 +86,19 @@ const handleScenarioSelection = async () => {
   switch (gameStore.selectedScenario) {
     case "Sparse Instances":
       await Promise.all([
-        dimensionalityStore.fetchLeastLabeledDimensionalityReductions(5),
-        publicationsStore.fetchLeastLabeledPublications(5),
-        sdgPredictionsStore.fetchLeastLabeledSDGPredictions(5),
-        labelDecisionsStore.fetchLeastLabeledSDGDecisions(5),
+        dimensionalityStore.fetchLeastLabeledDimensionalityReductions(10),
+        publicationsStore.fetchLeastLabeledPublications(10),
+        sdgPredictionsStore.fetchLeastLabeledSDGPredictions(10),
+        labelDecisionsStore.fetchLeastLabeledSDGDecisions(10),
       ]);
       break;
 
     case "High Stakes":
       await Promise.all([
-        dimensionalityStore.fetchMaxEntropyDimensionalityReductions(5),
-        publicationsStore.fetchMaxEntropyPublications(5),
-        sdgPredictionsStore.fetchMaxEntropySDGPredictions(5),
-        labelDecisionsStore.fetchMaxEntropySDGDecisions(5),
+        dimensionalityStore.fetchMaxEntropyDimensionalityReductions(10),
+        publicationsStore.fetchMaxEntropyPublications(10),
+        sdgPredictionsStore.fetchMaxEntropySDGPredictions(10),
+        labelDecisionsStore.fetchMaxEntropySDGDecisions(10),
       ]);
       break;
   }

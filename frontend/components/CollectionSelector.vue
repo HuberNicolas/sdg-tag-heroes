@@ -43,7 +43,7 @@
       >
         <template #label>
         <span v-if="selectedCollections.length">
-          {{ selectedCollections.length }} Topic{{ selectedCollections.length > 1 ? "s" : "" }}
+          {{ selectedCollections.length }} Topic {{ selectedCollections.length > 1 ? "s" : "" }}
           ({{ selectedCollections.reduce((sum, col) => sum + (collectionsStore.collectionsCount[col.collectionId] || 0), 0)
           }} Publications)
         </span>
@@ -58,7 +58,7 @@
               <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
               <span>{{ option.shortName }}</span>
             </div>
-            <span class="text-gray-500 text-sm"> ({{ collectionsStore.collectionsCount[option.collectionId] || 0 }} Publications) </span>
+            <!-- <span class="text-gray-500 text-sm"> ({{ collectionsStore.collectionsCount[option.collectionId] || 0 }} Publications) </span> -->
           </div>
         </template>
 

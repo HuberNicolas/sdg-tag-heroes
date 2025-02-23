@@ -163,7 +163,7 @@ export default function createGlyph() {
             .style('visibility', 'visible')
             .style('background', color?.toString() || 'gray')
             .style('color', '#fff')
-            .html(`<strong>${sdgTitles[i]}</strong><br>Machine Score: ${trimValue(value)}`);
+            .html(`SDG ${i+1}<br><strong>${sdgTitles[i]}</strong><br>Machine Score: ${trimValue(value)}`);
         })
         .on('mousemove', (event) => {
           tooltip
