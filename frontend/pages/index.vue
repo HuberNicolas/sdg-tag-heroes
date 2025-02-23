@@ -40,7 +40,7 @@
             type="email"
             id="email"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+            class="mt-1 block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
         <div class="mb-6">
@@ -50,7 +50,7 @@
             type="password"
             id="password"
             required
-            class="mt-1 block w-full px-3 py-2 border text-gray-700 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+            class="mt-1 block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
         <button
@@ -84,7 +84,7 @@ const handleLogin = async () => {
     await auth.login({ email: email.value, password: password.value });
     const profile = await auth.getProfile();
     authStore.setUserProfile(profile);
-    router.push('/profile');
+    router.push('/scenarios');
   } catch (err) {
     error.value = 'Invalid email or password';
   }

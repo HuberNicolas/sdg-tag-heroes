@@ -1,13 +1,13 @@
 <template>
   <div class="flex items-center gap-2">
     <UCheckbox
-      id="showAllSDGUserLabels"
-      v-model="store.showAllSDGUserLabels"
+      id="showFinalRound"
+      v-model="store.showFinalRound"
       color="primary"
       size="sm"
     />
-    <label for="showAllSDGUserLabels" class="text-sm font-medium">
-      Include All User Votes
+    <label for="showFinalRound" class="text-sm font-medium">
+      Final Round Vote: Only Last Vote Counts
     </label>
   </div>
 </template>

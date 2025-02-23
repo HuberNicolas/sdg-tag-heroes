@@ -19,7 +19,7 @@
                 <h2 class="card-title">User Profile</h2>
                 <p>Explore your profile history</p>
                 <div class="card-actions justify-end">
-                  <UButton color="primary" variant="solid" :to="{ name: 'users-id', params: { id: 1 } }">
+                  <UButton color="primary" variant="solid" :to="{ name: 'users-id', params: { id: user?.userId || 1 } }">
                     View Profile
                   </UButton>
                 </div>
@@ -53,6 +53,19 @@
 </template>
 
 <script setup>
+import { onMounted, ref } from "vue";
+import { useUsersStore } from "@/stores/users";
+
+const usersStore = useUsersStore();
+const user = ref(null);
+
+onMounted(async () => {
+  if (!usersStore.getCurrentUser) {
+    await usersStore.fetchPersonalUser();
+  }
+  user.value = usersStore.getCurrentUser;
+});
+
 const openModal = () => {
   document.getElementById('modal_exploration').showModal();
 };
@@ -61,3 +74,4 @@ const closeModal = () => {
   document.getElementById('modal_exploration').close();
 };
 </script>
+

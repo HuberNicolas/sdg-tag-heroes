@@ -19,7 +19,7 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     partitionedSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[], // All SDGs
     sdgLevelSDGLabelDecisions: [] as SDGLabelDecisionSchemaExtended[], // 1 SDG
 
-    showAllSDGUserLabels: false, // Default: show only the latest SDG User Labels
+    showFinalRound: true, // Default: show only the latest SDG User Labels
 
     scenarioTypeSDGLabelDecisions: [] as SDGLabelDecisionSchemaFull[],
 
@@ -292,8 +292,8 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
       this.selectedUserLabel = null;
     },
 
-    toggleShowAllSDGUserLabels() {
-      this.showAllSDGUserLabels = !this.showAllSDGUserLabels;
+    toggleShowFinalRound() {
+      this.showFinalRound = !this.showFinalRound;
     },
 
   },

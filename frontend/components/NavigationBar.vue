@@ -1,7 +1,11 @@
 <template>
   <nav class="w-full h-16 bg-white shadow-md flex items-center">
-    <div v-if="loading" class="flex justify-center items-center">
-      <span class="text-gray-500">Loading...</span>
+    <div v-if="loading" class="flex justify-center items-center w-full h-16">
+      <Icon
+        :name="loadingHexagon"
+        class="w-10 h-10 text-gray-500 transition-all animate-pulse"
+      />
+      <span class="ml-2 text-gray-500">Loading...</span>
     </div>
 
     <div v-else class="w-full flex justify-between items-center px-1 py-1 flex-nowrap overflow-x-auto">
@@ -892,7 +896,25 @@ watchEffect(() => {
   }
 });
 
+const hexagonStages = [
+  "mdi:hexagon-slice-1",
+  "mdi:hexagon-slice-2",
+  "mdi:hexagon-slice-3",
+  "mdi:hexagon-slice-4",
+  "mdi:hexagon-slice-5",
+  "mdi:hexagon-slice-6",
+];
+
+const loadingHexagon = ref("mdi:hexagon-slice-1");
+
 onMounted(() => {
+
+  let index = 0;
+  setInterval(() => {
+    loadingHexagon.value = hexagonStages[index];
+    index = (index + 1) % hexagonStages.length;
+  }, 500); // Change every 500ms
+
   fetchData();
   setInterval(() => {
     checkUpdates();

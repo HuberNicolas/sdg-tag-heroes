@@ -49,12 +49,12 @@
         <!-- Show All Community Votes -->
         <div class="flex items-center gap-x-2">
           <input
-            id="showAllLabels"
+            id="showFinalRound"
             type="checkbox"
-            v-model="showAllLabels"
+            v-model="showFinalRound"
             class="h-4 w-4"
           />
-          <label for="showAllLabels" class="text-sm font-medium">
+          <label for="showFinalRound" class="text-sm font-medium">
             Show All Community Lables
           </label>
         </div>
@@ -186,7 +186,7 @@
 
                 <!-- Negative Vote Button -->
                 <button
-                  @click="voteLabel(label.labelId, VoteType.NEGATIVE)"
+                  @click="voteAnnotation(label.labelId, VoteType.NEGATIVE)"
                   class="flex items-center gap-1 text-gray-400 hover:text-gray-600"
                   aria-label="Vote Negative"
                 >
@@ -200,7 +200,7 @@
 
                 <!-- Positive Vote Button -->
                 <button
-                  @click="voteLabel(label.labelId, VoteType.POSITIVE)"
+                  @click="voteAnnotation(label.labelId, VoteType.POSITIVE)"
                   class="flex items-center gap-1 text-gray-700 hover:text-gray-900"
                   aria-label="Vote Positive"
                 >
@@ -258,7 +258,7 @@ const sdgsStore = useSDGsStore();
 const rankStore = useSDGRanksStore();
 
 const userLabels = computed(() => {
-  if (showAllLabels.value) {
+  if (!showFinalRound.value) {
     return labelDecisionsStore.userLabels; // Show all labels
   }
 
@@ -284,7 +284,7 @@ const error = computed(() => labelDecisionsStore.error);
 const expandedLabels = ref<number[]>([]);
 const sortBy = ref("date"); // Default sorting criteria
 const filterBy = ref("all"); // Default: Show all labels
-const showAllLabels = ref(false);
+const showFinalRound = ref(true);
 
 // Fetch user labels for a publication on component mount
 const route = useRoute();
@@ -346,6 +346,7 @@ async function voteLabel(sdgUserLabelId: number, voteType: VoteType): Promise<Vo
   const userId = usersStore.user.userId;
   const score = 1
   const {createVote} = useVotes();
+  const toast = useToast()
   console.log(`Voted ${voteType} on label ${sdgUserLabelId}`);
   try {
     const voteData = {
@@ -354,7 +355,15 @@ async function voteLabel(sdgUserLabelId: number, voteType: VoteType): Promise<Vo
       vote_type: voteType,
       score: score,
     };
-    return await createVote(voteData);
+    await createVote(voteData);
+
+    // Show notification
+    toast.add({ title: 'Thank you for your vote and your contribution to the Community.' });
+
+    // Refresh Data after Voting
+    await labelDecisionsStore.fetchUserLabelsByPublicationId(publicationId);
+    await labelDecisionsStore.fetchSDGLabelDecisionByPublicationId(publicationId);
+
   } catch (error) {
     throw new Error(`Failed to vote on label: ${error}`);
   }
@@ -365,6 +374,7 @@ async function voteAnnotation(annotationId: number, voteType: VoteType): Promise
   const userId = usersStore.user.userId;
   const score = 1
   const {createVote} = useVotes();
+  const toast = useToast()
   console.log(`Voted ${voteType} on annotation ${annotationId}`);
   try {
     const voteData = {
@@ -373,7 +383,15 @@ async function voteAnnotation(annotationId: number, voteType: VoteType): Promise
       vote_type: voteType,
       score: score,
     };
-    return await createVote(voteData);
+    await createVote(voteData);
+
+    // Show notification
+    toast.add({ title: 'Thank you for your vote and your contribution to the Community.' });
+
+    // Refresh Data after Voting
+    await labelDecisionsStore.fetchUserLabelsByPublicationId(publicationId);
+    await labelDecisionsStore.fetchSDGLabelDecisionByPublicationId(publicationId);
+
   } catch (error) {
     throw new Error(`Failed to vote on label: ${error}`);
   }

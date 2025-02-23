@@ -9,7 +9,7 @@ export function createBarLabelPlot(container, width, height, sortDescending) {
 
   function updateChart() {
     if (labelDecisionsStore.selectedSDGLabelDecision && labelDecisionsStore.userLabels) {
-      let labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showAllSDGUserLabels);
+      let labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showFinalRound);
 
       // Apply correct order:
       if (sortDescending) {
@@ -31,7 +31,7 @@ export function createBarLabelPlot(container, width, height, sortDescending) {
   });
 
   // Watch for store changes
-  watch(() => labelDecisionsStore.showAllSDGUserLabels, () => {
+  watch(() => labelDecisionsStore.showFinalRound, () => {
     updateChart();
   });
 
@@ -47,10 +47,10 @@ export function createBarLabelPlot(container, width, height, sortDescending) {
 /**
  * Aggregates user votes, either showing all or only the latest vote per user.
  */
-export function aggregateUserVotes(userLabels, showAll) {
+export function aggregateUserVotes(userLabels, showFinalRound) {
   let latestLabels = new Map();
 
-  if (!showAll) {
+  if (showFinalRound) {
     // Keep only the latest SDG label per user
     userLabels.forEach((label) => {
       if (
@@ -63,7 +63,7 @@ export function aggregateUserVotes(userLabels, showAll) {
   }
 
   // Use either all labels or the latest one per user
-  let filteredLabels = showAll ? userLabels : Array.from(latestLabels.values());
+  let filteredLabels = showFinalRound ? Array.from(latestLabels.values()) : userLabels;
 
   // Count votes for each SDG label
   let voteCounts = {};
@@ -95,7 +95,7 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("width", width)
     .attr("height", height);
 
-  const margin = { top: 20, right: 20, bottom: 40, left: 50 };
+  const margin = { top: 30, right: 30, bottom: 20, left: 30 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 

@@ -10,7 +10,7 @@
     <dialog id="model_labeling" class="modal">
       <div class="modal-box max-w-3xl">
         <!-- Close Button -->
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"  @click="closeModal">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-1 top-1"  @click="closeModal">✕</button>
 
         <!-- Tabs -->
         <div class="tabs">

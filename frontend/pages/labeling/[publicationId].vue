@@ -65,36 +65,40 @@
       <div class="row-span-3 col-span-5">
         <div class="flex justify-evenly items-start">
           <div class="frame-container w-full">
-            <div class="frame-title"><b>Look at</b> Community Label Distribution</div>
-            <div class="flex items-center justify-end space-x-2">
-              <label for="content-toggle" class="text-lg font-medium text-gray-700">
-                {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}
-              </label>
-              <UToggle id="content-toggle" color="primary" v-model="showContent" />
+            <div class="flex items-center">
+              <div class="frame-title"><b>Look at</b> Community Label Distribution</div>
+              <div class="flex items-center justify-end space-x-2 ml-auto">
+                <label for="content-toggle" class="text-lg font-medium text-gray-700">
+                  {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}
+                </label>
+                <UToggle id="content-toggle" color="primary" v-model="showContent" />
+              </div>
             </div>
 
             <div class="grid grid-cols-3 grid-rows-4">
+
               <div class="col-span-1 row-span-4" v-if="showContent">
                 <DonutPlot></DonutPlot>
               </div>
 
               <!-- SDG Bar Chart Section -->
-              <div class="col-span-2 row-span-2 flex flex-col justify-between p-2" v-if="showContent">
-                <!-- Centered Bar Chart -->
-                <div class="flex justify-center">
+              <div class="col-span-2 row-span-1 flex flex-col justify-between" v-if="showContent">
+                <div class="flex flex-col items-center">
+                  <!-- Centered Bar Chart -->
                   <BarLabelPlot :width="500" :height="100" :sortDescending="sortDescending" />
-                </div>
 
-                <!-- Centered Controls Below Chart -->
-                <div class="flex justify-center space-x-6 items-center">
-                  <SDGUserLabelCheckbox />
-                  <SortedOrderCheckbox v-model="sortDescending" />
+                  <!-- Centered Controls Below the Chart -->
+                  <div class="flex justify-center items-center space-x-8">
+                    <SDGUserLabelCheckbox class="shrink-0" />
+                    <SortedOrderCheckbox v-model="sortDescending" class="shrink-0" />
+                  </div>
                 </div>
               </div>
 
-              <div class="col-span-2 row-span-1" v-if="showContent">
-                <QuestIndicator></QuestIndicator>
+              <div class="col-span-2 flex items-center px-2 p-y0.5" v-if="showContent">
+                  <QuestIndicator />
               </div>
+
             </div>
           </div>
         </div>

@@ -86,8 +86,7 @@ export default function createGlyph() {
     const contentGroup = svg.append('g')
       //.attr('transform', `translate(${xOffset - minX}, ${yOffset - minY})`); // Apply explicit horizontal adjustment
 
-    const tooltip = d3.select('body')
-      .append('div')
+    const tooltip = container.append('div')
       .attr('class', 'glyph-tooltip')
       .style('position', 'absolute')
       .style('visibility', 'hidden')
@@ -97,7 +96,8 @@ export default function createGlyph() {
       .style('border-radius', '4px')
       .style('font-size', '12px')
       .style('box-shadow', '0px 4px 8px rgba(0, 0, 0, 0.1)')
-      .style('z-index', '1000');
+      .style('z-index', '1000')
+      .style('pointer-events', 'none'); // Ensures tooltip doesn’t interfere
 
     coords.forEach(([x, y], i) => {
       const color = d3.color(sdgColors[i % sdgColors.length]);
@@ -166,9 +166,11 @@ export default function createGlyph() {
             .html(`SDG ${i+1}<br><strong>${sdgTitles[i]}</strong><br>Machine Score: ${trimValue(value)}`);
         })
         .on('mousemove', (event) => {
+          const boundingBox = container.node().getBoundingClientRect();
+          const tooltipWidth = tooltip.node().offsetWidth;
           tooltip
-            .style('top', `${event.pageY + 10}px`)
-            .style('left', `${event.pageX + 10}px`);
+            .style('top', `${event.clientY - boundingBox.top}px`) // Align top of tooltip with cursor
+            .style('left', `${event.clientX - boundingBox.left - tooltipWidth}px`); // Align right side of tooltip with cursor
         })
         .on('mouseout', () => {
           tooltip.style('visibility', 'hidden');
@@ -184,6 +186,10 @@ export default function createGlyph() {
           sdgsStore.setSelectedSDG(i + 1); // Select the SDG
         }
         renderHexGrid(selector, width, height, publicationId); // Re-render to update stroke width
+      });
+
+      d3.select("body").on("click", () => {
+        d3.selectAll(".glyph-tooltip").style("visibility", "hidden");
       });
 
 
