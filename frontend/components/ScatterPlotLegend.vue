@@ -55,14 +55,40 @@
 import { ref } from 'vue';
 
 const firstGroup = ref([
-  { src: '/img/case3.png', alt: 'Case 3', description: 'High Impact', tooltip: 'This represents a high impact scenario.', scale: 0.5 },
-  { src: '/img/case1.png', alt: 'Case 1', description: 'Low Impact', tooltip: 'This represents a low impact scenario.', scale: 1.2 },
+  {
+    src: '/img/case3.png',
+    alt: 'Case 3',
+    description: 'Low XP, Top SDG Aligning',
+    tooltip: 'A publication (Hexagon) with low XP (Size). The border color represents the highest AI-predicted SDG, which aligns with the current SDG World represented in center color.',
+    scale: 0.5
+  },
+  {
+    src: '/img/case1.png',
+    alt: 'Case 1',
+    description: 'High XP, Top SDG Diverging',
+    tooltip: 'A publication (Hexagon) with high XP (Size). The border color represents the highest AI-predicted SDG, which differs from the current SDG World represented in center color.',
+    scale: 1.2
+  },
 ]);
 
 const secondGroup = ref([
-  { src: '/img/case2.png', alt: 'Case 2', description: 'Medium Impact', tooltip: 'This represents a medium impact scenario.', scale: 1.2 },
-  { src: '/img/case4.png', alt: 'Case 4', description: 'Critical Impact', tooltip: 'This represents a critical impact scenario.', scale: 0.7 },
+  {
+    src: '/img/case4.png',
+    alt: 'Case 4',
+    description: 'Low XP, Top SDG Diverging',
+    tooltip: 'A Quest Publication (Diamond) with low XP (Size). The border color represents the highest AI-predicted SDG, which differs from the current SDG World represented in center color.',
+    scale: 0.7
+  },
+  {
+    src: '/img/case2.png',
+    alt: 'Case 2',
+    description: 'High XP, Top SDG Aligning',
+    tooltip: 'A Quest Publication (Diamond) with high XP (Size). The border color represents the highest AI-predicted SDG, which aligns with the current SDG World represented in center color.',
+    scale: 1.2
+  },
 ]);
+
+
 
 const computedStyle = (scale) => ({
   transform: `scale(${scale})`,

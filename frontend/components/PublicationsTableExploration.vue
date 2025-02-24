@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Scroll</b> through the selected Publications</div>
+    <div class="frame-title"><b>Browse & Compare:</b> Review Your Selected Publications</div>
 
     <div>
       <UModal v-model="isOpen"  :overlay="false" :ui="{ width: 'w-full sm:max-w-4xl' }">
@@ -370,7 +370,7 @@ const generateHexagonSVG = (xpNormal: number, innerColor: string, outerColor: st
   const dimensions = {
     small: { width: 20, height: 20, strokeWidth: 8 },
     medium: { width: 40, height: 40, strokeWidth: 10 },
-    large: { width: 80, height: 80, strokeWidth: 12 },
+    large: { width: 60, height: 60, strokeWidth: 15 },
   };
 
   const { width, height, strokeWidth } = dimensions[size];

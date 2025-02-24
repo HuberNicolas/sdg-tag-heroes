@@ -59,6 +59,7 @@ const allButtons = [
     condition: "Decided"
   }
 ];
+
 // Default quest message when no specific label distribution is present
 const defaultQuest = {
   icon: "i-heroicons-question-mark-circle",

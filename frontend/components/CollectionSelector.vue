@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Select</b> Topics you are interested to find interesting publications from the <b> Topic List</b></div>
+    <div class="frame-title"><b>Select</b> Topics you are interested to find interesting publications from the <b>Topic List</b></div>
     <!-- Selected filter badges summary -->
     <div class="flex items-center gap-4">
 
@@ -43,12 +43,12 @@
       >
         <template #label>
         <span v-if="selectedCollections.length">
-          {{ selectedCollections.length }} Topic {{ selectedCollections.length > 1 ? "s" : "" }}
+          Explore Publications Across {{ selectedCollections.length }} Topic{{ selectedCollections.length > 1 ? "s" : "" }}
           ({{ selectedCollections.reduce((sum, col) => sum + (collectionsStore.collectionsCount[col.collectionId] || 0), 0)
           }} Publications)
         </span>
           <span v-else class="text-gray-500">
-          Select Topics
+          Select Topics to Discover Relevant Publications from the List
         </span>
         </template>
 

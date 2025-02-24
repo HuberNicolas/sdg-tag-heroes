@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div class="frame-title"><b>Interact</b> with Community Labels</div>
+    <div class="frame-title"><b>Explore</b> Community Labels: See How Others Categorized This Publication</div>
     <CommentSummary></CommentSummary>
     <div v-if="isLoading" class="text-gray-500">Loading...</div>
 
     <div v-if="error">
-      Be the first user to make a comment.
+      Be the first user to submit a Label.
     </div>
 
 

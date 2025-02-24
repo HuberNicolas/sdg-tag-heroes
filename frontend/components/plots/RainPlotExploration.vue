@@ -2,7 +2,7 @@
   <div class="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg shadow-md w-full">
     <!-- D3 Raincloud Plot -->
     <p class="text-sm text-gray-600">
-      XP-Distribution of selected Publications
+      Labeling Effort: XP Distribution of Your Selection
     </p>
     <div ref="chartContainer" class="w-full h-80 relative" ></div>
   </div>

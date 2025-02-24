@@ -39,7 +39,7 @@
 
           <div class="col-span-2 row-span-1">
             <div class="frame-container">
-              <div class="frame-title"><b>Investigate</b> machine scores</div>
+              <div class="frame-title"><b>Investigate</b> machine scores for each SDG</div>
               <div ref="glyphContainer">
                 <HexGlyph />
               </div>
@@ -66,7 +66,7 @@
         <div class="flex justify-evenly items-start">
           <div class="frame-container w-full">
             <div class="flex items-center">
-              <div class="frame-title"><b>Look at</b> Community Label Distribution</div>
+              <div class="frame-title"><b>Summarize</b> Community Labeling: Explore SDG Voting Trends</div>
               <div class="flex items-center justify-end space-x-2 ml-auto">
                 <label for="content-toggle" class="text-lg font-medium text-gray-700">
                   {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}

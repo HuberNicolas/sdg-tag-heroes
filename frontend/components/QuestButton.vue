@@ -1,5 +1,6 @@
 <template>
-  <div class="relative group">
+  <div class="relative group flex flex-col items-center">
+    <div class="mb-2 text-sm font-medium text-center">{{ name }}</div>
     <button
       class="w-12 h-12 flex items-center justify-center bg-primary-500 text-white rotate-45
              hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"

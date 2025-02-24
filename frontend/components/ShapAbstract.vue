@@ -2,7 +2,7 @@
   <div class="frame-container h-full flex flex-col">
     <!-- Frame Title with ShapToggle -->
     <div class="frame-title flex justify-between items-center">
-      <span><b>Read Publication</b> either with or without Machine Explanations</span>
+      <span><b>Compare</b> Machine-Generated Highlights vs. Full Abstract</span>
       <ShapToggle />
     </div>
 

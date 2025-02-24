@@ -47,20 +47,31 @@
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script setup>
 import { ref } from 'vue';
 
 const firstGroup = ref([
-  { src: '/img/case3.png', alt: 'Case 3', description: 'High Impact', tooltip: 'This represents a high impact scenario.', scale: 0.5 },
+  {
+    src: '/img/case3.png',
+    alt: 'Case 3',
+    description: 'Low XP',
+    tooltip: 'A standard publication (Hexagon) with low XP (Size). The border color represents the highest AI-predicted SDG, indicating its strongest classification.',
+    scale: 0.5
+  },
 ]);
 
 const secondGroup = ref([
-  { src: '/img/case2.png', alt: 'Case 2', description: 'Medium Impact', tooltip: 'This represents a medium impact scenario.', scale: 1.2 },
+  {
+    src: '/img/case2.png',
+    alt: 'Case 2',
+    description: 'High XP',
+    tooltip: 'A Quest Publication (Diamond) with high XP (Size). The border color represents the highest AI-predicted SDG, highlighting its most confident classification.',
+    scale: 1.2
+  },
 ]);
+
 
 const computedStyle = (scale) => ({
   transform: `scale(${scale})`,

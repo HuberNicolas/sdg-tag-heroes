@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Generate</b> your personalized Point of Interest 📍</div>
+    <div class="frame-title"><b>Generate</b> a Personalized Exploration Path Based on Your Skills & Interests 📍</div>
 
     <form @submit.prevent="handleUserPointGenerator" class="">
       <!-- Radio group and button in the same row -->

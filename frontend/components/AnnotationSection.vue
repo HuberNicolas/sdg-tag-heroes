@@ -4,7 +4,7 @@
       <div class="row-span-4 col-span-1">
         <!-- Annotation is attached to SDG Label Decision (in general) -->
         <div class="frame-container">
-          <div class="frame-title"><b>Share</b> your thoughts either by commenting a passage or directly</div>
+          <div class="frame-title"><b>Record</b> Your Thoughts: Add Comments to Specific Sections</div>
           <ShapSelector></ShapSelector>
           <CommentInput></CommentInput>
           <CreateAnnotationButton></CreateAnnotationButton>
@@ -14,7 +14,7 @@
       <div class="row-span-7 col-span-1">
         <!-- SDG User Label is attached to SDG Label decision -->
         <div class="frame-container">
-          <div class="frame-title"><b>Vote</b> for an SDG Label to help the Community</div>
+          <div class="frame-title"><b>Identify</b> the Most Relevant SDG & Justify Your Selection to Help the Community</div>
           <ConnectingDots></ConnectingDots>
           <CreateSDGLabelButton></CreateSDGLabelButton>
         </div>

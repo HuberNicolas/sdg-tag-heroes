@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Select</b> the SDG you want to see the machine explanation</div>
+    <div class="frame-title"><b>Identify & Explore</b> AI Reasoning: Select an SDG to Reveal Its Justification</div>
     <div>
       <!-- SDG Cards -->
       <div class="flex flex-wrap gap-1 p-1">

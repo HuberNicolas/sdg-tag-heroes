@@ -4,13 +4,13 @@
     <form @submit.prevent="submitUserLabel" class="space-y-4">
       <!-- Comment Input -->
       <div class="flex flex-col">
-        <label for="comment" class="text-lg font-medium text-gray-700">Tell the community, why you labeled it like this (Optional)</label>
+        <label for="comment" class="text-lg font-medium text-gray-700">Explain Your Label Choice (Optional): Share Your Reasoning with the Community</label>
         <textarea
           id="comment"
           v-model="comment"
           rows="1"
           class="mt-1 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
-          placeholder="Add a comment (optional)"
+          placeholder="Provide context for your label decision (optional)"
         ></textarea>
       </div>
 

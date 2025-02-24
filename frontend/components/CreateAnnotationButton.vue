@@ -5,7 +5,7 @@
       size="sm"
       color="primary"
       variant="solid"
-      :label="isSubmitting ? 'Submitting...' : 'Submit your thoughts to the community'"
+      :label="isSubmitting ? 'Submitting...' : 'Share Annotation with the Community'"
       :disabled="isSubmitting"
       :trailing="false"
       @click="submitAnnotation"
