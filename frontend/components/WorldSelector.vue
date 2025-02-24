@@ -20,7 +20,7 @@
           <div v-if="!isLevelUnlocked(level.level)" class="font-semibold">Almost There!</div>
           <div v-if="shouldShowProgress(level.level)" class="w-full bg-gray-300 rounded-md mt-4">
             <div class="bg-gray-500 text-xs text-white text-center rounded-md p-2" :style="{ width: getProgress(level.level) + '%' }">
-              {{ userXP }} / {{ level.requiredXP }} XP
+              {{ Math.round(userXP) }} / {{ level.requiredXP }} XP
             </div>
           </div>
         </div>

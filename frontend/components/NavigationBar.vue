@@ -120,7 +120,7 @@
             />
 
             <!-- SDG Icon (Smaller) -->
-            <div v-if="coinModalContent?.sdg" class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-4 z-10" :style="{ borderColor: sdgColor }">
+            <div v-if="coinModalContent?.sdg" class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-4 z-10">
               <img
                 :src="getSdgIconSrc(coinModalContent.sdg)"
                 :alt="`SDG ${coinModalContent.sdg} Icon`"

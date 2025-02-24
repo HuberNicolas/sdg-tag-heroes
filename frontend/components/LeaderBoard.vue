@@ -36,6 +36,8 @@
             v-for="(user, index) in visibleLeaderboard"
             :key="user.userId"
             class="hover:bg-gray-50 transition duration-200"
+            :class="{ 'border-4 border-solid': currentUser?.userId === user.userId }"
+            :style="{ borderColor: currentUser?.userId === user.userId ? sdgColor : 'transparent' }"
           >
             <!-- Rank Number -->
             <td class="p-4 border border-gray-300 text-center font-semibold text-gray-700">
@@ -175,6 +177,10 @@ const sdgColor = computed(() => {
 
 // Compute visible players
 const visibleLeaderboard = computed(() => leaderboard.value.slice(0, visibleCount.value));
+
+const currentUser = computed(() => {
+  return userStore.getCurrentUser;
+});
 
 // Watch for SDG changes and update leaderboard dynamically
 watch(currentSDG, async (newSDG) => {

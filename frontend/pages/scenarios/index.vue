@@ -4,12 +4,15 @@
 
       <!-- Title Section (Spanning Across All Columns) -->
       <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center p-4 bg-gray-50">
-        <h1 class="text-3xl font-bold w-full">Wanna be an SDG-Tag Hero? Then help us linking Publications with SDGs either</h1>
-        <div class="w-full flex justify-center mt-2">
-          <div class="w-1/2 flex items-center justify-center">
+        <h1 class="text-3xl font-bold w-full">
+          Wanna be an SDG-Tag Hero? Then help us linking Publications with SDGs either
+        </h1>
+        <div class="w-full flex justify-center mt-2 items-center">
+          <div class="w-1/3 flex items-center justify-center">
             <p class="text-xl">by <b>Selecting</b> an SDG</p>
           </div>
-          <div class="w-1/2 flex items-center justify-center">
+          <div class="w-auto px-4 text-xl font-bold text-gray-700">OR</div>
+          <div class="w-1/3 flex items-center justify-center">
             <p class="text-xl">by <b>Exploring</b> Publications from different Worlds</p>
           </div>
         </div>
@@ -32,14 +35,17 @@
         </div>
 
         <!-- Second Section: Bottom Half -->
-        <div class="row-span-3 flex items-center justify-center">
+        <div v-if="!gameStore.showLeaderboard" class="row-span-3 flex items-center justify-center">
           <SDGUserQuery />
+        </div>
+        <div v-if="gameStore.showLeaderboard" class="row-span-3 flex items-center justify-center">
+          <LeaderBoardExplanation></LeaderBoardExplanation>
         </div>
       </div>
 
       <!-- Right Section (Takes Half of the Grid) -->
       <div class="row-span-10 col-span-5 flex items-center justify-center border-l-8 border-gray-500 relative">
-        <span class="absolute top-1/2 right-full transform translate-x-8 -translate-y-1/2 bg-white px-6 py-3 text-gray-700 text-sm font-bold">OR</span>
+        <span class="absolute top-1/2 right-full transform translate-x-8 -translate-y-1/2 px-6 py-3 text-gray-700 text-sm font-bold"></span>
         <div v-if="!gameStore.showLeaderboard" class="w-full h-full flex items-center justify-center">
           <WorldSelector />
         </div>

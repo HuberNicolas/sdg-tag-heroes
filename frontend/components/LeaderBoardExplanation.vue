@@ -1,24 +1,28 @@
 <template>
-  <div class="p-6">
+  <div class="">
+    <!--
     <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">
       Rank Tier Explanation - {{ currentSDG ? `SDG${currentSDG.id} - ${currentSDG.shortTitle}` : "Please select an SDG" }}
     </h2>
+    -->
 
     <div v-if="loading" class="text-blue-500 text-lg text-center">Loading tiers...</div>
     <div v-if="error" class="text-red-500 text-lg text-center">
       <p>An error occurred: {{ error }}</p>
     </div>
+    <!--
     <div v-if="!currentSDG && !loading" class="text-center text-gray-600 text-lg">Please select an SDG to view rank tiers.</div>
+    -->
 
     <div v-if="currentSDG && tiers.length > 0" class="overflow-x-auto">
       <table class="w-full border-collapse">
         <thead class="bg-gray-100">
         <tr class="text-left text-gray-700">
-          <th class="p-4 border border-gray-300 text-center">Tier</th>
-          <th class="p-4 border border-gray-300">Rank Name</th>
-          <th class="p-4 border border-gray-300">Description</th>
-          <th class="p-4 border border-gray-300 text-center">XP Required</th>
-          <th class="p-4 border border-gray-300 text-center">Symbol</th>
+          <th class="p-1 border border-gray-300 text-center">Tier</th>
+          <th class="p-1 border border-gray-300">Rank Name</th>
+          <th class="p-1 border border-gray-300">Description</th>
+          <th class="p-1 border border-gray-300 text-center">XP Required</th>
+          <th class="p-1 border border-gray-300 text-center">Symbol</th>
         </tr>
         </thead>
         <tbody class="bg-white">
