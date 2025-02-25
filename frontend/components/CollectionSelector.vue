@@ -141,6 +141,9 @@ onMounted(async () => {
   selectedCollections.value = collectionsStore.selectedCollections.filter(
     (collection) => (collectionsStore.collectionsCount[collection.collectionId] || 0) > 0
   );
+
+  selectedCollections.value = [];
+  collectionsStore.setSelectedCollections([]);
 });
 
 

@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Explore</b> Publications Using the <b>Publication Map</b>:Use Brushing, Hovering, Lasso-Selection and clicking to Discover Patterns in the Dataset</div>
+    <div class="frame-title"><b>Explore</b> Publications Using the <b>Publication Map</b>: Use Brushing, Hovering, Lasso-Selection and clicking to Discover Patterns in the Dataset</div>
     <div ref="scatterPlotContainer" class="scatter-plot">
       <!-- D3 Scatter Plot will be rendered here -->
     </div>

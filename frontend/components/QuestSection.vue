@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Select</b> a Quest to Explore Publications with Unique Label Patterns</div> <!--Guided Exploration: :  -->
+    <div class="frame-title"><b>by selecting</b> a Quest to explore Publications with Unique Label Patterns from the <b>Quest Box</b></div> <!--Guided Exploration: :  -->
     <div class="row-span-2 col-span-3">
       <div class="flex items-center justify-around">
         <QuestButton
@@ -42,25 +42,25 @@ const gameStore = useGameStore();
 const buttons = [
   {
     icon: "i-heroicons-check-badge",
-    name: "Confirm the King",
+    name: "Crown the Champion",
     tooltip: "Validate the strongest SDG label",
     explanation: "This publication has a dominant SDG label, widely agreed upon. Confirm if the majority label is correct."
   },
   {
     icon: "i-heroicons-map",
-    name: "Explore",
+    name: "Mark the Map",
     tooltip: "Review diverse SDG label predictions",
     explanation: "This publication has a mix of SDG labels, meaning the AI and users are uncertain. Broaden your investigation to find the best fit."
   },
   {
     icon: "i-heroicons-magnifying-glass",
-    name: "Investigate",
+    name: "Solve the SDG Secret",
     tooltip: "Analyze publications with conflicting labels",
     explanation: "This publication has multiple SDGs with no clear leader. Investigate deeper to determine the most fitting SDG."
   },
   {
     icon: "i-heroicons-scale",
-    name: "Tiebreaker",
+    name: "Decisive Duel",
     tooltip: "Decide between two equally labeled SDGs",
     explanation: "This publication has an equal number of votes for two SDGs. Help break the tie by analyzing the content and selecting the best fit."
   }

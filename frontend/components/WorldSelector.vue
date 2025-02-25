@@ -18,9 +18,15 @@
           <div class="text-lg font-bold text-gray-800">World {{ level.level }}</div>
           <div class="text-lg font-bold text-gray-800 press-start-font">{{ level.name }}</div>
           <div v-if="!isLevelUnlocked(level.level)" class="font-semibold">Almost There!</div>
+          <div v-else class="font-semibold">Ready to play</div>
           <div v-if="shouldShowProgress(level.level)" class="w-full bg-gray-300 rounded-md mt-4">
             <div class="bg-gray-500 text-xs text-white text-center rounded-md p-2" :style="{ width: getProgress(level.level) + '%' }">
-              {{ Math.round(userXP) }} / {{ level.requiredXP }} XP
+              <span v-if="isLevelUnlocked(level.level)">
+                {{ Math.round(userXP) }} XP
+              </span>
+              <span v-else>
+                {{ Math.round(userXP) }} / {{ level.requiredXP }} XP
+              </span>
             </div>
           </div>
         </div>
@@ -76,8 +82,8 @@ const selectedLevel = ref<number>(1);
 
 const levels = [
   { level: 1, name: "Researchia", bgColor: "bg-gray-400", borderClass: "border-gray-600", requiredXP: 0, description: "A world of discovery and innovation.", image: "/img/world-1.png" },
-  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-gray-600", requiredXP: 5000, description: "A world filled with academic publications.", image: "/img/world-2.png" },
-  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-gray-600", requiredXP: 100000, description: "A world of open knowledge and revelations.", image: "/img/world-3.png" },
+  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-gray-600", requiredXP: 6000, description: "A world filled with academic publications.", image: "/img/world-2.png" },
+  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-gray-600", requiredXP: 8000, description: "A world of open knowledge and revelations.", image: "/img/world-3.png" },
 ];
 
 const isLevelUnlocked = (level: number) => {
@@ -86,12 +92,14 @@ const isLevelUnlocked = (level: number) => {
 };
 
 const shouldShowProgress = (level: number) => {
-  const nextLevel = levels.find(l => l.requiredXP > userXP.value);
-  return nextLevel?.level === level;
+  //const nextLevel = levels.find(l => l.requiredXP > userXP.value);
+  //return nextLevel?.level === level;
+  return true
 };
 
 const getProgress = (level: number) => {
   const requiredXP = levels.find(l => l.level === level)?.requiredXP || 0;
+  if (requiredXP === 0) return 100; // Fully unlocked
   return requiredXP > 0 ? Math.min((userXP.value / requiredXP) * 100, 100) : 0;
 };
 

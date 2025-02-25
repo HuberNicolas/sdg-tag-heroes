@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>by creating</b> a personalized point of interest (POI 📍) by sharing your interests or skills to select publications</div>
+    <div class="frame-title"><b>by creating</b> a Personalized Point of Interest (POI 📍) by sharing your Interests or Skills to select Publications with the <b>Query Box</b></div>
 
     <form @submit.prevent="handleUserPointGenerator" class="">
       <!-- Radio group and button in the same row -->

@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-2">
     <UButton
-      icon="i-heroicons-paper-clip"
+      icon="heroicons-outline:pencil-alt"
       size="sm"
       color="primary"
       variant="solid"

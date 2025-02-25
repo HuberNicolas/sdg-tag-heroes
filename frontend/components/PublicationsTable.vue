@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Browse & Compare:</b> Review Your Selected Publications</div>
+    <div class="frame-title"><b>Browse & Compare:</b> Review Your Selected Publications in the <b>Publication Table</b></div>
 
     <div>
       <UModal v-model="isOpen"  :overlay="false" :ui="{ width: 'w-full sm:max-w-4xl' }">

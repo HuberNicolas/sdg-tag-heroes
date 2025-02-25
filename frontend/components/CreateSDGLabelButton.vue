@@ -30,7 +30,7 @@
 
         <!-- Submit Button -->
         <UButton
-          icon="i-heroicons-check-circle"
+          icon="heroicons-outline:tag"
           size="sm"
           color="primary"
           variant="solid"

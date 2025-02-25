@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>by selecting</b> a Quest to Review Key Publications</div> <!--Smart Selection:  -->
+    <div class="frame-title"><b>by selecting</b> a Quest to review Key Publications from the <b>Quest Box</b></div> <!--Smart Selection:  -->
     <div class="row-span-2 col-span-3">
       <div class="flex items-center justify-around">
         <QuestButtonExploration
@@ -42,7 +42,7 @@ const gameStore = useGameStore();
 const buttons = [
   {
     icon: "i-heroicons-light-bulb",
-    name: "Sparse Instances",
+    name: "Hidden Gems",
     tooltip: "Help review publications with the fewest labels",
     explanation: "These publications have received little attention and need more reviews to ensure accurate labeling."
   },

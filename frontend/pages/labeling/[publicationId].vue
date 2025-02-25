@@ -6,7 +6,7 @@
       <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center bg-gray-50 py-1 min-h-fit leading-none">
         <h1 class="text-xl font-bold w-full flex items-center justify-center space-x-2">
           <Icon name="mdi:robot-outline" class="text-gray-700 w-6 h-6" />
-          <span>Tagging with machine and community support</span>
+          <span>Labeling with machine and community support</span>
           <Icon name="mdi:account-group-outline" class="text-gray-700 w-6 h-6" />
         </h1>
 
@@ -19,7 +19,7 @@
 
           <!-- Your Decision -->
           <div class="col-span-3 flex items-center justify-center">
-            <p class="text-xl"><b>Your Decision</b></p>
+            <p class="text-xl"><b>Your Contribution</b></p>
           </div>
 
           <!-- Community Support -->
@@ -39,7 +39,7 @@
 
           <div class="col-span-2 row-span-1">
             <div class="frame-container">
-              <div class="frame-title"><b>Investigate</b> machine scores for each SDG</div>
+              <div class="frame-title"><b>Investigate</b> Machine Scores for each SDG</div>
               <div ref="glyphContainer">
                 <HexGlyph />
               </div>

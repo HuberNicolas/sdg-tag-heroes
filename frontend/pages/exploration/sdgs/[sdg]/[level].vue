@@ -10,10 +10,10 @@
               <div class="frame-title"><b>Find a set of interesting publications: </b></div>
               <CollectionSelector></CollectionSelector>
             </div>
-            <div class="row-span-2 col-span-3">
+            <div class="row-span-2 col-span-4">
               <QuestSection></QuestSection>
             </div>
-            <div class="row-span-2 col-span-3">
+            <div class="row-span-2 col-span-2">
               <ExplorationUserQuery></ExplorationUserQuery>
             </div>
           </div>
@@ -21,7 +21,7 @@
 
         <div class="row-span-4 col-span-5 p-1">
           <div class="grid grid-rows-11 grid-cols-3 h-full">
-            <div class="row-span-1 col-span-3 "> <div class="frame-title"><b>Summarize</b> Your Selection: Explore Machine Label Predictions & XP Distribution</div></div>
+            <div class="row-span-1 col-span-3 "> <div class="frame-title"><b>Summarize</b> Your Selection: Explore Machine Label Predictions & XP Distribution in the <b>Summary Panel</b></div></div>
             <div class="row-span-5 col-span-1 ">
               <div class="flex justify-center">
                 <FilterState></FilterState>

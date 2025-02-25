@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Identify & Explore</b> AI Reasoning: Select an SDG to Reveal Its Justification</div>
+    <div class="frame-title"><b>Identify & Explore</b> AI Reasoning: Select an SDG to Reveal its Justification</div>
     <div>
       <!-- SDG Cards -->
       <div class="flex flex-wrap gap-1 p-1">
