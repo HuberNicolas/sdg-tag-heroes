@@ -124,7 +124,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       type: 'scattergl',
       width: width,
       height: height,
-      margin: { t: 40, r: 20, b: 40, l: 40 },
+      margin: { t: 5, r: 5, b: 70, l: 5 },
       xaxis: { visible: false },
       yaxis: { visible: false },
       dragmode: 'lasso',

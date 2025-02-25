@@ -5,7 +5,7 @@
       <!-- Title Section (Spanning Across All Columns) -->
       <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center p-4 bg-gray-50">
         <h1 class="text-3xl font-bold w-full">
-          Wanna be an SDG-Tag Hero? Then help us linking Publications with SDGs either
+          Wanna be an SDG-Tag Hero? Then help us labeling Publications with SDGs either
         </h1>
         <div class="w-full flex justify-center mt-2 items-center">
           <div class="w-1/3 flex items-center justify-center">

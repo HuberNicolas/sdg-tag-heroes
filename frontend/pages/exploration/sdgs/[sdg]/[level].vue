@@ -1,23 +1,25 @@
 <template>
-  <div class="h-full overflow-hidden">
+  <div class="flex-1 h-full overflow-hidden">
 
 
-    <div class="grid grid-rows-10 grid-cols-10 h-full">
+    <div class="grid grid-rows-12 grid-cols-10 h-full">
         <div class="row-span-5 col-span-5 p-1">
-          <div class="grid grid-rows-6 grid-cols-6 grid-flow-col h-full">
-            <div class="row-span-4 col-span-6">
+
+          <div class="grid grid-rows-10 grid-cols-6 h-full gap-0">
+            <div class="row-span-6 col-span-6">
+              <div class="frame-title"><b>Find a set of interesting publications: </b></div>
               <CollectionSelector></CollectionSelector>
             </div>
-            <div class="row-span-2 col-span-4">
+            <div class="row-span-2 col-span-3">
               <QuestSection></QuestSection>
             </div>
-            <div class="row-span-2 col-span-2">
+            <div class="row-span-2 col-span-3">
               <ExplorationUserQuery></ExplorationUserQuery>
             </div>
           </div>
         </div>
 
-        <div class="row-span-3 col-span-5 p-1">
+        <div class="row-span-4 col-span-5 p-1">
           <div class="grid grid-rows-11 grid-cols-3 h-full">
             <div class="row-span-1 col-span-3 "> <div class="frame-title"><b>Summarize</b> Your Selection: Explore Machine Label Predictions & XP Distribution</div></div>
             <div class="row-span-5 col-span-1 ">
@@ -36,20 +38,20 @@
           </div>
         </div>
 
-        <div class="row-span-6 col-span-5 p-1">
+        <div class="row-span-9 col-span-5 p-1">
           <PublicationsTable></PublicationsTable>
         </div>
 
-        <div class="row-span-5 col-span-1 p-1">
-          <ScatterPlotLegend></ScatterPlotLegend>
-        </div>
-
-        <div class="row-span-5 col-span-4 p-1">
+        <div class="row-span-5 col-span-5 p-1">
           <ScatterSDGPlot
             v-if="selectedSDG !== null && selectedLevel !== null"
             :width="scatterPlotWidth"
             :height="scatterPlotHeight"/>
         </div>
+
+      <div class="col-span-5 p-1">
+        <ScatterPlotLegend></ScatterPlotLegend>
+      </div>
 
       </div>
     </div>

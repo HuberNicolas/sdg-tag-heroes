@@ -1,18 +1,18 @@
 <template>
-  <div class="relative group flex flex-col items-center">
+  <div class="relative group flex flex-col items-center w-full">
     <div class="mb-2 text-sm font-medium text-center">{{ name }}</div>
     <button
-      class="w-12 h-12 flex items-center justify-center bg-primary-500 text-white rotate-45
+      class="w-8 h-8 flex items-center justify-center bg-primary-500 text-white rotate-45
              hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
       @click="handleClick"
       :disabled="isLoading"
     >
       <div class="absolute inset-0 bg-primary-500 rounded-md"></div>
-      <div class="relative flex items-center justify-center w-10 h-10 bg-white rounded-full">
+      <div class="relative flex items-center justify-center w-6 h-6 bg-white rounded-full">
         <Icon
           v-if="!isLoading"
           :name="icon"
-          class="w-6 h-6 text-gray-700 -rotate-45"
+          class="w-4 h-4 text-gray-700 -rotate-45"
         />
         <span v-else class="text-xs text-gray-700 -rotate-45">Loading...</span>
       </div>

@@ -22,7 +22,7 @@
           <th class="p-1 border border-gray-300">Rank Name</th>
           <th class="p-1 border border-gray-300">Description</th>
           <th class="p-1 border border-gray-300 text-center">XP Required</th>
-          <th class="p-1 border border-gray-300 text-center">Symbol</th>
+          <th class="p-1 border border-gray-300 text-center">Rank Symbol</th>
         </tr>
         </thead>
         <tbody class="bg-white">

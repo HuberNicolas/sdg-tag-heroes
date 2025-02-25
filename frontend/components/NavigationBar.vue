@@ -143,7 +143,7 @@
 
           <!-- Additional Value Proposition -->
           <p class="text-md text-gray-600 italic relative z-10">
-            By participating in labeling, you helped train AI models and advance scientific research while earning rewards!
+            By participating in labeling, you helped train machine models and advance scientific research while earning rewards!
           </p>
 
           <!-- Coins Earned Display -->
@@ -395,7 +395,7 @@
 
                 <div class="flex items-center gap-1.5">
                   <Icon name="mdi-earth" class="w-4 h-4 text-gray-500" />
-                  <span>Does it help people or nature?</span>
+                  <span>Does the research have positive impact on people or nature?</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">

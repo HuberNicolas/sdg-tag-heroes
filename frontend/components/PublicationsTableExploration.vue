@@ -97,7 +97,7 @@
         </thead>
         <tbody>
         <tr v-if="sortedTableData.length === 0">
-          <td colspan="8" class="border border-gray-300 p-4 text-center text-gray-500">
+          <td colspan="10" class="border border-gray-300 p-4 text-center text-gray-500">
             No publications selected. Please use the lasso selection tool in the scatter plot to select data points.
           </td>
         </tr>

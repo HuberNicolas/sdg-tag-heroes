@@ -8,7 +8,8 @@
 
 <style>
 .frame-container {
-  @apply border border-gray-300 rounded-lg p-3 shadow-sm bg-gray-50;
+  @apply border border-gray-300 rounded-lg p-2 shadow-sm bg-gray-50;
+  /* display: contents; /* Ensures the container doesn't interfere with the grid */
 }
 
 .frame-title {

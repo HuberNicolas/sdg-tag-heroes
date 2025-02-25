@@ -19,7 +19,7 @@
 
           <!-- Your Decision -->
           <div class="col-span-3 flex items-center justify-center">
-            <p class="text-xl"><b>Your</b> Decision</p>
+            <p class="text-xl"><b>Your Decision</b></p>
           </div>
 
           <!-- Community Support -->

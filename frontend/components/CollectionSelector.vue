@@ -1,6 +1,7 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Select</b> Topics you are interested to find interesting publications from the <b>Topic List</b></div>
+    <!-- <div class="frame-title"><b>Find a set of interesting publications: </b></div> <!-- Cheap solution, move to middle -->
+    <div class="frame-title"><b>by selecting</b> Topics you are interested in from the <b>Topic List</b></div>
     <!-- Selected filter badges summary -->
     <div class="flex items-center gap-4">
 
@@ -17,14 +18,14 @@
           </UButton>
 
           <!-- Select All Button -->
-          <UButton
+          <!-- <UButton
             icon="i-heroicons-check-circle"
             @click="selectAllCollections"
             :color="'primary'"
             :variant="'solid'"
           >
             Select All
-          </UButton>
+          </UButton> -->
         </div>
       </div>
 
@@ -119,9 +120,29 @@ watch(selectedCollections, (newSelectedCollections) => {
 // Fetch collections on mount
 onMounted(async () => {
   await collectionsStore.fetchCollections();
-  collections.value = collectionsStore.collections;
-  selectedCollections.value = [...collectionsStore.selectedCollections]; // Keep selection in sync
+
+  // Wait for collectionsCount to be available
+  await new Promise((resolve) => {
+    const checkCollectionsCount = () => {
+      if (Object.keys(collectionsStore.collectionsCount).length) {
+        resolve(true);
+      } else {
+        setTimeout(checkCollectionsCount, 100);
+      }
+    };
+    checkCollectionsCount();
+  });
+
+  // Filter collections based on publication count
+  collections.value = collectionsStore.collections.filter(
+    (collection) => (collectionsStore.collectionsCount[collection.collectionId] || 0) > 0
+  );
+
+  selectedCollections.value = collectionsStore.selectedCollections.filter(
+    (collection) => (collectionsStore.collectionsCount[collection.collectionId] || 0) > 0
+  );
 });
+
 
 // Map collection names to corresponding icons
 const iconMapping = {
@@ -175,7 +196,9 @@ const resetSelection = () => {
 
 // Function to select all collections
 const selectAllCollections = () => {
-  selectedCollections.value = [...collections.value];
+  selectedCollections.value = collections.value.filter(
+    (collection) => collectionsStore.collectionsCount[collection.collectionId] > 0
+  );
   collectionsStore.setSelectedCollections(selectedCollections.value);
 };
 

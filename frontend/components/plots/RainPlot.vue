@@ -295,15 +295,17 @@ const updateChart = () => {
     .attr("cy", d => height * 0.8 + jitterMap.get(d)) // Use stored jitter value
     .style("fill", d => d === hoveredEntropy.value ? selectedSDGColor.value : "grey")
     .style("opacity", d => d === hoveredEntropy.value ? 1 : 0.6)
-    .on("mouseover", function(event, d) {
-      tooltip.style("visibility", "visible").html(`Value: ${d.toFixed(2)}`)
-        .style("left", `${event.pageX + 10}px`).style("top", `${event.pageY}px`);
-      d3.select(this).attr("stroke", "black").attr("stroke-width", 1);
-    })
-    .on("mouseout", function() {
-      tooltip.style("visibility", "hidden");
-      d3.select(this).attr("stroke", "none");
-    });
+  /* Deactivate hover
+ .on("mouseover", function(event, d) {
+   tooltip.style("visibility", "visible").html(`Value: ${d.toFixed(2)}`)
+     .style("left", `${event.pageX + 10}px`).style("top", `${event.pageY}px`);
+   d3.select(this).attr("stroke", "black").attr("stroke-width", 1);
+ })
+ .on("mouseout", function() {
+   tooltip.style("visibility", "hidden");
+   d3.select(this).attr("stroke", "none");
+ });
+ */
 
   // X-Axis with rotated labels
   svg.append("g")

@@ -1,11 +1,12 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Generate</b> a Personalized Exploration Path Based on Your Skills & Interests 📍</div>
+    <div class="frame-title"><b>by creating</b> a personalized point of interest (POI 📍) by sharing your interests or skills to select publications</div>
 
     <form @submit.prevent="handleUserPointGenerator" class="">
       <!-- Radio group and button in the same row -->
       <div class="flex items-center justify-between">
         <!-- Nuxt UI Radio Group with horizontal alignment -->
+        <!--
         <URadioGroup
           v-model="mode"
           legend=""
@@ -15,9 +16,11 @@
         ]"
           class="flex space-x-4"
         />
+               -->
 
         <!-- Input field -->
-        <div class="relative">
+
+        <div class="relative flex-grow">
           <input
             v-model="inputValue"
             type="text"
@@ -26,7 +29,8 @@
           />
         </div>
 
-        <!-- Submit button -->
+
+       <!-- Submit button -->
         <UButton
           type="submit"
           color="primary"
@@ -35,7 +39,7 @@
           :disabled="isLoading"
           class="w-auto"
         >
-          {{ isLoading ? 'Processing...' : 'Calculate POI 📍' }}
+          {{ isLoading ? 'Processing...' : 'Create POI 📍' }}
           <template #trailing>
             <div v-if="isLoading">
               <i class="animate-spin i-heroicons-spinner"></i>
@@ -45,8 +49,6 @@
       </div>
     </form>
   </div>
-
-
 </template>
 
 

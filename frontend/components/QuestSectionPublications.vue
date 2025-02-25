@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Select</b> a Quest to Review Key Publications</div> <!--Smart Selection:  -->
+    <div class="frame-title"><b>by selecting</b> a Quest to Review Key Publications</div> <!--Smart Selection:  -->
     <div class="row-span-2 col-span-3">
       <div class="flex items-center justify-around">
         <QuestButtonExploration

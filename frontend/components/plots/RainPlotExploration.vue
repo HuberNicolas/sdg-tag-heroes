@@ -315,6 +315,7 @@ const updateChart = () => {
       return highestSDG.id ? sdgsStore.getColorBySDG(highestSDG.id) : "grey";
     })
     .style("opacity", d => d === hoveredEntropy.value ? 1 : 0.6)
+    /* Deactivate hover
     .on("mouseover", function(event, d) {
       tooltip.style("visibility", "visible").html(`Value: ${d.toFixed(2)}`)
         .style("left", `${event.pageX + 10}px`).style("top", `${event.pageY}px`);
@@ -324,6 +325,8 @@ const updateChart = () => {
       tooltip.style("visibility", "hidden");
       d3.select(this).attr("stroke", "none");
     });
+    */
+
 
   // X-Axis with rotated labels
   svg.append("g")

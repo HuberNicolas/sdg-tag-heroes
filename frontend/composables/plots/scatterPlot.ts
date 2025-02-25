@@ -148,7 +148,7 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
 
-      margin: { t: 5, r: 5, b: 20, l: 5 },
+      margin: { t: 5, r: 5, b: 70, l: 5 },
       // Frame properties
       // Frame properties
       shapes: [{
