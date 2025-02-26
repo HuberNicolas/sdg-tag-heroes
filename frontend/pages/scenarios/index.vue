@@ -9,11 +9,11 @@
         </h1>
         <div class="w-full flex justify-center mt-2 items-center">
           <div class="w-1/3 flex items-center justify-center">
-            <p class="text-xl">by <b>Selecting</b> an SDG</p>
+            <p class="text-xl">by <b>Selecting</b> an SDG World</p>
           </div>
           <div class="w-auto px-4 text-xl font-bold text-gray-700">OR</div>
           <div class="w-1/3 flex items-center justify-center">
-            <p class="text-xl">by <b>Exploring</b> Publications from different Worlds</p>
+            <p class="text-xl">by <b>Exploring</b> Publications from different Universes</p>
           </div>
         </div>
       </div>

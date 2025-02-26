@@ -8,7 +8,7 @@
 
     <!-- Modal Dialog -->
     <dialog id="model_labeling" class="modal">
-      <div class="modal-box max-w-3xl">
+      <div class="modal-box max-w-4xl">
         <!-- Close Button -->
         <button class="btn btn-sm btn-circle btn-ghost absolute right-1 top-1"  @click="closeModal">✕</button>
 
@@ -215,10 +215,10 @@ const summaryLoading = ref<Record<number, boolean>>({});
 const activeTab = ref<'similar' | 'scenarios'>('similar');
 
 const scenarioButtons = [
-  { icon: "i-heroicons-check-badge", name: "Confirm", type: ScenarioType.CONFIRM },
-  { icon: "i-heroicons-map", name: "Explore", type: ScenarioType.EXPLORE },
-  { icon: "i-heroicons-magnifying-glass", name: "Investigate", type: ScenarioType.INVESTIGATE },
-  { icon: "i-heroicons-scale", name: "Tiebreaker", type: ScenarioType.TIEBREAKER },
+  { icon: "i-heroicons-check-badge", name: "Crown the Champion", type: ScenarioType.CONFIRM },
+  { icon: "i-heroicons-map", name: "Mark the Map", type: ScenarioType.EXPLORE },
+  { icon: "i-heroicons-magnifying-glass", name: "Solve the SDG Secret", type: ScenarioType.INVESTIGATE },
+  { icon: "i-heroicons-scale", name: "Decisive Duel", type: ScenarioType.TIEBREAKER },
 ];
 
 // Function to open modal and start loading

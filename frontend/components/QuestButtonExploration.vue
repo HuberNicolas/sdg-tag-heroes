@@ -85,7 +85,7 @@ const handleScenarioSelection = async () => {
   }
 
   switch (gameStore.selectedScenario) {
-    case "Sparse Instances":
+    case "Hidden Gems":
       await Promise.all([
         dimensionalityStore.fetchLeastLabeledDimensionalityReductions(10),
         publicationsStore.fetchLeastLabeledPublications(10),

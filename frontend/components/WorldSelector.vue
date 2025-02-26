@@ -15,7 +15,7 @@
         <div
           :class="`relative flex flex-col items-center justify-center rounded-lg border-4 p-4 shadow-lg ${level.borderClass} bg-white`"
         >
-          <div class="text-lg font-bold text-gray-800">World {{ level.level }}</div>
+          <div class="text-lg font-bold text-gray-800">Universe {{ level.level }}</div>
           <div class="text-lg font-bold text-gray-800 press-start-font">{{ level.name }}</div>
           <div v-if="!isLevelUnlocked(level.level)" class="font-semibold">Almost There!</div>
           <div v-else class="font-semibold">Ready to play</div>
@@ -81,9 +81,9 @@ const userXP = computed(() => banksStore.getUserXPBank?.totalXp || 0);
 const selectedLevel = ref<number>(1);
 
 const levels = [
-  { level: 1, name: "Researchia", bgColor: "bg-gray-400", borderClass: "border-gray-600", requiredXP: 0, description: "A world of discovery and innovation.", image: "/img/world-1.png" },
-  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-gray-600", requiredXP: 6000, description: "A world filled with academic publications.", image: "/img/world-2.png" },
-  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-gray-600", requiredXP: 8000, description: "A world of open knowledge and revelations.", image: "/img/world-3.png" },
+  { level: 1, name: "Researchia", bgColor: "bg-gray-400", borderClass: "border-gray-600", requiredXP: 0, description: "Find discovery and innovation.", image: "/img/world-1.png" },
+  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-gray-600", requiredXP: 6000, description: "Filled with academic publications.", image: "/img/world-2.png" },
+  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-gray-600", requiredXP: 8000, description: "Open knowledge and revelations.", image: "/img/world-3.png" },
 ];
 
 const isLevelUnlocked = (level: number) => {

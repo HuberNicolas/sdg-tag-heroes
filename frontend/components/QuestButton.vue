@@ -63,10 +63,10 @@ const gameStore = useGameStore();
 const selectedSDG = gameStore.getSDG;
 
 const scenarioMapping: Record<string, ScenarioType> = {
-  "Confirm the King": ScenarioType.CONFIRM,
-  "Tiebreaker": ScenarioType.TIEBREAKER,
-  "Investigate": ScenarioType.INVESTIGATE,
-  "Explore": ScenarioType.EXPLORE
+  "Crown the Champion": ScenarioType.CONFIRM,
+  "Decisive Duel": ScenarioType.TIEBREAKER,
+  "Solve the SDG Secret": ScenarioType.INVESTIGATE,
+  "Mark the Map": ScenarioType.EXPLORE
 };
 
 const handleClick = async () => {
