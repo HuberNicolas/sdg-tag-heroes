@@ -36,7 +36,10 @@
 
         <!-- Second Section: Bottom Half -->
         <div v-if="!gameStore.showLeaderboard" class="row-span-3 flex items-center justify-center">
-          <SDGUserQuery />
+          <div class="frame-container">
+            <div class="frame-title"><b>Share</b> either your Skills or Interests with the intelligent agent to receive a a customized SDG suggestion in the <b>SDG Suggestion Box</b></div> <!--Smart Selection:  -->
+            <SDGUserQuery />
+          </div>
         </div>
         <div v-if="gameStore.showLeaderboard" class="row-span-3 flex items-center justify-center">
           <LeaderBoardExplanation></LeaderBoardExplanation>
