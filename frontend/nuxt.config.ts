@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2024-04-03",
+  compatibilityDate: '2024-11-01',
   devtools: {
     enabled: false,
     timeline: {
@@ -9,13 +9,14 @@ export default defineNuxtConfig({
   },
   ssr: false,
   modules: [
-    "@nuxt/fonts",
-    "@nuxt/ui",
-    "@nuxtjs/color-mode",
-    "@nuxt/eslint",
-    "@nuxt/content",
+    '@nuxt/eslint',
+    '@nuxt/fonts',
+    '@nuxt/icon',
+    '@nuxt/image',
+    '@nuxt/ui',
+
+    //"@nuxtjs/color-mode",
     "nuxt-svgo",
-    "@nuxt/image",
     '@pinia/nuxt',
     'nuxt-particles'
   ],
@@ -36,10 +37,6 @@ export default defineNuxtConfig({
         clientPort: 3030 // Host's port
       }
     }
-  },
-  content: {
-    // https://content.nuxt.com/get-started/configuration#watch
-    watch: false
   },
   runtimeConfig: {
     public: {
@@ -85,4 +82,4 @@ export default defineNuxtConfig({
     }
   },
   watch: ['composables/**/*.ts', 'components/**/*.vue'], // does not trigger new build
-});
+})
