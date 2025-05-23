@@ -16,3 +16,5 @@
   @apply text-gray-700 font-normal text-sm mb-1;
 }
 </style>
+<script setup lang="ts">
+</script>

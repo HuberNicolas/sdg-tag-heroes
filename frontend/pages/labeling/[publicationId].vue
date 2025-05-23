@@ -138,7 +138,6 @@ import CommentSection from "~/components/CommentSection.vue";
 import CommentSummary from "~/components/CommentSummary.vue";
 import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
 import AnnotationSection from "~/components/AnnotationSection.vue";
-import SDGUserLabelToggle from "~/components/SDGUserLabelToggle.vue";
 import { onMounted, ref } from "vue";
 import DonutPlot from "~/components/plots/DonutPlot.vue";
 import { Quadrant, Stage } from "~/types/enums";
