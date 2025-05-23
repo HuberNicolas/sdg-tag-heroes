@@ -1,11 +1,14 @@
-from sqlalchemy import Table, ForeignKey, Column, Integer, String, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
+
+from sqlalchemy import String, DateTime
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+
+from models.associations import user_group_association
 from models.base import Base
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
-from models.associations import user_group_association
+
 
 class Group(Base):
     """

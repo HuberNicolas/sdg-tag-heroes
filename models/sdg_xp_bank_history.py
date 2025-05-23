@@ -1,14 +1,15 @@
-from sqlalchemy import ForeignKey, Float, DateTime, String, Boolean, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from models.base import Base
 from datetime import datetime
+
 from sqlalchemy import Enum
-from settings.enums import SDGEnum
+from sqlalchemy import ForeignKey, Float, DateTime, Boolean, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-
-
+from enums.enums import SDGType
+from models.base import Base
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
+
 
 class SDGXPBankHistory(Base):
     """
@@ -18,7 +19,7 @@ class SDGXPBankHistory(Base):
 
     history_id: Mapped[int] = mapped_column(primary_key=True, index=True)
     xp_bank_id: Mapped[int] = mapped_column(ForeignKey("sdg_xp_banks.sdg_xp_bank_id"), nullable=False)
-    sdg: Mapped[SDGEnum] = mapped_column(Enum(SDGEnum), nullable=False)  # Enum to specify SDG
+    sdg: Mapped[SDGType] = mapped_column(Enum(SDGType), nullable=False)  # Enum to specify SDG
     increment: Mapped[float] = mapped_column(Float, nullable=False)  # Incremental change in XP (+/-)
     reason: Mapped[str] = mapped_column(Text(), nullable=True)  # Optional reason for the change
     is_shown: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)

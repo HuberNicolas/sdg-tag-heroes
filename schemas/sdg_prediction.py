@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -24,16 +25,19 @@ class SDGPredictionSchemaBase(BaseModel):
     sdg16: float
     sdg17: float
     predicted: bool
+    last_predicted_goal: int
+    entropy: float
+    std: float
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
 
+
 class SDGPredictionSchemaFull(SDGPredictionSchemaBase):
-    last_predicted_goal: int
     created_at: datetime
     updated_at: datetime
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }

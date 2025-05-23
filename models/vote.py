@@ -1,18 +1,13 @@
+from datetime import datetime
+
 from sqlalchemy import Enum, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
-from enum import Enum as PyEnum
+
+from enums.enums import VoteType
 from models import Base
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
-
-
-class VoteType(PyEnum):
-    POSITIVE = "positive"
-    NEUTRAL = "neutral"
-    NEGATIVE = "negative"
-
 
 class Vote(Base):
     """
@@ -48,6 +43,13 @@ class Vote(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        nullable=False,
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
+        onupdate=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
         nullable=False,
     )
 

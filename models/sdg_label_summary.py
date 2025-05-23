@@ -1,6 +1,8 @@
-from sqlalchemy import ForeignKey, String, DateTime, Integer, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
+from sqlalchemy import ForeignKey, DateTime, Integer, CheckConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from models import Base
 from settings.settings import TimeZoneSettings
 

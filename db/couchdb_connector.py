@@ -1,10 +1,12 @@
-import logging
 from cloudant.client import CouchDB
 from utils.env_loader import load_env, get_env_variable, is_running_in_docker
 
-# Set up logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from settings.settings import CouchDBSettings
+couchdb_settings = CouchDBSettings()
+
+# Setup Logging
+from utils.logger import logger
+logging = logger(couchdb_settings.COUCHDB_LOG_NAME)
 
 # Load the CouchDB environment variables
 load_env('couchdb.env')
@@ -23,7 +25,7 @@ port = int(get_env_variable('COUCHDB_PORT')) if running_in_docker else int(get_e
 couchdb_url = f"http://{host}:{port}"
 
 # Log the connection details (avoid logging sensitive information like passwords in production)
-logger.info(f"Connecting to CouchDB at {host}:{port} with user {user}")
+logging.info(f"Connecting to CouchDB at {host}:{port} with user {user}")
 
 # Establish connection to CouchDB
 try:
@@ -32,10 +34,23 @@ try:
     
     # Check if the connection is established by listing databases
     databases = client.all_dbs()
-    logger.info(f"Connection to CouchDB successful! Databases: {databases}")
+    logging.info(f"Connection to CouchDB successful! Databases: {databases}")
     
     # Don't close connection here
     # client.disconnect()
 
 except Exception as e:
-    logger.error(f"Failed to connect to CouchDB: {e}")
+    logging.error(f"Failed to connect to CouchDB: {e}")
+
+def test_couchdb_connection():
+    """
+    Test the CouchDB connection by listing databases.
+    """
+    global client  # Ensure you're using the already established client
+    try:
+        databases = client.all_dbs()
+        logging.info(f"CouchDB connection test successful! Databases: {databases}")
+        return True
+    except Exception as e:
+        logging.error(f"CouchDB connection test failed: {e}")
+        return False

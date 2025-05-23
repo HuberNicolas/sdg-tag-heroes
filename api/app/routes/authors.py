@@ -1,45 +1,29 @@
-from typing import List, Optional, Union
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session, sessionmaker, joinedload
-
-from api.app.security import Security
-from api.app.routes.authentication import verify_token
-from db.mariadb_connector import engine as mariadb_engine
-
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
+from sqlalchemy.orm import Session, sessionmaker
 
-# Import models
+from api.app.routes.authentication import verify_token
+from api.app.security import Security
+from db.mariadb_connector import engine as mariadb_engine
 from models.publications.author import Author
-from schemas.publications.author import AuthorSchemaBase, AuthorSchemaFull
-
+from models.publications.publication import Publication
+from schemas import AuthorSchemaFull
 from settings.settings import AuthorsRouterSettings
-authors_router_settings = AuthorsRouterSettings()
+from utils.logger import logger
 
+# Setup OAuth2 and security
 security = Security()
-# OAuth2 scheme for token authentication
 oauth2_scheme = security.oauth2_scheme
 
 # Setup Logging
-from utils.logger import logger
+authors_router_settings = AuthorsRouterSettings()
 logging = logger(authors_router_settings.AUTHORS_ROUTER_LOG_NAME)
-
-router = APIRouter(
-    prefix="/authors",
-    tags=["authors"],
-    responses={
-        404: {"description": "Not found"},
-        403: {"description": "Forbidden"},
-        401: {"description": "Unauthorized"},
-    },
-)
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
-
 
 # Dependency for getting DB session
 def get_db():
@@ -49,39 +33,38 @@ def get_db():
     finally:
         db.close()
 
+router = APIRouter(
+    prefix="/authors",
+    tags=["Authors"],
+    responses={
+        404: {"description": "Not found"},
+        403: {"description": "Forbidden"},
+        401: {"description": "Unauthorized"},
+    },
+)
 
 @router.get(
     "/", description="Get all authors (minimal or full detail)"
 )
-async def get_all_authors(
-    minimal: Optional[bool] = Query(False, description="Set to true for minimal response"),
+async def get_authors(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
-) -> Page:
+) -> Page[AuthorSchemaFull]:
     """
     Retrieve all authors. Responds with a minimal or full response based on the 'minimal' query parameter.
     """
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
-        logging.info(f"Fetching all authors with minimal={minimal}")
 
         # Base query
         query = db.query(Author)
 
-        # Fetch paginated authors
-        authors = paginate(query.order_by(Author.author_id))
+        # Use FastAPI Pagination to fetch paginated data
+        paginated_query = sqlalchemy_pagination(query)
 
-        # Adjust schema based on the 'minimal' flag
-        if minimal:
-            # Transform to minimal schema
-            authors.items = [AuthorSchemaBase.from_orm(author) for author in authors.items]
-            logging.info("Returning minimal response")
-        else:
-            # Transform to full schema
-            authors.items = [AuthorSchemaFull.from_orm(author) for author in authors.items]
-            logging.info("Returning full response")
+        paginated_query.items = [AuthorSchemaFull.model_validate(author) for author in paginated_query.items]
 
-        return authors
+        return paginated_query
 
     except Exception as e:
         logging.error(f"Error fetching authors: {str(e)}")
@@ -96,7 +79,6 @@ async def get_all_authors(
 )
 async def get_author(
     author_id: int,
-    minimal: Optional[bool] = Query(False, description="Set to true for minimal response"),
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ):
@@ -105,7 +87,6 @@ async def get_author(
     """
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
-        logging.info(f"Fetching author with ID: {author_id}, minimal={minimal}")
 
         # Query the database for the author
         author = db.query(Author).filter(Author.author_id == author_id).first()
@@ -116,15 +97,7 @@ async def get_author(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Author not found"
             )
 
-        # Return minimal or full detail based on the 'minimal' flag
-        if minimal:
-            response = AuthorSchemaBase.from_orm(author)
-            logging.info(f"Returning minimal response for author ID: {author_id}")
-        else:
-            response = AuthorSchemaFull.from_orm(author)
-            logging.info(f"Returning full response for author ID: {author_id}")
-
-        return response
+        return AuthorSchemaFull.model_validate(author)
 
     except Exception as e:
         logging.error(f"Error fetching author with ID {author_id}: {str(e)}")
@@ -133,3 +106,36 @@ async def get_author(
             detail="An error occurred while fetching the author",
         )
 
+@router.get(
+    "/publications/{publication_id}",
+    response_model=List[AuthorSchemaFull],
+    description="Retrieve all authors associated with a specific publication"
+)
+async def get_publication_authors(
+    publication_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+) -> List[AuthorSchemaFull]:
+    """
+    Retrieve all authors for a specific publication.
+    """
+    try:
+        user = verify_token(token, db)  # Ensure user is authenticated
+
+        # Query the database for the publication and its authors
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Publication with ID {publication_id} not found",
+            )
+
+        # Return the list of authors associated with the publication
+        return [AuthorSchemaFull.model_validate(author) for author in publication.authors]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching authors for the publication",
+        )

@@ -1,32 +1,27 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, model_validator
-from enum import Enum
 
-from models.users.user import UserRole
+from pydantic import BaseModel
 
+from enums.enums import UserRole
 
-
-class UserRoleEnum(str, Enum):
-    user = UserRole.USER.value
-    admin = UserRole.ADMIN.value
-    labeler = UserRole.LABELER.value
-    expert = UserRole.EXPERT.value
 
 class UserSchemaBase(BaseModel):
     user_id: int
+    nickname: Optional[str]
+    email: str
+    is_active: bool
+    roles: List[UserRole]
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
+
 
 class UserSchemaFull(UserSchemaBase):
-    email: str
-    roles: List[UserRole]
-    is_active: bool
+    created_at: datetime
+    updated_at: datetime
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
-
-

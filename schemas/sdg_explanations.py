@@ -1,17 +1,21 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List
 
-class TokenScore(BaseModel):
-    input_token: str
-    token_score: float
+from pydantic import BaseModel
+
+
+# Not directly derived from models
+# Todo: Generate TS type
 
 class ExplanationSchema(BaseModel):
-    id: str
+    mongodb_id: str
+    sql_id: int
+    oai_identifier: str
     input_tokens: List[str]
     token_scores: List[List[float]]
     base_values: List[float]
     xai_method: str
     prediction_model: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # Enables ORM-style model validation
+    }

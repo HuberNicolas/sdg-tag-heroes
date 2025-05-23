@@ -28,8 +28,14 @@ services:
       POETRY_HTTP_TIMEOUT: "300"
     volumes:
       - ./api:/api
-      - ./schemas:/schemas
       - ./models:/models
+      - ./db:/db
+      - ./request_models:/request_models
+      - ./schemas:/schemas
+      - ./enums:/enums
+      - ./settings:/settings
+      - ./services:/services
+      - ./utils:/utils
       - ./data/docker/logs:/logs
     ports:
       - "1002:8001"
@@ -102,7 +108,7 @@ services:
       - "2001:3306"
     volumes:
       - ./data/docker/db/mariadb/mysql-data/:/var/lib/mysql
-      - ./data/db/igcl_dump.sql:/docker-entrypoint-initdb.d/dump.sql
+      # - ./data/db/igcl-dump.sql:/docker-entrypoint-initdb.d/dump.sql # Change, as we currently mounting a folder
     env_file:
       - ./env/mariadb.env
     profiles: [ prod, pipeline ]
@@ -240,6 +246,8 @@ services:
     volumes:
       - ./frontend:/app # Mount the local frontend folder into /app inside the container
       - /app/node_modules # Ensure node_modules inside the container is separate
+      - ./frontend/components:/app/components # line to mount components specifically
+      - ./frontend/composables:/app/composables # line to mount composables specifically
     profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:

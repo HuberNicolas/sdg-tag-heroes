@@ -30,3 +30,11 @@ apache
 
 AddType application/x-httpd-php .php
 ```
+
+
+
+## Frontend:
+
+ERROR  [nitro] [uncaughtException] listen EADDRINUSE: address already in use /tmp/nitro/worker-34-2.sock
+
+-> rebuild container `docker compose up --build frontend`

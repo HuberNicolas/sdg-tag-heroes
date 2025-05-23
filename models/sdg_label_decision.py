@@ -1,22 +1,15 @@
-from sqlalchemy import ForeignKey, Table, String, DateTime, Text, Column, Integer, Enum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
+from sqlalchemy import ForeignKey, DateTime, Text, Integer, Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from enums.enums import DecisionType, ScenarioType
 from models import Base
+from models.associations import sdg_label_decision_user_label_association
 from settings.settings import TimeZoneSettings
-from enum import Enum as PyEnum
 
 time_zone_settings = TimeZoneSettings()
 
-
-class DecisionType(PyEnum):
-    CONSENSUS_MAJORITY = "Consensus Majority"
-    CONSENSUS_TECHNOCRATIC = "Consensus Technocratic"
-    EXPERT_DECISION = "Expert Decision"
-
-
-
-# Association table for many-to-many relationship between SDGLabelDecision and SDGUserLabel
-from models.associations import sdg_label_decision_user_label_association
 
 class SDGLabelDecision(Base):
     """
@@ -27,8 +20,9 @@ class SDGLabelDecision(Base):
     decision_id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     suggested_label: Mapped[int] = mapped_column(Integer, nullable=False)
-    decided_label: Mapped[int] = mapped_column(Integer, default=-1, nullable=False)
+    decided_label: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # 0 not decided, 18 zero class
     decision_type: Mapped[DecisionType] = mapped_column(Enum(DecisionType), default=DecisionType.CONSENSUS_MAJORITY, nullable=False)
+    scenario_type: Mapped[ScenarioType] = mapped_column(Enum(ScenarioType), default=ScenarioType.NOT_ENOUGH_VOTES, nullable=False)
 
     # Many-to-Many relationship with SDGUserLabel
     user_labels: Mapped[list["SDGUserLabel"]] = relationship(
@@ -47,14 +41,26 @@ class SDGLabelDecision(Base):
     # Relationship back to SDGLabelHistory
     history: Mapped["SDGLabelHistory"] = relationship("SDGLabelHistory", back_populates="decisions")
 
+    # Relationship to Annotations
+    annotations: Mapped[list["Annotation"]] = relationship(
+        "Annotation",
+        back_populates="decision",
+        cascade="all, delete-orphan",
+    )
+
 
     comment: Mapped[str] = mapped_column(Text(), nullable=True)
 
+    # Add publication_id ForeignKey
+    publication_id: Mapped[int] = mapped_column(ForeignKey("publications.publication_id"), nullable=False)
+
+    # Relationship to Publication
+    publication: Mapped["Publication"] = relationship("Publication", back_populates="label_decisions")
 
     decided_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(time_zone_settings.ZURICH_TZ),
-        nullable=False,
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(

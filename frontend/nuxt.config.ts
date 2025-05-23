@@ -1,22 +1,24 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2024-04-03",
+  compatibilityDate: '2024-11-01',
   devtools: {
-    enabled: true,
+    enabled: false,
     timeline: {
       enabled: true
     }
   },
   ssr: false,
   modules: [
-    "@nuxt/fonts",
-    "@nuxt/ui",
-    "@nuxtjs/color-mode",
-    "@nuxt/eslint",
-    "@nuxt/content",
+    '@nuxt/eslint',
+    '@nuxt/fonts',
+    '@nuxt/icon',
+    '@nuxt/image',
+    '@nuxt/ui',
+
+    //"@nuxtjs/color-mode",
     "nuxt-svgo",
-    "@nuxt/image",
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    'nuxt-particles'
   ],
   imports: {
     // https://nuxt.com/docs/guide/directory-structure/composables
@@ -36,26 +38,21 @@ export default defineNuxtConfig({
       }
     }
   },
-  content: {
-    // https://content.nuxt.com/get-started/configuration#watch
-    watch: false
-  },
   runtimeConfig: {
     public: {
-      backendURL: process.env.BACKEND_URL, // Django, handles authentication and generates jwt
       apiUrl: process.env.API_URL // FastAPI, verifies jwt
     }
   },
   // add the middleware globally by adding
   router: {
-    middleware: ["auth"]
+    middleware: ["authentication"]
   },
   ui: {
     icons: ["mdi", "simple-icons"]
   },
   // clear local storage after changing this
   colorMode: {
-    preference: "system", // default value of $colorMode.preference
+    preference: "light", // default value of $colorMode.preference // system also possible
     fallback: "light", // fallback value if not system preference found
     hid: "nuxt-color-mode-script",
     globalName: "__NUXT_COLOR_MODE__",
@@ -83,5 +80,6 @@ export default defineNuxtConfig({
         monospace: ["Tahoma"]
       }
     }
-  }
-});
+  },
+  watch: ['composables/**/*.ts', 'components/**/*.vue'], // does not trigger new build
+})

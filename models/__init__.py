@@ -15,6 +15,7 @@ from .sdg_label_summary import SDGLabelSummary
 from .sdg_prediction import SDGPrediction
 from .sdg_target_prediction import SDGTargetPrediction
 
+from .associations import publication_authors_association
 from .associations import sdg_label_decision_user_label_association
 from .associations import user_group_association
 
@@ -26,18 +27,18 @@ from .publications.faculty import  Faculty
 from .publications.dimensionality_reduction import DimensionalityReduction
 from .publications.publication import Publication
 
-from .sdg.sdg_goal import SDGGoal
-from .sdg.sdg_target import SDGTarget
+from .sdgs.goal import SDGGoal
+from .sdgs.target import SDGTarget
 
-from .sdg.clusters.group import ClusterGroup
-from .sdg.clusters.level import ClusterLevel
-from .sdg.clusters.topic import ClusterTopic
-from .sdg.clusters.publication_cluster import PublicationCluster
+from .clusters.group import ClusterGroup
+from .clusters.level import ClusterLevel
+from .clusters.topic import ClusterTopic
+from .clusters.publication_cluster import PublicationCluster
 
 
 from .inventory import Inventory
 from .achievement import Achievement
-from .inventor_achievement_association import InventoryAchievementAssociation
+from .inventory_achievement_association import InventoryAchievementAssociation
 
 from .fact import Fact
 from .summary import Summary
@@ -46,6 +47,10 @@ from .sdg_xp_bank import SDGXPBank
 from .sdg_coin_wallet import SDGCoinWallet
 from .sdg_xp_bank_history import SDGXPBankHistory
 from .sdg_coin_wallet_history import SDGCoinWalletHistory
+
+from .collection import Collection
+
+from .sdg_ranks import SDGRank
 
 # Export all models for external use
 __all__ = [
@@ -75,6 +80,7 @@ __all__ = [
     "Faculty",
     "DimensionalityReduction",
     "Publication",
+    "publication_authors_association",
 
     "SDGGoal",
     "SDGTarget",
@@ -95,4 +101,6 @@ __all__ = [
     "SDGCoinWallet",
     "SDGXPBankHistory",
     "SDGCoinWalletHistory",
+
+    "SDGRank",
 ]

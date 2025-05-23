@@ -5,20 +5,78 @@ import pytz
 from pydantic_settings import BaseSettings
 
 
+### Project Settings and Context
+
 class ProjectSettings(BaseSettings):
     APP_NAME: str = "iCoGaLa"
     DEBUG_MODE: bool = False
+
 
 class SDGSettings(BaseSettings):
     SDGOAL_NUMBER: int = 17
     SDTARGET_NUMBER: int = 169
 
 
+
+### General Settings
+
+class SeedSettings(BaseSettings):
+    SEED: ClassVar[int] = 31011997
+
+class TimeZoneSettings(BaseSettings):
+    ZURICH_TZ_STRING: str = "Europe/Zurich"  # Specify the timezone for Zurich
+    ZURICH_TZ: ClassVar = pytz.timezone(ZURICH_TZ_STRING)
+
+
+class LoggingSettings(BaseSettings):
+    LOG_PATH: ClassVar[str] = "logs"
+    LOG_FORMAT: ClassVar[str] = "{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
+
+class EnvLoaderSettings(BaseSettings):
+    # Do not set this to True in prod as it will print secrets
+    ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
+
+### DB-Settings
+class MariaDBSettings(BaseSettings):
+    MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
+    MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
+    SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
+    MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
+    DEFAULT_PREDICTION_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
+    DEFAULT_PREDICTION_THRESHOLD: ClassVar[float] = 0.98
+    DEFAULT_SDG_EXPLORATION_SIZE: ClassVar[int] = 100
+
+class QdrantDBSettings(BaseSettings):
+    QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
+    QDRANT_TIMEOUT: ClassVar[int] = 120
+    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt" #TODO: remove duplicate and leave here; do NOT remove here
+    PUBLICATIONS_CONTENT_VECTOR_NAME: ClassVar[str] = "content"
+    PUBLICATIONS_SQL_ID_PAYLOAD_FIELD_NAME: ClassVar[str] = "sql_id"
+
+class CouchDBSettings(BaseSettings):
+    COUCHDB_LOG_NAME: ClassVar[str] = "db_couchdb.log"
+
+class RedisDBSettings(BaseSettings):
+    REDIS_LOG_NAME: ClassVar[str] = "db_redis.log"
+
+class MongoDBSDGSettings(BaseSettings):
+    MONGODB_LOG_NAME: ClassVar[str] = "db_mongodb.log"
+    DB_NAME: ClassVar[str] = "sdg_database"
+    DB_COLLECTION_NAME: ClassVar[str] = "explanations_scaled_new"
+    SVG_ENCODING: ClassVar[str] = "utf-8"
+    GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
+    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = (
+        "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
+    )
+
+
+
+### Pipeline Settings
 class EmbeddingsSettings(BaseSettings):
     EMBEDDINGS_LOG_NAME: ClassVar[str] = "embeddings.log"
     VECTOR_SIZE: ClassVar[int] = 384
     ENCODER_MODEL: ClassVar[str] = "sentence-transformers/all-MiniLM-L6-v2"
-    ENCODER_DEVICE: ClassVar[str] = "cpu" # Either "cpu" or "cuda: 0"
+    ENCODER_DEVICE: ClassVar[str] = "cpu"  # Either "cpu" or "cuda: 0"
     DEFAULT_BATCH_SIZE: ClassVar[int] = 32
     VECTOR_CONTENT_NAME: ClassVar[str] = "content"
 
@@ -28,41 +86,19 @@ class EmbeddingsSettings(BaseSettings):
         # "Author: {', '.join([author.name for author in pub.authors])}",
         # "Date: {pub.date}",
         # "Publisher: {pub.publisher}",
-        "Abstract: {pub.description}"
+        "Abstract: {pub.description}",
     ]
 
-class SimilaritySearchSettings(BaseSettings):
-    SIMILARITY_SEARCH_LOG_NAME: ClassVar[str] = "similarity_search.log"
-
-class ProfileRouterSettings(BaseSettings):
-    PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_profiles_.log"
 
 
-class LoaderSettings(BaseSettings):
-    LOADER_LOG_NAME: ClassVar[str] = "loader.log"
-    DEFAULT_BATCH_SIZE: ClassVar[int] = 64
-    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt"
-
-
-class TimeZoneSettings(BaseSettings):
-    ZURICH_TZ_STRING: str = "Europe/Zurich" # Specify the timezone for Zurich
-    ZURICH_TZ: ClassVar = pytz.timezone(ZURICH_TZ_STRING)
-
-    # For Django
-    DJANGO_TIME_ZONE: str = "CET" # Origin: "UTC"
-    DJANGO_USE_TZ: bool = True
-
-
-
-class LoggingSettings(BaseSettings):
-    LOG_PATH: ClassVar[str] = "logs"
-    LOG_FORMAT: ClassVar[str] = "%(asctime)s - %(levelname)s - %(message)s"
-
+# For Goals
 class PredictionSettings(BaseSettings):
     AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
 
-    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models", "targets")
+    MODEL_DIR: ClassVar[str] = os.path.join(
+        "data", "pipeline", "aurora_models", "targets"
+    )
     AURORA_MODEL_GOAL_LINKS: ClassVar[str] = "aurora-model-goal-only-links.csv"
 
     CUDA_VISIBLE_DEVICES_KEY: ClassVar[str] = "CUDA_VISIBLE_DEVICES"
@@ -79,9 +115,14 @@ class PredictionSettings(BaseSettings):
     DEFAULT_DVDBLK_BATCH_SIZE: ClassVar[int] = 16
 
 
+# For Targets
 class TargetPredictionSettings(PredictionSettings):
     AURORA_TARGET_PREDICTOR_LOG_NAME: ClassVar[str] = "target_predictor_aurora.log"
 
+class LoaderSettings(BaseSettings):
+    LOADER_LOG_NAME: ClassVar[str] = "loader.log"
+    DEFAULT_BATCH_SIZE: ClassVar[int] = 64
+    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt"
 
 class CollectorSettings(BaseSettings):
     COLLECTOR_LOG_NAME: ClassVar[str] = "collector.log"
@@ -101,48 +142,100 @@ class ReducerSettings(BaseSettings):
     DEFAULT_MARIADB_BATCH_SIZE: ClassVar[int] = 500
 
     UMAP_N_NEIGHBORS: ClassVar[int] = 15
-    UMAP_MIN_DIST: ClassVar[float] = 0.1
     UMAP_N_COMPONENTS: ClassVar[int] = 2
+    UMAP_MIN_DIST: ClassVar[float] = 0.0
 
     # Arrays for UMAP parameter combinations
-    UMAP_N_NEIGHBORS_ARRAY: ClassVar[List[int]] = [15, 30]
-    UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.1]
+    UMAP_N_NEIGHBORS_ARRAY: ClassVar[List[int]] = [15]
     UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
+    UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.0]
+
 
     # Model path
     UMAP_MODEL_PATH: ClassVar[str] = os.path.join("data", "api", "umap_model")
 
     # Filter ranges
-    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [(1.0, 0.9), (0.9, 0.8), (0.9, 0.5)]  # SDG filter ranges
+    FILTER_RANGES: ClassVar[List[Tuple[float, float]]] = [
+        (1.0, 0.98),
+        (0.98, 0.9),
+        (0.9, 0.7),
+    ]  # SDG filter ranges
+
+    MAP_PARTITION_SIZE: ClassVar[int] = 9
+
+class PrefectSettings(BaseSettings):
+    PREFECT_LOG_NAME: ClassVar[str] = "prefect.log"
+
+    DB_TYPE: ClassVar[str] = "mariadb"
+    COLLECTOR_BATCH_SIZE: ClassVar[int] = 10
+    COLLECTOR_RESET: ClassVar[str] = "true"
+    PREDICTOR_BATCH_SIZE: ClassVar[int] = 64
+    LOADER_BATCH_SIZE: ClassVar[int] = 64
 
 
 
-class PublicationsRouterSettings(BaseSettings):
-    PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
 
-class SummaryRouterSettings(BaseSettings):
-    SUMMARY_ROUTER_LOG_NAME: ClassVar[str] = "api_summaries.log"
+### Service Settings
+
+class GPTAssistantServiceSettings(BaseSettings):
+    PROMPT_PATH: ClassVar[str] = "/prompts"
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06" # o4 required for Instructor library
+    # smaller model (cheapest as of 06.2024) to keep the cost down: "gpt-3.5-turbo-0125"
+    GPT_TEMPERATURE: ClassVar[float] = 0.2
+
+class UserAnnotationEvaluatorServiceSettings(BaseSettings):
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
+    BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
+
+class DecisionServiceSettings(BaseSettings):
+    DECISION_SERVICE_LOG_NAME: ClassVar[str] = "service_decision.log"
+    DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
+    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = 10 # 10
+    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 11 # 15
+
+class LabelServiceSettings(BaseSettings):
+    LABEL_SERVICE_LOG_NAME: ClassVar[str] = "service_label.log"
+
+class RewardServiceSettings(BaseSettings):
+    REWARD_SERVICE_LOG_NAME: ClassVar[str] = "service_reward.log"
+
+### Router Settings
+
+class FastAPISettings(BaseSettings):
+    FASTAPI_LOG_NAME: ClassVar[str] = "api_.log"
+
+
+class AuthenticationRouterSettings(BaseSettings):
+    AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
+    CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
+    CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
+    TOKEN_URL: ClassVar[str] = "auth/token"
+
+class UsersRouterSettings(BaseSettings):
+    USERS_ROUTER_LOG_NAME: ClassVar[str] = "api_users.log"
+
+class UserProfilesRouterSettings(BaseSettings):
+    USER_PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_user_profiles_.log"
+
 
 class SDGsRouterSettings(BaseSettings):
     SDGS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdgs.log"
 
+class PublicationsRouterSettings(BaseSettings):
+    PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
+
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
 
-class SDGUserLabelsSettings(BaseSettings):
-    SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
-
-class VotesSettings(BaseSettings):
-    VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
-
-class AnnotationsSettings(BaseSettings):
-    ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
-
-class DimensionalityReductionsRouterSettings(BaseSettings):
-    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_dimensionality_reductions.log"
+class CollectionsRouterSettings(BaseSettings):
+    COLLECTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_collections.log"
 
 class SDGPredictionsRouterSettings(BaseSettings):
     SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
+    DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
+
+class DimensionalityReductionsRouterSettings(BaseSettings):
+    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = ("api_dimensionality_reductions.log")
 
 class XPBanksRouterSettings(BaseSettings):
     XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"
@@ -157,47 +250,33 @@ class SDGSLabelSummariesRouterSettings(BaseSettings):
     SDGLABELSUMMARIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_summaries.log"
 
 
-class AuthenticationRouterSettings(BaseSettings):
-    AUTHENTICATION_ROUTER_LOG_NAME: ClassVar[str] = "api_authentication.log"
-    CRYPT_CONTEXT_SCHEMA: ClassVar[str] = "bcrypt"
-    CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
-    TOKEN_URL: ClassVar[str] = "auth/token"
+class SDGSLabelHistoriesRouterSettings(BaseSettings):
+    SDGLABELHISTORIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_histories.log"
 
-class MariaDBSettings(BaseSettings):
-    MARIADB_CHARSET: ClassVar[str] = "utf8mb4"
-    MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
-    SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
+class SDGSLabelDecisionsRouterSettings(BaseSettings):
+    SDGLABELDECISIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_decisions.log"
+
+class SDGUserLabelsSettings(BaseSettings):
+    SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
 
 
+class AnnotationsSettings(BaseSettings):
+    ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
 
-class PrefectSettings(BaseSettings):
-    PREFECT_LOG_NAME: ClassVar[str] = "prefect.log"
+class VotesSettings(BaseSettings):
+    VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
 
-    DB_TYPE: ClassVar[str] = "mariadb"
-    COLLECTOR_BATCH_SIZE: ClassVar[int] = 10
-    COLLECTOR_RESET: ClassVar[str] = "true"
-    PREDICTOR_BATCH_SIZE: ClassVar[int] = 64
-    LOADER_BATCH_SIZE: ClassVar[int] = 64
+class SDGRanksSettings(BaseSettings):
+    SDGRANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_ranks.log"
 
 
-class MongoDBSDGSettings(BaseSettings):
-    DB_NAME: ClassVar[str] = "sdg_database"
-    SVG_ENCODING: ClassVar[str] = "utf-8"
-    GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
-    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
+class FixturesSettings(BaseSettings):
+    FIXTURES_LOG_NAME: ClassVar[str] = "fixtures.log"
 
-class EnvLoaderSettings(BaseSettings):
-    # Do not set this to True in prod as it will print secrets
-    ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
+    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = DecisionServiceSettings().VOTES_NEEDED_FOR_SCENARIO
+    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = DecisionServiceSettings().VOTES_NEEDED_FOR_CONSENSUS
 
-class ExplainerSettings(BaseSettings):
-    PROMPT_PATH: ClassVar[str] = "/prompts"
-
-    # smaller model (cheapest as of 06.2024) to keep the cost down
-    GPT_MODEL: ClassVar[str] = "gpt-3.5-turbo-0125"
-    GPT_TEMPERATURE: ClassVar[float] = 0.2
-
-class UserAnnotationAssessmentSettings(BaseSettings):
-    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
-    BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
-
+    CONFIRM_MAJORITY_RATIO: ClassVar[float] = 0.9  # 90% majority
+    TIEBREAKER_RATIO: ClassVar[float] = 0.5  # 50-50 split
+    INVESTIGATE_DISTRIBUTION: ClassVar[List[int]] = [3, 3, 3, 1]  # 3/3/3/1 distribution
+    EXPLORE_DISTRIBUTION: ClassVar[List[int]] = [1, 2, 2, 2, 1, 1, 1]  # 1/2/2/2/1/1/1 distribu

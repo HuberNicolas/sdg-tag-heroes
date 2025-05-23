@@ -3,12 +3,19 @@ from datetime import timedelta, datetime, timezone
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from jwt import ExpiredSignatureError, InvalidTokenError, DecodeError
-from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
+from models.users.user import User
+from request_models import LoginRequest
+from schemas import UserDataSchemaFull, TokenDataSchemaFull, LoginSchemaFull
 from settings.settings import AuthenticationRouterSettings
+from utils.logger import logger
+
+# Setup Logging
+authentication_router_settings = AuthenticationRouterSettings()
+logging = logger(authentication_router_settings.AUTHENTICATION_ROUTER_LOG_NAME)
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
@@ -21,10 +28,8 @@ def get_db():
     finally:
         db.close()
 
-
+# Secrets and Security
 security = Security()
-authentication_router_settings = AuthenticationRouterSettings()
-
 SECRET_KEY = security.SECRET_KEY
 ALGORITHM = security.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = security.ACCESS_TOKEN_EXPIRE_MINUTES
@@ -36,22 +41,12 @@ pwd_context = security.pwd_context
 oauth2_scheme = security.oauth2_scheme
 
 
-# Setup Logging
-from utils.logger import logger
-logging = logger(authentication_router_settings.AUTHENTICATION_ROUTER_LOG_NAME)
-
 # Initialize the router
 router = APIRouter(
     prefix="/auth",
-    tags=["authentication"],
+    tags=["Authentication"],
     responses={404: {"description": "Not found"}},
 )
-
-# Define the TokenData model to store extracted token claims
-class TokenData(BaseModel):
-    email: str
-    roles: list[str]  # Expecting a list of roles
-
 
 # Function to verify JWT tokens and extract claims using PyJWT
 def verify_token(token: str, db: Session):
@@ -61,9 +56,6 @@ def verify_token(token: str, db: Session):
         email: str = payload.get("email")
         roles: list = payload.get("roles")
 
-
-        logging.info(f"Decoded payload: {payload}")
-
         if email is None or roles is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -71,8 +63,7 @@ def verify_token(token: str, db: Session):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-            # Query the database for the user
-        from models.users.user import User  # Import User model
+        # Query the database for the user
         user = db.query(User).filter(User.email == email).first()
         if not user:
             raise HTTPException(
@@ -81,17 +72,22 @@ def verify_token(token: str, db: Session):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        return {"user_id": user.user_id, "email": user.email, "roles": roles}
+        logging.info(f"Verify token function: User {user.email} (ID: {user.user_id}) is authenticated")
+
+        return TokenDataSchemaFull(user_id=user.user_id, email=user.email, roles=roles)
 
     # Handle various exceptions from PyJWT
 
     except InvalidTokenError:
+        logging.error(f"Invalid token: {token}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token signature",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     except ExpiredSignatureError:
+        logging.error(f"Expired token: {token}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
@@ -99,6 +95,7 @@ def verify_token(token: str, db: Session):
         )
 
     except DecodeError:
+        logging.error(f"Decode Error: {token}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Failed to decode token",
@@ -117,12 +114,8 @@ async def protected_route(token: str = Depends(oauth2_scheme), db: Session = Dep
         Returns:
             Information about the authenticated user.
         """
-    user = verify_token(token, db)
-    return {"user_id": user["user_id"], "email": user["email"], "roles": user["roles"]}
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
+    user_token = verify_token(token, db)
+    return UserDataSchemaFull(user_id=user_token.user_id, email=user_token.email, roles=user_token.roles)
 
 @router.post("/login")
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
@@ -137,12 +130,11 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         A JWT token upon successful authentication.
     """
 
-    from models.users.user import User
-
     # Query the user by email
     user = db.query(User).filter(User.email == request.email).first()
 
     if not user:
+        logging.error(f"User not found: {request.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -151,6 +143,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     # Verify the provided password against the stored hash
     if not pwd_context.verify(request.password, user.hashed_password):
+        logging.error(f"Invalid password: {request.password}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -175,4 +168,4 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     logging.info(f"User {request.email} logged in successfully.")
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return LoginSchemaFull(access_token=access_token, token_type="bearer")

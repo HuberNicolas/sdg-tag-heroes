@@ -1,12 +1,15 @@
-from sqlalchemy import ForeignKey, DateTime, String, Integer, CheckConstraint, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
+from sqlalchemy import ForeignKey, DateTime, Integer, CheckConstraint, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from models import Base
+from models.associations import sdg_label_decision_user_label_association
 from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
-from models.associations import sdg_label_decision_user_label_association
+
 class SDGUserLabel(Base):
     """
     Represents a user-defined label in the SDG system.
@@ -43,6 +46,12 @@ class SDGUserLabel(Base):
     abstract_section: Mapped[str] = mapped_column(Text, nullable=True)
     comment: Mapped[str] = mapped_column(Text, nullable=True)
 
+    # ForeignKey
+    publication_id: Mapped[int] = mapped_column(ForeignKey("publications.publication_id"), nullable=False)
+
+    # Relationship to Publication
+    publication: Mapped["Publication"] = relationship("Publication", back_populates="user_labels")
+
 
     labeled_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -62,8 +71,10 @@ class SDGUserLabel(Base):
         nullable=False,
     )
 
+    # 18 -> Null Class
+    # 0 -> Not defined yet, but it could be "not defined yet"
+    # 1 ... 17 -> SDG
     __table_args__ = (
-        CheckConstraint("proposed_label >= 0 AND proposed_label <= 17", name="check_proposed_label_range"),
-        CheckConstraint("voted_label >= 0 AND voted_label <= 17", name="check_voted_label_range"),
+        CheckConstraint("(proposed_label >= -1 AND proposed_label <= 18)", name="check_proposed_label_range"),
+        CheckConstraint("(voted_label >= -1 AND voted_label <= 18)", name="check_voted_label_range"),
     )
-

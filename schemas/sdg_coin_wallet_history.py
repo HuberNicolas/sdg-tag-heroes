@@ -1,21 +1,33 @@
-from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
-class SDGCoinWalletHistorySchemaCreate(BaseModel):
-    increment: float
-    reason: Optional[str] = None
-    timestamp: Optional[datetime] = None
-
-    model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
-    }
+from pydantic import BaseModel
 
 
-class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaCreate):
+class SDGCoinWalletHistorySchemaBase(BaseModel):
     history_id: int
     wallet_id: int
+    increment: float
+    reason: Optional[str]
+    is_shown: Optional[bool] = False
+    timestamp: datetime
 
     model_config = {
-        "from_attributes": True  # Enables ORM-style model validation
+        "from_attributes": True
     }
+
+
+class SDGCoinWalletHistorySchemaFull(SDGCoinWalletHistorySchemaBase):
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
+
+# Not directly derived from models
+# Todo: Generate TS type
+class NoSDGCoinWalletHistorySchemaBase(BaseModel):
+    message: str = "No wallet history found for the user."
+    increment: float = 0.0
+    reason: Optional[str] = "No updates available."

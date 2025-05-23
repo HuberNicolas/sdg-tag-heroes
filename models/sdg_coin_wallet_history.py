@@ -1,9 +1,11 @@
-from sqlalchemy import ForeignKey, Float, DateTime, String, Text, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from models.base import Base
 from datetime import datetime
 
+from sqlalchemy import ForeignKey, Float, DateTime, Text, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from models.base import Base
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
 
 class SDGCoinWalletHistory(Base):

@@ -5,15 +5,10 @@ from fastapi.security import OAuth2PasswordBearer
 from settings.settings import AuthenticationRouterSettings
 authentication_router_settings = AuthenticationRouterSettings()
 
-# Setup Logging
-from utils.logger import logger
-
-
 class Security():
     # Load the Backend environment variables
     load_env('backend.env')
 
-    # Fetch CouchDB connection details from environment variables
     SECRET_KEY = get_env_variable('SECRET_KEY')
     ALGORITHM = get_env_variable('ALGORITHM')
     ACCESS_TOKEN_EXPIRE_MINUTES = int(get_env_variable('ACCESS_TOKEN_EXPIRE_MINUTES'))

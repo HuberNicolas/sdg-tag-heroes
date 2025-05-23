@@ -26,15 +26,16 @@ RUN apt-get update && apt-get install -y inotify-tools
 # Create log directory
 RUN mkdir -p /logs && chmod -R 777 /logs
 
-COPY ./api /api
-COPY ./db /db
-COPY ./models /models
-COPY ./schemas /schemas
+# For prodcution, it probably makes sense to copy it, for development, mounted volumnes refelct changes instantly
+# COPY ./api /api
+# COPY ./db /db
+# COPY ./models /models
+# COPY ./schemas /schemas
 COPY ./env /env
-COPY ./utils /utils
-COPY ./settings /settings
-COPY ./services /services
-COPY ./prompts /prompts
+# COPY ./utils /utils
+# COPY ./settings /settings
+# COPY ./services /services
+# COPY ./prompts /prompts
 COPY ./data/api /data/api
 COPY deploy/entrypoint.api.sh /entrypoint.sh
 

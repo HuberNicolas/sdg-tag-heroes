@@ -1,26 +1,43 @@
 
-``` bash
+# Environment Setup and TypeScript Schema Generation
+
+Instructions for managing the `api` and `pipeline` environments and generating TypeScript schemas.
+
+## Conda Environments
+
+### List Available Environments
+To see all available environments, run:
+```bash
 conda env list
 ```
 
-``` bash
-conda activate p-3.12.5-mt-igcl
-conda activate p-3.10.14-mt-igcl
-```
+### Activate the Environments
+- For `api`:
+  ```bash
+  conda activate p-3.10.14-mt-igcl
+  ```
 
-``` bash
+- For `pipeline`:
+  ```bash
+  conda activate p-3.10.14-mt-pipeline
+  ```
+
+## Poetry Commands
+
+### Install Dependencies
+Run the following in the active environment to install dependencies:
+```bash
 poetry install --no-root
-
-poetry add PACKAGE
-
-# Add manually in file:
-poetry lock
-
 ```
 
+### Add a New Package
+To add a package, use:
+```bash
+poetry add <PACKAGE_NAME>
+```
 
-``` bash
-poetry run python manage.py startapp accounts
-poetry run python manage.py makemigrations accounts
-poetry run python manage.py migrate
+### Manually Update Dependencies
+If you manually add dependencies to the `pyproject.toml` file, lock the dependencies with:
+```bash
+poetry lock
 ```

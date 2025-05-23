@@ -1,29 +1,20 @@
 import re
 from datetime import datetime
+
 from sqlalchemy import (
-    Boolean,
     DateTime,
     ForeignKey,
-    Integer,
     String,
-    Table,
     Text,
-    event, Column,
+    event,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from settings.settings import TimeZoneSettings
+
 from models.base import Base
+from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
-# TODO: Move to association.py
-# Association table for the many-to-many relationship
-publication_authors = Table(
-    "publication_authors",
-    Base.metadata,
-    Column("publication_id", ForeignKey("publications.publication_id"), primary_key=True),
-    Column("author_id", ForeignKey("authors.author_id"), primary_key=True),
-)
 
 class Publication(Base):
     __tablename__ = "publications"
@@ -86,6 +77,19 @@ class Publication(Base):
     division_id: Mapped[int | None] = mapped_column(ForeignKey("divisions.division_id"), nullable=True)
     division: Mapped["Division | None"] = relationship("Division")
 
+    collection_id: Mapped[int | None] = mapped_column(ForeignKey("collections.collection_id"), nullable=True)
+    collection: Mapped["Collection | None"] = relationship("Collection", back_populates="publications")
+
+    # Relationship to SDGLabelDecision
+    label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
+        "SDGLabelDecision", back_populates="publication", cascade="all, delete-orphan"
+    )
+
+    # Relationship to SDGUserLabel
+    user_labels: Mapped[list["SDGUserLabel"]] = relationship(
+        "SDGUserLabel", back_populates="publication", cascade="all, delete-orphan"
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(TimeZoneSettings.ZURICH_TZ),
@@ -104,7 +108,8 @@ class Publication(Base):
             f"title={self.title}, "
             f"oai_identifier={self.oai_identifier}, "
             f"year={self.year}, "
-            f"publisher={self.publisher})>"
+            f"publisher={self.publisher}), "
+            f"collection_id={self.collection_id}>"
         )
 
 

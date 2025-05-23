@@ -1,10 +1,13 @@
 from datetime import datetime
-from sqlalchemy import String, DateTime, Integer
+
+from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
-from settings.settings import TimeZoneSettings
+
 from models.base import Base
+from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
+
 
 class Faculty(Base):
     __tablename__ = "faculties"

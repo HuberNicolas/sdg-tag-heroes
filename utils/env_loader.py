@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
 
 from settings.settings import EnvLoaderSettings
+
 env_loader_settings = EnvLoaderSettings()
 
 DEBUG = env_loader_settings.ENV_LOADER_DEBUG_OUTPUT

@@ -2,28 +2,20 @@ import json
 from datetime import datetime
 from typing import List
 
+from passlib.context import CryptContext
 from sqlalchemy import String, Boolean, DateTime, JSON
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column, relationship, InstrumentedAttribute
-from passlib.context import CryptContext
-from enum import Enum as PyEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from enums.enums import UserRole
 from models.associations import user_group_association
 from models.base import Base
-
 from settings.settings import TimeZoneSettings
+
 time_zone_settings = TimeZoneSettings()
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-# Define user roles as an Enum
-class UserRole(PyEnum):
-    USER = "user"
-    ADMIN = "admin"
-    LABELER = "labeler"
-    EXPERT = "expert"
 
 
 class User(Base):
@@ -33,6 +25,7 @@ class User(Base):
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    nickname: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -41,10 +34,11 @@ class User(Base):
     _roles: Mapped[str] = mapped_column("roles", JSON, default=lambda: json.dumps([UserRole.USER.value]),
                                         nullable=False)
 
-    def __init__(self, email: str, hashed_password: str = None, roles: List[UserRole] = None, **kwargs):
+    def __init__(self, email: str, nickname: str = None, hashed_password: str = None, roles: List[UserRole] = None, **kwargs):
         """
         Custom initializer to handle `roles` and other parameters.
         """
+        self.nickname = nickname
         self.email = email
         self.is_active = kwargs.get('is_active', True)
         self._roles = json.dumps([role.value for role in (roles or [UserRole.USER])])
@@ -147,3 +141,8 @@ class User(Base):
         Hash and set the user's password.
         """
         self.hashed_password = pwd_context.hash(password)
+
+    def __repr__(self):
+        return (f"<User(user_id={self.user_id}, email={self.email}, nickname={self.nickname}, "
+                f"roles={self.roles}, is_active={self.is_active},"
+                f"created_at={self.created_at}, updated_at={self.updated_at})>")
