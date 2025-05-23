@@ -1,0 +1,99 @@
+*.so.1
+**/env/
+
+
+**/__pycache__/
+**/.DS_Store
+
+**/data/**
+**/models/**
+**/checkpoints/**
+**/encodings/**
+**/wandb/**
+
+venv/
+venv**/*
+
+.env
+
+**/*.log
+**/*.tex
+**/*.pdf
+
+## Added
+# macOS
+.DS_Store
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+# poetry.lock Best practices
+
+# Django specific
+db.sqlite3
+/media/
+*.log
+
+# FastAPI specific (if applicable)
+instance/
+.fastapi/
+
+# Node (Yarn)
+node_modules/
+yarn-error.log
+.yarn-integrity
+.pnp.*
+.cache/
+
+# Nuxt.js specific
+.nuxt/
+dist/
+coverage/
+
+# Docker
+docker-compose.override.yml
+docker-compose.override.*
+.dockerignore
+logs/
+tmp/
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+
+# Data
+data/
+
+# Database
+*.db
+
+# Resumption Tokens
+resumption_token.txt
+
+#  Secrets
+secrets/
+
+# Models
+*.h5
+
+# Backup files and older versions
+*.bak
+
+# Env
+*.conf
+*.env
+*.venv
+# env/
+venv/
+
+
+# Snapshots
+*.snapshot
+
+# PDF
+*.pdf
