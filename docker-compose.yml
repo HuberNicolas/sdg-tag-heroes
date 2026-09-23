@@ -248,6 +248,7 @@ services:
     volumes:
       - ./frontend:/app # Mount the local frontend folder into /app inside the container
       - /app/node_modules # Ensure node_modules inside the container is separate
+      - /app/.nuxt # Keep Nuxt's build output separate from a local `npm run dev` (it contains absolute paths)
       - ./frontend/components:/app/components # line to mount components specifically
       - ./frontend/composables:/app/composables # line to mount composables specifically
     profiles: [ prod ]
