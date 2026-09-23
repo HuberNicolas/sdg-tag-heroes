@@ -647,7 +647,6 @@ More detailed notes are in [`docs/`](docs):
 
 - An attempt to upgrade the frontend to Nuxt UI 3, Tailwind 4, and daisyUI 5 was not finished. It is kept on the
   branch `archive/frontend-nuxt-ui-3`.
-- The title on the start page is white and disappears in light mode.
 - The `backend` service in `docker-compose.yml` refers to a `backend/` folder that no longer exists. Do not start it.
 - Several dataset scripts import modules that were moved or renamed:
   - `pipeline/zora/*.py` import `models.publication`, `models.author`, `models.sdg_label`, `models.dim_red`, … (now

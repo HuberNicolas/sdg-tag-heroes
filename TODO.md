@@ -39,15 +39,19 @@ published.
 - [x] Keep one folder named `frontend/`; the upgrade is on the branch `archive/frontend-nuxt-ui-3`
 - [x] Docker `frontend` service runs the working frontend; HMR port only set in Docker (`HMR_CLIENT_PORT`)
 - [x] Update the README
-- [ ] Log in and click through all pages (locally and in Docker)
+- [x] Log in and click through all pages (Docker, at 1280, 1920 and 3440 px)
+- [x] Responsive layout for laptop to ultrawide (1280–3440 px): base layout, navigation, scenarios, exploration,
+  labeling; charts follow their container (`useRedrawOnResize`)
+- [x] Fix bugs found on the way: map data joined by index, quest selection looping, labeling arrows pointing at
+  removed elements, `/scenarios` store imports, production build (`nuxi build`) failing
+- [x] Remove broken legacy pages (`/publications`, `/publications/[id]`), replace `/about` test page
+- [ ] Tablet and phone layouts (not planned so far; visualisations need space)
 - [x] Install from the lockfile in `deploy/frontend.Dockerfile` (`npm ci`); newer packages (Nuxt 3.21, Nuxt UI 2.22)
   broke the layout. Do not upgrade the frontend packages without checking the layout.
 - [ ] Fix `deploy/frontend.prod.Dockerfile` (expects `pnpm-lock.yaml`, final stage uses Node 16)
-- [ ] Start page: `layout: 'empty'` does not exist (`layouts/` has `default` and `none`)
-- [ ] Start page: the white title disappears in light mode (daisyUI picks the `black` theme from the system setting,
-  Nuxt color mode is `light`)
-- [ ] Clean up build warnings: duplicated auto-imports `createBarPlot` and `createScatterPlot`, missing
-  `assets/icons/` components directory, `defineProps`/`defineEmits` imports
+- [x] Start page and `/login`: use the existing `none` layout (was `empty`, which does not exist)
+- [ ] Clean up build warnings: duplicated auto-import `createBarPlot`, missing `assets/icons/` components
+  directory, `defineProps`/`defineEmits` imports, `size="sm"` on a native checkbox (`SDGUserLabelCheckbox`)
 - [x] Remove `nuxt-app/` (empty starter)
 
 ## 4. Fix the dataset scripts
