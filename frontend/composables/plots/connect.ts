@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import * as d3 from 'd3';
 import LeaderLine from 'leader-line-new';
 import { baseCoords, baseSdgColors, baseSdgShortTitles, sdgNullColor, sdgNullCoord, sdgNullShortTitle } from '@/constants/constants';
@@ -281,8 +281,9 @@ export default function useConnect() {
   window.addEventListener('scroll', repositionLeaderLines, true);
   window.addEventListener('resize', repositionLeaderLines);
 
-  // Add cleanup listeners
-  onUnmounted(() => {
+  // Clean up while the elements are still in the page; after unmount the lines point
+  // at removed elements and leader-line logs errors
+  onBeforeUnmount(() => {
     window.removeEventListener('scroll', repositionLeaderLines, true);
     window.removeEventListener('resize', repositionLeaderLines);
     cleanupLeaderLines();

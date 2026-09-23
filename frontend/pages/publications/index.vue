@@ -58,7 +58,7 @@ const fetchPublications = async (page = 1) => {
     loading.value = true;
     error.value = null;
 
-    const response = await $fetch(`${config.public.apiUrl}publications`, {
+    const response = await $fetch(`${config.public.apiUrl}/publications`, {
       params: { page },
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,

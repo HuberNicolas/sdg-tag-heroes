@@ -4,11 +4,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import useHexGrid from '@/composables/useHexGrid';
-import { usePredictionsStore } from "~/stores/sdg_predictions";
+import useHexGrid from '@/composables/glyph/useHexGrid';
+import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import { usePublicationsStore } from "~/stores/publications";
 
-const predictionsStore = usePredictionsStore();
+const predictionsStore = useSDGPredictionsStore();
 const publicationsStore = usePublicationsStore();
 
 const hexGridContainer = ref<HTMLDivElement | null>(null);
@@ -18,11 +18,13 @@ let isRendered = false; // Flag to ensure `renderHexGrid` is called only once
 watch(
   () => publicationsStore.selectedPublication,
   async (newPublication) => {
-    if (newPublication && newPublication.publication_id) {
+    const publicationId = newPublication?.publicationId ?? newPublication?.publication_id;
+    if (publicationId) {
       try {
-        await predictionsStore.fetchPredictionsByPublicationId(newPublication.publication_id);
+        await predictionsStore.fetchSDGPredictionsByPublicationId(publicationId);
         if (!isRendered && hexGridContainer.value) {
-          const values = extractPredictionValues(predictionsStore.selectedPublicationPrediction);
+          const details = predictionsStore.sdgPredictionDetails;
+          const values = extractPredictionValues(Array.isArray(details) ? details[0] : details);
 
           const { renderHexGrid } = useHexGrid(values);
           renderHexGrid(hexGridContainer.value);
