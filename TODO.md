@@ -40,8 +40,8 @@ published.
 - [x] Docker `frontend` service runs the working frontend; HMR port only set in Docker (`HMR_CLIENT_PORT`)
 - [x] Update the README
 - [ ] Log in and click through all pages (locally and in Docker)
-- [ ] Install from the lockfile in `deploy/frontend.Dockerfile` (`npm ci`); the container currently gets Nuxt 3.21
-  instead of the locked 3.15
+- [x] Install from the lockfile in `deploy/frontend.Dockerfile` (`npm ci`); newer packages (Nuxt 3.21, Nuxt UI 2.22)
+  broke the layout. Do not upgrade the frontend packages without checking the layout.
 - [ ] Fix `deploy/frontend.prod.Dockerfile` (expects `pnpm-lock.yaml`, final stage uses Node 16)
 - [ ] Start page: `layout: 'empty'` does not exist (`layouts/` has `default` and `none`)
 - [ ] Start page: the white title disappears in light mode (daisyUI picks the `black` theme from the system setting,
