@@ -99,8 +99,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useSDGsStore } from "~/stores/sdgs.js";
-import { useGameStore } from "~/stores/game.js";
+import { useSDGsStore } from "~/stores/sdgs";
+import { useGameStore } from "~/stores/game";
 
 const firstGroup = ref([
   {
