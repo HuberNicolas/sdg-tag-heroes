@@ -205,7 +205,9 @@ export default function useConnect() {
     arrowLines.value = []; // Clear existing arrows
 
     const hexagons = document.querySelectorAll('.hexagon');
-    const targetHex = document.querySelector('#target-box svg g');  // Select the entire group (G) instead of just the polygon
+    // Anchor to the stable container: its SVG is replaced on every click (renderDecisionHex),
+    // which left the arrows pointing at a removed element
+    const targetHex = document.querySelector('#target-box');
 
     hexagons.forEach((hex) => {
       const hexIndex = sdgShortTitles.indexOf(hex.getAttribute('data-id')); // Get SDG index
@@ -229,7 +231,6 @@ export default function useConnect() {
         }
       );
       arrowLines.value[hexIndex] = line; // Store the arrow in the correct index
-      arrowLines.value.push(line);
     });
   };
 
@@ -267,8 +268,23 @@ export default function useConnect() {
     });
   };
 
+  // Arrows are positioned relative to the page; move them along when a panel scrolls or the window resizes
+  const repositionLeaderLines = () => {
+    arrowLines.value.forEach(line => {
+      try {
+        line?.position();
+      } catch {
+        // line already removed
+      }
+    });
+  };
+  window.addEventListener('scroll', repositionLeaderLines, true);
+  window.addEventListener('resize', repositionLeaderLines);
+
   // Add cleanup listeners
   onUnmounted(() => {
+    window.removeEventListener('scroll', repositionLeaderLines, true);
+    window.removeEventListener('resize', repositionLeaderLines);
     cleanupLeaderLines();
   });
 

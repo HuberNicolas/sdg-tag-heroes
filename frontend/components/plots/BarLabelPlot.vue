@@ -11,9 +11,10 @@ import { onMounted, ref, watch } from 'vue';
 import { createBarLabelPlot } from '@/composables/plots/barLabelPlot';
 
 const props = defineProps({
+  // Leave out to use the width of the container
   width: {
     type: Number,
-    required: true,
+    default: 0,
   },
   height: {
     type: Number,
@@ -26,18 +27,21 @@ const props = defineProps({
 });
 
 const chartContainer = ref<HTMLDivElement | null>(null);
+let redraw: (() => void) | null = null;
 
 onMounted(() => {
   if (chartContainer.value) {
-    createBarLabelPlot(chartContainer.value, props.width, props.height, props.sortDescending);
+    redraw = createBarLabelPlot(chartContainer.value, props.width, props.height, props.sortDescending).updateChart;
   }
 });
 
 watch(() => props.sortDescending, (newVal) => {
   if (chartContainer.value) {
-    createBarLabelPlot(chartContainer.value, props.width, props.height, newVal);
+    redraw = createBarLabelPlot(chartContainer.value, props.width, props.height, newVal).updateChart;
   }
 });
+
+useRedrawOnResize(chartContainer, () => redraw?.());
 </script>
 
 <style scoped>

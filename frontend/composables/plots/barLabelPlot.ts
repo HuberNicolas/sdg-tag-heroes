@@ -3,11 +3,13 @@ import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useSDGsStore } from "~/stores/sdgs";
 import { ref, watch } from "vue";
 
-export function createBarLabelPlot(container, width, height, sortDescending) {
+export function createBarLabelPlot(container, fixedWidth, height, sortDescending) {
   const labelDecisionsStore = useLabelDecisionsStore();
   const sdgsStore = useSDGsStore();
 
   function updateChart() {
+    // Without a fixed width, use the container's current width (it can change on resize)
+    const width = fixedWidth || container.clientWidth || 500;
     if (labelDecisionsStore.selectedSDGLabelDecision && labelDecisionsStore.userLabels) {
       let labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showFinalRound);
 
@@ -42,6 +44,8 @@ export function createBarLabelPlot(container, width, height, sortDescending) {
 
   // Initial rendering of the chart
   updateChart();
+
+  return { updateChart };
 }
 
 /**

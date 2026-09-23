@@ -1,135 +1,94 @@
 <template>
-  <div class="h-full overflow-hidden">
-    <div class="grid grid-rows-12 grid-cols-10 grid-flow-col h-full overflow-hidden">
+  <!-- Three areas: machine support, your contribution, community support.
+       From 2xl on they sit side by side and fill the window. On xl, community support
+       moves below the other two; smaller screens stack everything. -->
+  <div class="min-h-full 2xl:h-full flex flex-col">
+    <header class="flex-none bg-gray-50 border-b border-gray-200 px-3 py-2 text-center">
+      <h1 class="text-lg 2xl:text-xl font-bold flex items-center justify-center gap-2">
+        <Icon name="mdi:robot-outline" class="text-gray-700 w-6 h-6" />
+        <span>Labeling with machine and community support</span>
+        <Icon name="mdi:account-group-outline" class="text-gray-700 w-6 h-6" />
+      </h1>
+    </header>
 
-      <!-- Overarching Title -->
-      <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center bg-gray-50 py-1 min-h-fit leading-none">
-        <h1 class="text-xl font-bold w-full flex items-center justify-center space-x-2">
-          <Icon name="mdi:robot-outline" class="text-gray-700 w-6 h-6" />
-          <span>Labeling with machine and community support</span>
-          <Icon name="mdi:account-group-outline" class="text-gray-700 w-6 h-6" />
-        </h1>
-
-        <div class="grid grid-cols-10 w-full text-center">
-          <!-- Machine Support -->
-          <div class="col-span-3 flex items-center justify-center space-x-2">
-            <Icon name="mdi:robot-outline" class="text-gray-700 w-5 h-5" />
-            <p class="text-xl"><b>Machine Support</b></p>
-          </div>
-
-          <!-- Your Decision -->
-          <div class="col-span-3 flex items-center justify-center">
-            <p class="text-xl"><b>Your Contribution</b></p>
-          </div>
-
-          <!-- Community Support -->
-          <div class="col-span-4 flex items-center justify-center space-x-2">
-            <Icon name="mdi:account-group-outline" class="text-gray-700 w-5 h-5" />
-            <p class="text-xl"><b>Community Support</b></p>
-          </div>
-        </div>
-      </div>
-
-
-      <div class="row-span-4 col-span-3">
-        <div class="grid grid-cols-6 grid-rows-2">
-          <div class="col-span-4 row-span-1">
-            <SDGSelector></SDGSelector>
-          </div>
-
-          <div class="col-span-2 row-span-1">
-            <div class="frame-container">
-              <div class="frame-title"><b>Investigate</b> Machine Scores for each SDG</div>
-              <div ref="glyphContainer">
-                <HexGlyph />
-              </div>
-            </div>
-          </div>
-
-          <div class="col-span-6 row-span-1">
-            <SDGExplorerLabeling></SDGExplorerLabeling>
-          </div>
-        </div>
-      </div>
-
-      <div class="row-span-7 col-span-3 flex flex-col h-full overflow-hidden">
-        <ShapAbstract></ShapAbstract>
-      </div>
-
-
-      <div class="row-span-11 col-span-3">
-        <AnnotationSection></AnnotationSection>
-      </div>
-
-
-      <div class="row-span-3 col-span-5">
-        <div class="flex justify-evenly items-start">
-          <div class="frame-container w-full">
-            <div class="flex items-center">
-              <div class="frame-title"><b>Summarize</b> Community Labeling: Explore SDG Voting Trends</div>
-              <div class="flex items-center justify-end space-x-2 ml-auto">
-                <label for="content-toggle" class="text-lg font-medium text-gray-700">
-                  {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}
-                </label>
-                <UToggle id="content-toggle" color="primary" v-model="showContent" />
-              </div>
-            </div>
-
-            <div class="grid grid-cols-3 grid-rows-4">
-
-              <div class="col-span-1 row-span-4" v-if="showContent">
-                <DonutPlot></DonutPlot>
-              </div>
-
-              <!-- SDG Bar Chart Section -->
-              <div class="col-span-2 row-span-1 flex flex-col justify-between" v-if="showContent">
-                <div class="flex flex-col items-center">
-                  <!-- Centered Bar Chart -->
-                  <BarLabelPlot :width="500" :height="100" :sortDescending="sortDescending" />
-
-                  <!-- Centered Controls Below the Chart -->
-                  <div class="flex justify-center items-center space-x-8">
-                    <SDGUserLabelCheckbox class="shrink-0" />
-                    <SortedOrderCheckbox v-model="sortDescending" class="shrink-0" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-span-2 flex items-center px-2 p-y0.5" v-if="showContent">
-                  <QuestIndicator />
-              </div>
-
+    <div class="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-[3fr_3fr_4fr] gap-3 p-3">
+      <!-- Machine support -->
+      <section class="flex flex-col gap-3 min-h-0 min-w-0">
+        <h2 class="flex-none flex items-center justify-center gap-2 text-lg font-bold">
+          <Icon name="mdi:robot-outline" class="text-gray-700 w-5 h-5" />
+          Machine Support
+        </h2>
+        <div class="flex-none grid grid-cols-1 2xl:grid-cols-[3fr_2fr] gap-3">
+          <SDGSelector />
+          <div class="frame-container">
+            <div class="frame-title"><b>Investigate</b> Machine Scores for each SDG</div>
+            <div ref="glyphContainer" class="flex justify-center">
+              <HexGlyph />
             </div>
           </div>
         </div>
-      </div>
+        <SDGExplorerLabeling class="flex-none" />
+        <ShapAbstract class="flex-1 min-h-[24rem] 2xl:min-h-0" />
+      </section>
 
-      <div class="row-span-8 col-span-5 flex flex-col justify-center items-center overflow-hidden">
-        <div v-if="showContent" class="overflow-hidden h-full w-full" >
-          <!-- Conditional Rendering -->
-          <div class="frame-container overflow-hidden">
-            <!-- Toggle Switch -->
-            <div class="flex items-center justify-end space-x-2">
-              <Icon
-                :name="showAnnotations ? 'mdi-tag' : 'mdi-comment-outline'"
-                class="w-5 h-5 text-gray-700"
-              />
-              <label for="comment-toggle" class="text-lg font-medium text-gray-700">
-                {{ showAnnotations ? 'Show Community Labels' : 'Show Community Comments' }}
+      <!-- Your contribution -->
+      <section class="flex flex-col gap-3 min-h-0 min-w-0">
+        <h2 class="flex-none text-center text-lg font-bold">Your Contribution</h2>
+        <AnnotationSection class="flex-1 min-h-0" />
+      </section>
+
+      <!-- Community support -->
+      <section class="flex flex-col gap-3 min-h-0 min-w-0 xl:col-span-2 2xl:col-span-1">
+        <h2 class="flex-none flex items-center justify-center gap-2 text-lg font-bold">
+          <Icon name="mdi:account-group-outline" class="text-gray-700 w-5 h-5" />
+          Community Support
+        </h2>
+
+        <div class="flex-none frame-container">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="frame-title"><b>Summarize</b> Community Labeling: Explore SDG Voting Trends</div>
+            <div class="flex items-center gap-2 ml-auto">
+              <label for="content-toggle" class="text-sm font-medium text-gray-700">
+                {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}
               </label>
-              <UToggle v-model="showAnnotations" color="primary" id="comment-toggle" />
+              <UToggle id="content-toggle" color="primary" v-model="showContent" />
             </div>
-            <div v-if="!showAnnotations" class="overflow-hidden">
-              <CommentSection  class="overflow-hidden" />
+          </div>
+
+          <div v-if="showContent" class="mt-2 grid grid-cols-1 2xl:grid-cols-3 gap-3 items-center">
+            <div class="flex justify-center">
+              <DonutPlot />
             </div>
-            <div v-else class="overflow-hidden">
-              <CommentSectionAnnotations class="overflow-hidden" />
+            <div class="2xl:col-span-2 flex flex-col gap-2 min-w-0">
+              <BarLabelPlot :height="100" :sortDescending="sortDescending" />
+              <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-2">
+                <SDGUserLabelCheckbox class="shrink-0" />
+                <SortedOrderCheckbox v-model="sortDescending" class="shrink-0" />
+              </div>
+              <QuestIndicator />
             </div>
           </div>
         </div>
-      </div>
-   </div>
- </div>
+
+        <div v-if="showContent" class="flex-1 min-h-[24rem] 2xl:min-h-0 frame-container flex flex-col">
+          <div class="flex-none flex items-center justify-end gap-2">
+            <Icon
+              :name="showAnnotations ? 'mdi-tag' : 'mdi-comment-outline'"
+              class="w-5 h-5 text-gray-700"
+            />
+            <label for="comment-toggle" class="text-sm font-medium text-gray-700">
+              {{ showAnnotations ? 'Show Community Labels' : 'Show Community Comments' }}
+            </label>
+            <UToggle v-model="showAnnotations" color="primary" id="comment-toggle" />
+          </div>
+          <div class="flex-1 min-h-0 overflow-y-auto">
+            <CommentSection v-if="!showAnnotations" />
+            <CommentSectionAnnotations v-else />
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
