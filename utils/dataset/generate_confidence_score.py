@@ -21,7 +21,6 @@ import requests
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-from settings.settings import ExplainerSettings
 from utils.env_loader import load_env, get_env_variable
 import instructor
 
@@ -32,7 +31,6 @@ import instructor
 # Load the API environment variables
 load_env('api.env')
 
-explainer_settings = ExplainerSettings()
 client = OpenAI(api_key=get_env_variable('OPENAI_API_KEY'))
 
 MODEL = "gpt-4o-2024-08-06"

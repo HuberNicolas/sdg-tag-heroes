@@ -8,8 +8,8 @@ from settings.settings import MongoDBSDGSettings
 
 
 from models.base import Base
-from models.sdg.sdg_goal import SDGGoal
-from models.sdg.sdg_target import SDGTarget
+from models import SDGGoal
+from models import SDGTarget
 
 # MariaDB connection settings
 mariadb_settings = MongoDBSDGSettings()

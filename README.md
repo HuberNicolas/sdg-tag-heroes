@@ -370,10 +370,9 @@ This section explains how the databases are filled from nothing: which script cr
 input, and in which order to run the scripts. If you have a backup, [restoring it](#5-fill-the-databases) is much
 faster.
 
-> [!CAUTION]
-> Some of these scripts were written against an older layout of `models/` and have not been updated since. The
-> pipeline (`pipeline/zora/*.py`), the SDG and cluster loaders, and the GPT evaluation scripts currently fail on import.
-> See [Known issues](#known-issues). The steps below describe what each script is meant to do.
+> [!WARNING]
+> Many loader scripts run as soon as they are executed and some **drop the database or collection** they fill first
+> (for example all scripts in `utils/mongodb/`). Run them only against a database you can rebuild.
 
 ### Overview
 
@@ -477,8 +476,22 @@ Both predictors take `--db mariadb --batch_size <n> --mariadb_batch_size <n>`. T
 for "this publication belongs to an SDG" are `DEFAULT_PREDICTION_MODEL` and `DEFAULT_PREDICTION_THRESHOLD` (0.98) in
 `MariaDBSettings`.
 
-Alternative models were tried and are kept for reference: [`utils/sdg_predictor.py`](utils/sdg_predictor.py) (SciBERT,
-`dvdblk/scibert_sdg_cased_zo-up`), [`pipeline/zora/predictor_bielik.py`](pipeline/zora/predictor_bielik.py), and
+> [!NOTE]
+> The Aurora models are Keras models and need **TensorFlow 2.11**, which is not part of
+> [`pipeline/pyproject.toml`](pipeline/pyproject.toml) (it is commented out there). Run `predictor.py` and
+> `target_predictor.py` in an environment with TensorFlow 2.11 installed.
+
+**Alternative model:** [`pipeline/zora/predictor_dvdblk.py`](pipeline/zora/predictor_dvdblk.py) predicts the goals with
+the SciBERT model [`dvdblk/scibert_sdg_cased_zo-up`](https://huggingface.co/dvdblk/scibert_sdg_cased_zo-up) (PyTorch, no
+TensorFlow needed) and stores them with `prediction_model = "Dvdblk"`. The model is downloaded on first use to
+`data/pipeline/model/scibert_sdg_classification` ([`utils/sdg_predictor.py`](utils/sdg_predictor.py)). The SDG
+explanations from SDG-Scout were computed with this model.
+
+```bash
+PYTHONPATH=. python pipeline/zora/predictor_dvdblk.py --db mariadb
+```
+
+Other experiments are kept for reference: [`pipeline/zora/predictor_bielik.py`](pipeline/zora/predictor_bielik.py) and
 fine-tuning of the Aurora models in [`pipeline/aurora/fine_tune.py`](pipeline/aurora/fine_tune.py).
 
 ### 6. Embeddings
@@ -546,9 +559,8 @@ The explanations show which words of an abstract point to an SDG. They were prec
 2. [`load_mongodb_explanations.py`](utils/mongodb/load_mongodb_explanations.py) loads them into the collection
    `explanations`.
 3. [`load_mongodb_small_explanations.py`](utils/mongodb/load_mongodb_small_explanations.py) stores the token scores as
-   integers (× 10,000) in `explanations_scaled` to reduce the size.
-4. The API reads the collection `explanations_scaled_new` (`MongoDBSDGSettings.DB_COLLECTION_NAME`), so rename the
-   collection or change the setting.
+   integers (× 10,000) to reduce the size (about 30 % smaller). It writes to the collection the API reads,
+   `explanations_scaled_new` (`MongoDBSDGSettings.DB_COLLECTION_NAME`), and replaces it on every run.
 
 [`debug_mongo.py`](utils/mongodb/debug_mongo.py) removes duplicate explanations.
 
@@ -612,7 +624,13 @@ Steps 4 to 7 can also run as one [Prefect](https://www.prefect.io/) flow
 docker compose --profile pipeline up -d --build
 ```
 
-The Prefect UI is then at <http://localhost:4000>.
+The Prefect UI is then at <http://localhost:4000>. The `pipeline` container mounts the code (`pipeline/`, `models/`,
+`settings/`, `enums/`, `utils/`, `db/`) and `data/`, and works from `/`, so the relative paths in the settings resolve
+like in the repository root. Run a step inside it, for example:
+
+```bash
+docker exec -it -w / pipeline python -m pipeline.zora.loader --db mariadb
+```
 
 ## Development
 
@@ -648,15 +666,8 @@ More detailed notes are in [`docs/`](docs):
 - An attempt to upgrade the frontend to Nuxt UI 3, Tailwind 4, and daisyUI 5 was not finished. It is kept on the
   branch `archive/frontend-nuxt-ui-3`.
 - The `backend` service in `docker-compose.yml` refers to a `backend/` folder that no longer exists. Do not start it.
-- Several dataset scripts import modules that were moved or renamed:
-  - `pipeline/zora/*.py` import `models.publication`, `models.author`, `models.sdg_label`, `models.dim_red`, … (now
-    under `models/publications/`, `models/users/`, …). The `pipeline` container also does not mount `models/` and
-    `settings/`.
-  - `utils/mariadb/load_mariadb_sdg.py` and the cluster loaders import `models.sdg.*` (now `models/sdgs/` and
-    `models/clusters/`).
-  - The GPT evaluation scripts in `utils/dataset/` import `ExplainerSettings`, which no longer exists in
-    `settings/settings.py`.
-- `pipeline/zora/predictor_dvdblk.py` is an exact copy of `collector.py`, not a predictor.
+- The Aurora predictors need TensorFlow 2.11, which is not in the pipeline's Poetry environment (see
+  [SDG predictions](#5-sdg-predictions)).
 - `load_mariadb_users.py` and `load_mariadb_fixtures.py` are configured by editing values in the file, not by
   command-line options.
 - The port table in [`docs/docker.md`](docs/docker.md) is outdated; the table in this README matches

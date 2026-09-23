@@ -1,15 +1,14 @@
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import sessionmaker
-import tensorflow as tf
 import torch
 
 from models.base import Base
-from models.author import Author
-from models.division import Division
-from models.faculty import Faculty
-from models.institute import Institute
+from models import Author
+from models import Division
+from models import Faculty
+from models import Institute
 from models.sdg_prediction import SDGPrediction
-from models.publication import Publication
+from models import Publication
 
 from settings.settings import EmbeddingsSettings
 embeddings_settings = EmbeddingsSettings()
@@ -18,11 +17,8 @@ embeddings_settings = EmbeddingsSettings()
 from utils.logger import logger
 logging = logger(embeddings_settings.EMBEDDINGS_LOG_NAME)
 
-# Tensorflow Verification
-print(tf.__version__)
-print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-print(device)
+logging.info(f"Embedding device available: {device}")
 
 class PublicationEmbeddingGenerator:
     def __init__(self, engine, batch_size=embeddings_settings.DEFAULT_BATCH_SIZE):

@@ -5,15 +5,20 @@ import numpy as np
 from tqdm import tqdm
 from bson import ObjectId, BSON  # to handle $oid and BSON size calculation
 from db.mongodb_connector import client
+from settings.settings import MongoDBSDGSettings
 
 # Define the database and collection names
 db_name = 'sdg_explanations'
 source_collection_name = 'explanations'
-target_collection_name = 'explanations_scaled'
+# The collection the API reads the explanations from
+target_collection_name = MongoDBSDGSettings.DB_COLLECTION_NAME
 
 # Create a new connection to the database
 db = client[db_name]
 source_collection = db[source_collection_name]
+
+# Start from an empty target collection, otherwise a second run duplicates every document
+db.drop_collection(target_collection_name)
 target_collection = db[target_collection_name]
 
 # Iterate through documents in the source collection
@@ -44,4 +49,4 @@ for document in tqdm(source_collection.find()):
     #print(f"Reduced Document Size: {reduced_size} bytes")
     #print(f"Size Reduction: {original_size - reduced_size} bytes")
 
-print("All documents processed and uploaded to 'explanations_reduced'.")
+print(f"All documents processed and uploaded to '{target_collection_name}'.")

@@ -12,17 +12,16 @@ from tqdm import tqdm
 
 # ORDER MATTERS!
 from models.base import Base
-from models.author import Author
-from models.division import Division
-from models.faculty import Faculty
-from models.institute import Institute
+from models import Author
+from models import Division
+from models import Faculty
+from models import Institute
 from models.sdg_prediction import SDGPrediction
-from models.sdg_label import SDGLabel
 from models.sdg_label_history import SDGLabelHistory
 from models.sdg_label_decision import SDGLabelDecision
 from models.sdg_user_label import SDGUserLabel
-from models.dim_red import DimRed
-from models.publication import Publication
+from models import DimensionalityReduction
+from models import Publication
 
 from settings.settings import CollectorSettings
 collector_settings = CollectorSettings()
@@ -427,7 +426,6 @@ def insert_publication_with_org(publication_data, session):
             institute=institute,
             division=division,
             sdg_predictions=[default_sdg_prediction],  # Add default SDGPrediction object in list
-            sdg_labels=SDGLabel(), # Init empty
             set_spec=publication_data.get("set_spec", ""),
             embedded=False,
         )

@@ -10,17 +10,16 @@ from pipeline.zora.embeddings import PublicationEmbeddingGenerator
 
 
 from models.base import Base
-from models.author import Author
-from models.division import Division
-from models.faculty import Faculty
-from models.institute import Institute
+from models import Author
+from models import Division
+from models import Faculty
+from models import Institute
 from models.sdg_prediction import SDGPrediction
-from models.sdg_label import SDGLabel
 from models.sdg_label_history import SDGLabelHistory
 from models.sdg_label_decision import SDGLabelDecision
 from models.sdg_user_label import SDGUserLabel
-from models.dim_red import DimRed
-from models.publication import Publication
+from models import DimensionalityReduction
+from models import Publication
 
 # Ensure these settings are properly initialized
 from settings.settings import EmbeddingsSettings, SDGSettings, LoaderSettings

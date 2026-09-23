@@ -1,8 +1,8 @@
 import re
 from sqlalchemy.orm import sessionmaker
 from db.mariadb_connector import engine as mariadb_engine
-from models.sdg.clusters.publication_cluster import PublicationCluster
-from models.sdg.clusters.topic import ClusterTopic
+from models import PublicationCluster
+from models import ClusterTopic
 
 
 def load_publication_clusters(file_path, batch_size=100):

@@ -24,7 +24,6 @@ import requests
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-from settings.settings import ExplainerSettings
 from utils.env_loader import load_env, get_env_variable
 
 

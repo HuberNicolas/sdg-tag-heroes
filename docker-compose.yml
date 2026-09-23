@@ -76,6 +76,10 @@ services:
       - ./db:/db
       - ./env:/env
       - ./utils:/utils
+      - ./models:/models
+      - ./settings:/settings
+      - ./enums:/enums
+      - ./data:/data # models, harvested publications and loader inputs (relative paths like data/pipeline/...)
     ports:
       - "1004:8000"
     profiles: [ pipeline ]

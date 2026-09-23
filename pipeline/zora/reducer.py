@@ -9,21 +9,20 @@ from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
 from models.base import Base
-from models.author import Author
-from models.division import Division
-from models.faculty import Faculty
-from models.institute import Institute
+from models import Author
+from models import Division
+from models import Faculty
+from models import Institute
 from models.sdg_prediction import SDGPrediction
-from models.sdg_label import SDGLabel
 from models.sdg_label_history import SDGLabelHistory
 from models.sdg_label_decision import SDGLabelDecision
 from models.sdg_user_label import SDGUserLabel
-from models.dim_red import DimRed
-from models.publication import Publication
-from models.user import User
-from models.admin import Admin
-from models.expert import Expert
-from models.labeler import Labeler
+from models import DimensionalityReduction
+from models import Publication
+from models import User
+from models import Admin
+from models import Expert
+from models import Labeler
 
 
 from settings.settings import ReducerSettings, LoaderSettings, EmbeddingsSettings
@@ -92,19 +91,22 @@ class UmapProcessor:
 
                 reduction_shorthand_string = f"UMAP-xy-{ReducerSettings.UMAP_N_NEIGHBORS}-{ReducerSettings.UMAP_MIN_DIST}-{ReducerSettings.UMAP_N_COMPONENTS}"
 
-                dim_red_entry = DimRed(
+                dim_red_entry = DimensionalityReduction(
                     publication_id=pub.publication_id,
                     reduction_technique="UMAP",
                     reduction_details=reduction_details_string,
                     reduction_shorthand=reduction_shorthand_string,
                     x_coord=umap_x,
                     y_coord=umap_y,
-                    z_coord=0
+                    z_coord=0,
+                    # Reduction over all publications, not a single SDG or level
+                    sdg=0,
+                    level=0,
                 )
 
                 # Add the UMAP result to the publication
                 session.add(dim_red_entry)
-                pub.dimreduced = True
+                pub.is_dim_reduced = True
 
                 batch_counter += 1
 
@@ -135,7 +137,7 @@ class UmapProcessor:
         try:
             # Fetch publications that haven't been UMAP-reduced yet
             publications = (
-                session.query(Publication).filter_by(dimreduced=False).all()
+                session.query(Publication).filter_by(is_dim_reduced=False).all()
             )
 
             if not publications:

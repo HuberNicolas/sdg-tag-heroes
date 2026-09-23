@@ -1,43 +1,50 @@
+import os
+
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-# Initially download
-tokenizer = AutoTokenizer.from_pretrained("dvdblk/scibert_sdg_cased_zo-up")
-model = AutoModelForSequenceClassification.from_pretrained("dvdblk/scibert_sdg_cased_zo-up")
-
-# Store the tokenizer and model locally
-tokenizer.save_pretrained("./data/pipeline/model/scibert_sdg_classification")
-model.save_pretrained("./data/pipeline/model/scibert_sdg_classification")
-
+# SciBERT fine-tuned for SDG classification (https://huggingface.co/dvdblk/scibert_sdg_cased_zo-up)
+MODEL_NAME = "dvdblk/scibert_sdg_cased_zo-up"
+MODEL_DIR = "./data/pipeline/model/scibert_sdg_classification"
 MAX_LEN = 512
 
-def sdg_predictor(abstract: str):
-    # Load the locally stored tokenizer and model
-    tokenizer = AutoTokenizer.from_pretrained("./data/pipeline/model/scibert_sdg_classification")
-    model = AutoModelForSequenceClassification.from_pretrained("./data/pipeline/model/scibert_sdg_classification")
+_tokenizer = None
+_model = None
 
-    # Tokenize the abstract with truncation to the model's max length (512 tokens)
+
+def _load_model():
+    """Load the model once. Download it from Hugging Face on first use and keep a local copy."""
+    global _tokenizer, _model
+    if _model is not None:
+        return _tokenizer, _model
+
+    if not os.path.isdir(MODEL_DIR):
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+        model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
+        tokenizer.save_pretrained(MODEL_DIR)
+        model.save_pretrained(MODEL_DIR)
+
+    _tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
+    _model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
+    _model.eval()
+    return _tokenizer, _model
+
+
+def sdg_predictor(abstract: str):
+    """Return a tensor of shape (1, 17) with one probability per SDG."""
+    tokenizer, model = _load_model()
+
+    # Truncate to the model's maximum input length (512 tokens)
     inputs = tokenizer(
         abstract,
         padding=True,
-        truncation=True,  # Ensure truncation if the abstract exceeds max length
-        max_length=MAX_LEN,  # Define max length for tokenization
-        return_tensors="pt"
+        truncation=True,
+        max_length=MAX_LEN,
+        return_tensors="pt",
     )
 
-    # Pass the tokenized input to the model
-    outputs = model(**inputs)
+    with torch.no_grad():
+        logits = model(**inputs).logits
 
-    # Get the predicted logits (model outputs before applying sigmoid)
-    logits = outputs.logits
-
-    # Softmax to get the predicted probabilities
-    probabilities = torch.sigmoid(logits)
-
-    # Get the predicted label (SDG class)
-    predicted_class = torch.argmax(probabilities, dim=-1)
-
-    # Results
-    # print(f"Predicted probabilities: {probabilities}")
-    # print(f"Predicted SDG class: {predicted_class.item() + 1}")
-    return probabilities
+    # Multi-label model: one independent probability per SDG
+    return torch.sigmoid(logits)

@@ -4,9 +4,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
 from db.mariadb_connector import engine as mariadb_engine
-from models.sdg.clusters.topic import ClusterTopic
-from models.sdg.clusters.group import ClusterGroup
-from models.sdg.clusters.level import ClusterLevel
+from models import ClusterTopic
+from models import ClusterGroup
+from models import ClusterLevel
 from settings.settings import TimeZoneSettings
 
 # Initialize session

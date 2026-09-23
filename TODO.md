@@ -56,12 +56,17 @@ published.
 
 ## 4. Fix the dataset scripts
 
-- [ ] Fix outdated imports in `pipeline/zora/*.py` (`models.publication`, `models.author`, `models.sdg_label`, …)
-- [ ] Fix `models.sdg.*` imports in `utils/mariadb/load_mariadb_sdg.py` and the cluster loaders
-- [ ] Restore or replace `ExplainerSettings` for the scripts in `utils/dataset/`
-- [ ] Mount `models/` and `settings/` in the `pipeline` container
-- [ ] Replace `pipeline/zora/predictor_dvdblk.py` (currently a copy of `collector.py`)
-- [ ] Align the MongoDB collection names (`explanations_scaled` vs. `explanations_scaled_new`)
+- [x] Fix outdated imports in `pipeline/zora/*.py` (`models.publication`, `models.author`, `models.sdg_label`, …)
+- [x] Fix `models.sdg.*` imports in `utils/mariadb/load_mariadb_sdg.py` and the cluster loaders
+- [x] Remove the unused `ExplainerSettings` from the scripts in `utils/dataset/`
+- [x] Mount `models/`, `settings/`, `enums/` and `data/` in the `pipeline` container
+- [x] Restore `pipeline/zora/predictor_dvdblk.py` from the first commit (it had been overwritten with `collector.py`)
+- [x] Align the MongoDB collection names: the scaled explanations are written to `explanations_scaled_new`
+- [x] Reducer: use `is_dim_reduced` and set `sdg`/`level` (required columns)
+- [ ] Aurora predictors need TensorFlow 2.11: add it to `pipeline/pyproject.toml` (or a separate environment) and
+  test `predictor.py` / `target_predictor.py`
+- [ ] Wrap the loader scripts in `main()` functions: many run on import and some drop their target database
+- [ ] Run the whole dataset build end to end (needs the dummy dataset, see 1.)
 
 ## 5. Other cleanup
 
