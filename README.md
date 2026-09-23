@@ -1,1 +1,629 @@
-# mt-igcl
+# SDG Tag Heroes
+
+**SDG Tag Heroes** is a gamified, collaborative labeling platform that maps scientific publications to the
+[UN Sustainable Development Goals (SDGs)](https://sdgs.un.org/goals). It was built as part of a master's thesis at
+the University of Zurich (UZH).
+
+Machine-learning models predict which of the 17 SDGs a publication addresses. Players ("heroes") then review those
+predictions, vote on the correct SDG, write annotations, and earn XP and coins for their contributions. Once enough
+votes are collected, a publication is assigned a **scenario** that tells players what kind of help it needs:
+
+| Scenario        | Situation                                          | Example vote split |
+|-----------------|----------------------------------------------------|--------------------|
+| **Confirm**     | A clear favourite exists and needs confirmation    | 6 / 4              |
+| **Tiebreaker**  | Two SDGs are tied                                  | 5 / 5              |
+| **Investigate** | Votes are spread across several SDGs               | 3 / 3 / 3 / 1      |
+| **Explore**     | No agreement at all                                | 1 / 2 / 2 / 2 / 1… |
+
+When a consensus is reached, a **label decision** is stored (by majority, technocratic consensus, or expert decision).
+
+Other features:
+
+- **SDG predictions** per publication (goal and target level), with entropy and standard deviation as uncertainty measures
+- **Exploration maps**: UMAP projections of publication embeddings, clustered into topics per SDG and level
+- **Similarity search** over publication embeddings (Qdrant)
+- **GPT-assisted features**: SDG explanations, keywords, facts, summaries, and comment/annotation evaluation (OpenAI)
+- **Gamification**: XP banks and coin wallets per SDG, ranks, a leaderboard, quests, and user profiles
+
+> [!NOTE]
+> The original dataset consists of publications from [ZORA](https://www.zora.uzh.ch/), the UZH open repository.
+> Those publications belong to their authors and UZH, so **the data is not part of this repository**. See
+> [Data](#data) for what the application needs.
+
+---
+
+## Contents
+
+- [Architecture](#architecture)
+- [Repository structure](#repository-structure)
+- [Prerequisites](#prerequisites)
+- [Getting started](#getting-started)
+- [Services and ports](#services-and-ports)
+- [API](#api)
+- [Data](#data)
+- [Building the dataset](#building-the-dataset)
+- [Development](#development)
+- [Documentation](#documentation)
+- [Known issues](#known-issues)
+- [Author](#author)
+
+---
+
+## Architecture
+
+```
+                     ┌──────────────────────────────┐
+                     │  Frontend (Nuxt 3, Vue 3)    │  localhost:3000
+                     │  frontend2/                  │
+                     └──────────────┬───────────────┘
+                                    │ REST + JWT
+                     ┌──────────────▼───────────────┐
+                     │  API (FastAPI)               │  localhost:1002
+                     │  api/ + models/ schemas/     │──────► OpenAI API
+                     │  services/ settings/ ...     │
+                     └──┬─────────┬─────────┬───────┘
+                        │         │         │
+            ┌───────────▼──┐ ┌────▼─────┐ ┌─▼──────────┐
+            │ MariaDB      │ │ MongoDB  │ │ Qdrant     │
+            │ core data    │ │ SDG      │ │ publication│
+            │ (SQLAlchemy) │ │ explan-  │ │ embeddings │
+            │              │ │ ations   │ │            │
+            └──────────────┘ └──────────┘ └────────────┘
+                        ▲
+                        │ fills
+            ┌───────────┴──────────────────────────────┐
+            │  Pipeline (Prefect)                      │
+            │  ZORA collector → predictor → loader →   │
+            │  reducer (UMAP)                          │
+            └──────────────────────────────────────────┘
+```
+
+- **MariaDB** holds the relational core: publications, authors, SDG goals/targets, predictions, users, votes,
+  annotations, label decisions, XP and coin histories, clusters, and dimensionality reductions. The schema is defined
+  as SQLAlchemy models in [`models/`](models) and migrated with Alembic.
+- **MongoDB** stores the precomputed SDG explanations (per-token attributions shown in the UI).
+- **Qdrant** stores the publication embeddings (`sentence-transformers/all-MiniLM-L6-v2`, 384 dimensions) in the
+  collection `publications-mt`, used for similarity search and UMAP.
+- **CouchDB** and **Redis** are started and health-checked by the API, but no feature currently depends on them.
+
+## Repository structure
+
+| Path                                          | Content                                                                          |
+|-----------------------------------------------|----------------------------------------------------------------------------------|
+| [`api/`](api)                                 | FastAPI application ([`api/app/main.py`](api/app/main.py)) and its routes        |
+| [`models/`](models)                           | SQLAlchemy ORM models (MariaDB tables)                                           |
+| [`schemas/`](schemas)                         | Pydantic response schemas                                                        |
+| [`request_models/`](request_models)           | Pydantic request bodies                                                          |
+| [`services/`](services)                       | Business logic: decisions, rewards, scoring, labels, metrics, GPT strategies     |
+| [`enums/`](enums)                             | Shared enums (roles, scenario types, vote types, …)                              |
+| [`settings/`](settings)                       | Central configuration ([`settings.py`](settings/settings.py)) and SDG texts      |
+| [`db/`](db)                                   | Database connectors and scripts to create/check the MariaDB schema               |
+| [`alembic/`](alembic)                         | Database migrations                                                              |
+| [`pipeline/`](pipeline)                       | Data pipeline: ZORA harvesting, SDG prediction, embedding, UMAP (Prefect flow)   |
+| [`utils/`](utils)                             | Loader scripts for MariaDB/MongoDB/Qdrant, backup/restore scripts, logger        |
+| [`frontend2/`](frontend2)                     | **The frontend in use** (Nuxt 3, Nuxt UI 2, Tailwind 3, D3, Pinia)               |
+| [`frontend/`](frontend)                       | An unfinished upgrade of the frontend (Nuxt UI 3, Tailwind 4); does not work yet |
+| [`nuxt-app/`](nuxt-app)                       | An empty Nuxt starter, unused                                                    |
+| [`deploy/`](deploy)                           | Dockerfiles and container entrypoints                                            |
+| [`env/`](env)                                 | Environment files (only `*.example` templates are committed)                     |
+| [`notebooks/`](notebooks)                     | Exploration notebooks (topic modelling, model comparison)                        |
+| [`prompts/`](prompts)                         | Example prompt and answer for the GPT assistant                                  |
+| [`docs/`](docs)                               | Developer notes (Docker, databases, migrations, linting, deployment)             |
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) with Docker Compose v2
+- [Node.js](https://nodejs.org/) 20 and npm (for the frontend)
+- An [OpenAI API key](https://platform.openai.com/api-keys) for the GPT features (the rest works without it)
+- Optional, to run the loader scripts and Alembic on your machine: Python **3.10.14** and
+  [Poetry](https://python-poetry.org/) (see [`docs/python-env.md`](docs/python-env.md))
+
+## Getting started
+
+These steps start the databases, the API, and the frontend on your machine.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/HuberNicolas/sdg-tag-heroes.git
+```
+
+```bash
+cd sdg-tag-heroes
+```
+
+### 2. Create the environment files
+
+Every service reads its configuration from `env/<service>.env`. Copy all templates:
+
+```bash
+for f in env/*.env.example; do cp "$f" "${f%.example}"; done
+```
+
+Then open each file in `env/` and fill in the empty values:
+
+| File                    | What to set                                                                                  |
+|-------------------------|----------------------------------------------------------------------------------------------|
+| `mariadb.env`           | `MYSQL_ROOT_PASSWORD`, `MARIADB_USER`, `MARIADB_PASSWORD` (database name defaults to `igcl`) |
+| `mongodb.env`           | `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`, `MONGODB_HOST=mongodb`           |
+| `mongo-express.env`     | UI login and `ME_CONFIG_MONGODB_URL=mongodb://<user>:<password>@mongodb:27017`               |
+| `couchdb.env`           | `COUCHDB_USER`, `COUCHDB_PASSWORD`                                                           |
+| `redisdb.env`           | `REDIS_USER`, `REDIS_PASSWORD`                                                               |
+| `backend.env`           | `SECRET_KEY` (a long random string used to sign JWTs)                                        |
+| `api.env`               | `OPENAI_API_KEY`                                                                             |
+| `users.env`             | The initial accounts (admin, labeler, expert). **Change the default passwords.**             |
+
+Redis also needs a config file. Copy it and use the same user and password as in `env/redisdb.env`:
+
+```bash
+cp deploy/db/redisdb.conf.example deploy/db/redisdb.conf
+```
+
+If you want to use the Portainer container, also create an empty `env/portainer.env`.
+
+### 3. Provide the data folder
+
+The API image copies `data/api/` at build time (the trained UMAP models), and several loader scripts read from
+`data/`. The folder is git-ignored and not published. See [Data](#data) for the expected layout.
+
+### 4. Start the databases and the API
+
+```bash
+docker compose up -d --build api mariadb phpmyadmin mongodb mongo-express qdrantdb couchdb redisdb
+```
+
+Name the services explicitly as shown. `docker compose --profile prod up` would also try to build the `backend` and
+`frontend` services, which currently fail (see [Known issues](#known-issues)).
+
+Check that the API is up and connected to all databases:
+
+```bash
+docker compose logs -f api
+```
+
+The API is now available at <http://localhost:1002>, with interactive docs at <http://localhost:1002/docs>.
+
+### 5. Fill the databases
+
+**Option A: restore a backup** (recommended if you have one). With the containers running:
+
+```bash
+docker exec -i mariadb-database sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" igcl' < data/db/igcl_dump.sql
+```
+
+```bash
+curl -X POST 'http://localhost:2003/collections/publications-mt/snapshots/upload' -F 'snapshot=@data/db/<snapshot-file>.snapshot'
+```
+
+For MongoDB, follow the `mongorestore` steps in [`docs/data-related/db.md`](docs/data-related/db.md).
+
+**Option B: build the dataset from scratch.** This takes several steps (harvesting, ML predictions, embeddings, topic
+models, simulated players). They are described in order in [Building the dataset](#building-the-dataset).
+
+### 6. Start the frontend
+
+```bash
+cd frontend2
+```
+
+```bash
+cp .env.example .env
+```
+
+Set `API_URL=http://localhost:1002` in `frontend2/.env`, then:
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+Open <http://localhost:3000> and log in with one of the accounts from `env/users.env`.
+
+### Stop everything
+
+```bash
+docker compose down
+```
+
+Database contents are stored in `data/docker/` and survive a restart.
+
+## Services and ports
+
+All services run in the Docker network `sdg-tag-heroes-net` (`10.5.0.0/24`).
+
+| Service         | Container          | Host port | Profile        | Purpose                                     |
+|-----------------|--------------------|-----------|----------------|---------------------------------------------|
+| `api`           | `api`              | 1002      | prod           | FastAPI backend (hot reload on code change) |
+| `mariadb`       | `mariadb-database` | 2001      | prod, pipeline | Relational database                         |
+| `phpmyadmin`    | `phpmyadmin`       | 2011      | prod, pipeline | MariaDB web UI                              |
+| `mongodb`       | `mongodb-database` | 2002      | prod, pipeline | Document database (SDG explanations)        |
+| `mongo-express` | `mongo-express`    | 2022      | prod, pipeline | MongoDB web UI                              |
+| `qdrantdb`      | `qdrant-database`  | 2003      | prod, pipeline | Vector database; dashboard at `/dashboard`  |
+| `couchdb`       | `couchdb-database` | 2004      | prod, pipeline | Document database; UI at `/_utils`          |
+| `redisdb`       | `redisdb-database` | 2005      | prod, pipeline | Key-value store                             |
+| `redis-insight` | `redis-insight`    | 2055      | prod, pipeline | Redis web UI                                |
+| `frontend`      | `frontend`         | 3030      | prod           | Nuxt dev server in Docker (see issues)      |
+| `pipeline`      | `pipeline`         | 1004      | pipeline       | Pipeline service                            |
+| `prefect`       | `prefect-server`   | 4000      | pipeline       | Prefect UI and orchestration                |
+| `portainer`     | `portainer`        | 1000      | prod           | Docker management UI                        |
+| `utils`         | `utils`            | –         | dev, debug     | Shell with MariaDB and MongoDB client tools |
+
+How to log in to each database UI is described in [`docs/data-related/db.md`](docs/data-related/db.md).
+
+## API
+
+The API is a FastAPI application. With the containers running, the full, interactive reference is at
+<http://localhost:1002/docs> (Swagger UI) and <http://localhost:1002/redoc>.
+
+### Authentication
+
+Get a JWT by posting email and password as JSON:
+
+```bash
+curl -X POST http://localhost:1002/auth/login -H 'Content-Type: application/json' -d '{"email": "labeler@tagheroes.ch", "password": "<password>"}'
+```
+
+Send the returned token as `Authorization: Bearer <token>` with every other request. In Swagger UI, use the
+**Authorize** button. Tokens expire after `ACCESS_TOKEN_EXPIRE_MINUTES` (set in `env/backend.env`).
+
+### Endpoints
+
+| Prefix                       | Resource                                                              |
+|------------------------------|-----------------------------------------------------------------------|
+| `/auth`                      | Login and token check                                                 |
+| `/users`                     | Users, own profile, filtering by role                                 |
+| `/users-profiles`            | GPT suggestions: which SDG fits a user's skills or interests          |
+| `/publications`              | Publications, filtering, similarity search, GPT summaries/keywords/facts |
+| `/authors`                   | Authors                                                               |
+| `/sdgs`                      | SDG goals and targets                                                 |
+| `/sdg-predictions`           | Model predictions per publication                                     |
+| `/explanations`              | Token-level SDG explanations (MongoDB)                                |
+| `/dimensionality-reductions` | UMAP coordinates for the exploration maps                             |
+| `/collections`               | Topic collections                                                     |
+| `/user-labels`               | Votes and comments players give on a publication                      |
+| `/votes`                     | Up/down votes on user labels                                          |
+| `/annotations`               | Annotations on publications                                           |
+| `/label-summaries`           | Aggregated labels per publication                                     |
+| `/label-histories`           | History of label changes                                              |
+| `/label-decisions`           | Scenarios and final label decisions                                   |
+| `/banks`                     | XP per SDG and its history                                            |
+| `/wallets`                   | Coins per SDG and its history                                         |
+| `/ranks`                     | SDG ranks of users                                                    |
+
+## Data
+
+The application expects a `data/` folder in the repository root. It is not published because it contains UZH
+publications and derived artefacts.
+
+The ground-truth labels, the SDG clusters, and the SDG explanations come from **SDG-Scout**, an earlier project of the
+same research group at UZH, and were created together with that group. They are not publicly available either. A
+separate generator for a synthetic dummy dataset is planned, so the application can be run without the original data.
+
+The relevant parts:
+
+```
+data/
+├── api/umap_model/                  # Trained UMAP models, copied into the API image (step 7)
+├── db/
+│   ├── igcl_dump.sql                # MariaDB dump (restore)
+│   ├── *.snapshot                   # Qdrant snapshot of publications-mt (restore)
+│   ├── explanations/                # Split SDG explanations for MongoDB (step 10)
+│   ├── sdg_label_summary.txt        # Ground-truth labels (step 9)
+│   ├── full_dataset_clusters.json   # SDG clusters (step 8)
+│   └── publications_clusters.txt    # Publication-to-cluster assignment (step 8)
+├── docker/                          # Volumes of the running containers (created automatically)
+├── icons/                           # SDG goal/target SVGs and sdg_extras.json (step 2)
+├── pipeline/
+│   ├── aurora_models/               # Downloaded Aurora models (step 5)
+│   ├── model/                       # SciBERT model (alternative predictor)
+│   └── collections/                 # BERTopic output: uzh_topic_data.csv, uzh_topic_info_simplified.csv (step 8)
+└── ranks/sdg_ranks.json             # Rank definitions (step 2)
+```
+
+To delete all container data and start from empty databases, run `bash utils/docker/delete-docker-data.sh` (it removes
+`data/docker/`).
+
+## Building the dataset
+
+This section explains how the databases are filled from nothing: which script creates which data, what it needs as
+input, and in which order to run the scripts. If you have a backup, [restoring it](#5-fill-the-databases) is much
+faster.
+
+> [!CAUTION]
+> Some of these scripts were written against an older layout of `models/` and have not been updated since. The
+> pipeline (`pipeline/zora/*.py`), the SDG and cluster loaders, and the GPT evaluation scripts currently fail on import.
+> See [Known issues](#known-issues). The steps below describe what each script is meant to do.
+
+### Overview
+
+```
+ 1. Schema                 init_mariadb.py, alembic
+ 2. Reference data         SDG goals & targets, icons, texts, ranks
+ 3. Users                  real accounts from users.env or generated players
+ 4. Publications           pipeline: ZORA collector
+ 5. Predictions            pipeline: Aurora goal/target models → entropy & std
+ 6. Embeddings             pipeline: loader → Qdrant
+ 7. Maps                   UMAP projections per SDG and level
+ 8. Topics & clusters      BERTopic collections, SDG clusters
+ 9. Ground-truth labels    label summaries + histories
+10. Explanations           token-level SDG explanations → MongoDB
+11. Fixtures               simulated game activity (personas, votes, scenarios, XP, coins)
+```
+
+Each step depends on the ones before it. For example, the fixtures need users, experts, publications, and ground-truth
+labels.
+
+### Running the scripts
+
+The scripts are standalone Python files. Run them **from the repository root** with `PYTHONPATH=.`, while the database
+containers are running. Outside Docker, they connect through the `*_LOCAL` host and port values in `env/*.env`.
+
+There are two Poetry environments (both Python 3.10.14, see [`docs/python-env.md`](docs/python-env.md)):
+
+- [`api/pyproject.toml`](api/pyproject.toml): schema, loaders, users, fixtures, and the GPT scripts (includes Faker,
+  Instructor, and OpenAI)
+- [`pipeline/pyproject.toml`](pipeline/pyproject.toml): pipeline, UMAP, and BERTopic scripts
+
+Most loaders read hard-coded paths under `data/` and use the seed `31011997` (from
+[`settings/settings.py`](settings/settings.py)), so repeated runs produce the same data.
+
+### 1. Schema
+
+Create all tables from the SQLAlchemy models, then tell Alembic that the database is on the latest migration:
+
+```bash
+PYTHONPATH=. python db/scripts/init_mariadb.py
+```
+
+```bash
+alembic stamp head
+```
+
+For later schema changes, see [`docs/data-related/migrations.md`](docs/data-related/migrations.md). To start over,
+[`utils/mariadb/drop_mariadb_tables.py`](utils/mariadb/drop_mariadb_tables.py) drops every table, and
+[`db/scripts/check_mariadb.py`](db/scripts/check_mariadb.py) lists the tables with their row counts.
+
+### 2. Reference data
+
+| Script                                                                       | Reads                               | Writes                                                  |
+|------------------------------------------------------------------------------|-------------------------------------|---------------------------------------------------------|
+| [`load_mariadb_sdg.py`](utils/mariadb/load_mariadb_sdg.py)                   | `data/icons/` (goal and target SVGs) | 17 SDG goals and 169 targets with colours and icons     |
+| [`load_mariadb_sdg_extras.py`](utils/mariadb/load_mariadb_sdg_extras.py)     | `data/icons/sdg_extras.json`        | Short titles, keywords, and explanations for each goal  |
+| [`load_mariadb_sdg_ranks.py`](utils/mariadb/load_mariadb_sdg_ranks.py)       | `data/ranks/sdg_ranks.json`         | 4 rank tiers per SDG with name and XP threshold         |
+| [`load_mongodb_sdg.py`](utils/mongodb/load_mongodb_sdg.py)                   | `data/icons/`                       | The same SDG goals and targets in MongoDB               |
+
+The first three are in `utils/mariadb/`, the last in `utils/mongodb/`. Run them in this order.
+
+### 3. Users
+
+[`utils/mariadb/load_mariadb_users.py`](utils/mariadb/load_mariadb_users.py) creates users with their inventory and
+their role entries (labeler, expert, admin). It has two modes, chosen by the `auto_generate` flag at the bottom of the
+file:
+
+- `auto_generate = False`: creates the accounts defined in `env/users.env` (`USER_COUNT`, then
+  `USER_<i>_EMAIL`, `USER_<i>_NICKNAME`, `USER_<i>_PASSWORD`, `USER_<i>_ROLE` for each user).
+- `auto_generate = True` (current setting): creates 40 generated labelers with Faker (`de_CH` locale), e-mail
+  addresses like `<lastname>@ifi.uzh.ch`, and the password `password01`. Labeler and expert scores are random.
+
+The fixtures (step 11) need at least one user with the `expert` role, so run the script in both modes, or put an expert
+in `users.env`.
+
+### 4. Publications
+
+The collector in [`pipeline/zora/collector.py`](pipeline/zora/collector.py) harvests publications from the
+[ZORA OAI-PMH endpoint](https://www.zora.uzh.ch/cgi/oai2) and stores them with authors, faculties, institutes, and
+divisions. Settings (limit, paths) are in `CollectorSettings`.
+
+```bash
+PYTHONPATH=. python pipeline/zora/collector.py --db mariadb --reset false --recreate_organizational_structure true
+```
+
+### 5. SDG predictions
+
+[`pipeline/zora/aurora_model_loader.py`](pipeline/zora/aurora_model_loader.py) downloads the pretrained
+[Aurora](https://aurora-universities.eu/) SDG models from Zenodo (links in
+[`aurora-model-goal-only-links.csv`](pipeline/zora/aurora-model-goal-only-links.csv)) into `data/pipeline/aurora_models/`.
+Then:
+
+| Script                                                                            | Result                                                                  |
+|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`pipeline/zora/predictor.py`](pipeline/zora/predictor.py)                        | One score per SDG goal and publication (`prediction_model = "Aurora"`) |
+| [`pipeline/zora/target_predictor.py`](pipeline/zora/target_predictor.py)          | Scores for the SDG targets                                              |
+| [`utils/mariadb/load_mariadb_sdg_predictions_entropy.py`](utils/mariadb/load_mariadb_sdg_predictions_entropy.py) | Entropy and standard deviation of each prediction (used as uncertainty) |
+| [`utils/mariadb/load_mariadb_scaler.py`](utils/mariadb/load_mariadb_scaler.py)    | Optional experiment: rescaled copies (`Scaled_Aurora`), limited to 5    |
+
+Both predictors take `--db mariadb --batch_size <n> --mariadb_batch_size <n>`. The default model and the threshold
+for "this publication belongs to an SDG" are `DEFAULT_PREDICTION_MODEL` and `DEFAULT_PREDICTION_THRESHOLD` (0.98) in
+`MariaDBSettings`.
+
+Alternative models were tried and are kept for reference: [`utils/sdg_predictor.py`](utils/sdg_predictor.py) (SciBERT,
+`dvdblk/scibert_sdg_cased_zo-up`), [`pipeline/zora/predictor_bielik.py`](pipeline/zora/predictor_bielik.py), and
+fine-tuning of the Aurora models in [`pipeline/aurora/fine_tune.py`](pipeline/aurora/fine_tune.py).
+
+### 6. Embeddings
+
+[`pipeline/zora/loader.py`](pipeline/zora/loader.py) embeds `"Title: … Abstract: …"` of every publication with
+`sentence-transformers/all-MiniLM-L6-v2` (384 dimensions) and stores the vectors in the Qdrant collection
+`publications-mt`, with the MariaDB ID in the payload field `sql_id`.
+
+```bash
+PYTHONPATH=. python pipeline/zora/loader.py --db mariadb --batch_size 64
+```
+
+### 7. Maps (UMAP)
+
+The exploration maps show publications as points in 2D. The coordinates are stored as dimensionality reductions:
+
+| Script                                                                          | What it projects                                                                                                             |
+|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| [`load_mariadb_umap.py`](utils/mariadb/load_mariadb_umap.py)                    | Per SDG, 3 **levels** by prediction score: 1.0–0.98, 0.98–0.9, 0.9–0.7 (`FILTER_RANGES`). Saves one model per SDG to `data/api/umap_model/config_15_0.0_2/`. |
+| [`load_mariadb_umap_complete.py`](utils/mariadb/load_mariadb_umap_complete.py)  | All publications, split into 9 partitions of 13,000 (`MAP_PARTITION_SIZE`), stored as `SDG0-level<n>`                        |
+| [`pipeline/zora/reducer.py`](pipeline/zora/reducer.py)                          | The pipeline version of the same step                                                                                        |
+
+UMAP parameters (`n_neighbors=15`, `min_dist=0.0`, `n_components=2`) are in `ReducerSettings`. The API loads the saved
+models from `data/api/umap_model/` to place new points on the map.
+
+### 8. Topics and clusters
+
+**Collections** are the topics shown on the overview map:
+
+1. [`utils/mariadb/generate_umap_with_tm.py`](utils/mariadb/generate_umap_with_tm.py) fits a
+   [BERTopic](https://maartengr.github.io/BERTopic/) model on all embeddings from Qdrant (HDBSCAN, c-TF-IDF, SDG
+   descriptions as seed words), reduces it to 20 topics plus one outlier topic, and writes `uzh_topic_data.csv` and
+   `uzh_topic_info.csv` into the current directory. ([`generate_topic_model.py`](utils/mariadb/generate_topic_model.py)
+   is an earlier version; [`notebooks/topic_model.ipynb`](notebooks/topic_model.ipynb) is the exploration.)
+2. Move the files to `data/pipeline/collections/` and simplify the topic info to
+   `uzh_topic_info_simplified.csv` (topic names and aspects; this was done by hand).
+3. [`utils/mariadb/load_mariadb_collections.py`](utils/mariadb/load_mariadb_collections.py) loads the topics as
+   collections and the 2D positions as reductions with the shorthand `TM-UZH-UMAP-15-0.0-2`.
+
+**Clusters** (per SDG, 25 levels with 1 to 25 topics each) are loaded from prepared files:
+
+- [`load_mariadb_clusters.py`](utils/mariadb/load_mariadb_clusters.py) reads `data/db/full_dataset_clusters.json`
+  (centres, sizes, labels) into cluster groups, levels, and topics
+- [`load_mariadb_clusters_publications.py`](utils/mariadb/load_mariadb_clusters_publications.py) reads
+  `data/db/publications_clusters.txt` and assigns publications to clusters
+- [`load_mongodb_clusters.py`](utils/mongodb/load_mongodb_clusters.py) writes the same clusters to MongoDB
+
+The cluster files come from SDG-Scout (see [Data](#data)). The clusters were not used in the deployed version.
+
+### 9. Ground-truth labels
+
+[`utils/mariadb/load_mariadb_sdg_label_summaries.py`](utils/mariadb/load_mariadb_sdg_label_summaries.py) reads
+`data/db/sdg_label_summary.txt`: SQL-style tuples `(publication_id, sdg1, …, sdg17)` with `1` for the correct SDG. For
+each tuple it creates a label summary and a label history. These labels are the "truth" that the fixtures use to
+simulate votes. The labels come from SDG-Scout (see [Data](#data)).
+
+### 10. Explanations
+
+The explanations show which words of an abstract point to an SDG. They were precomputed in SDG-Scout (see
+[Data](#data)) and are stored in MongoDB, database `sdg_explanations`:
+
+1. Split the export into files of 10,000 lines with
+   [`utils/mongodb/sdg-explanation-splitter.sh`](utils/mongodb/sdg-explanation-splitter.sh) (run it next to
+   `sdg_explanations.json`) and put the parts in `data/db/explanations/`.
+2. [`load_mongodb_explanations.py`](utils/mongodb/load_mongodb_explanations.py) loads them into the collection
+   `explanations`.
+3. [`load_mongodb_small_explanations.py`](utils/mongodb/load_mongodb_small_explanations.py) stores the token scores as
+   integers (× 10,000) in `explanations_scaled` to reduce the size.
+4. The API reads the collection `explanations_scaled_new` (`MongoDBSDGSettings.DB_COLLECTION_NAME`), so rename the
+   collection or change the setting.
+
+[`debug_mongo.py`](utils/mongodb/debug_mongo.py) removes duplicate explanations.
+
+### 11. Fixtures: simulated game activity
+
+[`utils/mariadb/load_mariadb_fixtures.py`](utils/mariadb/load_mariadb_fixtures.py) fills the game tables so the
+application looks like it has been played. It needs users (with at least one expert), publications, label summaries,
+and label histories.
+
+> [!WARNING]
+> The fixtures call the OpenAI API for every generated comment and annotation, so a run costs money and takes a while.
+> An `OPENAI_API_KEY` in `env/api.env` is required. The script also **truncates** the tables for user labels, votes,
+> annotations, label decisions, wallets, and XP banks before it starts.
+
+What it does, in order:
+
+1. **Personas**: each user gets a temporary [Bartle player type](https://en.wikipedia.org/wiki/Bartle_taxonomy_of_player_types)
+   (Achiever, Explorer, Socializer, Killer), a trust score, an interest, and a skill
+   ([`utils/personas/personas_generator.py`](utils/personas/personas_generator.py)). Personas are not stored in the
+   database.
+2. **Wallets and XP banks** for every user, with 5 history entries each.
+3. **Scenario decisions**: for up to 500 publications that have a ground-truth label, it picks a scenario and creates
+   `VOTES_NEEDED_FOR_SCENARIO` (10) user labels whose distribution matches it. The true SDG always wins or is part of
+   the tie:
+
+   | Scenario    | Distribution                          |
+   |-------------|---------------------------------------|
+   | Confirm     | 90 % true SDG, 10 % another SDG       |
+   | Tiebreaker  | 50 % true SDG, 50 % another SDG       |
+   | Investigate | 3 / 3 / 3 / 1                          |
+   | Explore     | 1 / 2 / 2 / 2 / 1 / 1 / 1              |
+
+4. **Comments and annotations**: GPT writes them in the voice of the user's persona
+   ([`persona_comment_generator_strategy.py`](services/gpt/strategies/persona_comment_generator_strategy.py)).
+
+The ratios are in `FixturesSettings` and the vote thresholds in `DecisionServiceSettings`. The number of users and
+publications are parameters of `populate_db()`. It also contains older random generators (user labels, votes,
+annotations, decisions) that are disabled with `if False:`.
+
+### GPT evaluation datasets (optional)
+
+These scripts are not needed to run the application. They create datasets for the thesis evaluation: how well GPT
+agrees with the model predictions. They read publications that have a ground-truth label and write CSV files into the
+current directory.
+
+| Script                                                                                                   | Output                                   | What it asks GPT                                                                                           |
+|----------------------------------------------------------------------------------------------------------|------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| [`generate_confidence_score.py`](utils/dataset/generate_confidence_score.py)                             | `chatgpt_sdg_classification_results.csv` | An initial SDG guess with reasoning and confidence, then an assessment of the model's prediction            |
+| [`chatgpt_dataset_generation.py`](utils/dataset/chatgpt_dataset_generation.py)                           | `sdg_evaluation_results_with_costs.csv`  | Relevance and confidence for all 17 SDGs, arguments for and against one SDG, plus estimated API cost        |
+| [`chatgpt_dataset_generation_batchify.py`](utils/dataset/chatgpt_dataset_generation_batchify.py)         | `batch_results.csv`                      | The same through the cheaper OpenAI Batch API                                                              |
+
+The number of publications per SDG is set by `LIMIT` (or `.limit()`) in each script.
+
+### Pipeline with Prefect
+
+Steps 4 to 7 can also run as one [Prefect](https://www.prefect.io/) flow
+([`pipeline/prefect/flow.py`](pipeline/prefect/flow.py)): collector → predictor → loader → reducer. Batch sizes are in
+`PrefectSettings`.
+
+```bash
+docker compose --profile pipeline up -d --build
+```
+
+The Prefect UI is then at <http://localhost:4000>.
+
+## Development
+
+- **Database migrations**: change a model in `models/`, then run `alembic revision --autogenerate -m "…"` and
+  `alembic upgrade head`. Details in [`docs/data-related/migrations.md`](docs/data-related/migrations.md).
+- **Models vs. schemas**: see [`docs/data-related/orm.md`](docs/data-related/orm.md).
+- **Linting and formatting**: Black, isort, and Flake8 for Python; ESLint and Prettier for the frontend
+  (`npm run lint`, `npm run format`). See [`docs/development/linting.md`](docs/development/linting.md).
+- **Configuration**: tunable values (prediction model and threshold, votes needed for a scenario, GPT model, UMAP
+  parameters, …) are in [`settings/settings.py`](settings/settings.py).
+- **Logs** of the API are written to `data/docker/logs/`.
+
+## Documentation
+
+More detailed notes are in [`docs/`](docs):
+
+| Topic                            | File                                                                   |
+|----------------------------------|------------------------------------------------------------------------|
+| Database UIs, backup and restore | [`docs/data-related/db.md`](docs/data-related/db.md)                   |
+| Alembic migrations               | [`docs/data-related/migrations.md`](docs/data-related/migrations.md)   |
+| Models vs. schemas               | [`docs/data-related/orm.md`](docs/data-related/orm.md)                 |
+| Schemas and TypeScript types     | [`docs/data-related/schemas.md`](docs/data-related/schemas.md)         |
+| Query layer                      | [`docs/data-related/queries.md`](docs/data-related/queries.md)         |
+| Python environments (Conda, Poetry) | [`docs/python-env.md`](docs/python-env.md)                          |
+| Docker commands                  | [`docs/docker.md`](docs/docker.md)                                     |
+| Deployment on the UZH server     | [`docs/deployment/deployment.md`](docs/deployment/deployment.md)       |
+| Linting and code style           | [`docs/development/`](docs/development)                                |
+| Solved problems                  | [`docs/issues.md`](docs/issues.md)                                     |
+
+## Known issues
+
+- There are two frontend folders. `frontend2/` is the working one; `frontend/` is an unfinished upgrade. The `frontend`
+  Docker service still mounts `frontend/`, so run the frontend locally with `npm run dev` as described above.
+- The `backend` service in `docker-compose.yml` refers to a `backend/` folder that no longer exists. Do not start it.
+- `nuxt-app/` is an unused starter project.
+- Several dataset scripts import modules that were moved or renamed:
+  - `pipeline/zora/*.py` import `models.publication`, `models.author`, `models.sdg_label`, `models.dim_red`, … (now
+    under `models/publications/`, `models/users/`, …). The `pipeline` container also does not mount `models/` and
+    `settings/`.
+  - `utils/mariadb/load_mariadb_sdg.py` and the cluster loaders import `models.sdg.*` (now `models/sdgs/` and
+    `models/clusters/`).
+  - The GPT evaluation scripts in `utils/dataset/` import `ExplainerSettings`, which no longer exists in
+    `settings/settings.py`.
+- `pipeline/zora/predictor_dvdblk.py` is an exact copy of `collector.py`, not a predictor.
+- `load_mariadb_users.py` and `load_mariadb_fixtures.py` are configured by editing values in the file, not by
+  command-line options.
+- The port table in [`docs/docker.md`](docs/docker.md) is outdated; the table in this README matches
+  `docker-compose.yml`.
+
+## Author
+
+Nicolas Huber, master's thesis, University of Zurich (UZH).
