@@ -122,7 +122,6 @@ Other features:
 | [`pipeline/`](pipeline)                       | Data pipeline: ZORA harvesting, SDG prediction, embedding, UMAP (Prefect flow)   |
 | [`utils/`](utils)                             | Loader scripts for MariaDB/MongoDB/Qdrant, backup/restore scripts, logger        |
 | [`frontend/`](frontend)                       | Nuxt 3 frontend (Nuxt UI 2, Tailwind 3, daisyUI 4, D3, Pinia)                    |
-| [`nuxt-app/`](nuxt-app)                       | An empty Nuxt starter, unused                                                    |
 | [`deploy/`](deploy)                           | Dockerfiles and container entrypoints                                            |
 | [`env/`](env)                                 | Environment files (only `*.example` templates are committed)                     |
 | [`notebooks/`](notebooks)                     | Exploration notebooks (topic modelling, model comparison)                        |
@@ -652,7 +651,6 @@ More detailed notes are in [`docs/`](docs):
   than a local `npm install`.
 - The title on the start page is white and disappears in light mode.
 - The `backend` service in `docker-compose.yml` refers to a `backend/` folder that no longer exists. Do not start it.
-- `nuxt-app/` is an unused starter project.
 - Several dataset scripts import modules that were moved or renamed:
   - `pipeline/zora/*.py` import `models.publication`, `models.author`, `models.sdg_label`, `models.dim_red`, … (now
     under `models/publications/`, `models/users/`, …). The `pipeline` container also does not mount `models/` and

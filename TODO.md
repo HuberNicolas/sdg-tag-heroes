@@ -48,7 +48,7 @@ published.
   Nuxt color mode is `light`)
 - [ ] Clean up build warnings: duplicated auto-imports `createBarPlot` and `createScatterPlot`, missing
   `assets/icons/` components directory, `defineProps`/`defineEmits` imports
-- [ ] Decide what to do with `nuxt-app/` (empty starter)
+- [x] Remove `nuxt-app/` (empty starter)
 
 ## 4. Fix the dataset scripts
 
