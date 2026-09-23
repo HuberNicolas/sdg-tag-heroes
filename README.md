@@ -1,5 +1,13 @@
 # SDG Tag Heroes
 
+![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Nuxt](https://img.shields.io/badge/Nuxt-3-00DC82?logo=nuxt&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vuedotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-collection-FF6C37?logo=postman&logoColor=white)
+
 **SDG Tag Heroes** is a gamified, collaborative labeling platform that maps scientific publications to the
 [UN Sustainable Development Goals (SDGs)](https://sdgs.un.org/goals). It was built as part of a master's thesis at
 the University of Zurich (UZH).
@@ -34,6 +42,7 @@ Other features:
 
 ## Contents
 
+- [Tech stack](#tech-stack)
 - [Architecture](#architecture)
 - [Repository structure](#repository-structure)
 - [Prerequisites](#prerequisites)
@@ -48,6 +57,17 @@ Other features:
 - [Author](#author)
 
 ---
+
+## Tech stack
+
+| Area               | Technologies |
+|--------------------|--------------|
+| **Frontend**       | ![Nuxt](https://img.shields.io/badge/Nuxt_3-00DC82?logo=nuxt&logoColor=white) ![Vue.js](https://img.shields.io/badge/Vue_3-4FC08D?logo=vuedotjs&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white) ![Nuxt UI](https://img.shields.io/badge/Nuxt_UI-00DC82?logo=nuxt&logoColor=white) ![daisyUI](https://img.shields.io/badge/daisyUI-5A0EF8?logo=daisyui&logoColor=white) ![Pinia](https://img.shields.io/badge/Pinia-FFD859?logo=pinia&logoColor=black) ![D3.js](https://img.shields.io/badge/D3.js-F9A03C?logo=d3dotjs&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?logo=plotly&logoColor=white) |
+| **Backend**        | ![Python](https://img.shields.io/badge/Python_3.10-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white) ![Alembic](https://img.shields.io/badge/Alembic-6BA81E) ![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white) ![Poetry](https://img.shields.io/badge/Poetry-60A5FA?logo=poetry&logoColor=white) |
+| **Databases**      | ![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white) ![Qdrant](https://img.shields.io/badge/Qdrant-DC244C?logo=qdrant&logoColor=white) ![CouchDB](https://img.shields.io/badge/CouchDB-E42528?logo=apachecouchdb&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-FF4438?logo=redis&logoColor=white) |
+| **ML and AI**      | ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white) ![Hugging Face](https://img.shields.io/badge/Sentence_Transformers-FFD21E?logo=huggingface&logoColor=black) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![UMAP](https://img.shields.io/badge/UMAP-5A5A5A) ![BERTopic](https://img.shields.io/badge/BERTopic-5A5A5A) ![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4o-412991?logo=openai&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?logo=jupyter&logoColor=white) |
+| **Data pipeline**  | ![Prefect](https://img.shields.io/badge/Prefect-070E10?logo=prefect&logoColor=white) ZORA (OAI-PMH) harvesting, Aurora SDG models |
+| **Infrastructure** | ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white) ![Portainer](https://img.shields.io/badge/Portainer-13BEF9?logo=portainer&logoColor=white) ![Postman](https://img.shields.io/badge/Postman-FF6C37?logo=postman&logoColor=white) |
 
 ## Architecture
 
@@ -108,7 +128,7 @@ Other features:
 | [`env/`](env)                                 | Environment files (only `*.example` templates are committed)                     |
 | [`notebooks/`](notebooks)                     | Exploration notebooks (topic modelling, model comparison)                        |
 | [`prompts/`](prompts)                         | Example prompt and answer for the GPT assistant                                  |
-| [`docs/`](docs)                               | Developer notes (Docker, databases, migrations, linting, deployment)             |
+| [`docs/`](docs)                               | Developer notes (API and Postman, Docker, databases, migrations, deployment)     |
 
 ## Prerequisites
 
@@ -255,8 +275,13 @@ How to log in to each database UI is described in [`docs/data-related/db.md`](do
 
 ## API
 
-The API is a FastAPI application. With the containers running, the full, interactive reference is at
+The API is a FastAPI application. With the containers running, the interactive reference is at
 <http://localhost:1002/docs> (Swagger UI) and <http://localhost:1002/redoc>.
+
+A **Postman collection** with all endpoints is in
+[`docs/api/sdg-tag-heroes.postman_collection.json`](docs/api/sdg-tag-heroes.postman_collection.json). Import it, set the
+`password` variable, and send **auth → Login**; the token is then used by every other request. Details, variables, and
+how to regenerate the collection are in [`docs/api/README.md`](docs/api/README.md).
 
 ### Authentication
 
@@ -593,6 +618,7 @@ More detailed notes are in [`docs/`](docs):
 
 | Topic                            | File                                                                   |
 |----------------------------------|------------------------------------------------------------------------|
+| API reference and Postman        | [`docs/api/README.md`](docs/api/README.md)                             |
 | Database UIs, backup and restore | [`docs/data-related/db.md`](docs/data-related/db.md)                   |
 | Alembic migrations               | [`docs/data-related/migrations.md`](docs/data-related/migrations.md)   |
 | Models vs. schemas               | [`docs/data-related/orm.md`](docs/data-related/orm.md)                 |
