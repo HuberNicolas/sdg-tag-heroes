@@ -55,7 +55,7 @@
         <div class="space-y-4">
 
           <details class="border p-3 rounded">
-            <summary class="cursor-pointer text-md font-semibold">Lables</summary>
+            <summary class="cursor-pointer text-md font-semibold">Labels</summary>
             <div>
               Publication ID: {{ selectedDecision?.publicationId }}
             </div>

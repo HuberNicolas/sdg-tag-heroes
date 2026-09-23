@@ -55,7 +55,7 @@
             class="h-4 w-4"
           />
           <label for="showFinalRound" class="text-sm font-medium">
-            Show All Community Lables
+            Show All Community Labels
           </label>
         </div>
       </div>

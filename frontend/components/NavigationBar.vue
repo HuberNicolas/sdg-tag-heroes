@@ -324,6 +324,8 @@
           </div>
         </NuxtLink>
 
+        <NuxtLink to="/about" class="text-sm font-medium text-gray-600 hover:text-gray-900">About</NuxtLink>
+
         <div class="drawer drawer-end z-10">
           <input id="drawer-help" type="checkbox" class="drawer-toggle hidden" />
           <div class="drawer-content">
@@ -380,7 +382,7 @@
 
                 <!-- Context Overview -->
                 <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                  <Icon name="ph-map-light" class="w-6 h-6 text-gray-700 mb-2" />
+                  <Icon name="mdi-map-search-outline" class="w-6 h-6 text-gray-700 mb-2" />
                   <h3 class="font-semibold text-gray-700">How It Works</h3>
                   <p class="text-gray-600">
                     Start in an exploration space with many publications and SDGs.
@@ -391,7 +393,7 @@
 
                 <!-- Decide the Game Mode -->
                 <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                  <Icon name="ph-map-light" class="w-6 h-6 text-gray-700 mb-2" />
+                  <Icon name="mdi-map-search-outline" class="w-6 h-6 text-gray-700 mb-2" />
                   <h3 class="font-semibold text-gray-700">Different Game Modes</h3>
                   <p class="text-gray-600">
                     You can decide between two game modes: Game Mode <b>SDG Specialization</b> and Game Mode <b>Open World Exploration</b>
@@ -403,35 +405,35 @@
 
                   <!-- Scenario 1: SDG Specialization -->
                   <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="ph-target-light" class="w-6 h-6 text-gray-700 mb-2" />
+                    <Icon name="mdi-target" class="w-6 h-6 text-gray-700 mb-2" />
                     <h3 class="font-semibold text-gray-700"><b>SDG Specialization</b></h3>
                     <p class="text-gray-600">Choose <b>one specific SDG</b> and focus only on publications relevant to that goal.</p>
                   </div>
 
                   <!-- Scenario 2: Open World Exploration -->
                   <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="ph-globe-light" class="w-6 h-6 text-gray-700 mb-2" />
+                    <Icon name="mdi-earth" class="w-6 h-6 text-gray-700 mb-2" />
                     <h3 class="font-semibold text-gray-700"><b>Open World Exploration</b></h3>
                     <p class="text-gray-600">Browse freely across <b>all SDGs</b>, discovering broader research connections.</p>
                   </div>
 
                   <!-- Many Publications, One SDG -->
                   <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="ph-list-light" class="w-6 h-6 text-gray-700 mb-2" />
+                    <Icon name="mdi-format-list-bulleted" class="w-6 h-6 text-gray-700 mb-2" />
                     <h3 class="font-semibold text-gray-700">Focused Search</h3>
                     <p class="text-gray-600">Drill down into a single SDG, filtering out publications that are unrelated.</p>
                   </div>
 
                   <!-- Many Publications, All SDGs -->
                   <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="ph-stack-light" class="w-6 h-6 text-gray-700 mb-2" />
+                    <Icon name="mdi-layers-outline" class="w-6 h-6 text-gray-700 mb-2" />
                     <h3 class="font-semibold text-gray-700">Broad Overview</h3>
                     <p class="text-gray-600">Analyze a wide set of publications across all SDGs to identify patterns and trends.</p>
                   </div>
 
                   <!-- One Publication, One SDG -->
                   <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="ph-check-circle-light" class="w-6 h-6 text-gray-700 mb-2" />
+                    <Icon name="mdi-check-circle-outline" class="w-6 h-6 text-gray-700 mb-2" />
                     <h3 class="font-semibold text-gray-700">Final Labeling</h3>
                     <p class="text-gray-600">You’ve reached a single publication. Now it’s time to make the final SDG decision.</p>
                   </div>
@@ -439,7 +441,7 @@
 
                   <!-- One Publication, All SDGs -->
                   <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="ph-books-light" class="w-6 h-6 text-gray-700 mb-2" />
+                    <Icon name="mdi-bookshelf" class="w-6 h-6 text-gray-700 mb-2" />
                     <h3 class="font-semibold text-gray-700">Multi-SDG Impact</h3>
                     <p class="text-gray-600">Examine a single publication and determine if it contributes to any of the SDGs.</p>
                   </div>

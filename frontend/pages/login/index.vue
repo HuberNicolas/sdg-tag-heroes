@@ -36,6 +36,11 @@
 </template>
 
 <script setup lang="ts">
+// No navigation bar before login: it would call the API without a token
+definePageMeta({
+  layout: 'none'
+})
+
 import { useAuthentication } from "#imports";
 
 const email = ref('');

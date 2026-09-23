@@ -209,7 +209,7 @@ const onLoad = (container: Container) => {
 }
 
 definePageMeta({
-  layout: 'empty'
+  layout: 'none'
 })
 
 </script>
