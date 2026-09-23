@@ -1,62 +1,43 @@
 <template>
-  <div class="h-full overflow-hidden">
-    <div class="grid grid-rows-11 grid-cols-10 grid-flow-col h-full">
-
-      <!-- Title Section (Spanning Across All Columns) -->
-      <div class="row-span-1 col-span-10 flex flex-col items-center justify-center text-center p-4 bg-gray-50">
-        <h1 class="text-3xl font-bold w-full">
-          Wanna be an SDG-Tag Hero? Then help us labeling Publications with SDGs either
-        </h1>
-        <div class="w-full flex justify-center mt-2 items-center">
-          <div class="w-1/3 flex items-center justify-center">
-            <p class="text-xl">by <b>Selecting</b> an SDG World</p>
-          </div>
-          <div class="w-auto px-4 text-xl font-bold text-gray-700">OR</div>
-          <div class="w-1/3 flex items-center justify-center">
-            <p class="text-xl">by <b>Exploring</b> Publications from different Universes</p>
-          </div>
-        </div>
+  <div class="min-h-full flex flex-col">
+    <!-- Title: the two sub-headings line up with the two columns below -->
+    <header class="flex-none bg-gray-50 border-b border-gray-200 px-4 py-3 text-center">
+      <h1 class="text-xl lg:text-2xl 2xl:text-3xl font-bold">
+        Wanna be an SDG-Tag Hero? Then help us labeling Publications with SDGs either
+      </h1>
+      <div class="mt-1 grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-x-4 text-base 2xl:text-xl">
+        <p>by <b>Selecting</b> an SDG World</p>
+        <p class="font-bold text-gray-700">OR</p>
+        <p>by <b>Exploring</b> Publications from different Universes</p>
       </div>
+    </header>
 
-
-      <!-- Left Section (Takes Half of the Grid) -->
-      <div class="row-span-10 col-span-5 grid grid-rows-10">
-
-
-        <!-- First Section: Top Half -->
-        <div class="row-span-7 grid grid-cols-2 text-center">
-          <div class="col-span-1 p-4 flex items-center justify-center">
-            <GlyphOverviewScenario :values="values" :height="400" :width="400" />
+    <div class="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-2">
+      <!-- Left: SDG worlds -->
+      <section class="flex flex-col gap-4 p-4 xl:p-6 min-h-0">
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 items-center gap-6">
+          <div class="flex items-center justify-center">
+            <GlyphOverviewScenario :values="values" class="w-full max-w-[min(100%,34rem,42vh)]" />
           </div>
-
-          <div class="col-span-1 p-4 flex flex-col items-center justify-center">
-            <SDGExplorer />
+          <div class="flex items-center justify-center">
+            <SDGExplorer class="w-full max-w-xl" />
           </div>
         </div>
 
-        <!-- Second Section: Bottom Half -->
-        <div v-if="!gameStore.showLeaderboard" class="row-span-3 flex items-center justify-center">
-          <div class="frame-container">
-            <div class="frame-title"><b>Share</b> either your Skills or Interests with the intelligent agent to receive a a customized SDG suggestion in the <b>SDG Suggestion Box</b></div> <!--Smart Selection:  -->
+        <div class="flex-none flex justify-center">
+          <div v-if="!gameStore.showLeaderboard" class="frame-container w-full max-w-4xl">
+            <div class="frame-title"><b>Share</b> either your Skills or Interests with the intelligent agent to receive a customized SDG suggestion in the <b>SDG Suggestion Box</b></div>
             <SDGUserQuery />
           </div>
+          <LeaderBoardExplanation v-else />
         </div>
-        <div v-if="gameStore.showLeaderboard" class="row-span-3 flex items-center justify-center">
-          <LeaderBoardExplanation></LeaderBoardExplanation>
-        </div>
-      </div>
+      </section>
 
-      <!-- Right Section (Takes Half of the Grid) -->
-      <div class="row-span-10 col-span-5 flex items-center justify-center border-l-8 border-gray-500 relative">
-        <span class="absolute top-1/2 right-full transform translate-x-8 -translate-y-1/2 px-6 py-3 text-gray-700 text-sm font-bold"></span>
-        <div v-if="!gameStore.showLeaderboard" class="w-full h-full flex items-center justify-center">
-          <WorldSelector />
-        </div>
-        <div v-else class="w-full h-full flex items-center justify-center">
-          <LeaderBoard />
-        </div>
-      </div>
-
+      <!-- Right: universes (or the leaderboard) -->
+      <section class="flex items-center justify-center p-4 xl:p-6 border-t-4 xl:border-t-0 xl:border-l-4 border-gray-500 min-h-0">
+        <WorldSelector v-if="!gameStore.showLeaderboard" class="w-full" />
+        <LeaderBoard v-else class="w-full" />
+      </section>
     </div>
   </div>
 </template>

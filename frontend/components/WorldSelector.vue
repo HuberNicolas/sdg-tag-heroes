@@ -1,11 +1,11 @@
 <template>
   <div class="flex flex-col items-center justify-center">
-    <ul class="steps">
+    <ul class="steps w-full max-w-md">
       <li data-content="1" class="step" :class="getStepClass(1)" @click="selectLevel(1)"></li>
       <li data-content="2" class="step" :class="getStepClass(2)" @click="selectLevel(2)"></li>
       <li data-content="3" class="step" :class="getStepClass(3)" @click="selectLevel(3)"></li>
     </ul>
-    <div class="grid grid-cols-3 gap-12 mt-6">
+    <div class="grid grid-cols-3 gap-3 lg:gap-6 2xl:gap-10 mt-6 w-full max-w-3xl">
       <div
         v-for="(level, index) in levels"
         :key="index"
@@ -16,7 +16,7 @@
           :class="`relative flex flex-col items-center justify-center rounded-lg border-4 p-4 shadow-lg ${level.borderClass} bg-white`"
         >
           <div class="text-lg font-bold text-gray-800">Universe {{ level.level }}</div>
-          <div class="text-lg font-bold text-gray-800 press-start-font">{{ level.name }}</div>
+          <div class="text-xs xl:text-sm 2xl:text-lg font-bold text-gray-800 press-start-font">{{ level.name }}</div>
           <div v-if="!isLevelUnlocked(level.level)" class="font-semibold">Almost There!</div>
           <div v-else class="font-semibold">Ready to play</div>
           <div v-if="shouldShowProgress(level.level)" class="w-full bg-gray-300 rounded-md mt-4">
@@ -32,7 +32,7 @@
         </div>
       </div>
     </div>
-    <div v-if="selectedLevel" class="mt-6 w-96">
+    <div v-if="selectedLevel" class="mt-6 w-full max-w-md 2xl:max-w-lg">
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <h2 class="card-title press-start-font">{{ selectedWorld.name }}</h2>
@@ -60,7 +60,7 @@
           </UButton>
         </div>
         <figure>
-          <img :src="selectedWorld.image" alt="World Image" />
+          <img :src="selectedWorld.image" alt="World Image" class="w-full max-h-[30vh] object-cover" />
         </figure>
       </div>
     </div>

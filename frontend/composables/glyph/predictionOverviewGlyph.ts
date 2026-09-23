@@ -15,7 +15,7 @@ export default function createGlyph(values: number[]) {
 
 
 
-  const renderHexGrid = (selector: HTMLElement, width: number, height: number): void => {
+  const renderHexGrid = (selector: HTMLElement, width: number | string, height: number | string): void => {
     const xCoords = coords.map(([x]) => x * xSpacing);
     const yCoords = coords.map(([_, y]) => y * ySpacing);
 

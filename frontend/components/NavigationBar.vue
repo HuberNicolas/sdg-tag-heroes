@@ -1,5 +1,5 @@
 <template>
-  <nav class="w-full h-16 bg-white shadow-md flex items-center">
+  <nav class="w-full min-h-16 bg-white border-b border-gray-200 shadow-sm flex items-center">
     <div v-if="loading" class="flex justify-center items-center w-full h-16">
       <Icon
         :name="loadingHexagon"
@@ -8,7 +8,7 @@
       <span class="ml-2 text-gray-500">Loading...</span>
     </div>
 
-    <div v-else class="w-full flex justify-between items-center px-1 py-1 flex-nowrap overflow-x-auto">
+    <div v-else class="w-full max-w-[2560px] mx-auto flex flex-wrap justify-between items-center gap-x-6 gap-y-2 px-4 py-2 text-sm">
       <UModal v-model="isXPModalOpen">
         <div class="p-8 bg-white rounded-xl shadow-2xl flex flex-col items-center text-center space-y-6 max-w-2xl w-full animate-fade-in scale-105 relative">
 
@@ -245,6 +245,7 @@
         <span>{{ link.label }}</span>
       </div>
 
+      <div class="flex items-center gap-4">
       <div>Your Top SDGs:</div>
       <div
         v-for="(link, index) in links.slice(3)"
@@ -268,6 +269,7 @@
               {{ link.label }}
             </span>
         </NuxtLink>
+      </div>
       </div>
 
       <!-- Right Section: Avatar -->
@@ -333,7 +335,7 @@
           <div class="drawer-side">
             <label for="drawer-help" aria-label="close sidebar" class="drawer-overlay"></label>
 
-            <div class="menu bg-base-200 text-base-content min-h-full w-1/5 p-4 flex flex-col items-center">
+            <div class="menu bg-base-200 text-base-content min-h-full w-[min(32rem,90vw)] p-4 flex flex-col items-center">
               <UDivider label="SDG Cheatsheet" size="xl" />
               <SDGSelectorHelp></SDGSelectorHelp>
               <UDivider label="How to Label" size="xl" />
