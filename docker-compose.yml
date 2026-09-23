@@ -241,6 +241,8 @@ services:
       context: .
       dockerfile: deploy/frontend.Dockerfile
     container_name: frontend
+    environment:
+      HMR_CLIENT_PORT: 3030
     ports:
       - "3030:3000"
     volumes:

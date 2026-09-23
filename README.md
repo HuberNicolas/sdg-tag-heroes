@@ -74,7 +74,7 @@ Other features:
 ```
                      ┌──────────────────────────────┐
                      │  Frontend (Nuxt 3, Vue 3)    │  localhost:3000
-                     │  frontend2/                  │
+                     │  frontend/                   │
                      └──────────────┬───────────────┘
                                     │ REST + JWT
                      ┌──────────────▼───────────────┐
@@ -121,8 +121,7 @@ Other features:
 | [`alembic/`](alembic)                         | Database migrations                                                              |
 | [`pipeline/`](pipeline)                       | Data pipeline: ZORA harvesting, SDG prediction, embedding, UMAP (Prefect flow)   |
 | [`utils/`](utils)                             | Loader scripts for MariaDB/MongoDB/Qdrant, backup/restore scripts, logger        |
-| [`frontend2/`](frontend2)                     | **The frontend in use** (Nuxt 3, Nuxt UI 2, Tailwind 3, D3, Pinia)               |
-| [`frontend/`](frontend)                       | An unfinished upgrade of the frontend (Nuxt UI 3, Tailwind 4); does not work yet |
+| [`frontend/`](frontend)                       | Nuxt 3 frontend (Nuxt UI 2, Tailwind 3, daisyUI 4, D3, Pinia)                    |
 | [`nuxt-app/`](nuxt-app)                       | An empty Nuxt starter, unused                                                    |
 | [`deploy/`](deploy)                           | Dockerfiles and container entrypoints                                            |
 | [`env/`](env)                                 | Environment files (only `*.example` templates are committed)                     |
@@ -192,8 +191,8 @@ The API image copies `data/api/` at build time (the trained UMAP models), and se
 docker compose up -d --build api mariadb phpmyadmin mongodb mongo-express qdrantdb couchdb redisdb
 ```
 
-Name the services explicitly as shown. `docker compose --profile prod up` would also try to build the `backend` and
-`frontend` services, which currently fail (see [Known issues](#known-issues)).
+Name the services explicitly as shown. `docker compose --profile prod up` would also try to build the `backend`
+service, which fails (see [Known issues](#known-issues)).
 
 Check that the API is up and connected to all databases:
 
@@ -222,15 +221,28 @@ models, simulated players). They are described in order in [Building the dataset
 
 ### 6. Start the frontend
 
-```bash
-cd frontend2
-```
+The frontend reads the API address from `frontend/.env`:
 
 ```bash
-cp .env.example .env
+cp frontend/.env.example frontend/.env
 ```
 
-Set `API_URL=http://localhost:1002` in `frontend2/.env`, then:
+Set `API_URL=http://localhost:1002` in `frontend/.env`. Then start the frontend either in Docker or on your machine.
+
+**In Docker** (hot reload included):
+
+```bash
+docker compose up -d --build frontend
+```
+
+Open <http://localhost:3030>. After changing `frontend/package.json`, rebuild with
+`docker compose up -d --build --force-recreate -V frontend`, so the container gets fresh `node_modules`.
+
+**On your machine** (Node.js 20 or newer):
+
+```bash
+cd frontend
+```
 
 ```bash
 npm install
@@ -240,7 +252,9 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:3000> and log in with one of the accounts from `env/users.env`.
+Open <http://localhost:3000>.
+
+Log in with one of the accounts from `env/users.env`.
 
 ### Stop everything
 
@@ -265,7 +279,7 @@ All services run in the Docker network `sdg-tag-heroes-net` (`10.5.0.0/24`).
 | `couchdb`       | `couchdb-database` | 2004      | prod, pipeline | Document database; UI at `/_utils`          |
 | `redisdb`       | `redisdb-database` | 2005      | prod, pipeline | Key-value store                             |
 | `redis-insight` | `redis-insight`    | 2055      | prod, pipeline | Redis web UI                                |
-| `frontend`      | `frontend`         | 3030      | prod           | Nuxt dev server in Docker (see issues)      |
+| `frontend`      | `frontend`         | 3030      | prod           | Nuxt dev server with hot reload             |
 | `pipeline`      | `pipeline`         | 1004      | pipeline       | Pipeline service                            |
 | `prefect`       | `prefect-server`   | 4000      | pipeline       | Prefect UI and orchestration                |
 | `portainer`     | `portainer`        | 1000      | prod           | Docker management UI                        |
@@ -632,8 +646,11 @@ More detailed notes are in [`docs/`](docs):
 
 ## Known issues
 
-- There are two frontend folders. `frontend2/` is the working one; `frontend/` is an unfinished upgrade. The `frontend`
-  Docker service still mounts `frontend/`, so run the frontend locally with `npm run dev` as described above.
+- An attempt to upgrade the frontend to Nuxt UI 3, Tailwind 4, and daisyUI 5 was not finished. It is kept on the
+  branch `archive/frontend-nuxt-ui-3`.
+- The frontend Docker image installs from `package.json` without the lockfile, so it can get newer package versions
+  than a local `npm install`.
+- The title on the start page is white and disappears in light mode.
 - The `backend` service in `docker-compose.yml` refers to a `backend/` folder that no longer exists. Do not start it.
 - `nuxt-app/` is an unused starter project.
 - Several dataset scripts import modules that were moved or renamed:

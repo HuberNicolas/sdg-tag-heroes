@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: "2024-04-03",
   devtools: {
     enabled: false,
     timeline: {
@@ -9,14 +9,13 @@ export default defineNuxtConfig({
   },
   ssr: false,
   modules: [
-    '@nuxt/eslint',
-    '@nuxt/fonts',
-    '@nuxt/icon',
-    '@nuxt/image',
-    '@nuxt/ui',
-
-    //"@nuxtjs/color-mode",
+    "@nuxt/fonts",
+    "@nuxt/ui",
+    "@nuxtjs/color-mode",
+    "@nuxt/eslint",
+    "@nuxt/content",
     "nuxt-svgo",
+    "@nuxt/image",
     '@pinia/nuxt',
     'nuxt-particles'
   ],
@@ -33,10 +32,15 @@ export default defineNuxtConfig({
       watch: {
         usePolling: true,
       },
-      hmr: {
-        clientPort: 3030 // Host's port
-      }
+      // In Docker, the browser reaches the dev server through the host port (see docker-compose.yml)
+      hmr: process.env.HMR_CLIENT_PORT
+        ? { clientPort: Number(process.env.HMR_CLIENT_PORT) }
+        : undefined
     }
+  },
+  content: {
+    // https://content.nuxt.com/get-started/configuration#watch
+    watch: false
   },
   runtimeConfig: {
     public: {
@@ -82,4 +86,4 @@ export default defineNuxtConfig({
     }
   },
   watch: ['composables/**/*.ts', 'components/**/*.vue'], // does not trigger new build
-})
+});

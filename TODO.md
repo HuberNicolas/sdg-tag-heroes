@@ -33,14 +33,22 @@ published.
 
 ## 3. Clean up the frontend
 
-- [ ] Decide between `frontend2/` (working: Nuxt UI 2, Tailwind 3, daisyUI 4) and `frontend/` (unfinished upgrade:
-  Nuxt UI 3, Tailwind 4, daisyUI 5)
-- [ ] Compare the files that differ (`app.vue`, `pages/labeling/[publicationId].vue`, configs) and keep any newer changes
-- [ ] Keep one folder named `frontend/` and archive the other
-- [ ] Update the `frontend` service in `docker-compose.yml` and `deploy/frontend*.Dockerfile`
-  (`frontend.prod.Dockerfile` expects a `pnpm-lock.yaml`)
+- [x] Decide between `frontend2/` and `frontend/`: kept `frontend2/` (Nuxt UI 2, Tailwind 3, daisyUI 4). The upgrade
+  to Nuxt UI 3 / Tailwind 4 / daisyUI 5 had only changed the configs; 24 components still used the old API.
+- [x] Compare the files that differ: only configs, `app.vue`, and one unused import
+- [x] Keep one folder named `frontend/`; the upgrade is on the branch `archive/frontend-nuxt-ui-3`
+- [x] Docker `frontend` service runs the working frontend; HMR port only set in Docker (`HMR_CLIENT_PORT`)
+- [x] Update the README
+- [ ] Log in and click through all pages (locally and in Docker)
+- [ ] Install from the lockfile in `deploy/frontend.Dockerfile` (`npm ci`); the container currently gets Nuxt 3.21
+  instead of the locked 3.15
+- [ ] Fix `deploy/frontend.prod.Dockerfile` (expects `pnpm-lock.yaml`, final stage uses Node 16)
+- [ ] Start page: `layout: 'empty'` does not exist (`layouts/` has `default` and `none`)
+- [ ] Start page: the white title disappears in light mode (daisyUI picks the `black` theme from the system setting,
+  Nuxt color mode is `light`)
+- [ ] Clean up build warnings: duplicated auto-imports `createBarPlot` and `createScatterPlot`, missing
+  `assets/icons/` components directory, `defineProps`/`defineEmits` imports
 - [ ] Decide what to do with `nuxt-app/` (empty starter)
-- [ ] Update the README
 
 ## 4. Fix the dataset scripts
 
@@ -54,6 +62,8 @@ published.
 ## 5. Other cleanup
 
 - [ ] Stop logging the plaintext password on a failed login (`api/app/routes/authentication.py`)
+- [ ] Return 401 instead of 500 when a token is invalid (e.g. `GET /sdgs`, `/banks/latest`, `/wallets/latest` wrap the
+  `HTTPException` in a 500)
 - [ ] Remove the `backend` service from `docker-compose.yml` (the `backend/` folder no longer exists)
 - [ ] Update the port table in `docs/docker.md`
 - [ ] Add example env files for `portainer.env` and `redisinsight.env`
