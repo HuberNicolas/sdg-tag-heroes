@@ -1,5 +1,5 @@
 <template>
-  <div class="frame-container">
+  <div class="frame-container flex flex-col">
     <div class="frame-title"><b>Browse & Compare:</b> Review Your Selected Publications in the <b>Publication Table</b></div>
 
     <div>
@@ -11,7 +11,7 @@
       </UModal>
     </div>
 
-    <div class="max-h-[600px] overflow-y-auto h-full">
+    <div class="flex-1 min-h-0 max-h-[70vh] xl:max-h-none overflow-auto">
       <!-- Scrollable container -->
       <table
         class="w-full border-collapse"

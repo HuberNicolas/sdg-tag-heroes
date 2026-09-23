@@ -1,60 +1,44 @@
 <template>
-  <div class="flex-1 h-full overflow-hidden">
-
-
-    <div class="grid grid-rows-12 grid-cols-10 h-full">
-        <div class="row-span-5 col-span-5 p-1">
-
-          <div class="grid grid-rows-10 grid-cols-6 h-full gap-0">
-            <div class="row-span-6 col-span-6">
-              <div class="frame-title"><b>Find a set of interesting publications: </b></div>
-              <CollectionSelector></CollectionSelector>
-            </div>
-            <div class="row-span-2 col-span-4">
-              <QuestSection></QuestSection>
-            </div>
-            <div class="row-span-2 col-span-2">
-              <ExplorationUserQuery></ExplorationUserQuery>
-            </div>
-          </div>
+  <!-- From xl on, the page fills the window: map and table take the remaining height.
+       Below xl, the panels stack and the page scrolls. -->
+  <div class="min-h-full xl:h-full grid grid-cols-1 xl:grid-cols-2 gap-3 p-3">
+    <!-- Left: find publications and explore the map -->
+    <div class="flex flex-col gap-3 min-h-0">
+      <div class="flex-none">
+        <div class="frame-title"><b>Find a set of interesting publications: </b></div>
+        <CollectionSelector />
+        <div class="mt-3 grid grid-cols-1 2xl:grid-cols-5 gap-3">
+          <QuestSection class="2xl:col-span-3" />
+          <ExplorationUserQuery class="2xl:col-span-2" />
         </div>
-
-        <div class="row-span-4 col-span-5 p-1">
-          <div class="grid grid-rows-11 grid-cols-3 h-full">
-            <div class="row-span-1 col-span-3 "> <div class="frame-title"><b>Summarize</b> Your Selection: Explore Machine Label Predictions & XP Distribution in the <b>Summary Panel</b></div></div>
-            <div class="row-span-5 col-span-1 ">
-              <div class="flex justify-center">
-                <FilterState></FilterState>
-              </div>
-            </div>
-            <div class="row-span-10 col-span-2 ">
-              <div class="flex justify-center">
-                <RainPlotExploration />
-              </div>
-            </div>
-            <div class="row-span-5 col-span-1 ">
-              <BarPlot />
-            </div>
-          </div>
-        </div>
-
-        <div class="row-span-9 col-span-5 p-1">
-          <PublicationsTable></PublicationsTable>
-        </div>
-
-        <div class="row-span-5 col-span-5 p-1">
-          <ScatterSDGPlot
-            v-if="selectedSDG !== null && selectedLevel !== null"
-            :width="scatterPlotWidth"
-            :height="scatterPlotHeight"/>
-        </div>
-
-      <div class="col-span-5 p-1">
-        <ScatterPlotLegend></ScatterPlotLegend>
       </div>
 
-      </div>
+      <ScatterSDGPlot
+        v-if="selectedSDG !== null && selectedLevel !== null"
+        class="flex-1 min-h-[18rem]"
+      />
+
+      <ScatterPlotLegend class="flex-none" />
     </div>
+
+    <!-- Right: summary of the selection and the publication table -->
+    <div class="flex flex-col gap-3 min-h-0">
+      <div class="flex-none">
+        <div class="frame-title"><b>Summarize</b> Your Selection: Explore Machine Label Predictions & XP Distribution in the <b>Summary Panel</b></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div class="flex flex-col gap-3">
+            <FilterState />
+            <BarPlot />
+          </div>
+          <div class="lg:col-span-2">
+            <RainPlotExploration />
+          </div>
+        </div>
+      </div>
+
+      <PublicationsTable class="flex-1 min-h-[20rem]" />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -99,33 +83,10 @@ watch(
 );
 
 
-// Track dimensions for ScatterPlot
-const scatterPlotWidth = ref(0);
-const scatterPlotHeight = ref(0);
-
-const rainPlotWidth = ref(0);
-const rainPlotHeight = ref(0);
-
-const barPlotWidth = ref(0);
-const barPlotHeight = ref(0);
 
 onMounted(() => {
   gameStore.setQuadrant(Quadrant.MANY_PUBS_ONE_SDG);
   gameStore.setStage(Stage.EXPLORING);
-  const mapContainer = document.querySelector('.row-span-4.col-span-4');
-  if (mapContainer) {
-    scatterPlotWidth.value = mapContainer.clientWidth;
-    scatterPlotHeight.value = mapContainer.clientHeight;
-  }
-
-  const optionContainer = document.querySelector('.row-span-2.col-span-4');
-  if (optionContainer) {
-    barPlotWidth.value = optionContainer.clientWidth;
-    barPlotHeight.value = optionContainer.clientHeight;
-
-    rainPlotWidth.value = optionContainer.clientWidth / 3; // 1/3 of container width
-    rainPlotHeight.value = optionContainer.clientHeight / 3; // 1/3 of container height
-  }
 });
 </script>
 

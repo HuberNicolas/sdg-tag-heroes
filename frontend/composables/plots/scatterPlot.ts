@@ -73,11 +73,15 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     );
 
     console.log(publicationsData)
-    let combinedData = dimensionalityReductionsData.map((reduction, index) => ({
-      dimensionalityReduction: reduction,
-      publication: filteredPublicationsData[index],
-      sdgPrediction: sdgPredictionsData[index],
-    }));
+    // Join by publication id: the publications are filtered by the selected topics,
+    // so their positions no longer line up with the reductions
+    let combinedData = dimensionalityReductionsData
+      .map((reduction) => ({
+        dimensionalityReduction: reduction,
+        publication: filteredPublicationsData.find(pub => pub.publicationId === reduction.publicationId),
+        sdgPrediction: sdgPredictionsData.find(pred => pred.publicationId === reduction.publicationId),
+      }))
+      .filter(d => d.publication && d.sdgPrediction);
 
     console.log(combinedData);
 
@@ -138,8 +142,10 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
     const layout = {
       title: ``, //`Scatter Plot for Level ${level}`,
       type: 'scattergl',
-      width: width,
-      height: height,
+      // Fill the container; the component resizes the plot when the container changes
+      autosize: true,
+      width: width || undefined,
+      height: height || undefined,
       //margin: { t: 40, r: 20, b: 40, l: 40 },
       xaxis: { visible: false },
       yaxis: { visible: false },
@@ -350,9 +356,14 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
 
 
       // Identify collections used in scenario publications but not yet selected
-      const missingCollections = scenarioPublicationsData
-        .filter(pub => pub.collectionId && !selectedCollectionIds.has(pub.collectionId)) // Find missing ones
-        .map(pub => pub.collectionId);
+      // Collections of scenario publications that are not selected yet. Store the collection
+      // objects (not just ids), otherwise they count as missing again and the watcher loops.
+      const missingCollectionIds = new Set(
+        scenarioPublicationsData
+          .filter(pub => pub.collectionId && !selectedCollectionIds.has(pub.collectionId))
+          .map(pub => pub.collectionId)
+      );
+      const missingCollections = collectionsStore.collections.filter(c => missingCollectionIds.has(c.collectionId));
 
       if (missingCollections.length > 0) {
         console.log("Adding missing scenario collections:", missingCollections);

@@ -261,6 +261,9 @@ watch(
 );
 
 // Lifecycle hooks
+// Redraw when the container changes size (window resize, layout changes)
+useRedrawOnResize(chartContainer, updateChart);
+
 onMounted(() => {
   updateChart();
 });

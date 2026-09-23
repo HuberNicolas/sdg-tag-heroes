@@ -343,6 +343,9 @@ const updateChart = () => {
 watch(() => sdgPredictionsStore.selectedPartitionedSDGPredictions, updateChart, { deep: true });
 
 // Initialize chart
+// Redraw when the container changes size (window resize, layout changes)
+useRedrawOnResize(chartContainer, updateChart);
+
 onMounted(() => {
   updateChart();
 });
