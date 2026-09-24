@@ -205,5 +205,12 @@ def fetch_embeddings_from_qdrant(publications):
         return []
 
 
-# Call the function
-create_dimensionality_reductions()
+def main():
+
+
+    # Call the function
+    create_dimensionality_reductions()
+
+
+if __name__ == "__main__":
+    main()

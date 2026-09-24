@@ -74,4 +74,11 @@ def load_data_from_json(file_path):
     # Commit the session to save data
     session.commit()
 
-load_data_from_json('./data/db/full_dataset_clusters.json')
+
+def main():
+
+    load_data_from_json('./data/db/full_dataset_clusters.json')
+
+
+if __name__ == "__main__":
+    main()

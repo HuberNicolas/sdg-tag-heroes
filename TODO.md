@@ -67,7 +67,8 @@ published.
 - [x] Reducer: use `is_dim_reduced` and set `sdg`/`level` (required columns)
 - [ ] Aurora predictors need TensorFlow 2.11: add it to `pipeline/pyproject.toml` (or a separate environment) and
   test `predictor.py` / `target_predictor.py`
-- [ ] Wrap the loader scripts in `main()` functions: many run on import and some drop their target database
+- [x] Wrap the loader scripts in `main()` functions (19 scripts ran on import, some dropped their database);
+  verified with a full dummy run and by importing the MongoDB loaders without effect
 - [x] Run the whole dataset build end to end with the dummy dataset. Fixed on the way: Qdrant rejected the collector's
   placeholder prediction (silently), UMAP level numbering after skipped ranges, BERTopic `min_df` for few topics,
   required SDG columns, API crashing without CouchDB/Redis

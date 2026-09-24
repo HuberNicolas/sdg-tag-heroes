@@ -100,6 +100,13 @@ def load_sdg_label_data(file_path, batch_size=100):
             session.commit()
             print(f"Committed final batch of {len(data_summary)} SDG label summaries.")
 
-# Call the loader with the file path
-file_path = "./data/db/sdg_label_summary.txt"
-load_sdg_label_data(file_path, batch_size=500)
+
+def main():
+
+    # Call the loader with the file path
+    file_path = "./data/db/sdg_label_summary.txt"
+    load_sdg_label_data(file_path, batch_size=500)
+
+
+if __name__ == "__main__":
+    main()

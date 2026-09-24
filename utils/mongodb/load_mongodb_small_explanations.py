@@ -13,40 +13,47 @@ source_collection_name = 'explanations'
 # The collection the API reads the explanations from
 target_collection_name = MongoDBSDGSettings.DB_COLLECTION_NAME
 
-# Create a new connection to the database
-db = client[db_name]
-source_collection = db[source_collection_name]
 
-# Start from an empty target collection, otherwise a second run duplicates every document
-db.drop_collection(target_collection_name)
-target_collection = db[target_collection_name]
+def main():
 
-# Iterate through documents in the source collection
-for document in tqdm(source_collection.find()):
-    # Calculate the size of the original document
-    original_size = len(BSON.encode(document))
+    # Create a new connection to the database
+    db = client[db_name]
+    source_collection = db[source_collection_name]
 
-    # Copy the document to preserve all fields
-    reduced_document = document.copy()
+    # Start from an empty target collection, otherwise a second run duplicates every document
+    db.drop_collection(target_collection_name)
+    target_collection = db[target_collection_name]
 
-    # Round each number in the nested lists of token_scores
-    token_scores = document.get("token_scores", [])
-    token_scores_reduced = [
-        [int(f"{round(10000*num)}") for num in sublist] for sublist in token_scores
-    ]
+    # Iterate through documents in the source collection
+    for document in tqdm(source_collection.find()):
+        # Calculate the size of the original document
+        original_size = len(BSON.encode(document))
 
-    # Update the token_scores field in the copied document
-    reduced_document["token_scores"] = token_scores_reduced
+        # Copy the document to preserve all fields
+        reduced_document = document.copy()
 
-    # Calculate the size of the modified document
-    reduced_size = len(BSON.encode(reduced_document))
-    # Insert the modified document into the target collection
-    target_collection.insert_one(reduced_document)
+        # Round each number in the nested lists of token_scores
+        token_scores = document.get("token_scores", [])
+        token_scores_reduced = [
+            [int(f"{round(10000*num)}") for num in sublist] for sublist in token_scores
+        ]
 
-    if original_size - reduced_size > 0:
-        print(f"Processed Zora OAI: {document.get('id')} - Original ID: {document.get('_id')} | Size Reduction: {original_size - reduced_size} bytes")
-    #print(f"Original Document Size: {original_size} bytes")
-    #print(f"Reduced Document Size: {reduced_size} bytes")
-    #print(f"Size Reduction: {original_size - reduced_size} bytes")
+        # Update the token_scores field in the copied document
+        reduced_document["token_scores"] = token_scores_reduced
 
-print(f"All documents processed and uploaded to '{target_collection_name}'.")
+        # Calculate the size of the modified document
+        reduced_size = len(BSON.encode(reduced_document))
+        # Insert the modified document into the target collection
+        target_collection.insert_one(reduced_document)
+
+        if original_size - reduced_size > 0:
+            print(f"Processed Zora OAI: {document.get('id')} - Original ID: {document.get('_id')} | Size Reduction: {original_size - reduced_size} bytes")
+        #print(f"Original Document Size: {original_size} bytes")
+        #print(f"Reduced Document Size: {reduced_size} bytes")
+        #print(f"Size Reduction: {original_size - reduced_size} bytes")
+
+    print(f"All documents processed and uploaded to '{target_collection_name}'.")
+
+
+if __name__ == "__main__":
+    main()

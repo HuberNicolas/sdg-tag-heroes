@@ -425,8 +425,8 @@ input, and in which order to run the scripts. If you have a backup, [restoring i
 faster.
 
 > [!WARNING]
-> Many loader scripts run as soon as they are executed and some **drop the database or collection** they fill first
-> (for example all scripts in `utils/mongodb/`). Run them only against a database you can rebuild.
+> Some loader scripts **drop the database or collection** they fill first (for example all scripts in
+> `utils/mongodb/`). Run them only against a database you can rebuild.
 
 ### Overview
 

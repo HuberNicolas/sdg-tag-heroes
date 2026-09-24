@@ -31,95 +31,10 @@ LIMIT = 5000
 # Step 1: Query Publications and Dimensionality Reduction Data
 shorthand_filter = "UMAP-30-0.1-2"
 
-# Fetch publications matching the shorthand
-results = (
-    db.query(Publication, DimensionalityReduction)
-    .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
-    #.filter(DimensionalityReduction.reduction_shorthand == shorthand_filter)
-    .limit(LIMIT)
-    .all()
-)
-
-if not results:
-    raise ValueError("No publications found with the specified shorthand.")
-
-# Extract publication data and shorthand predictions
-publications = [{"id": pub.publication_id, "description": pub.description, "title": pub.title} for pub, _ in results]
-dim_reductions = {pub.publication_id: {"x": dr.x_coord, "y": dr.y_coord, "shorthand": dr.reduction_shorthand} for pub, dr in results}
-
-# Step 2: Fetch Embeddings from Qdrant
-publication_ids = [pub["id"] for pub in publications]
-
-# Create filter condition for Qdrant
-filter_condition = Filter(
-    must=[
-        FieldCondition(
-            key="sql_id",
-            match=MatchAny(any=publication_ids),
-        )
-    ]
-)
-
-# Query embeddings from Qdrant
-result = qdrantdb_client.scroll(
-    collection_name="publications-mt",
-    scroll_filter=filter_condition,
-    limit=100000000,  # Replace with appropriate limit
-    with_payload=True,
-    with_vectors=True,
-)
-
-publications_qdrant = result[0]
-
-# Step 3: Merge SQL Data with Qdrant Embeddings
-# Create a dictionary of embeddings for quick lookup
-embeddings_dict = {pub.payload["sql_id"]: pub.vector["content"] for pub in publications_qdrant}
-
-# Merge data
-merged_data = []
-for pub in publications:
-    pub_id = pub["id"]
-    if pub_id in embeddings_dict:
-        merged_data.append({
-            "id": pub_id,
-            "description": pub["description"],
-            "title": pub["title"],
-            "x": dim_reductions[pub_id]["x"],
-            "y": dim_reductions[pub_id]["y"],
-            "shorthand": dim_reductions[pub_id]["shorthand"],
-            "embedding": embeddings_dict[pub_id]
-        })
-
-if not merged_data:
-    raise ValueError("No matching publications and embeddings found.")
-
 class PubWrapper:
     def __init__(self, data):
         self.title = data.get("title")
         self.description = data.get("description")
-
-# Step 4: Extract Separate Lists for Model Input
-# Use ENCODER_CONTENT_PATTERN to create formatted content
-
-content_pattern = embeddings_settings.ENCODER_CONTENT_PATTERN
-
-docs = [
-    "\n".join([pattern.format(pub=PubWrapper(item)) for pattern in content_pattern])  # Use the wrapper
-    for item in merged_data
-]  # Combined content for the model
-print(f"Sample document: {docs[0]}")
-
-ids = [item["id"] for item in merged_data]  # Publication IDs
-print(f"Sample id: {ids[0]}")
-
-embeddings = np.array([item["embedding"] for item in merged_data])  # Embeddings as NumPy array
-print(f"Sample embedding: {embeddings[0]}")
-
-dimreds = np.array([[item["x"], item["y"]] for item in merged_data]) # Extract (dimreds) as [[x, y], ...]
-print(f"Sample dimreds: {dimreds[0]}")
-
-
-print(f"Total documents: {len(docs)}, total embeddings: {len(embeddings)}, total ids: {len(ids)}, total embeddings: {len(dimreds)}")
 
 # Topic Modeling Pipeline
 class TopicModelPipeline:
@@ -291,53 +206,144 @@ class TopicModelPipeline:
         }
         return representation_models
 
-tm_pipeline = TopicModelPipeline()
 
-# Combine seed words from all SDGs
-N = 3  # Set the limit for seed words per SDG
-seed_words = [word for sdg in sdgs for word in sdg.seed_words[:N]]
-print(seed_words)
+def main():
 
-topic_model = tm_pipeline.create_topic_model(
-    dim_reduction_params={"n_neighbors": 15 , "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
-    # reduced_dimensions=dimreds,
-    cluster_method_params={"min_cluster_size": 15, "metric": "euclidean", "prediction_data": True},
-    vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
-    ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
-    representation_params={"diversity": 0.5, "candidate_topics": seed_words},
-)
+    # Fetch publications matching the shorthand
+    results = (
+        db.query(Publication, DimensionalityReduction)
+        .join(DimensionalityReduction, Publication.publication_id == DimensionalityReduction.publication_id)
+        #.filter(DimensionalityReduction.reduction_shorthand == shorthand_filter)
+        .limit(LIMIT)
+        .all()
+    )
 
-start = time.time()
-topic_model.fit(docs, embeddings)
-print(f"Fitting took {time.time() - start:.2f}s")
+    if not results:
+        raise ValueError("No publications found with the specified shorthand.")
 
-# Data Export for Visualization
-#topic_model.visualize_documents(docs, embeddings=embeddings)
+    # Extract publication data and shorthand predictions
+    publications = [{"id": pub.publication_id, "description": pub.description, "title": pub.title} for pub, _ in results]
+    dim_reductions = {pub.publication_id: {"x": dr.x_coord, "y": dr.y_coord, "shorthand": dr.reduction_shorthand} for pub, dr in results}
 
-# Step 1: Reduce Dimensionality to 2D
-reduced_embeddings = topic_model._reduce_dimensionality(embeddings=embeddings)
-print(f"Reduced embeddings shape: {reduced_embeddings.shape}")
+    # Step 2: Fetch Embeddings from Qdrant
+    publication_ids = [pub["id"] for pub in publications]
 
-# Ensure the embeddings are 2D
-if reduced_embeddings.shape[1] != 2:
-    reduced_embeddings = reduced_embeddings[:, :2]  # Use only the first two dimensions
+    # Create filter condition for Qdrant
+    filter_condition = Filter(
+        must=[
+            FieldCondition(
+                key="sql_id",
+                match=MatchAny(any=publication_ids),
+            )
+        ]
+    )
 
-# Step 2: Combine with Metadata
-data = pd.DataFrame(reduced_embeddings, columns=["x", "y"])
-data["id"] = ids  # Reuse the passed IDs
-doc_info = topic_model.get_document_info(docs)
-topic_info = topic_model.get_topic_info()
-data["topic"] = doc_info["Topic"]
-data["document"] = docs
-data["keywords"] = doc_info["Representation"]
+    # Query embeddings from Qdrant
+    result = qdrantdb_client.scroll(
+        collection_name="publications-mt",
+        scroll_filter=filter_condition,
+        limit=100000000,  # Replace with appropriate limit
+        with_payload=True,
+        with_vectors=True,
+    )
 
-# Step 3: Export to JSON and CSV
-data_json = data.to_dict(orient="records")
-with open("topic_data.json", "w") as f:
-    json.dump(data_json, f, indent=4)
+    publications_qdrant = result[0]
 
-data.to_csv("topic_data.csv", index=False)
-topic_info.to_csv("topic_info.csv", index=False)
+    # Step 3: Merge SQL Data with Qdrant Embeddings
+    # Create a dictionary of embeddings for quick lookup
+    embeddings_dict = {pub.payload["sql_id"]: pub.vector["content"] for pub in publications_qdrant}
 
-print("Data exported successfully!")
+    # Merge data
+    merged_data = []
+    for pub in publications:
+        pub_id = pub["id"]
+        if pub_id in embeddings_dict:
+            merged_data.append({
+                "id": pub_id,
+                "description": pub["description"],
+                "title": pub["title"],
+                "x": dim_reductions[pub_id]["x"],
+                "y": dim_reductions[pub_id]["y"],
+                "shorthand": dim_reductions[pub_id]["shorthand"],
+                "embedding": embeddings_dict[pub_id]
+            })
 
+    if not merged_data:
+        raise ValueError("No matching publications and embeddings found.")
+
+    # Step 4: Extract Separate Lists for Model Input
+    # Use ENCODER_CONTENT_PATTERN to create formatted content
+
+    content_pattern = embeddings_settings.ENCODER_CONTENT_PATTERN
+
+    docs = [
+        "\n".join([pattern.format(pub=PubWrapper(item)) for pattern in content_pattern])  # Use the wrapper
+        for item in merged_data
+    ]  # Combined content for the model
+    print(f"Sample document: {docs[0]}")
+
+    ids = [item["id"] for item in merged_data]  # Publication IDs
+    print(f"Sample id: {ids[0]}")
+
+    embeddings = np.array([item["embedding"] for item in merged_data])  # Embeddings as NumPy array
+    print(f"Sample embedding: {embeddings[0]}")
+
+    dimreds = np.array([[item["x"], item["y"]] for item in merged_data]) # Extract (dimreds) as [[x, y], ...]
+    print(f"Sample dimreds: {dimreds[0]}")
+
+
+    print(f"Total documents: {len(docs)}, total embeddings: {len(embeddings)}, total ids: {len(ids)}, total embeddings: {len(dimreds)}")
+
+    tm_pipeline = TopicModelPipeline()
+
+    # Combine seed words from all SDGs
+    N = 3  # Set the limit for seed words per SDG
+    seed_words = [word for sdg in sdgs for word in sdg.seed_words[:N]]
+    print(seed_words)
+
+    topic_model = tm_pipeline.create_topic_model(
+        dim_reduction_params={"n_neighbors": 15 , "n_components": 2, "min_dist": 0.0, "metric": "cosine"},
+        # reduced_dimensions=dimreds,
+        cluster_method_params={"min_cluster_size": 15, "metric": "euclidean", "prediction_data": True},
+        vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
+        ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
+        representation_params={"diversity": 0.5, "candidate_topics": seed_words},
+    )
+
+    start = time.time()
+    topic_model.fit(docs, embeddings)
+    print(f"Fitting took {time.time() - start:.2f}s")
+
+    # Data Export for Visualization
+    #topic_model.visualize_documents(docs, embeddings=embeddings)
+
+    # Step 1: Reduce Dimensionality to 2D
+    reduced_embeddings = topic_model._reduce_dimensionality(embeddings=embeddings)
+    print(f"Reduced embeddings shape: {reduced_embeddings.shape}")
+
+    # Ensure the embeddings are 2D
+    if reduced_embeddings.shape[1] != 2:
+        reduced_embeddings = reduced_embeddings[:, :2]  # Use only the first two dimensions
+
+    # Step 2: Combine with Metadata
+    data = pd.DataFrame(reduced_embeddings, columns=["x", "y"])
+    data["id"] = ids  # Reuse the passed IDs
+    doc_info = topic_model.get_document_info(docs)
+    topic_info = topic_model.get_topic_info()
+    data["topic"] = doc_info["Topic"]
+    data["document"] = docs
+    data["keywords"] = doc_info["Representation"]
+
+    # Step 3: Export to JSON and CSV
+    data_json = data.to_dict(orient="records")
+    with open("topic_data.json", "w") as f:
+        json.dump(data_json, f, indent=4)
+
+    data.to_csv("topic_data.csv", index=False)
+    topic_info.to_csv("topic_info.csv", index=False)
+
+    print("Data exported successfully!")
+
+
+if __name__ == "__main__":
+    main()

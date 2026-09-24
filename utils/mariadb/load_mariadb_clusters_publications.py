@@ -71,6 +71,13 @@ def load_publication_clusters(file_path, batch_size=100):
             print(f"Committed final batch of {len(data)} records.")
 
 
-# Call the function with your file path
-file_path = "./data/db/publications_clusters.txt"
-load_publication_clusters(file_path, 500)
+def main():
+
+
+    # Call the function with your file path
+    file_path = "./data/db/publications_clusters.txt"
+    load_publication_clusters(file_path, 500)
+
+
+if __name__ == "__main__":
+    main()

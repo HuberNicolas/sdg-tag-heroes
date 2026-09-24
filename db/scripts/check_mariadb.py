@@ -13,14 +13,6 @@ Session = sessionmaker(bind=engine)
 def log_table_creation(target, connection, **kwargs):
     print(f"Table '{target.name}' has been created.")
 
-# Attach the 'after_create' event to all tables dynamically
-for table_name, table_class in Base.registry._class_registry.items():
-    if hasattr(table_class, '__table__'):
-        event.listen(table_class.__table__, 'after_create', log_table_creation)
-
-# Ensure tables are created
-Base.metadata.create_all(engine)
-
 # Print success message and table details
 def print_table_summary(engine, session):
     print("\nSuccess! Database tables are set up.")
@@ -41,5 +33,20 @@ def print_table_summary(engine, session):
 
     print(f"\nTotal of {table_counter} tables.")
 
-# Use a new session for fetching row counts
-print_table_summary(engine, Session)
+
+def main():
+
+    # Attach the 'after_create' event to all tables dynamically
+    for table_name, table_class in Base.registry._class_registry.items():
+        if hasattr(table_class, '__table__'):
+            event.listen(table_class.__table__, 'after_create', log_table_creation)
+
+    # Ensure tables are created
+    Base.metadata.create_all(engine)
+
+    # Use a new session for fetching row counts
+    print_table_summary(engine, Session)
+
+
+if __name__ == "__main__":
+    main()

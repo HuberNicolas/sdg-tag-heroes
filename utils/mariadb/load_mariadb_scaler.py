@@ -12,7 +12,6 @@ PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
 
 Session = sessionmaker(bind=mariadb_engine)
 session = Session()
-Base.metadata.create_all(mariadb_engine)
 
 
 
@@ -78,4 +77,12 @@ def create_scaled_predictions():
         session.close()
 
 
-create_scaled_predictions()
+def main():
+    Base.metadata.create_all(mariadb_engine)
+
+
+    create_scaled_predictions()
+
+
+if __name__ == "__main__":
+    main()

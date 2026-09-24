@@ -46,5 +46,12 @@ def load_sdgs_ranks_from_json(file_path):
     session.commit()
 
 
-# Call the function to load data from JSON file into the SDGRank table
-load_sdgs_ranks_from_json('./data/ranks/sdg_ranks.json')
+def main():
+
+
+    # Call the function to load data from JSON file into the SDGRank table
+    load_sdgs_ranks_from_json('./data/ranks/sdg_ranks.json')
+
+
+if __name__ == "__main__":
+    main()
