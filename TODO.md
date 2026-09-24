@@ -60,6 +60,9 @@ published.
   `assets/icons/` components directory, `defineProps`/`defineEmits` imports, `size="sm"` on `UCheckbox`, chunk size
   warning for Plotly. Only the outdated Browserslist data remains (updating it changes the lockfile)
 - [x] Remove `nuxt-app/` (empty starter)
+- [x] Lint and format the Python code with Ruff (`ruff.toml`); fixed on the way: two `Config` classes in
+  `schemas/gpt_assistant_service.py` were not indented into their schema
+- [ ] Unused local variables (Ruff F841, about 110) are ignored for now; clean them up when touching the code
 - [ ] Fix the ESLint findings (`npm run lint`: about 380, of which `npm run lint:fix` fixes about 260)
 
 ## 4. Fix the dataset scripts

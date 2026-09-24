@@ -1,0 +1,30 @@
+# Ruff: linter and formatter for all Python code (replaces Black, isort and Flake8).
+#   uvx ruff check .      lint
+#   uvx ruff format .     format
+# The rules are deliberately basic: errors and import order, no style modernisation.
+
+target-version = "py310"
+line-length = 120
+extend-exclude = ["notebooks", "frontend", "data", "alembic/versions"]
+
+[lint]
+# pycodestyle errors, Pyflakes, import sorting
+select = ["E4", "E7", "E9", "F", "I"]
+ignore = [
+    "E402",  # scripts set up paths and environment variables before some imports
+    "E711",  # SQLAlchemy filters need "== None" ...
+    "E712",  # ... and "== True" / "== False"
+    "F841",  # unused local variables; harmless, clean up when touching the code
+]
+
+[lint.per-file-ignores]
+# Package __init__ files re-export their modules
+"__init__.py" = ["F401", "F403"]
+# Relationships and nested schemas refer to other classes by name, as strings ("Admin", "SDGTargetSchemaBase")
+"models/**" = ["F821"]
+"schemas/**" = ["F821"]
+
+[lint.isort]
+known-first-party = [
+    "api", "db", "enums", "models", "pipeline", "request_models", "schemas", "services", "settings", "utils",
+]

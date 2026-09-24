@@ -16,7 +16,7 @@ There are two [Poetry](https://python-poetry.org/) projects, both for **Python 3
 | Project                                                    | Used for                                                                                |
 |------------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [`pipeline/pyproject.toml`](../pipeline/pyproject.toml)    | All scripts on your machine: pipeline, UMAP, BERTopic, loaders, fixtures, Alembic       |
-| [`api/pyproject.toml`](../api/pyproject.toml)              | The API container ([`deploy/api.Dockerfile`](../deploy/api.Dockerfile)); also has the Python linters as dev dependencies |
+| [`api/pyproject.toml`](../api/pyproject.toml)              | The API container ([`deploy/api.Dockerfile`](../deploy/api.Dockerfile)); Ruff as dev dependency |
 
 ### Set up the scripts environment
 
@@ -68,24 +68,24 @@ docker compose up -d --build api
 
 ### Python
 
-The code is formatted with [Black](https://black.readthedocs.io/) and [isort](https://pycqa.github.io/isort/) and
-checked with [Flake8](https://flake8.pycqa.org/). They are dev dependencies of `api/pyproject.toml`; without that
-environment, run them with [uvx](https://docs.astral.sh/uv/guides/tools/):
+[Ruff](https://docs.astral.sh/ruff/) lints and formats all Python code; it replaces Black, isort and Flake8. The
+configuration is [`ruff.toml`](../ruff.toml): basic error checks (pycodestyle errors, Pyflakes) and import sorting,
+line length 120, no rules that rewrite the code in a newer style. Run it with
+[uvx](https://docs.astral.sh/uv/guides/tools/), without installing anything:
 
 ```bash
-uvx black <path>
+uvx ruff check .
 ```
 
 ```bash
-uvx isort --profile black <path>
+uvx ruff check --fix .
 ```
 
 ```bash
-uvx flake8 --max-line-length 120 <path>
+uvx ruff format .
 ```
 
-The code base has not been formatted as a whole, so format only the files you change; otherwise the diff hides your
-change.
+Ruff is also a dev dependency of `api/pyproject.toml`. `notebooks/`, `alembic/versions/` and `data/` are excluded.
 
 ### Frontend
 
