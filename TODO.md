@@ -13,11 +13,12 @@ published.
   - [x] ZORA: fictional publications as OAI-PMH files, read with `collector.py --from-dir`
   - [x] SDG-Scout: ground-truth labels and (synthetic) explanations
   - [x] Placeholder SDG icons, SDG texts and rank tiers
-  - [x] Optional abstracts written by Claude (`--mode llm`)
+  - [x] Optional abstracts written by a local model (`--mode ollama`, free) or by Claude (`--mode llm`, paid)
 - [x] Load it with the regular pipeline (`utils/dummy/load_dummy_dataset.py`, one command) and test end to end in an
   isolated Docker network: collector, Dvdblk predictions, Qdrant, UMAP, BERTopic, loaders, fixtures, API, frontend
 - [x] Document in the README how to load the dummy dataset
-- [ ] Generate the dataset with `--mode llm` (costs money; better topics than the template abstracts)
+- [ ] Generate the dataset with `--mode ollama` (free, about 6 hours for 600 papers) or `--mode llm` (costs money);
+  both give better topics than the template abstracts
 - [ ] Publish the generator repository on GitHub
 - [ ] SDG clusters (`full_dataset_clusters.json`) are not generated; they were not used in the deployed version
 - [ ] Only then: remove UZH data from this repository, including its git history
