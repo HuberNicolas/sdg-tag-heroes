@@ -4,8 +4,6 @@ import argparse
 from db.mariadb_connector import conn as mconn
 from db.mongodb_connector import client as mclient
 from db.qdrantdb_connector import client as qclient
-from db.couchdb_connector import client as cclient
-from db.redisdb_connector import client as rclient
 
 # Set up logger
 logging.basicConfig(level=logging.INFO)
@@ -42,8 +40,6 @@ def test_db_connections():
     check_connection(mconn, "MariaDB")
     check_connection(mclient, "MongoDB")
     check_connection(qclient, "QdrantDB")
-    check_connection(cclient, "CouchDB")
-    check_connection(rclient, "RedisDB")
 
 def main():
     # Set up argument parsing to switch between Docker and local simulations

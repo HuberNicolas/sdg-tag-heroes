@@ -65,7 +65,7 @@ Other features:
 |--------------------|--------------|
 | **Frontend**       | ![Nuxt](https://img.shields.io/badge/Nuxt_3-00DC82?logo=nuxt&logoColor=white) ![Vue.js](https://img.shields.io/badge/Vue_3-4FC08D?logo=vuedotjs&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white) ![Nuxt UI](https://img.shields.io/badge/Nuxt_UI-00DC82?logo=nuxt&logoColor=white) ![daisyUI](https://img.shields.io/badge/daisyUI-5A0EF8?logo=daisyui&logoColor=white) ![Pinia](https://img.shields.io/badge/Pinia-FFD859?logo=pinia&logoColor=black) ![D3.js](https://img.shields.io/badge/D3.js-F9A03C?logo=d3dotjs&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?logo=plotly&logoColor=white) |
 | **Backend**        | ![Python](https://img.shields.io/badge/Python_3.10-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white) ![Alembic](https://img.shields.io/badge/Alembic-6BA81E) ![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white) ![Poetry](https://img.shields.io/badge/Poetry-60A5FA?logo=poetry&logoColor=white) |
-| **Databases**      | ![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white) ![Qdrant](https://img.shields.io/badge/Qdrant-DC244C?logo=qdrant&logoColor=white) ![CouchDB](https://img.shields.io/badge/CouchDB-E42528?logo=apachecouchdb&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-FF4438?logo=redis&logoColor=white) |
+| **Databases**      | ![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white) ![Qdrant](https://img.shields.io/badge/Qdrant-DC244C?logo=qdrant&logoColor=white) |
 | **ML and AI**      | ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white) ![Hugging Face](https://img.shields.io/badge/Sentence_Transformers-FFD21E?logo=huggingface&logoColor=black) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![UMAP](https://img.shields.io/badge/UMAP-5A5A5A) ![BERTopic](https://img.shields.io/badge/BERTopic-5A5A5A) ![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4o-412991?logo=openai&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?logo=jupyter&logoColor=white) |
 | **Data pipeline**  | ![Prefect](https://img.shields.io/badge/Prefect-070E10?logo=prefect&logoColor=white) ZORA (OAI-PMH) harvesting, Aurora SDG models |
 | **Infrastructure** | ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white) ![Portainer](https://img.shields.io/badge/Portainer-13BEF9?logo=portainer&logoColor=white) ![Postman](https://img.shields.io/badge/Postman-FF6C37?logo=postman&logoColor=white) |
@@ -93,9 +93,9 @@ Other features:
                         ▲
                         │ fills
             ┌───────────┴──────────────────────────────┐
-            │  Pipeline (Prefect)                      │
-            │  ZORA collector → predictor → loader →   │
-            │  reducer (UMAP)                          │
+            │  Dataset scripts (Python, optional       │
+            │  Prefect flow): ZORA collector →         │
+            │  predictor → embeddings → UMAP → topics  │
             └──────────────────────────────────────────┘
 ```
 
@@ -105,7 +105,6 @@ Other features:
 - **MongoDB** stores the precomputed SDG explanations (per-token attributions shown in the UI).
 - **Qdrant** stores the publication embeddings (`sentence-transformers/all-MiniLM-L6-v2`, 384 dimensions) in the
   collection `publications-mt`, used for similarity search and UMAP.
-- **CouchDB** and **Redis** are started and health-checked by the API, but no feature currently depends on them.
 
 ## Repository structure
 
@@ -134,8 +133,8 @@ Other features:
 - [Docker](https://docs.docker.com/get-docker/) with Docker Compose v2
 - [Node.js](https://nodejs.org/) 20 and npm (for the frontend)
 - An [OpenAI API key](https://platform.openai.com/api-keys) for the GPT features (the rest works without it)
-- Optional, to run the loader scripts and Alembic on your machine: Python **3.10.14** and
-  [Poetry](https://python-poetry.org/) (see [`docs/python-env.md`](docs/python-env.md))
+- To build the dataset (pipeline and loader scripts, Alembic): Python **3.10.14** and
+  [Poetry](https://python-poetry.org/) (see [Running the scripts](#running-the-scripts))
 
 ## Getting started
 
@@ -166,17 +165,9 @@ Then open each file in `env/` and fill in the empty values:
 | `mariadb.env`           | `MYSQL_ROOT_PASSWORD`, `MARIADB_USER`, `MARIADB_PASSWORD` (database name defaults to `igcl`) |
 | `mongodb.env`           | `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`, `MONGODB_HOST=mongodb`           |
 | `mongo-express.env`     | UI login and `ME_CONFIG_MONGODB_URL=mongodb://<user>:<password>@mongodb:27017`               |
-| `couchdb.env`           | `COUCHDB_USER`, `COUCHDB_PASSWORD`                                                           |
-| `redisdb.env`           | `REDIS_USER`, `REDIS_PASSWORD`                                                               |
 | `backend.env`           | `SECRET_KEY` (a long random string used to sign JWTs)                                        |
 | `api.env`               | `OPENAI_API_KEY`                                                                             |
 | `users.env`             | The initial accounts (admin, labeler, expert). **Change the default passwords.**             |
-
-Redis also needs a config file. Copy it and use the same user and password as in `env/redisdb.env`:
-
-```bash
-cp deploy/db/redisdb.conf.example deploy/db/redisdb.conf
-```
 
 If you want to use the Portainer container, also create an empty `env/portainer.env`.
 
@@ -188,11 +179,10 @@ The API image copies `data/api/` at build time (the trained UMAP models), and se
 ### 4. Start the databases and the API
 
 ```bash
-docker compose up -d --build api mariadb phpmyadmin mongodb mongo-express qdrantdb couchdb redisdb
+docker compose up -d --build api mariadb phpmyadmin mongodb mongo-express qdrantdb
 ```
 
-Name the services explicitly as shown. `docker compose --profile prod up` would also try to build the `backend`
-service, which fails (see [Known issues](#known-issues)).
+`docker compose --profile prod up -d --build` starts the same services plus the frontend and Portainer.
 
 Check that the API is up and connected to all databases:
 
@@ -271,22 +261,19 @@ Database contents are stored in `data/docker/` and survive a restart.
 
 All services run in the Docker network `sdg-tag-heroes-net` (`10.5.0.0/24`).
 
-| Service         | Container          | Host port | Profile        | Purpose                                     |
-|-----------------|--------------------|-----------|----------------|---------------------------------------------|
-| `api`           | `api`              | 1002      | prod           | FastAPI backend (hot reload on code change) |
-| `mariadb`       | `mariadb-database` | 2001      | prod, pipeline | Relational database                         |
-| `phpmyadmin`    | `phpmyadmin`       | 2011      | prod, pipeline | MariaDB web UI                              |
-| `mongodb`       | `mongodb-database` | 2002      | prod, pipeline | Document database (SDG explanations)        |
-| `mongo-express` | `mongo-express`    | 2022      | prod, pipeline | MongoDB web UI                              |
-| `qdrantdb`      | `qdrant-database`  | 2003      | prod, pipeline | Vector database; dashboard at `/dashboard`  |
-| `couchdb`       | `couchdb-database` | 2004      | prod, pipeline | Document database; UI at `/_utils`          |
-| `redisdb`       | `redisdb-database` | 2005      | prod, pipeline | Key-value store                             |
-| `redis-insight` | `redis-insight`    | 2055      | prod, pipeline | Redis web UI                                |
-| `frontend`      | `frontend`         | 3030      | prod           | Nuxt dev server with hot reload             |
-| `pipeline`      | `pipeline`         | 1004      | pipeline       | Pipeline service                            |
-| `prefect`       | `prefect-server`   | 4000      | pipeline       | Prefect UI and orchestration                |
-| `portainer`     | `portainer`        | 1000      | prod           | Docker management UI                        |
-| `utils`         | `utils`            | –         | dev, debug     | Shell with MariaDB and MongoDB client tools |
+| Service         | Container          | Host port | Profile    | Purpose                                     |
+|-----------------|--------------------|-----------|------------|---------------------------------------------|
+| `api`           | `api`              | 1002      | prod       | FastAPI backend (hot reload on code change) |
+| `mariadb`       | `mariadb-database` | 2001      | prod       | Relational database                         |
+| `phpmyadmin`    | `phpmyadmin`       | 2011      | prod       | MariaDB web UI                              |
+| `mongodb`       | `mongodb-database` | 2002      | prod       | Document database (SDG explanations)        |
+| `mongo-express` | `mongo-express`    | 2022      | prod       | MongoDB web UI                              |
+| `qdrantdb`      | `qdrant-database`  | 2003      | prod       | Vector database; dashboard at `/dashboard`  |
+| `frontend`      | `frontend`         | 3030      | prod       | Nuxt dev server with hot reload             |
+| `portainer`     | `portainer`        | 1000      | prod       | Docker management UI                        |
+| `utils`         | `utils`            | –         | dev, debug | Shell with MariaDB and MongoDB client tools |
+
+The dataset scripts (pipeline, loaders) do not run in a container; see [Running the scripts](#running-the-scripts).
 
 How to log in to each database UI is described in [`docs/data-related/db.md`](docs/data-related/db.md).
 
@@ -385,35 +372,31 @@ The SDG predictions come from the SciBERT model `Dvdblk` (the Aurora models need
 
 > [!WARNING]
 > Load the dummy dataset only into empty databases. [`utils/dummy/load_dummy_dataset.py`](utils/dummy/load_dummy_dataset.py)
-> refuses to run otherwise: the pipeline phase needs empty databases, and the app phase only runs when every
-> publication in MariaDB comes from the dummy dataset.
+> refuses to run otherwise, and a resumed run only continues when every publication in MariaDB comes from the dummy
+> dataset.
 
 1. Generate the data (see the generator's README; `--mode llm` writes more realistic abstracts with Claude) and copy
    its `output/data/` into `data/`.
-2. Start the databases:
+2. Start the databases and the API:
 
    ```bash
-   PREDICTION_MODEL=Dvdblk docker compose up -d --build api mariadb mongodb qdrantdb couchdb redisdb
+   PREDICTION_MODEL=Dvdblk docker compose up -d --build api mariadb mongodb qdrantdb
    ```
 
-3. Run the pipeline (collector from files, SciBERT predictions, embeddings, UMAP maps, BERTopic topics) in the
-   pipeline container. On a laptop CPU the predictions take 10 to 25 minutes for 600 publications.
+3. Set up the Python environment for the dataset scripts, as described in [Running the scripts](#running-the-scripts).
+4. Run all steps with one command, from the repository root. It runs the regular scripts one after the other: schema,
+   collector (from the files), SciBERT predictions, embeddings, UMAP maps, BERTopic topics, then SDGs, users, labels,
+   topics, explanations, and simulated players. For 600 publications it took 8 minutes on a laptop CPU.
 
    ```bash
-   docker compose --profile pipeline run --rm -w / pipeline python utils/dummy/load_dummy_dataset.py --phase pipeline
-   ```
-
-4. Load SDGs, users, labels, topics, explanations, and simulated players in the API container:
-
-   ```bash
-   docker compose run --rm -v ./data:/data -w / api python utils/dummy/load_dummy_dataset.py --phase app
+   PYTHONPATH=. python utils/dummy/load_dummy_dataset.py
    ```
 
 5. Restart the API so it loads the new UMAP models, and start the frontend with a small number of map parts (the
    overview map is split into parts, one per universe):
 
    ```bash
-   PREDICTION_MODEL=Dvdblk docker compose up -d api
+   docker compose restart api
    ```
 
    Set `NUXT_PUBLIC_MAP_PARTITIONS=3` in `frontend/.env`, then start the frontend as in
@@ -457,14 +440,29 @@ labels.
 
 ### Running the scripts
 
-The scripts are standalone Python files. Run them **from the repository root** with `PYTHONPATH=.`, while the database
-containers are running. Outside Docker, they connect through the `*_LOCAL` host and port values in `env/*.env`.
+The scripts are standalone Python files that run on your machine, not in a container. Run them **from the repository
+root** with `PYTHONPATH=.`, while the database containers are running. They connect through the `*_LOCAL` host and
+port values in `env/*.env`.
 
-There are two Poetry environments (both Python 3.10.14, see [`docs/python-env.md`](docs/python-env.md)):
+All of them use the Poetry environment in [`pipeline/pyproject.toml`](pipeline/pyproject.toml) (Python 3.10.14:
+pipeline, UMAP, BERTopic, loaders, fixtures, Alembic). [`api/pyproject.toml`](api/pyproject.toml) is the environment
+of the API container. Create and activate the environment once:
 
-- [`api/pyproject.toml`](api/pyproject.toml): schema, loaders, users, fixtures, and the GPT scripts (includes Faker,
-  Instructor, and OpenAI)
-- [`pipeline/pyproject.toml`](pipeline/pyproject.toml): pipeline, UMAP, and BERTopic scripts
+```bash
+poetry -C pipeline env use python3.10
+```
+
+```bash
+poetry -C pipeline install --no-root
+```
+
+```bash
+source "$(poetry -C pipeline env info --path)/bin/activate"
+```
+
+`python3.10` must be Python 3.10.14; if you do not have it, [uv](https://docs.astral.sh/uv/) can install it
+(`uv python install 3.10.14`, then pass the path from `uv python find 3.10.14` to `env use`). Compiling `hdbscan`
+(for BERTopic) needs a C compiler (Xcode Command Line Tools on macOS, `build-essential` on Debian and Ubuntu).
 
 Most loaders read hard-coded paths under `data/` and use the seed `31011997` (from
 [`settings/settings.py`](settings/settings.py)), so repeated runs produce the same data.
@@ -549,7 +547,7 @@ belongs to an SDG" is `DEFAULT_PREDICTION_THRESHOLD` (0.98) in `MariaDBSettings`
 
 Maps, levels, and quests use the predictions of one model, `DEFAULT_PREDICTION_MODEL` in `MariaDBSettings`. It is
 set with the environment variable `PREDICTION_MODEL`: `Aurora` (default, the thesis dataset) or `Dvdblk` (the dummy
-dataset). `docker-compose.yml` passes it to the `api` and `pipeline` containers.
+dataset). `docker-compose.yml` passes it to the `api` container; for the scripts, set it in your shell.
 
 > [!NOTE]
 > The Aurora models are Keras models and need **TensorFlow 2.11**, which is not part of
@@ -693,20 +691,15 @@ The number of publications per SDG is set by `LIMIT` (or `.limit()`) in each scr
 ### Pipeline with Prefect
 
 Steps 4 to 7 can also run as one [Prefect](https://www.prefect.io/) flow
-([`pipeline/prefect/flow.py`](pipeline/prefect/flow.py)): collector → predictor → loader → reducer. Batch sizes are in
-`PrefectSettings`.
+([`pipeline/prefect/flow.py`](pipeline/prefect/flow.py)): collector → predictor (Aurora) → loader → reducer. Batch
+sizes are in `PrefectSettings`. Run it in the same environment as the other scripts:
 
 ```bash
-docker compose --profile pipeline up -d --build
+PYTHONPATH=. python pipeline/prefect/flow.py
 ```
 
-The Prefect UI is then at <http://localhost:4000>. The `pipeline` container mounts the code (`pipeline/`, `models/`,
-`settings/`, `enums/`, `utils/`, `db/`) and `data/`, and works from `/`, so the relative paths in the settings resolve
-like in the repository root. Run a step inside it, for example:
-
-```bash
-docker exec -it -w / pipeline python -m pipeline.zora.loader --db mariadb
-```
+Without a Prefect server, Prefect runs the flow in a temporary local instance. To follow it in the Prefect UI, start
+`prefect server start` in a second terminal first.
 
 ## Development
 
@@ -731,7 +724,7 @@ More detailed notes are in [`docs/`](docs):
 | Models vs. schemas               | [`docs/data-related/orm.md`](docs/data-related/orm.md)                 |
 | Schemas and TypeScript types     | [`docs/data-related/schemas.md`](docs/data-related/schemas.md)         |
 | Query layer                      | [`docs/data-related/queries.md`](docs/data-related/queries.md)         |
-| Python environments (Conda, Poetry) | [`docs/python-env.md`](docs/python-env.md)                          |
+| Python environments (Poetry)     | [`docs/python-env.md`](docs/python-env.md)                             |
 | Docker commands                  | [`docs/docker.md`](docs/docker.md)                                     |
 | Deployment on the UZH server     | [`docs/deployment/deployment.md`](docs/deployment/deployment.md)       |
 | Linting and code style           | [`docs/development/`](docs/development)                                |
@@ -741,11 +734,8 @@ More detailed notes are in [`docs/`](docs):
 
 - An attempt to upgrade the frontend to Nuxt UI 3, Tailwind 4, and daisyUI 5 was not finished. It is kept on the
   branch `archive/frontend-nuxt-ui-3`.
-- The `backend` service in `docker-compose.yml` refers to a `backend/` folder that no longer exists. Do not start it.
 - The Aurora predictors need TensorFlow 2.11, which is not in the pipeline's Poetry environment (see
   [SDG predictions](#5-sdg-predictions)).
-- The port table in [`docs/docker.md`](docs/docker.md) is outdated; the table in this README matches
-  `docker-compose.yml`.
 
 ## Author
 

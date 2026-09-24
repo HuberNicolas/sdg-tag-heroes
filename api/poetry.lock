@@ -429,20 +429,6 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
-name = "cloudant"
-version = "2.15.0"
-description = "Cloudant / CouchDB Client Library"
-optional = false
-python-versions = "*"
-files = [
-    {file = "cloudant-2.15.0-py3-none-any.whl", hash = "sha256:158ce109eb6f5c31739a4169061e33fb0ad9bd1545395162e111e696fa5916e2"},
-    {file = "cloudant-2.15.0.tar.gz", hash = "sha256:ac2f5136e4f8fba5c838643603b5272c5cfb6ed2240edb580fe3c2c5a5fcda63"},
-]
-
-[package.dependencies]
-requests = ">=2.7.0,<3.0.0"
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -2747,24 +2733,6 @@ fastembed = ["fastembed (==0.3.6)"]
 fastembed-gpu = ["fastembed-gpu (==0.3.6)"]
 
 [[package]]
-name = "redis"
-version = "5.2.0"
-description = "Python client for Redis database and key-value store"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "redis-5.2.0-py3-none-any.whl", hash = "sha256:ae174f2bb3b1bf2b09d54bf3e51fbc1469cf6c10aa03e21141f51969801a7897"},
-    {file = "redis-5.2.0.tar.gz", hash = "sha256:0b1087665a771b1ff2e003aa5bdd354f15a70c9e25d5a7dbf9c722c16528a7b0"},
-]
-
-[package.dependencies]
-async-timeout = {version = ">=4.0.3", markers = "python_full_version < \"3.11.3\""}
-
-[package.extras]
-hiredis = ["hiredis (>=3.0.0)"]
-ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==23.2.1)", "requests (>=2.31.0)"]
-
-[[package]]
 name = "regex"
 version = "2024.11.6"
 description = "Alternative regular expression module, to replace re."
@@ -3822,4 +3790,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.14"
-content-hash = "bc3873f74a72cdace5e929c6642ff39e2706143cdfc84b15f37d830ee40fd234"
+content-hash = "c7c621df71ada805bdd980e81495ee83144fe6a24a28aed669deee4f208d5f64"

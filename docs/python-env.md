@@ -1,43 +1,46 @@
+# Python environments
 
-# Environment Setup and TypeScript Schema Generation
+There are two Poetry projects, both for Python 3.10.14:
 
-Instructions for managing the `api` and `pipeline` environments and generating TypeScript schemas.
+| Project                                          | Used for                                                                 |
+|--------------------------------------------------|--------------------------------------------------------------------------|
+| [`pipeline/pyproject.toml`](../pipeline/pyproject.toml) | All dataset scripts on your machine: pipeline, UMAP, BERTopic, loaders, fixtures, Alembic |
+| [`api/pyproject.toml`](../api/pyproject.toml)           | The API container (`deploy/api.Dockerfile`)                              |
 
-## Conda Environments
+## Set up the scripts environment
 
-### List Available Environments
-To see all available environments, run:
+Run from the repository root:
+
 ```bash
-conda env list
+poetry -C pipeline env use python3.10
 ```
 
-### Activate the Environments
-- For `api`:
-  ```bash
-  conda activate p-3.10.14-mt-igcl
-  ```
-
-- For `pipeline`:
-  ```bash
-  conda activate p-3.10.14-mt-pipeline
-  ```
-
-## Poetry Commands
-
-### Install Dependencies
-Run the following in the active environment to install dependencies:
 ```bash
-poetry install --no-root
+poetry -C pipeline install --no-root
 ```
 
-### Add a New Package
-To add a package, use:
 ```bash
-poetry add <PACKAGE_NAME>
+source "$(poetry -C pipeline env info --path)/bin/activate"
 ```
 
-### Manually Update Dependencies
-If you manually add dependencies to the `pyproject.toml` file, lock the dependencies with:
+If `python3.10` is not Python 3.10.14, install that version, for example with [uv](https://docs.astral.sh/uv/):
+
 ```bash
-poetry lock
+uv python install 3.10.14
+```
+
+and pass the path from `uv python find 3.10.14` to `poetry -C pipeline env use`.
+
+## Poetry commands
+
+Add a package:
+
+```bash
+poetry -C pipeline add <PACKAGE_NAME>
+```
+
+After editing `pyproject.toml` by hand, update the lock file without upgrading other packages:
+
+```bash
+poetry -C pipeline lock --no-update
 ```

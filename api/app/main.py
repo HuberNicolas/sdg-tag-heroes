@@ -37,9 +37,7 @@ logging = logger(fastapi_settings.FASTAPI_LOG_NAME)
 # Import test utilities for each database
 from db.mariadb_connector import test_mariadb_connection, conn as mariadb_conn
 from db.mongodb_connector import test_mongodb_connection, client as mongo_client
-from db.couchdb_connector import test_couchdb_connection, client as couchdb_client
 from db.qdrantdb_connector import test_qdrant_connection, client as qdrant_client
-from db.redisdb_connector import test_redis_connection, client as redis_client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,23 +55,11 @@ async def lifespan(app: FastAPI):
     else:
         logging.error("MongoDB connection failed!")
 
-    # Test CouchDB connection
-    if test_couchdb_connection():
-        logging.info("CouchDB connection is working.")
-    else:
-        logging.error("CouchDB connection failed!")
-
     # Test Qdrant connection
     if test_qdrant_connection():
         logging.info("Qdrant connection is working.")
     else:
         logging.error("Qdrant connection failed!")
-
-    # Test Redis connection
-    if test_redis_connection():
-        logging.info("Redis connection is working.")
-    else:
-        logging.error("Redis connection failed!")
 
     yield  # Allow the application to run
 
@@ -93,22 +79,10 @@ async def lifespan(app: FastAPI):
         logging.warning(f"Error while closing MongoDB client: {e}")
 
     try:
-        couchdb_client.disconnect()
-        logging.info("CouchDB client disconnected.")
-    except Exception as e:
-        logging.warning(f"Error while disconnecting CouchDB client: {e}")
-
-    try:
         # Qdrant doesn't require explicit disconnection
         logging.info("Qdrant client cleanup completed.")
     except Exception as e:
         logging.warning(f"Error while cleaning up Qdrant client: {e}")
-
-    try:
-        redis_client.close()
-        logging.info("Redis client closed.")
-    except Exception as e:
-        logging.warning(f"Error while closing Redis client: {e}")
 
 app = FastAPI(lifespan=lifespan)
 add_pagination(app)  # important! add pagination to your app

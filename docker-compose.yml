@@ -47,66 +47,6 @@ services:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.2
 
-  backend:
-    build:
-      context: .
-      dockerfile: deploy/backend.Dockerfile
-    container_name: backend
-    environment:
-      DOCKER_SERVICE: "backend"
-      IN_DOCKER: true
-      POETRY_HTTP_TIMEOUT: "300"
-    volumes:
-      - ./backend:/backend
-    ports:
-      - "1003:8002"
-    profiles: [ prod ]
-    networks:
-      sdg-tag-heroes-net:
-        ipv4_address: 10.5.0.3
-
-  pipeline:
-    build:
-      context: .
-      dockerfile: deploy/pipeline.Dockerfile
-    container_name: pipeline
-    environment:
-      DOCKER_SERVICE: "pipeline"
-      IN_DOCKER: true
-      # Model whose predictions drive maps, levels and quests: Aurora (thesis data) or Dvdblk (dummy dataset)
-      PREDICTION_MODEL: ${PREDICTION_MODEL:-Aurora}
-      POETRY_HTTP_TIMEOUT: "300"
-    volumes:
-      - ./pipeline:/pipeline
-      - ./db:/db
-      - ./env:/env
-      - ./utils:/utils
-      - ./models:/models
-      - ./settings:/settings
-      - ./enums:/enums
-      - ./data:/data # models, harvested publications and loader inputs (relative paths like data/pipeline/...)
-    ports:
-      - "1004:8000"
-    profiles: [ pipeline ]
-    networks:
-      sdg-tag-heroes-net:
-        ipv4_address: 10.5.0.4
-
-  prefect:
-    build:
-      context: .
-      dockerfile: deploy/prefect.Dockerfile
-    container_name: prefect-server
-    entrypoint: [ "/bin/bash", "/entrypoint.sh" ]
-    ports:
-      - "4000:4000"
-    volumes:
-      - ./data/docker/prefect:/data
-    profiles: [ pipeline ]
-    networks:
-      sdg-tag-heroes-net:
-        ipv4_address: 10.5.0.5
-
   mariadb:
     container_name: mariadb-database
     build:
@@ -120,7 +60,7 @@ services:
       # - ./data/db/igcl-dump.sql:/docker-entrypoint-initdb.d/dump.sql # Change, as we currently mounting a folder
     env_file:
       - ./env/mariadb.env
-    profiles: [ prod, pipeline ]
+    profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.6
@@ -137,7 +77,7 @@ services:
       - mariadb
     env_file:
       - ./env/phpmyadmin.env
-    profiles: [ prod, pipeline ]
+    profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.7
@@ -154,7 +94,7 @@ services:
       - ./data/docker/db/mongodb/mongodb-data:/data/db
     env_file:
       - ./env/mongodb.env
-    profiles: [ prod, pipeline ]
+    profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.8
@@ -171,7 +111,7 @@ services:
       - mongodb
     env_file:
       - ./env/mongo-express.env
-    profiles: [ prod, pipeline ]
+    profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.9
@@ -188,62 +128,10 @@ services:
       - "2003:6333"
     volumes:
       - ./data/docker/db/qdrantdb/storage:/qdrant/storage
-    profiles: [ prod, pipeline ]
+    profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.10
-
-  couchdb:
-    build:
-      context: .
-      dockerfile: deploy/db/couchdb.Dockerfile
-    restart: always
-    container_name: couchdb-database
-    ports:
-      - "2004:5984"
-    env_file:
-      - ./env/couchdb.env
-    volumes:
-      - ./data/docker/db/couchdb:/opt/couchdb/data
-    profiles: [ prod, pipeline ]
-    networks:
-      sdg-tag-heroes-net:
-        ipv4_address: 10.5.0.11
-
-  redisdb:
-    build:
-      context: .
-      dockerfile: deploy/db/redisdb.Dockerfile
-    restart: always
-    container_name: redisdb-database
-    ports:
-      - "2005:6379"
-    env_file:
-      - ./env/redisdb.env
-    volumes:
-      - ./data/docker/db/redisdb:/data
-      - ./deploy/db/redisdb.conf:/usr/local/etc/redis/redis.conf
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ] # Instruct Redis to use the custom config
-    profiles: [ prod, pipeline ]
-    networks:
-      sdg-tag-heroes-net:
-        ipv4_address: 10.5.0.12
-
-  redis-insight:
-    build:
-      context: .
-      dockerfile: deploy/db/redisinsight.Dockerfile
-    restart: always
-    container_name: redis-insight
-    ports:
-      - "2055:5540"
-    depends_on:
-      - redisdb
-    command: [ "redis-stack-server" ]
-    profiles: [ prod, pipeline ]
-    networks:
-      sdg-tag-heroes-net:
-        ipv4_address: 10.5.0.13
 
   frontend:
     build:

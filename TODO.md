@@ -14,7 +14,7 @@ published.
   - [x] SDG-Scout: ground-truth labels and (synthetic) explanations
   - [x] Placeholder SDG icons, SDG texts and rank tiers
   - [x] Optional abstracts written by Claude (`--mode llm`)
-- [x] Load it with the regular pipeline (`utils/dummy/load_dummy_dataset.py`, two phases) and test end to end in an
+- [x] Load it with the regular pipeline (`utils/dummy/load_dummy_dataset.py`, one command) and test end to end in an
   isolated Docker network: collector, Dvdblk predictions, Qdrant, UMAP, BERTopic, loaders, fixtures, API, frontend
 - [x] Document in the README how to load the dummy dataset
 - [ ] Generate the dataset with `--mode llm` (costs money; better topics than the template abstracts)
@@ -62,7 +62,6 @@ published.
 - [x] Fix outdated imports in `pipeline/zora/*.py` (`models.publication`, `models.author`, `models.sdg_label`, …)
 - [x] Fix `models.sdg.*` imports in `utils/mariadb/load_mariadb_sdg.py` and the cluster loaders
 - [x] Remove the unused `ExplainerSettings` from the scripts in `utils/dataset/`
-- [x] Mount `models/`, `settings/`, `enums/` and `data/` in the `pipeline` container
 - [x] Restore `pipeline/zora/predictor_dvdblk.py` from the first commit (it had been overwritten with `collector.py`)
 - [x] Align the MongoDB collection names: the scaled explanations are written to `explanations_scaled_new`
 - [x] Reducer: use `is_dim_reduced` and set `sdg`/`level` (required columns)
@@ -71,17 +70,20 @@ published.
 - [ ] Wrap the loader scripts in `main()` functions: many run on import and some drop their target database
 - [x] Run the whole dataset build end to end with the dummy dataset. Fixed on the way: Qdrant rejected the collector's
   placeholder prediction (silently), UMAP level numbering after skipped ranges, BERTopic `min_df` for few topics,
-  required SDG columns, API crashing without CouchDB/Redis, pipeline image (Python version, compiler for hdbscan)
+  required SDG columns, API crashing without CouchDB/Redis
 - [x] Prediction model configurable (`PREDICTION_MODEL`, default Aurora) instead of hardcoded "Aurora"
+- [x] Remove the `pipeline` and `prefect` containers: all scripts run on the host in the `pipeline/pyproject.toml`
+  environment (now also with Faker, Instructor and Alembic); the dummy dataset loads with one command
 
 ## 5. Other cleanup
 
 - [ ] Stop logging the plaintext password on a failed login (`api/app/routes/authentication.py`)
 - [ ] Return 401 instead of 500 when a token is invalid (e.g. `GET /sdgs`, `/banks/latest`, `/wallets/latest` wrap the
   `HTTPException` in a 500)
-- [ ] Remove the `backend` service from `docker-compose.yml` (the `backend/` folder no longer exists)
-- [ ] Update the port table in `docs/docker.md`
-- [ ] Add example env files for `portainer.env` and `redisinsight.env`
+- [x] Remove the `backend` service from `docker-compose.yml` (the `backend/` folder no longer exists)
+- [x] Update the port table in `docs/docker.md`
+- [x] Remove CouchDB and Redis (containers, connectors, dependencies, docs); no feature used them
+- [ ] Add an example env file for `portainer.env`
 
 ## 6. Before publishing
 

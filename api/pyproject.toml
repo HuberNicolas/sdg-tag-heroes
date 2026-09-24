@@ -30,14 +30,10 @@ python-multipart = "^0.0.12"
 mysql-connector-python = "^9.0.0"
 pymongo = "^4.10.0"
 qdrant-client = "^1.11.3"
-redis = "^5.1.1"
 
 # SQL Helpers
 alembic = "^1.14.0"
 sqlalchemy = "^2.0.35"
-
-# Redis Helper
-cloudant = "^2.15.0"
 
 # OpenAI
 instructor = "^1.6.4"

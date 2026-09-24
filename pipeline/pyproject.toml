@@ -15,14 +15,11 @@ python-dotenv = "^1.0.1"
 xmltodict = "^0.13.0"
 loguru = "^0.7.3"
 
-# API
-uvicorn = "^0.30.6"
-fastapi = "^0.114.0"
-
-# API Helpers
+# Helpers for the loader scripts (passwords, simulated players)
 bcrypt = "^4.2.1"
 requests = "^2.32.3"
 passlib = "^1.7.4"
+faker = "^33.0.0"
 
 # LLM
 torch = "2.1.1"
@@ -54,11 +51,11 @@ mysql-connector-python = "^9.0.0"
 sqlalchemy = "^2.0.34"
 qdrant-client = "^1.11.1"
 pymongo = "^4.8.0"
-redis = "^5.1.1"
-cloudant = "^2.15.0"
+alembic = "^1.14.0"
 
 # LLM clients
 openai = "^1.57.0"
+instructor = "^1.6.4"
 
 # Orchestrator
 prefect = "<3.0"

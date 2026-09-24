@@ -55,12 +55,6 @@ class QdrantDBSettings(BaseSettings):
     PUBLICATIONS_CONTENT_VECTOR_NAME: ClassVar[str] = "content"
     PUBLICATIONS_SQL_ID_PAYLOAD_FIELD_NAME: ClassVar[str] = "sql_id"
 
-class CouchDBSettings(BaseSettings):
-    COUCHDB_LOG_NAME: ClassVar[str] = "db_couchdb.log"
-
-class RedisDBSettings(BaseSettings):
-    REDIS_LOG_NAME: ClassVar[str] = "db_redis.log"
-
 class MongoDBSDGSettings(BaseSettings):
     MONGODB_LOG_NAME: ClassVar[str] = "db_mongodb.log"
     DB_NAME: ClassVar[str] = "sdg_database"

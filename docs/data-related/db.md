@@ -16,21 +16,6 @@
 ### Qdrant (via dashboard):
 - URL: [http://localhost:2003/dashboard](http://localhost:2003/dashboard)
 
-### Couchdb (via Fauxton):
-- URL: [http://localhost:2004/_utils/#](http://localhost:2004/_utils/#)
-- Username: `COUCHDB_USER`
-- Password: `COUCHDB_PASSWORD`
-
-### Redis (via Redis Insight):
-- URL: [http://localhost:2055/](http://localhost:2055/)
-- Add Database Manually:
-  - Host: `REDIS_HOST`
-  - Port: `REDIS_PORT`
-  - Database Alias: SDG (name does not matter)
-  - Username: `REDIS_USER`
-  - Password: `REDIS_USER-PW`
-  - Timeout: 30
-
 ## MongoDB Backup and Restore Instructions
 
 This guide provides instructions for backing up and restoring your MongoDB databases `sdg_database_clusters` and `sdg_explanations` using Docker with authentication.
