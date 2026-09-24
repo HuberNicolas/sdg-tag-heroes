@@ -22,6 +22,10 @@ from services.publication_similarity_query_service import PublicationSimilarityQ
 from settings.settings import PublicationsRouterSettings, MariaDBSettings
 from utils.logger import logger
 
+# Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
+from settings.settings import MariaDBSettings as _PredictionModelSettings
+PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
+
 # Setup Logging
 publications_router_settings = PublicationsRouterSettings()
 mariadb_settings = MariaDBSettings()
@@ -207,7 +211,7 @@ async def get_publications_for_dimensionality_reductions(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
-                SDGPrediction.prediction_model == "Aurora"
+                SDGPrediction.prediction_model == PREDICTION_MODEL
             )
             .order_by(Publication.publication_id)
             #.limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE) # THIS DID NO work, much less pubs, idk why
@@ -242,7 +246,7 @@ async def get_top_k_entropy_publications(
             db.query(SDGPrediction)
             .order_by(SDGPrediction.entropy.desc())
             .filter(
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
             )
             .limit(top_k)
             .all()
@@ -329,7 +333,7 @@ async def get_publications_for_dimensionality_reductions_with_scenario(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 DimensionalityReduction.sdg == sdg,
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
                 SDGLabelDecision.scenario_type == scenario_type  # Filtering by scenario_type
             )
             .order_by(Publication.publication_id)

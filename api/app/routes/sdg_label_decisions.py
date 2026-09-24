@@ -15,6 +15,10 @@ from schemas import SDGLabelDecisionSchemaFull, SDGLabelDecisionSchemaExtended
 from settings.settings import SDGSLabelDecisionsRouterSettings
 from utils.logger import logger
 
+# Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
+from settings.settings import MariaDBSettings as _PredictionModelSettings
+PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
+
 # Setup Logging
 sdg_label_decisions_router_settings = SDGSLabelDecisionsRouterSettings()
 logging = logger(sdg_label_decisions_router_settings.SDGLABELDECISIONS_ROUTER_LOG_NAME)
@@ -127,7 +131,7 @@ async def get_or_create_least_labeled_sdg_decisions(
                 # Fetch the best SDG prediction from the 'Aurora' model
                 prediction = (
                     db.query(SDGPrediction)
-                    .filter(SDGPrediction.publication_id == publication.publication_id, SDGPrediction.prediction_model == "Aurora")
+                    .filter(SDGPrediction.publication_id == publication.publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL)
                     .first()
                 )
 
@@ -190,7 +194,7 @@ async def get_or_create_top_k_entropy_sdg_decisions(
             db.query(SDGPrediction)
             .order_by(SDGPrediction.entropy.desc())
             .filter(
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
             )
             .limit(top_k)
             .all()
@@ -241,7 +245,7 @@ async def get_or_create_top_k_entropy_sdg_decisions(
                 # Fetch the best SDG prediction from the 'Aurora' model
                 prediction = (
                     db.query(SDGPrediction)
-                    .filter(SDGPrediction.publication_id == publication.publication_id, SDGPrediction.prediction_model == "Aurora")
+                    .filter(SDGPrediction.publication_id == publication.publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL)
                     .first()
                 )
 
@@ -308,7 +312,7 @@ async def get_sdg_label_decisions_for_scenario(
             .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
                 SDGLabelDecision.scenario_type == scenario_type  # Filter by scenario type
             )
             .order_by(Publication.publication_id)
@@ -352,7 +356,7 @@ async def get_sdg_label_decisions_for_scenario(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 DimensionalityReduction.sdg == sdg,
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
                 SDGLabelDecision.scenario_type == scenario_type  # Filter by scenario type
             )
             .order_by(Publication.publication_id)
@@ -398,7 +402,7 @@ async def get_newest_sdg_label_decisions_for_reduction(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
-                SDGPrediction.prediction_model == "Aurora"
+                SDGPrediction.prediction_model == PREDICTION_MODEL
             )
             .order_by(Publication.publication_id)
             .all()
@@ -489,7 +493,7 @@ async def get_sdg_label_decisions(
             # Fetch the best SDG prediction from the 'Aurora' model
             prediction = (
                 db.query(SDGPrediction)
-                .filter(SDGPrediction.publication_id == publication_id, SDGPrediction.prediction_model == "Aurora")
+                .filter(SDGPrediction.publication_id == publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL)
                 .first()
             )
 
@@ -725,7 +729,7 @@ async def get_sdg_label_decisions_partitioned(
             # Fetch the best SDG prediction from 'Aurora' model
             prediction = db.query(SDGPrediction).filter(
                 SDGPrediction.publication_id == publication_id,
-                SDGPrediction.prediction_model == "Aurora"
+                SDGPrediction.prediction_model == PREDICTION_MODEL
             ).first()
 
             suggested_label = 0  # Default if no prediction exists

@@ -22,6 +22,10 @@ from services.umap_coordinates_service import UMAPCoordinateService
 from settings.settings import DimensionalityReductionsRouterSettings, MariaDBSettings
 from utils.logger import logger
 
+# Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
+from settings.settings import MariaDBSettings as _PredictionModelSettings
+PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
+
 # Setup Logging
 dimensionality_reductions_router_settings = DimensionalityReductionsRouterSettings()
 mariadb_settings = MariaDBSettings()
@@ -308,7 +312,7 @@ async def get_dimensionality_reductions_by_sdg_and_level(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 DimensionalityReduction.level == level,
                 DimensionalityReduction.sdg == sdg,
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
                 getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value)
             )
             .order_by(DimensionalityReduction.publication_id)
@@ -349,7 +353,7 @@ async def get_top_k_entropy_dimensionality_reductions(
             db.query(SDGPrediction)
             .order_by(SDGPrediction.entropy.desc())
             .filter(
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
             )
             .limit(top_k)
             .all()
@@ -445,7 +449,7 @@ async def get_dimensionality_reductions_by_sdg_and_scenario(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 DimensionalityReduction.sdg == sdg,
-                SDGPrediction.prediction_model == "Aurora",
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
                 SDGLabelDecision.scenario_type == scenario_type  # Filtering by scenario_type
             )
             .order_by(DimensionalityReduction.dim_red_id)

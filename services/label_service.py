@@ -14,6 +14,10 @@ from services.scoring_service import score
 from settings.settings import TimeZoneSettings, LabelServiceSettings
 from utils.logger import logger
 
+# Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
+from settings.settings import MariaDBSettings as _PredictionModelSettings
+PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
+
 time_zone_settings = TimeZoneSettings()
 label_service_settings = LabelServiceSettings()
 
@@ -72,7 +76,7 @@ class LabelService:
         prediction = (
             self.db.query(SDGPrediction)
             .filter(SDGPrediction.publication_id == request.publication_id)
-            .filter(SDGPrediction.prediction_model == "Aurora")
+            .filter(SDGPrediction.prediction_model == PREDICTION_MODEL)
             .first()
         )
 

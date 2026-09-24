@@ -42,7 +42,9 @@ class MariaDBSettings(BaseSettings):
     MARIADB_COLLATION: ClassVar[str] = "utf8mb4_unicode_ci"
     SQLALCHEMY_DEBUG_OUTPUT: ClassVar[bool] = False
     MARIADB_LOG_NAME: ClassVar[str] = "db_mariadb.log"
-    DEFAULT_PREDICTION_MODEL: ClassVar[str] = "Aurora" # "Dvdblk" and "Dvdblk_Softmax"
+    # Predictions of this model drive the maps, levels and quests. "Aurora" for the thesis dataset,
+    # "Dvdblk" for the dummy dataset (set PREDICTION_MODEL in the environment).
+    DEFAULT_PREDICTION_MODEL: ClassVar[str] = os.getenv("PREDICTION_MODEL", "Aurora")
     DEFAULT_PREDICTION_THRESHOLD: ClassVar[float] = 0.98
     DEFAULT_SDG_EXPLORATION_SIZE: ClassVar[int] = 100
 

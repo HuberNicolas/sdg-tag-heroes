@@ -16,6 +16,10 @@ from models.publications.publication import Publication
 import umap
 import numpy as np
 
+# Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
+from settings.settings import MariaDBSettings as _PredictionModelSettings
+PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
+
 reducer_settings = ReducerSettings()
 loader_settings = LoaderSettings()
 embeddings_settings = EmbeddingsSettings()
@@ -67,7 +71,7 @@ def create_dimensionality_reductions():
                 session.query(Publication)
                 .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
                 .filter(
-                    SDGPrediction.prediction_model == "Aurora",
+                    SDGPrediction.prediction_model == PREDICTION_MODEL,
                 )
                 .limit(13000)
                 .offset(offset)  # Offset determines the starting point of the chunk

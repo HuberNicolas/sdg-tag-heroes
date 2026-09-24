@@ -6,6 +6,10 @@ from sqlalchemy.orm import sessionmaker, configure_mappers
 from db.mariadb_connector import engine as mariadb_engine
 from models import Base, SDGPrediction
 
+# Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
+from settings.settings import MariaDBSettings as _PredictionModelSettings
+PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
+
 Session = sessionmaker(bind=mariadb_engine)
 session = Session()
 Base.metadata.create_all(mariadb_engine)
@@ -28,7 +32,7 @@ def create_scaled_predictions():
     try:
         # Fetch all existing predictions
         predictions = (session.query(SDGPrediction)
-                       .filter(SDGPrediction.prediction_model.in_(["Aurora"]))
+                       .filter(SDGPrediction.prediction_model.in_([PREDICTION_MODEL]))
                        .limit(5)
                        .all())
         new_predictions = []
