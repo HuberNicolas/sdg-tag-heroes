@@ -46,7 +46,7 @@ try:
     logging.info(f"Keys in database 0: {keys}")
 
 except redis.ConnectionError as e:
-    logger.error(f"Failed to connect to Redis: {e}")
+    logging.error(f"Failed to connect to Redis: {e}")
 
 def test_redis_connection():
     """

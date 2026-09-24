@@ -27,7 +27,9 @@ couchdb_url = f"http://{host}:{port}"
 # Log the connection details (avoid logging sensitive information like passwords in production)
 logging.info(f"Connecting to CouchDB at {host}:{port} with user {user}")
 
-# Establish connection to CouchDB
+# Establish connection to CouchDB. The API does not depend on CouchDB, so a failed connection leaves
+# client as None instead of breaking every import of this module.
+client = None
 try:
     # Initialize the CouchDB server connection using cloudant
     client = CouchDB(user, password, url=couchdb_url, connect=True)
