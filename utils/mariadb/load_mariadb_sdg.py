@@ -118,6 +118,10 @@ try:
         goal_icon = encode_svg_to_base64(svg_path) if svg_path else None
         # Add icon to goal data
         goal['icon'] = goal_icon
+        # Required columns; load_mariadb_sdg_extras.py replaces them with the real texts afterwards
+        goal.setdefault('short_title', goal['name'][:100])
+        goal.setdefault('keywords', '')
+        goal.setdefault('explanation', '')
 
         # Create Goal object
         new_goal = SDGGoal(**goal)

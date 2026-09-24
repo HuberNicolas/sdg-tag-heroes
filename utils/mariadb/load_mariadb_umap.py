@@ -16,6 +16,12 @@ from models.publications.publication import Publication
 import umap
 import numpy as np
 
+# Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
+from settings.settings import MariaDBSettings as _PredictionModelSettings
+PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
+
+MIN_PUBLICATIONS_PER_MAP = 5
+
 reducer_settings = ReducerSettings()
 loader_settings = LoaderSettings()
 embeddings_settings = EmbeddingsSettings()
@@ -59,6 +65,8 @@ def create_dimensionality_reductions():
             level = 1  # Start level numbering at 1 for each SDG
 
             for range_index, (upper, lower) in enumerate(reducer_settings.FILTER_RANGES, start=1):
+                # Level = position of the score range; set here so skipped ranges do not shift later levels
+                level = range_index
                 print(f"  Applying filter range {upper} - {lower}... - Level {level}")
 
                 start = time.time()
@@ -67,7 +75,7 @@ def create_dimensionality_reductions():
                     session.query(Publication)
                     .join(SDGPrediction, Publication.publication_id == SDGPrediction.publication_id)
                     .filter(
-                        SDGPrediction.prediction_model == "Aurora",
+                        SDGPrediction.prediction_model == PREDICTION_MODEL,
                         getattr(SDGPrediction, sdg_column) <= upper,
                         getattr(SDGPrediction, sdg_column) > lower,
                     )
@@ -104,6 +112,11 @@ def create_dimensionality_reductions():
 
                 if not ordered_embeddings:
                     print(f"  No matching embeddings found for SDG{sdg_index} in range {upper} - {lower}.")
+                    continue
+
+                # UMAP cannot embed a handful of points (small datasets, e.g. the dummy dataset)
+                if len(ordered_embeddings) < MIN_PUBLICATIONS_PER_MAP:
+                    print(f"  Only {len(ordered_embeddings)} publications for SDG{sdg_index} level {level}, skipping this map.")
                     continue
 
                 # Initialize container for dimensionality reductions

@@ -1,3 +1,4 @@
+import os
 import copy
 
 import joblib
@@ -30,6 +31,7 @@ Session = sessionmaker(bind=mariadb_engine)
 db = Session()
 
 LIMIT = 50000
+COLLECTIONS_DIR = "./data/pipeline/collections"
 # Step 1: Query Publications
 
 # Fetch publications matching the shorthand
@@ -332,7 +334,9 @@ dim_reduction_params = {
 topic_model = tm_pipeline.create_topic_model(
     dim_reduction_params=dim_reduction_params,
     cluster_method_params={"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
-    vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10, "max_features": 10_000},
+    # c-TF-IDF counts topics as documents; small datasets (e.g. the dummy dataset) have fewer than 10 topics
+    vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10 if len(docs) >= 10_000 else 1,
+                       "max_features": 10_000},
     ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
     representation_params={"diversity": 0.5, "candidate_topics": seed_words},
 )
@@ -372,11 +376,13 @@ data["keywords"] = doc_info["Representation"]
 
 # Step 3: Export to JSON and CSV
 data_json = data.to_dict(orient="records")
-with open("topic_data.json", "w") as f:
+# Write next to the other collection files, where load_mariadb_collections.py reads them
+os.makedirs(COLLECTIONS_DIR, exist_ok=True)
+with open(os.path.join(COLLECTIONS_DIR, "topic_data.json"), "w") as f:
     json.dump(data_json, f, indent=4)
 
-data.to_csv("uzh_topic_data.csv", index=False)
-topic_info.to_csv("uzh_topic_info.csv", index=False)
+data.to_csv(os.path.join(COLLECTIONS_DIR, "uzh_topic_data.csv"), index=False)
+topic_info.to_csv(os.path.join(COLLECTIONS_DIR, "uzh_topic_info.csv"), index=False)
 
 print("Data exported successfully!")
 
@@ -386,6 +392,6 @@ import plotly.io as pio
 
 # Visualization after topic reduction
 fig = reduced_topic_model.visualize_documents(docs, embeddings=embeddings)
-fig.write_html("visualization.html")
+fig.write_html(os.path.join(COLLECTIONS_DIR, "visualization.html"))
 
 

@@ -1,4 +1,4 @@
-FROM docker.io/python:3.10.15-slim-bookworm
+FROM docker.io/python:3.10.14-slim-bookworm
 
 ARG YOUR_ENV
 
@@ -17,11 +17,13 @@ WORKDIR /pipeline
 
 COPY ./pipeline/poetry.lock ./pipeline/pyproject.toml ./
 
+# build-essential: hdbscan (BERTopic) has no prebuilt wheel for every platform and is compiled on install
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential inotify-tools \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root
-
-RUN apt-get update && apt-get install -y inotify-tools
 
 COPY ./pipeline /pipeline
 COPY deploy/entrypoint.pipeline.sh /entrypoint.sh

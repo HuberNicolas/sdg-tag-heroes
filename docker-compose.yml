@@ -25,6 +25,8 @@ services:
     environment:
       DOCKER_SERVICE: "api"
       IN_DOCKER: true
+      # Model whose predictions drive maps, levels and quests: Aurora (thesis data) or Dvdblk (dummy dataset)
+      PREDICTION_MODEL: ${PREDICTION_MODEL:-Aurora}
       POETRY_HTTP_TIMEOUT: "300"
     volumes:
       - ./api:/api
@@ -36,6 +38,7 @@ services:
       - ./settings:/settings
       - ./services:/services
       - ./utils:/utils
+      - ./data/api:/data/api # UMAP models; mounted so new models do not need an image rebuild
       - ./data/docker/logs:/logs
     ports:
       - "1002:8001"
@@ -70,6 +73,8 @@ services:
     environment:
       DOCKER_SERVICE: "pipeline"
       IN_DOCKER: true
+      # Model whose predictions drive maps, levels and quests: Aurora (thesis data) or Dvdblk (dummy dataset)
+      PREDICTION_MODEL: ${PREDICTION_MODEL:-Aurora}
       POETRY_HTTP_TIMEOUT: "300"
     volumes:
       - ./pipeline:/pipeline

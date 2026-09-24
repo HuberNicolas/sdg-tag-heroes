@@ -229,14 +229,18 @@ def get_or_create_division(division_setSpec, division_name, session):
     return division
 
 
-def insert_organization_hierarchy(session):
-    """Crawl the sets from the OAI-PMH ListSets and populate the hierarchy in the database."""
-    response = requests.get(collector_settings.ZORA_SET_LIST_URL)
-    if response.status_code != 200:
-        logging.error(f"Failed to fetch sets, status code: {response.status_code}")
-        return
+def insert_organization_hierarchy(session, source_dir=None):
+    """Crawl the sets from the OAI-PMH ListSets (or ListSets.xml in source_dir) and populate the hierarchy."""
+    if source_dir:
+        content = read_oai_page(source_dir, {"verb": "ListSets"})
+    else:
+        response = requests.get(collector_settings.ZORA_SET_LIST_URL)
+        if response.status_code != 200:
+            logging.error(f"Failed to fetch sets, status code: {response.status_code}")
+            return
+        content = response.content
 
-    root = ET.fromstring(response.content)
+    root = ET.fromstring(content)
     ns = {"oai": "http://www.openarchives.org/OAI/2.0/"}
 
     for set_element in root.findall(".//oai:set", ns):
@@ -271,16 +275,36 @@ def parse_author(author_str):
     orcid_id = parts[1].strip() if len(parts) > 1 else None
     return name, orcid_id
 
-def fetch_batch(base_url, params, session):
-    """Fetch a batch of publications."""
+def read_oai_page(source_dir, params):
+    """
+    Read an OAI-PMH response from a folder instead of the repository (--from-dir), e.g. the output of the
+    dataset generator: ListSets.xml, ListRecords.xml for the first page and <resumptionToken>.xml for the next.
+    """
+    if params.get("verb") == "ListSets":
+        filename = "ListSets.xml"
+    else:
+        token = params.get("resumptionToken")
+        filename = f"{token}.xml" if token else "ListRecords.xml"
+    path = os.path.join(source_dir, filename)
+    logging.info(f"Reading {path}")
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def fetch_batch(base_url, params, session, source_dir=None):
+    """Fetch a batch of publications from the OAI-PMH repository, or from files in source_dir."""
     logging.info("Starting to fetch a batch of publications...")
     publications = []
-    response = requests.get(base_url, params=params)
-    if response.status_code != 200:
-        logging.error(f"Failed to fetch data, status code: {response.status_code}")
-        return publications, None
+    if source_dir:
+        content = read_oai_page(source_dir, params)
+    else:
+        response = requests.get(base_url, params=params)
+        if response.status_code != 200:
+            logging.error(f"Failed to fetch data, status code: {response.status_code}")
+            return publications, None
+        content = response.content
 
-    root = ET.fromstring(response.content)
+    root = ET.fromstring(content)
     ns = {
         "oai": "http://www.openarchives.org/OAI/2.0/",
         "oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
@@ -350,7 +374,7 @@ def fetch_batch(base_url, params, session):
     resumption_token = root.find(".//oai:resumptionToken", ns)
     resumption_token = resumption_token.text if resumption_token is not None else None
 
-    if resumption_token:
+    if resumption_token and not source_dir:
         logging.info(
             f"Storing resumption token: {resumption_token}."
         )
@@ -449,9 +473,10 @@ def insert_publication_with_org(publication_data, session):
         )
         session.rollback()
 
-def crawl_publications(session, max_count=collector_settings.PUBLICATION_LIMIT):
-    """Crawl the publications from the OAI-PMH repository."""
-    resumption_token = load_resumption_token()  # Load token from the file if exists
+def crawl_publications(session, max_count=collector_settings.PUBLICATION_LIMIT, source_dir=None):
+    """Crawl the publications from the OAI-PMH repository (or from files in source_dir)."""
+    # The saved resumption token belongs to the real repository, so ignore it when reading from files
+    resumption_token = None if source_dir else load_resumption_token()
     total_fetched = 0
     params = {"verb": "ListRecords", "metadataPrefix": "oai_dc"}
 
@@ -460,7 +485,7 @@ def crawl_publications(session, max_count=collector_settings.PUBLICATION_LIMIT):
 
     while total_fetched < max_count:
         publications, resumption_token = fetch_batch(
-            collector_settings.ZORA_BASE_URL, params, session
+            collector_settings.ZORA_BASE_URL, params, session, source_dir
         )
         if not publications:
             logging.info(
@@ -490,7 +515,7 @@ def crawl_publications(session, max_count=collector_settings.PUBLICATION_LIMIT):
     session.close()
 
 
-def main(db, reset, recreate_organizational_structure):
+def main(db, reset, recreate_organizational_structure, source_dir=None):
     # Configure database connection based on argument
     if db == "mariadb":
         from db.mariadb_connector import (
@@ -518,10 +543,10 @@ def main(db, reset, recreate_organizational_structure):
 
     if recreate_organizational_structure:
         logging.info("Starting extraction of organizational hierarchy.")
-        insert_organization_hierarchy(session)
+        insert_organization_hierarchy(session, source_dir)
 
     logging.info("Starting publication crawling.")
-    crawl_publications(session)
+    crawl_publications(session, source_dir=source_dir)
 
     session.close()
     logging.info("Process complete.")
@@ -549,9 +574,14 @@ if __name__ == "__main__":
         default="false",
         help="Recreate organizational structure in db: true or false (default: false)",
     )
+    parser.add_argument(
+        "--from-dir",
+        default=None,
+        help="Read OAI-PMH responses from this folder instead of ZORA (e.g. the dataset generator's output/oai)",
+    )
     args = parser.parse_args()
 
-    main(args.db, args.reset, args.recreate_organizational_structure)
+    main(args.db, args.reset, args.recreate_organizational_structure, args.from_dir)
 
-def collector_main(db, reset, recreate_organizational_structure):
-    main(db, reset, recreate_organizational_structure)
+def collector_main(db, reset, recreate_organizational_structure, source_dir=None):
+    main(db, reset, recreate_organizational_structure, source_dir)

@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from db.mariadb_connector import engine as mariadb_engine
 from models.sdg_label_summary import SDGLabelSummary
 from models.sdg_label_history import SDGLabelHistory
+from models import Publication
 
 # Initialize session
 Session = sessionmaker(bind=mariadb_engine)
@@ -20,6 +21,11 @@ def load_sdg_label_data(file_path, batch_size=100):
     data_history = []
     current_timestamp = datetime.now()
 
+    # The first field is either the publication id or its OAI identifier in quotes
+    # (the dataset generator uses OAI identifiers, because the ids are only assigned when publications are inserted)
+    with Session() as session:
+        publication_ids_by_oai = dict(session.query(Publication.oai_identifier, Publication.publication_id).all())
+
     for index, tuple_str in enumerate(tuples):
         if not tuple_str.strip():
             continue
@@ -27,7 +33,8 @@ def load_sdg_label_data(file_path, batch_size=100):
         try:
             # Parse the tuple fields
             fields = [field.strip() for field in tuple_str.split(',')]
-            publication_id = int(fields[0])
+            first = fields[0].strip("'\"")
+            publication_id = int(first) if first.isdigit() else publication_ids_by_oai[first]
             sdg_labels = [int(fields[i]) for i in range(1, 18)]  # SDG labels from sdg1 to sdg17
 
             print(f"Processing publication_id={publication_id} with SDG labels: {sdg_labels}")
@@ -78,7 +85,7 @@ def load_sdg_label_data(file_path, batch_size=100):
                 data_summary.clear()
                 data_history.clear()
 
-        except (IndexError, ValueError, TypeError) as e:
+        except (IndexError, ValueError, TypeError, KeyError) as e:
             print(f"Skipping invalid line: {tuple_str} - Error: {e}")
             continue
 

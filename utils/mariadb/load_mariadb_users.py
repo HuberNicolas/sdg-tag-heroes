@@ -1,3 +1,4 @@
+import argparse
 import os
 import logging
 from sqlalchemy.exc import IntegrityError
@@ -36,11 +37,14 @@ def create_initial_users(session: Session, auto_generate: bool = False, user_cou
     if not auto_generate:
         user_count = int(get_env_variable("USER_COUNT"))
 
-    for i in range(user_count):
+    # users.env may number its users from 0 (USER_0_EMAIL, ...) or from 1 (users.env.example)
+    first = 0 if (auto_generate or os.getenv("USER_0_EMAIL")) else 1
+    for i in range(first, first + user_count):
         try:
             if auto_generate:
                 # Auto-generate user data
-                user_email = f"{fake.last_name_male()}@ifi.uzh.ch"
+                # example.org is reserved for examples, so generated players never look like real accounts
+                user_email = f"{fake.last_name_male().lower()}@example.org"
                 user_nickname = fake.user_name()
                 user_password = "password01"
                 user_roles_raw = "labeler"
@@ -48,7 +52,8 @@ def create_initial_users(session: Session, auto_generate: bool = False, user_cou
             else:
                 # Load user data from environment variables
                 user_email = get_env_variable(f"USER_{i}_EMAIL")
-                user_nickname = get_env_variable(f"USER_{i}_NICKNAME")
+                # Optional: fall back to the part of the e-mail before the @
+                user_nickname = os.getenv(f"USER_{i}_NICKNAME") or user_email.split("@")[0]
                 user_password = get_env_variable(f"USER_{i}_PASSWORD")
                 user_roles_raw = get_env_variable(f"USER_{i}_ROLE")
 
@@ -120,8 +125,13 @@ if __name__ == "__main__":
     # Ensure tables are created
     Base.metadata.create_all(mariadb_engine)
 
-    # Set to True to auto-generate users, or False to use environment variables
-    auto_generate = True
+    parser = argparse.ArgumentParser(description="Create users with their roles and inventory.")
+    parser.add_argument("--generate", type=int, metavar="N",
+                        help="create N generated labelers (password01) instead of the accounts in env/users.env")
+    args = parser.parse_args()
 
     with Session() as session:
-        create_initial_users(session, auto_generate=auto_generate, user_count=40)
+        if args.generate:
+            create_initial_users(session, auto_generate=True, user_count=args.generate)
+        else:
+            create_initial_users(session, auto_generate=False)

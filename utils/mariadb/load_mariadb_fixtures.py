@@ -1,4 +1,6 @@
+import argparse
 import random
+from types import SimpleNamespace
 from datetime import datetime
 from random import choice, randint, uniform
 from typing import List
@@ -39,8 +41,27 @@ SEED = 31011997
 faker.seed_instance(SEED)
 random.seed(SEED)
 
-# Initialize GPT Service
-gpt_service = GPTAssistantService()
+
+
+class FakerCommentService:
+    """Stand-in for GPTAssistantService (--no-gpt): same response fields, text from Faker, no API calls."""
+
+    @staticmethod
+    def _first_sentence(abstract: str) -> str:
+        return (abstract or "").split(". ")[0][:300]
+
+    def generate_comment(self, abstract, persona, interest, skill, trust_score, **kwargs):
+        return SimpleNamespace(
+            abstract_section=self._first_sentence(abstract),
+            comment_text=f"As someone interested in {interest.lower()}, I think this matters. {faker.sentence(nb_words=14)}",
+        )
+
+    def generate_annotation(self, abstract, persona, interest, skill, trust_score, **kwargs):
+        return SimpleNamespace(annotation_text=f"From a {skill.lower()} perspective: {faker.sentence(nb_words=16)}")
+
+
+# Set in __main__: GPTAssistantService (default) or FakerCommentService (--no-gpt)
+gpt_service = None
 
 def truncate_tables(session: Session, tables: list):
     """
@@ -446,7 +467,8 @@ def create_sdg_label_decisions_for_scenarios(
         logging.debug(f"Non-relevant SDGs for publication ID {publication.publication_id}: {non_relevant_sdgs}")
 
         expert = choice(experts)
-        scenario = choice(list(ScenarioType)[:-2])  # Exclude last two scenarios
+        # Only the scenarios this script can build a vote distribution for
+        scenario = choice([ScenarioType.CONFIRM, ScenarioType.TIEBREAKER, ScenarioType.INVESTIGATE, ScenarioType.EXPLORE])
 
         logging.debug(f"Selected scenario for publication ID {publication.publication_id}: {scenario}")
 
@@ -720,6 +742,7 @@ def create_sdg_label_decisions_for_scenarios(
 def populate_db(
     session: Session,
     truncate: bool = False,
+    max_scenario_pubs: int = 500,
     max_users: int = 100,
     history_entries_per_user: int = 5,
     max_pubs: int = 5,
@@ -780,7 +803,7 @@ def populate_db(
 
 
         # Create scenario-based decisions
-        relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=500)
+        relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=max_scenario_pubs)
 
         create_sdg_label_decisions_for_scenarios(
             session,
@@ -803,10 +826,19 @@ def populate_db(
 if __name__ == "__main__":
     from sqlalchemy.orm import sessionmaker
 
+    parser = argparse.ArgumentParser(description="Fill the game tables with simulated activity (truncates them first).")
+    parser.add_argument("--no-gpt", action="store_true",
+                        help="write comments and annotations with Faker instead of the OpenAI API (free, offline)")
+    parser.add_argument("--max-publications", type=int, default=500,
+                        help="publications with a ground-truth label that get a scenario (default: 500)")
+    args = parser.parse_args()
+
+    gpt_service = FakerCommentService() if args.no_gpt else GPTAssistantService()
+
     Session = sessionmaker(bind=mariadb_engine)
 
     # Ensure tables are created
     Base.metadata.create_all(mariadb_engine)
 
     with Session() as session:
-        populate_db(session, truncate=True)
+        populate_db(session, truncate=True, max_scenario_pubs=args.max_publications)

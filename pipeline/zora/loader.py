@@ -31,6 +31,10 @@ loader_settings = LoaderSettings()
 from utils.logger import logger
 logging = logger(loader_settings.LOADER_LOG_NAME)
 
+# Prediction models stored as a vector per publication (named goal_<model>)
+GOAL_VECTOR_MODELS = ("aurora", "dvdblk")
+
+
 class QdrantUploader:
     def __init__(self, qdrantdb_client):
         self.qclient = qdrantdb_client
@@ -45,6 +49,9 @@ class QdrantUploader:
                 .filter_by(publication_id=pub.publication_id)
                 .all()
             )
+            # Only models with a vector in the collection (see init_collection). The collector adds an empty
+            # placeholder prediction (model "") per publication, which Qdrant would reject.
+            sdg_preds = [p for p in sdg_preds if (p.prediction_model or "").lower() in GOAL_VECTOR_MODELS]
             if sdg_preds:
                 for sdg_pred in sdg_preds:
                     model_name = sdg_pred.prediction_model.lower()
@@ -60,7 +67,8 @@ class QdrantUploader:
                     goal_predictions[pub.publication_id][f"goal_{model_name}"] = predictions
                 logging.info(f"SDG predictions for publication ID {pub.publication_id}: {goal_predictions[pub.publication_id]}")
             else:
-                goal_predictions[pub.publication_id] = {"goal_default": [0.0] * sdg_settings.SDGOAL_NUMBER}
+                # No goal vector; Qdrant allows named vectors to be missing (there is no "goal_default" vector)
+                goal_predictions[pub.publication_id] = {}
                 logging.warning(f"No SDG predictions found for publication ID {pub.publication_id}. Defaulting to zeros.")
 
         return goal_predictions
@@ -72,7 +80,7 @@ class QdrantUploader:
             points = []
             for pub, emb in zip(publications, embeddings):
                 vectors = {"content": emb.tolist()}
-                vectors.update(goal_predictions.get(pub.publication_id, {"goal_default": [0.0] * sdg_settings.SDGOAL_NUMBER}))
+                vectors.update(goal_predictions.get(pub.publication_id, {}))
 
                 points.append(
                     PointStruct(
@@ -88,8 +96,8 @@ class QdrantUploader:
                     )
                 )
 
-            # Upload points to Qdrant
-            self.qclient.upload_points(collection_name=loader_settings.PUBLICATIONS_COLLECTION_NAME, points=points)
+            # Upload points to Qdrant and wait for the result, so rejected points raise instead of failing silently
+            self.qclient.upsert(collection_name=loader_settings.PUBLICATIONS_COLLECTION_NAME, points=points, wait=True)
             logging.info(f"Successfully uploaded {len(publications)} publications to Qdrant.")
 
             # Mark publications as embedded in the database
@@ -110,8 +118,10 @@ class QdrantUploader:
                     collection_name=collection_name,
                     vectors_config={
                         "content": VectorParams(size=embeddings_settings.VECTOR_SIZE, distance=Distance.DOT),
-                        "goal_aurora": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT),
-                        "goal_dvdblk": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT),
+                        **{
+                            f"goal_{model}": VectorParams(size=sdg_settings.SDGOAL_NUMBER, distance=Distance.DOT)
+                            for model in GOAL_VECTOR_MODELS
+                        },
                     },
                 )
                 logging.info(f"Collection {collection_name} successfully created.")
