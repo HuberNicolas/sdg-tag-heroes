@@ -21,14 +21,12 @@ published.
   both give better topics than the template abstracts
 - [ ] Publish the generator repository on GitHub
 - [ ] SDG clusters (`full_dataset_clusters.json`) are not generated; they were not used in the deployed version
-- [ ] Only then: remove UZH data from this repository, including its git history
-  - [ ] `notebooks/topic_model.ipynb` (contains ZORA titles and abstracts in cell outputs)
-  - [ ] `notebooks/topic_data.json` (contains ZORA titles and abstracts)
-  - [ ] `notebooks/exploration.ipynb` (Plotly outputs with publication titles, 57 MB)
-  - [ ] `notebooks/publication_comparison.ipynb` (outputs with ZORA identifiers and titles)
-  - [x] Check the other notebooks: `model_comparison.ipynb` has no publication data
-  - Clearing the outputs (`jupyter nbconvert --clear-output`) removes the data from the files; removing it from the
-    history needs a rewrite (`git filter-repo`) and a force push
+- [x] UZH data in the notebooks: decided (2026-09-24) to keep the notebooks as they are. They are part of the thesis
+  analysis and contain titles and abstracts (no full papers), which are also public on ZORA. The dataset itself
+  (`data/`) stays unpublished.
+  - `notebooks/topic_model.ipynb` and `notebooks/topic_data.json`: titles and abstracts
+  - `notebooks/exploration.ipynb`: titles in Plotly outputs; `notebooks/publication_comparison.ipynb`: ZORA
+    identifiers and titles; `notebooks/model_comparison.ipynb`: no publication data
 
 ## 2. Update the API collection (via openapi.json)
 

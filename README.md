@@ -47,8 +47,9 @@ expert.
 
 > [!NOTE]
 > The original dataset consists of publications from [ZORA](https://www.zora.uzh.ch/), the open repository of UZH.
-> These publications belong to their authors and UZH, so **the data is not part of this repository**. The
-> [dummy dataset](#dummy-dataset) lets you run the application without it.
+> These publications belong to their authors and UZH, so **the dataset is not part of this repository**. The
+> [dummy dataset](#dummy-dataset) lets you run the application without it. The analysis notebooks in
+> [`notebooks/`](notebooks) show titles and abstracts of ZORA publications in their outputs.
 
 ## Contents
 
