@@ -49,10 +49,12 @@ published.
 - [ ] Tablet and phone layouts (not planned so far; visualisations need space)
 - [x] Install from the lockfile in `deploy/frontend.Dockerfile` (`npm ci`); newer packages (Nuxt 3.21, Nuxt UI 2.22)
   broke the layout. Do not upgrade the frontend packages without checking the layout.
-- [ ] Fix `deploy/frontend.prod.Dockerfile` (expects `pnpm-lock.yaml`, final stage uses Node 16)
+- [x] Fix `deploy/frontend.prod.Dockerfile`: npm lockfile, Node 20, larger build heap, API address at runtime
+  (`NUXT_PUBLIC_API_URL`); tested with the running API. A `.dockerignore` keeps `data/` out of the build context
 - [x] Start page and `/login`: use the existing `none` layout (was `empty`, which does not exist)
-- [ ] Clean up build warnings: duplicated auto-import `createBarPlot`, missing `assets/icons/` components
-  directory, `defineProps`/`defineEmits` imports, `size="sm"` on a native checkbox (`SDGUserLabelCheckbox`)
+- [x] Clean up build warnings: duplicated auto-import `createBarPlot` (unused `barPlot.ts` removed), missing
+  `assets/icons/` components directory, `defineProps`/`defineEmits` imports, `size="sm"` on `UCheckbox`, chunk size
+  warning for Plotly. Only the outdated Browserslist data remains (updating it changes the lockfile)
 - [x] Remove `nuxt-app/` (empty starter)
 
 ## 4. Fix the dataset scripts

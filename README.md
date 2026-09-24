@@ -247,6 +247,17 @@ Open <http://localhost:3000>.
 
 Log in with one of the accounts from `env/users.env`.
 
+**Production build**: [`deploy/frontend.prod.Dockerfile`](deploy/frontend.prod.Dockerfile) builds the frontend and serves
+it with the Nuxt server on port 3000. Pass the API address at runtime:
+
+```bash
+docker build -f deploy/frontend.prod.Dockerfile -t sdg-tag-heroes-frontend-prod .
+```
+
+```bash
+docker run -p 3000:3000 -e NUXT_PUBLIC_API_URL=http://localhost:1002 sdg-tag-heroes-frontend-prod
+```
+
 ### Stop everything
 
 ```bash

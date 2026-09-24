@@ -4,7 +4,6 @@
       id="sortOrder"
       v-model="sortDescending"
       color="primary"
-      size="sm"
     />
     <label for="sortOrder" class="text-sm font-medium">
       Sort by Most Votes
@@ -13,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
   modelValue: Boolean,

@@ -1,44 +1,33 @@
-## Tailwind issues from building
-## Adding all tailwind dependencies (forms, aspect-ration), manually, make sure that those are
-## NOT dev dependency.
+# Production image of the frontend: builds the Nuxt app and serves it with the Nitro server.
+#   docker build -f deploy/frontend.prod.Dockerfile -t sdg-tag-heroes-frontend-prod .
+#   docker run -p 3000:3000 -e NUXT_PUBLIC_API_URL=http://localhost:1002 sdg-tag-heroes-frontend-prod
+# The API address is read at runtime from NUXT_PUBLIC_API_URL (the browser calls the API directly).
 
-# Use Node 16 Alpine image as the build image
 FROM node:20-alpine AS builder
 
-# Create work directory in app folder
 WORKDIR /app
 
-# Install required packages for Node image
-RUN apk --no-cache add openssh g++ make python3 git
+# Native build tools for dependencies that compile on install
+RUN apk --no-cache add g++ make python3 git
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# Install exactly the locked versions; newer packages break the layout (see TODO.md)
+COPY frontend/package.json frontend/package-lock.json /app/
+RUN npm ci
 
-# Copy over package.json and pnpm-lock.yaml files
-COPY frontend/package.json /app/
-COPY frontend/pnpm-lock.yaml /app/
+COPY frontend /app
+# The default Node heap is too small for the build (Plotly, D3)
+RUN NODE_OPTIONS=--max-old-space-size=4096 npm run build
 
-# Install all dependencies using pnpm
-RUN pnpm install --frozen-lockfile
-
-# Copy over all files to the work directory
-ADD frontend /app
-
-# Build the project
-RUN pnpm run build
-
-# Start final image
-FROM node:16-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy over build files from the builder step
+# .output contains the server and everything it needs, including its own node_modules
 COPY --from=builder /app/.output /app/.output
-COPY --from=builder /app/.nuxt /app/.nuxt
 
-# Expose the host and port 3000 to the server
-ENV HOST 0.0.0.0
+ENV HOST=0.0.0.0 \
+    PORT=3000 \
+    NODE_ENV=production
 EXPOSE 3000
 
-# Run the built project with Node
-ENTRYPOINT ["node", ".output/server/index.mjs"]
+CMD ["node", ".output/server/index.mjs"]

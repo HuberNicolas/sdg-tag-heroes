@@ -1,0 +1,12 @@
+# Keep the build context small; the images only copy what their Dockerfile names
+.git
+.claude
+**/node_modules
+**/__pycache__
+frontend/.nuxt
+frontend/.output
+notebooks
+logs
+# The API image copies data/api (UMAP models); everything else in data/ (database volumes) stays out
+data/*
+!data/api

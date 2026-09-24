@@ -27,6 +27,10 @@ export default defineNuxtConfig({
     ]
   },
   vite: {
+    build: {
+      // Plotly alone is a chunk of several MB; it is loaded on purpose
+      chunkSizeWarningLimit: 5000
+    },
     server: {
       // https://github.com/vitejs/vite/issues/15784
       watch: {
@@ -56,6 +60,10 @@ export default defineNuxtConfig({
   },
   ui: {
     icons: ["mdi", "simple-icons"]
+  },
+  svgo: {
+    // SVGs are imported explicitly (constants/sdgs.ts); there is no assets/icons/ folder to auto-register
+    autoImportPath: false
   },
   // clear local storage after changing this
   colorMode: {

@@ -4,7 +4,6 @@
       id="showFinalRound"
       v-model="store.showFinalRound"
       color="primary"
-      size="sm"
     />
     <label for="showFinalRound" class="text-sm font-medium">
       Final Round Vote: Only Last Vote Counts
