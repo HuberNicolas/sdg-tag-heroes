@@ -60,6 +60,7 @@ published.
   `assets/icons/` components directory, `defineProps`/`defineEmits` imports, `size="sm"` on `UCheckbox`, chunk size
   warning for Plotly. Only the outdated Browserslist data remains (updating it changes the lockfile)
 - [x] Remove `nuxt-app/` (empty starter)
+- [ ] Fix the ESLint findings (`npm run lint`: about 380, of which `npm run lint:fix` fixes about 260)
 
 ## 4. Fix the dataset scripts
 
