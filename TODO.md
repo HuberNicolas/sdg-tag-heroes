@@ -27,12 +27,10 @@ published.
 
 ## 2. Update the API collection (via openapi.json)
 
-- [ ] Start the API and import `http://localhost:1002/openapi.json` into Postman
-- [ ] Add the 14 endpoints that are missing from the current collection (listed in
-  [`docs/api/README.md`](docs/api/README.md#endpoints-not-yet-in-the-collection))
-- [ ] Restore the variables (`baseUrl`, `email`, `password`, `bearerToken`) and the login test script
-- [ ] Export as Collection v2.1 to `docs/api/sdg-tag-heroes.postman_collection.json` and check it for passwords and tokens
-- [ ] Optionally commit a static `docs/api/openapi.json`
+- [x] Regenerate the collection from `http://localhost:1002/openapi.json` with Postman's converter
+  (`openapi-to-postmanv2`) and `docs/api/finalize_postman_collection.py`: all 111 requests, variables, Bearer auth,
+  login test script, no passwords or tokens
+- [x] Document the steps in `docs/api/README.md`
 
 ## 3. Clean up the frontend
 

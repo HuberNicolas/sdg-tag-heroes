@@ -11,9 +11,10 @@ There are two ways to explore it:
 
 ## Postman collection
 
-[`sdg-tag-heroes.postman_collection.json`](sdg-tag-heroes.postman_collection.json) contains 96 requests, grouped into
-folders by URL path. Each request has example bodies and example responses (200, 401, 403, 404, 422) with placeholder
-values.
+[`sdg-tag-heroes.postman_collection.json`](sdg-tag-heroes.postman_collection.json) contains all 111 requests of the
+API, grouped into folders by the first part of the URL path. It is generated from the API's `openapi.json` (see
+[Updating the collection](#updating-the-collection)). Each request has example bodies and example responses with
+placeholder values.
 
 ### Import
 
@@ -39,38 +40,27 @@ Path parameters (for example `:publication_id` or `:sdg`) are set in the **Param
 > Do not commit the collection with a filled-in `password` or `bearerToken`. Postman stores the current values of
 > collection variables in the export.
 
-### Endpoints not yet in the collection
-
-These routes exist in the code but were added after the collection was exported. They are available in Swagger UI:
-
-| Method | Path                                                             |
-|--------|------------------------------------------------------------------|
-| GET    | `/banks/latest`                                                  |
-| GET    | `/label-decisions/users/{user_id}`                               |
-| GET    | `/label-decisions/{reduction_shorthand}/scenarios/{scenario_type}` |
-| GET    | `/user-labels/users/{user_id}`                                   |
-| GET    | `/publications/scenarios/{scenario_type}/{top_k}`                |
-| GET    | `/publications/users/{user_id}/labeled`                          |
-| GET    | `/{resource}/global/scenarios/least-labeled/{top_k}` for `publications`, `label-decisions`, `sdg-predictions`, `dimensionality-reductions` |
-| GET    | `/{resource}/global/scenarios/max-entropy/{top_k}` for the same four resources |
-
 ### Updating the collection
 
-The collection was created by importing the OpenAPI schema of the running API. To regenerate it with all current
-endpoints:
+After changing the API, regenerate the collection from the OpenAPI schema of the running API, from the repository
+root:
 
-1. Start the API.
-2. In Postman, choose **Import** and enter `http://localhost:1002/openapi.json`.
-3. Set the new collection's auth to Bearer `{{bearerToken}}`, add the variables above, and copy the test script of the
-   login request:
+```bash
+curl -s http://localhost:1002/openapi.json -o openapi.json
+```
 
-   ```js
-   if (pm.response.code === 200) {
-     pm.collectionVariables.set("bearerToken", pm.response.json().access_token);
-   }
-   ```
+```bash
+npx openapi-to-postmanv2@4 -s openapi.json -o converted.json -p -O folderStrategy=Paths
+```
 
-4. Export it as **Collection v2.1**, replace the file in this folder, and check that it contains no password or token.
+```bash
+python3 docs/api/finalize_postman_collection.py converted.json docs/api/sdg-tag-heroes.postman_collection.json
+```
+
+The first command is Postman's own converter (the same one the Postman import uses).
+[`finalize_postman_collection.py`](finalize_postman_collection.py) groups the requests into one folder per resource,
+sets the collection's Bearer auth and variables, and adds the login test script. Delete `openapi.json` and
+`converted.json` afterwards.
 
 ## Authentication
 
