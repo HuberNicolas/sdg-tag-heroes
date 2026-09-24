@@ -91,4 +91,7 @@ published.
 - [ ] Choose and add a license
 - [ ] Add the thesis title, link, and supervisors to the README
 - [ ] Credit SDG-Scout and the research group
-- [ ] Last check for secrets (`env/`, Postman, notebooks, git history)
+- [x] Check for secrets (2026-09-24): tracked files and the whole git history contain no API keys, JWTs, real
+  passwords or env files, only the placeholder values of the `*.env.example` files. The commits carry the UZH
+  e-mail addresses `nicolas.huber2@uzh.ch` and `nhuber@ifi.uzh.ch` as author
+- [ ] Repeat the check right before publishing, after the notebooks are cleaned
