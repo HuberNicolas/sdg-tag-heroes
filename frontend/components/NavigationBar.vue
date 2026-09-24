@@ -740,7 +740,9 @@ const extractPublicationId = (reason: string): number | null => {
   return match ? parseInt(match[1], 10) : null;
 };
 
-const getPlayerRank = (userId: number, sdgType: SDGType) => {
+const getPlayerRank = (userId: number, sdgType: SDGType | null) => {
+  // Coin histories without an SDG in their reason (e.g. simulated ones) have no rank
+  if (!sdgType) return { name: "No Rank", tier: 0 };
   const sdgId = parseInt(sdgType.replace("sdg", ""), 10);
   const userRankData = rankStore.userSDGRanks.find((u) => u.userId === userId);
   const rank = userRankData?.ranks.find((r) => r.sdgGoalId === sdgId);

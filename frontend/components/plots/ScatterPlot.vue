@@ -13,10 +13,11 @@ import Plotly from 'plotly.js-dist';
 import { createScatterPlot } from '@/composables/plots/scatterPlot';
 
 const scatterPlotContainer = ref<HTMLDivElement | null>(null);
+const mapPartitions = Number(useRuntimeConfig().public.mapPartitions) || 1000;
 
 onMounted(() => {
   if (scatterPlotContainer.value) {
-    createScatterPlot(scatterPlotContainer.value);
+    createScatterPlot(scatterPlotContainer.value, undefined, undefined, 'top1', mapPartitions);
   }
 });
 

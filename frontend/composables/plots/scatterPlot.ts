@@ -8,7 +8,8 @@ import { useCollectionsStore } from "~/stores/collections";
 import { useGameStore } from "~/stores/game";
 import { useSDGsStore } from "~/stores/sdgs";
 
-export function createScatterPlot(container, width, height, mode = 'top1') {
+// totalParts: the overview map is split into this many parts; universe (level) n shows part n
+export function createScatterPlot(container, width, height, mode = 'top1', totalParts = 1000) {
   const dimensionalityReductionsStore = useDimensionalityReductionsStore();
   const publicationsStore = usePublicationsStore();
   const sdgPredictionsStore = useSDGPredictionsStore();
@@ -30,7 +31,6 @@ export function createScatterPlot(container, width, height, mode = 'top1') {
   const fetchData = async () => {
     const reductionShorthand = 'TM-UZH-UMAP-15-0.0-2';
     const partNumber = level;
-    const totalParts = 1000;
 
     await Promise.all([
       dimensionalityReductionsStore.fetchDimensionalityReductionsPartitioned(reductionShorthand, partNumber, totalParts),

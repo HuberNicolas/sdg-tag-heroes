@@ -44,7 +44,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiUrl: process.env.API_URL // FastAPI, verifies jwt
+      apiUrl: process.env.API_URL, // FastAPI, verifies jwt
+      // Parts the overview map is split into (one per universe); use a small number for small datasets.
+      // Override with NUXT_PUBLIC_MAP_PARTITIONS.
+      mapPartitions: 1000,
     }
   },
   // add the middleware globally by adding
