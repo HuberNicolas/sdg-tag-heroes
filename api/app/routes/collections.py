@@ -62,6 +62,8 @@ async def get_collections(
         # Convert the collection instances to a dictionary
         return [CollectionSchemaFull.model_validate(collection.to_dict()) for collection in collections]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching collections: {str(e)}")
         raise HTTPException(
@@ -103,6 +105,8 @@ async def get_collection(
         return CollectionSchemaFull.model_validate(collection_dict)
 
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching collection with ID {collection_id}: {str(e)}")
         raise HTTPException(

@@ -68,6 +68,8 @@ async def get_label_summaries(
 
         return paginated_query
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(e)
         logging.error(f"Error fetching SDGLabelSummaries: {str(e)}")
@@ -104,6 +106,8 @@ async def get_label_summary(
 
         return SDGLabelSummarySchemaFull.model_validate(label_summary)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDGLabelSummary ID {label_summary_id}: {str(e)}")
         raise HTTPException(
@@ -138,6 +142,8 @@ async def get_sdg_label_summary(
 
         return SDGLabelSummarySchemaFull.model_validate(publication.sdg_label_summary)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDGLabelSummary for publication ID {publication_id}: {str(e)}")
         raise HTTPException(

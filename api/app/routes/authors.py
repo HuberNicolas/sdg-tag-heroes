@@ -66,6 +66,8 @@ async def get_authors(
 
         return paginated_query
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching authors: {str(e)}")
         raise HTTPException(
@@ -99,6 +101,8 @@ async def get_author(
 
         return AuthorSchemaFull.model_validate(author)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching author with ID {author_id}: {str(e)}")
         raise HTTPException(
@@ -134,6 +138,8 @@ async def get_publication_authors(
         # Return the list of authors associated with the publication
         return [AuthorSchemaFull.model_validate(author) for author in publication.authors]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

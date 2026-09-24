@@ -69,6 +69,8 @@ async def get_user_wallet(
 
         return SDGCoinWalletSchemaFull.model_validate(wallet)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -106,6 +108,8 @@ async def get_latest_wallet_history(
         elif latest_history and latest_history.is_shown == 1:
             # No wallet history available for the user
             return NoSDGCoinWalletHistorySchemaBase()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -128,6 +132,8 @@ async def get_all_wallets(
 
         return [SDGCoinWalletSchemaFull.model_validate(sdg_coin_wallet) for sdg_coin_wallet in sdg_coin_wallets]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -173,6 +179,8 @@ async def add_wallet_increment(
 
         return SDGCoinWalletHistorySchemaFull.model_validate(new_history)
 
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -205,6 +213,8 @@ async def get_personal_wallet(
 
         return SDGCoinWalletSchemaFull.model_validate(wallet)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

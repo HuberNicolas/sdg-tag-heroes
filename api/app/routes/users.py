@@ -62,6 +62,8 @@ async def get_personal_user(
 
         return UserSchemaFull.model_validate(user)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -95,6 +97,8 @@ async def get_users_by_role(
         return [UserSchemaFull.model_validate(user) for user in filtered_users]
 
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -121,6 +125,8 @@ async def get_user_by_id(
 
         return UserSchemaFull.model_validate(user)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

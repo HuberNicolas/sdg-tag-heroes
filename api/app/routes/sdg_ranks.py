@@ -67,6 +67,8 @@ async def get_all_sdg_ranks(
 
         return [SDGRankSchemaFull.model_validate(rank) for rank in ranks]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -132,6 +134,8 @@ async def get_user_ranks_and_xp(
 
         return user_ranks
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -184,6 +188,8 @@ async def get_ranks_for_all_users(
 
         return all_user_ranks
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -241,6 +247,8 @@ async def get_sdg_ranks_for_users(
 
         return response_data
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -67,6 +67,8 @@ async def get_user_bank(
 
         return SDGXPBankSchemaFull.model_validate(sdg_xp_bank)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -91,6 +93,8 @@ async def get_all_banks(
 
         return [SDGXPBankSchemaFull.model_validate(sdg_xp_bank) for sdg_xp_bank in sdg_xp_banks]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -147,6 +151,8 @@ async def add_bank_increment(
 
         return SDGXPBankHistorySchemaFull.model_validate(new_history)
 
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -183,6 +189,8 @@ async def get_latest_bank_history(
 
         return NoSDGXPBankHistorySchemaBase()
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -214,6 +222,8 @@ async def get_personal_bank(
 
         return SDGXPBankSchemaFull.model_validate(sdg_xp_bank)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -76,18 +76,10 @@ def verify_token(token: str, db: Session):
 
         return TokenDataSchemaFull(user_id=user.user_id, email=user.email, roles=roles)
 
-    # Handle various exceptions from PyJWT
-
-    except InvalidTokenError:
-        logging.error(f"Invalid token: {token}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token signature",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
+    # Handle the exceptions from PyJWT (ExpiredSignatureError and DecodeError are subclasses of InvalidTokenError,
+    # so they are caught first). The token itself is not logged.
     except ExpiredSignatureError:
-        logging.error(f"Expired token: {token}")
+        logging.error("Expired token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
@@ -95,10 +87,18 @@ def verify_token(token: str, db: Session):
         )
 
     except DecodeError:
-        logging.error(f"Decode Error: {token}")
+        logging.error("Token could not be decoded")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Failed to decode token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    except InvalidTokenError:
+        logging.error("Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token signature",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -143,7 +143,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     # Verify the provided password against the stored hash
     if not pwd_context.verify(request.password, user.hashed_password):
-        logging.error(f"Invalid password: {request.password}")
+        logging.error(f"Invalid password for user: {request.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",

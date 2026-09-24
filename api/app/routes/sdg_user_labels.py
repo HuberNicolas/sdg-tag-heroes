@@ -85,6 +85,8 @@ async def get_sdg_user_label(
 
         return SDGUserLabelSchemaFull.model_validate(user_label)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDG user label ID {label_id}: {str(e)}")
         raise HTTPException(
@@ -110,6 +112,8 @@ async def get_all_sdg_user_labels(
         user_labels = db.query(SDGUserLabel).all()
         return [SDGUserLabelSchemaFull.model_validate(label) for label in user_labels]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDG user labels: {str(e)}")
         raise HTTPException(
@@ -186,6 +190,8 @@ async def evaluate_user_label(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid input data.",
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error evaluating user label {user_label_id}: {str(e)}")
         raise HTTPException(
@@ -373,6 +379,8 @@ async def get_votes_for_sdg_user_label(
 
         return [VoteSchemaFull.model_validate(vote) for vote in sdg_user_label.votes]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching votes for SDG user label ID {label_id}: {str(e)}")
         raise HTTPException(

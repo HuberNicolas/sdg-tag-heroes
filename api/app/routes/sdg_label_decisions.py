@@ -526,6 +526,8 @@ async def get_sdg_label_decisions(
 
         return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in history.decisions]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDGLabelDecisions for publication ID {publication_id}: {str(e)}")
         raise HTTPException(
@@ -579,6 +581,8 @@ async def get_sdg_label_decision(
 
         return SDGLabelDecisionSchemaFull.model_validate(decision)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(
             f"Error fetching SDGLabelDecision ID {decision_id} for publication ID {publication_id}: {str(e)}"
@@ -615,6 +619,8 @@ async def get_sdg_label_decisions_by_scenario(
 
         return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in decisions]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDGLabelDecisions for scenario {scenario.value}: {str(e)}")
         raise HTTPException(
@@ -762,6 +768,8 @@ async def get_sdg_label_decisions_partitioned(
         logging.info(f"Total SDGLabelDecisions returned: {len(all_decisions)}")
         return all_decisions
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDGLabelDecisions batch: {str(e)}")
         raise HTTPException(

@@ -145,6 +145,8 @@ async def get_all_votes(
         votes = db.query(Vote).all()
         return [VoteSchemaFull.model_validate(vote) for vote in votes]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching votes: {str(e)}")
         raise HTTPException(
@@ -179,6 +181,8 @@ async def get_vote(
 
         return VoteSchemaFull.model_validate(vote)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching vote ID {vote_id}: {str(e)}")
         raise HTTPException(

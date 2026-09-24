@@ -92,6 +92,8 @@ async def create_annotation(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid input data.",
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error creating annotation: {str(e)}")
         raise HTTPException(
@@ -144,6 +146,8 @@ async def evaluate_annotation_score(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid input. Please check your request data.",
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error evaluating annotation score: {str(e)}")
         raise HTTPException(
@@ -178,6 +182,8 @@ async def get_annotations_by_label_decision(
 
         return [AnnotationSchemaFull.model_validate(annotation) for annotation in annotations]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching annotations for label decision ID {label_decision_id}: {str(e)}")
         raise HTTPException(
@@ -213,6 +219,8 @@ async def get_annotation(
 
         return AnnotationSchemaFull.model_validate(annotation)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching annotation ID {annotation_id}: {str(e)}")
         raise HTTPException(
@@ -239,6 +247,8 @@ async def get_all_annotations(
         annotations = db.query(Annotation).all()
         return [AnnotationSchemaFull.model_validate(annotation) for annotation in annotations]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching annotations: {str(e)}")
         raise HTTPException(
@@ -280,6 +290,8 @@ async def get_vote_for_annotation(
 
         return VoteSchemaFull.model_validate(vote)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching vote ID {vote_id} for annotation ID {annotation_id}: {str(e)}")
         raise HTTPException(
@@ -313,6 +325,8 @@ async def get_votes_for_annotation(
 
         return [VoteSchemaFull.model_validate(vote) for vote in annotation.votes]
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching votes for annotation ID {annotation_id}: {str(e)}")
         raise HTTPException(

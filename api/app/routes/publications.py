@@ -78,6 +78,8 @@ async def get_publications_by_ids(
                         .filter(Publication.publication_id.in_(publication_ids)).all())
 
         return [PublicationSchemaBase.model_validate(publication) for publication in publications]
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching publications: {str(e)}")
         raise HTTPException(
@@ -112,6 +114,8 @@ async def get_publications(
 
         return paginated_query
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching publications: {str(e)}")
         raise HTTPException(
@@ -149,6 +153,8 @@ async def get_publication(
         # Validate and return the full schema
         return PublicationSchemaFull.model_validate(publication)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching publication with ID {publication_id}: {str(e)}")
         raise HTTPException(
@@ -264,6 +270,8 @@ async def get_top_k_entropy_publications(
 
         return publications
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching publications: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching publications: {e}")
@@ -305,6 +313,8 @@ async def get_least_labeled_publications(
 
         return publications
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching least-labeled publications: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching least-labeled publications: {e}")

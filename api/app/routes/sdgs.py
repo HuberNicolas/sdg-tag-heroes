@@ -72,6 +72,8 @@ async def get_sdg(
         logging.info(f"Returning SDG goal with ID: {sdg_id}")
         return SDGGoalSchemaFull.model_validate(sdg_goal)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDG goal with ID {sdg_id}: {str(e)}")
         raise HTTPException(
@@ -103,6 +105,8 @@ async def get_sdgs(
         return [SDGGoalSchemaFull.model_validate(goal) for goal in goals]
 
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDG goals: {str(e)}")
         raise HTTPException(

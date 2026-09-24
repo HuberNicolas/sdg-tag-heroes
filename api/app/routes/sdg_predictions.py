@@ -334,6 +334,8 @@ async def get_top_k_entropy_sdg_predictions(
 
         return top_entropy_sdgs
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching SDG predictions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching SDG predictions: {e}")
@@ -376,6 +378,8 @@ async def get_least_labeled_sdg_predictions(
 
         return predictions
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching least-labeled SDG predictions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching least-labeled SDG predictions: {e}")

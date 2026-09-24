@@ -77,13 +77,13 @@ published.
 
 ## 5. Other cleanup
 
-- [ ] Stop logging the plaintext password on a failed login (`api/app/routes/authentication.py`)
-- [ ] Return 401 instead of 500 when a token is invalid (e.g. `GET /sdgs`, `/banks/latest`, `/wallets/latest` wrap the
+- [x] Stop logging the plaintext password on a failed login (`api/app/routes/authentication.py`); tokens are no longer logged either
+- [x] Return 401 instead of 500 when a token is invalid (e.g. `GET /sdgs`, `/banks/latest`, `/wallets/latest` wrap the
   `HTTPException` in a 500)
 - [x] Remove the `backend` service from `docker-compose.yml` (the `backend/` folder no longer exists)
 - [x] Update the port table in `docs/docker.md`
 - [x] Remove CouchDB and Redis (containers, connectors, dependencies, docs); no feature used them
-- [ ] Add an example env file for `portainer.env`
+- [x] Add an example env file for `portainer.env`
 
 ## 6. Before publishing
 

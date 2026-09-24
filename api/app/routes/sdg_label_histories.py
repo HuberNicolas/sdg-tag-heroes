@@ -76,6 +76,8 @@ async def get_sdg_label_history(
 
         return SDGLabelHistorySchemaFull.model_validate(history)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -109,6 +111,8 @@ async def get_sdg_label_history(
 
         return SDGLabelHistorySchemaFull.model_validate(history)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -68,6 +68,8 @@ async def propose_sdg_based_on_skills(
             proposed_sdg_id=proposed_sdg.proposed_sdg_id,
             reasoning=proposed_sdg.reasoning
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -99,6 +101,8 @@ async def propose_sdg_based_on_interests(
             proposed_sdg_id=proposed_sdg.proposed_sdg_id,
             reasoning=proposed_sdg.reasoning
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -129,6 +133,8 @@ async def generate_skills_query(
             input_skills=request.skills,
             enriched_description=enriched_skills.generated_query
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -160,6 +166,8 @@ async def generate_interests_query(
             input_interests=request.interests,
             enriched_description=enriched_interests.generated_query
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,

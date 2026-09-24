@@ -75,6 +75,8 @@ async def get_dimensionality_reductions(
         return [DimensionalityReductionSchemaFull.model_validate(dimensionality_reduction) for dimensionality_reduction in dimensionality_reductions]
 
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -169,6 +171,8 @@ async def get_dimensionality_reductions(
             for dim_red in dimensionality_reductions
         ]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -194,6 +198,8 @@ async def get_dimensionality_reductions_for_publication(
         return [DimensionalityReductionSchemaFull.model_validate(dimensionality_reduction) for dimensionality_reduction in dimensionality_reductions]
 
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -371,6 +377,8 @@ async def get_top_k_entropy_dimensionality_reductions(
 
         return dim_reductions
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching dimensionality reductions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching dimensionality reductions: {e}")
@@ -419,6 +427,8 @@ async def get_least_labeled_dimensionality_reductions(
 
         return dim_reductions
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Error fetching least-labeled dimensionality reductions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching least-labeled dimensionality reductions: {e}")
@@ -501,6 +511,8 @@ async def get_user_coordinates(
             coordinates = umap_service.get_coordinates_using_default_model(request.user_query)
 
         return UserCoordinatesSchema.model_validate(coordinates)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

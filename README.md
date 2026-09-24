@@ -169,8 +169,6 @@ Then open each file in `env/` and fill in the empty values:
 | `api.env`               | `OPENAI_API_KEY`                                                                             |
 | `users.env`             | The initial accounts (admin, labeler, expert). **Change the default passwords.**             |
 
-If you want to use the Portainer container, also create an empty `env/portainer.env`.
-
 ### 3. Provide the data folder
 
 The API image copies `data/api/` at build time (the trained UMAP models), and several loader scripts read from
