@@ -8,15 +8,18 @@ The original data (UZH publications from ZORA, plus labels, clusters, and explan
 published.
 
 - [ ] Back up the original `data/` folder (about 24 GB) and keep it outside the repository
-- [ ] Create a separate repository with a generator (e.g. Faker) that produces synthetic data in the same formats:
-  - [ ] Publications, authors, faculties, institutes, divisions (MariaDB)
-  - [ ] SDG predictions (goals and targets)
-  - [ ] Embeddings (Qdrant collection `publications-mt`, 384 dimensions)
-  - [ ] UMAP coordinates and models (`data/api/umap_model/`)
-  - [ ] Topic collections and clusters
-  - [ ] Ground-truth labels (`sdg_label_summary.txt`)
-  - [ ] SDG explanations (MongoDB `sdg_explanations`)
-- [ ] Document in the README how to load the dummy dataset
+- [x] Create the generator repository (`../sdg-tag-heroes-dataset-generator`, local only so far). It replaces only the
+  external sources; the pipeline computes the rest:
+  - [x] ZORA: fictional publications as OAI-PMH files, read with `collector.py --from-dir`
+  - [x] SDG-Scout: ground-truth labels and (synthetic) explanations
+  - [x] Placeholder SDG icons, SDG texts and rank tiers
+  - [x] Optional abstracts written by Claude (`--mode llm`)
+- [x] Load it with the regular pipeline (`utils/dummy/load_dummy_dataset.py`, two phases) and test end to end in an
+  isolated Docker network: collector, Dvdblk predictions, Qdrant, UMAP, BERTopic, loaders, fixtures, API, frontend
+- [x] Document in the README how to load the dummy dataset
+- [ ] Generate the dataset with `--mode llm` (costs money; better topics than the template abstracts)
+- [ ] Publish the generator repository on GitHub
+- [ ] SDG clusters (`full_dataset_clusters.json`) are not generated; they were not used in the deployed version
 - [ ] Only then: remove UZH data from this repository, including its git history
   - [ ] `notebooks/topic_model.ipynb` (contains ZORA titles and abstracts in cell outputs)
   - [ ] `notebooks/topic_data.json` (contains ZORA titles and abstracts)
@@ -66,7 +69,10 @@ published.
 - [ ] Aurora predictors need TensorFlow 2.11: add it to `pipeline/pyproject.toml` (or a separate environment) and
   test `predictor.py` / `target_predictor.py`
 - [ ] Wrap the loader scripts in `main()` functions: many run on import and some drop their target database
-- [ ] Run the whole dataset build end to end (needs the dummy dataset, see 1.)
+- [x] Run the whole dataset build end to end with the dummy dataset. Fixed on the way: Qdrant rejected the collector's
+  placeholder prediction (silently), UMAP level numbering after skipped ranges, BERTopic `min_df` for few topics,
+  required SDG columns, API crashing without CouchDB/Redis, pipeline image (Python version, compiler for hdbscan)
+- [x] Prediction model configurable (`PREDICTION_MODEL`, default Aurora) instead of hardcoded "Aurora"
 
 ## 5. Other cleanup
 

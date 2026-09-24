@@ -50,6 +50,7 @@ Other features:
 - [Services and ports](#services-and-ports)
 - [API](#api)
 - [Data](#data)
+- [Dummy dataset](#dummy-dataset)
 - [Building the dataset](#building-the-dataset)
 - [Development](#development)
 - [Documentation](#documentation)
@@ -218,6 +219,9 @@ For MongoDB, follow the `mongorestore` steps in [`docs/data-related/db.md`](docs
 **Option B: build the dataset from scratch.** This takes several steps (harvesting, ML predictions, embeddings, topic
 models, simulated players). They are described in order in [Building the dataset](#building-the-dataset).
 
+**Option C: load the dummy dataset.** Without access to the original data, generate fictional publications and run
+the pipeline on them; see [Dummy dataset](#dummy-dataset).
+
 ### 6. Start the frontend
 
 The frontend reads the API address from `frontend/.env`:
@@ -337,8 +341,8 @@ The application expects a `data/` folder in the repository root. It is not publi
 publications and derived artefacts.
 
 The ground-truth labels, the SDG clusters, and the SDG explanations come from **SDG-Scout**, an earlier project of the
-same research group at UZH, and were created together with that group. They are not publicly available either. A
-separate generator for a synthetic dummy dataset is planned, so the application can be run without the original data.
+same research group at UZH, and were created together with that group. They are not publicly available either. To
+run the application without the original data, use the [dummy dataset](#dummy-dataset).
 
 The relevant parts:
 
@@ -363,6 +367,64 @@ data/
 
 To delete all container data and start from empty databases, run `bash utils/docker/delete-docker-data.sh` (it removes
 `data/docker/`).
+
+## Dummy dataset
+
+The companion repository [sdg-tag-heroes-dataset-generator](https://github.com/HuberNicolas/sdg-tag-heroes-dataset-generator)
+generates fictional publications, so the application can be built and run without the original data. It only
+replaces the two external sources; everything else is computed by this repository's pipeline:
+
+| Original source | Replaced by the generator                                                     | Used by                                   |
+|-----------------|--------------------------------------------------------------------------------|-------------------------------------------|
+| ZORA            | Publications as OAI-PMH files in `data/pipeline/oai/`                          | `collector.py --from-dir`                 |
+| SDG-Scout       | Ground-truth labels (`data/db/sdg_label_summary.txt`), explanations (`data/db/explanations/`) | label and explanation loaders |
+| —               | Placeholder SDG icons, SDG texts, rank tiers (`data/icons/`, `data/ranks/`)    | SDG and rank loaders                      |
+
+The SDG predictions come from the SciBERT model `Dvdblk` (the Aurora models need TensorFlow, see
+[SDG predictions](#5-sdg-predictions)), so the application runs with `PREDICTION_MODEL=Dvdblk`.
+
+> [!WARNING]
+> Load the dummy dataset only into empty databases. [`utils/dummy/load_dummy_dataset.py`](utils/dummy/load_dummy_dataset.py)
+> refuses to run otherwise: the pipeline phase needs empty databases, and the app phase only runs when every
+> publication in MariaDB comes from the dummy dataset.
+
+1. Generate the data (see the generator's README; `--mode llm` writes more realistic abstracts with Claude) and copy
+   its `output/data/` into `data/`.
+2. Start the databases:
+
+   ```bash
+   PREDICTION_MODEL=Dvdblk docker compose up -d --build api mariadb mongodb qdrantdb couchdb redisdb
+   ```
+
+3. Run the pipeline (collector from files, SciBERT predictions, embeddings, UMAP maps, BERTopic topics) in the
+   pipeline container. On a laptop CPU the predictions take 10 to 25 minutes for 600 publications.
+
+   ```bash
+   docker compose --profile pipeline run --rm -w / pipeline python utils/dummy/load_dummy_dataset.py --phase pipeline
+   ```
+
+4. Load SDGs, users, labels, topics, explanations, and simulated players in the API container:
+
+   ```bash
+   docker compose run --rm -v ./data:/data -w / api python utils/dummy/load_dummy_dataset.py --phase app
+   ```
+
+5. Restart the API so it loads the new UMAP models, and start the frontend with a small number of map parts (the
+   overview map is split into parts, one per universe):
+
+   ```bash
+   PREDICTION_MODEL=Dvdblk docker compose up -d api
+   ```
+
+   Set `NUXT_PUBLIC_MAP_PARTITIONS=3` in `frontend/.env`, then start the frontend as in
+   [Getting started](#6-start-the-frontend).
+
+A step that fails can be resumed with `--from-step <name>`; the script prints the command. Log in with an account from
+`env/users.env`, or with one of the 40 generated players (`<lastname>@example.org`, password `password01`).
+
+**Limitations:** the template abstracts (the generator's default mode) share many phrases, so BERTopic finds only a
+few topics; abstracts written with `--mode llm` give more varied topics. SciBERT rarely predicts SDG 17 above 0.7, so
+that SDG may have no map.
 
 ## Building the dataset
 
@@ -437,16 +499,23 @@ The first three are in `utils/mariadb/`, the last in `utils/mongodb/`. Run them 
 ### 3. Users
 
 [`utils/mariadb/load_mariadb_users.py`](utils/mariadb/load_mariadb_users.py) creates users with their inventory and
-their role entries (labeler, expert, admin). It has two modes, chosen by the `auto_generate` flag at the bottom of the
-file:
+their role entries (labeler, expert, admin):
 
-- `auto_generate = False`: creates the accounts defined in `env/users.env` (`USER_COUNT`, then
-  `USER_<i>_EMAIL`, `USER_<i>_NICKNAME`, `USER_<i>_PASSWORD`, `USER_<i>_ROLE` for each user).
-- `auto_generate = True` (current setting): creates 40 generated labelers with Faker (`de_CH` locale), e-mail
-  addresses like `<lastname>@ifi.uzh.ch`, and the password `password01`. Labeler and expert scores are random.
+```bash
+PYTHONPATH=. python utils/mariadb/load_mariadb_users.py
+```
 
-The fixtures (step 11) need at least one user with the `expert` role, so run the script in both modes, or put an expert
-in `users.env`.
+creates the accounts defined in `env/users.env` (`USER_COUNT`, then `USER_<i>_EMAIL`, `USER_<i>_PASSWORD`,
+`USER_<i>_ROLE` and optionally `USER_<i>_NICKNAME` for each user, numbered from 0 or 1).
+
+```bash
+PYTHONPATH=. python utils/mariadb/load_mariadb_users.py --generate 40
+```
+
+creates 40 generated labelers with Faker, e-mail addresses like `<lastname>@example.org`, and the password
+`password01`. Labeler and expert scores are random.
+
+The fixtures (step 11) need at least one user with the `expert` role, so put an expert in `users.env`.
 
 ### 4. Publications
 
@@ -457,6 +526,9 @@ divisions. Settings (limit, paths) are in `CollectorSettings`.
 ```bash
 PYTHONPATH=. python pipeline/zora/collector.py --db mariadb --reset false --recreate_organizational_structure true
 ```
+
+With `--from-dir <folder>`, the collector reads the OAI-PMH responses from files instead of ZORA (`ListSets.xml`,
+`ListRecords.xml` and one file per `resumptionToken`). The [dummy dataset](#dummy-dataset) uses this.
 
 ### 5. SDG predictions
 
@@ -472,9 +544,12 @@ Then:
 | [`utils/mariadb/load_mariadb_sdg_predictions_entropy.py`](utils/mariadb/load_mariadb_sdg_predictions_entropy.py) | Entropy and standard deviation of each prediction (used as uncertainty) |
 | [`utils/mariadb/load_mariadb_scaler.py`](utils/mariadb/load_mariadb_scaler.py)    | Optional experiment: rescaled copies (`Scaled_Aurora`), limited to 5    |
 
-Both predictors take `--db mariadb --batch_size <n> --mariadb_batch_size <n>`. The default model and the threshold
-for "this publication belongs to an SDG" are `DEFAULT_PREDICTION_MODEL` and `DEFAULT_PREDICTION_THRESHOLD` (0.98) in
-`MariaDBSettings`.
+Both predictors take `--db mariadb --batch_size <n> --mariadb_batch_size <n>`. The threshold for "this publication
+belongs to an SDG" is `DEFAULT_PREDICTION_THRESHOLD` (0.98) in `MariaDBSettings`.
+
+Maps, levels, and quests use the predictions of one model, `DEFAULT_PREDICTION_MODEL` in `MariaDBSettings`. It is
+set with the environment variable `PREDICTION_MODEL`: `Aurora` (default, the thesis dataset) or `Dvdblk` (the dummy
+dataset). `docker-compose.yml` passes it to the `api` and `pipeline` containers.
 
 > [!NOTE]
 > The Aurora models are Keras models and need **TensorFlow 2.11**, which is not part of
@@ -524,10 +599,11 @@ models from `data/api/umap_model/` to place new points on the map.
 1. [`utils/mariadb/generate_umap_with_tm.py`](utils/mariadb/generate_umap_with_tm.py) fits a
    [BERTopic](https://maartengr.github.io/BERTopic/) model on all embeddings from Qdrant (HDBSCAN, c-TF-IDF, SDG
    descriptions as seed words), reduces it to 20 topics plus one outlier topic, and writes `uzh_topic_data.csv` and
-   `uzh_topic_info.csv` into the current directory. ([`generate_topic_model.py`](utils/mariadb/generate_topic_model.py)
+   `uzh_topic_info.csv` to `data/pipeline/collections/`. ([`generate_topic_model.py`](utils/mariadb/generate_topic_model.py)
    is an earlier version; [`notebooks/topic_model.ipynb`](notebooks/topic_model.ipynb) is the exploration.)
-2. Move the files to `data/pipeline/collections/` and simplify the topic info to
-   `uzh_topic_info_simplified.csv` (topic names and aspects; this was done by hand).
+2. [`utils/mariadb/simplify_topic_info.py`](utils/mariadb/simplify_topic_info.py) adds a short readable name per
+   topic (`GPT_Name`) and writes `uzh_topic_info_simplified.csv`. For the thesis dataset, these names were written
+   by hand with ChatGPT; the script builds them from the two top keywords.
 3. [`utils/mariadb/load_mariadb_collections.py`](utils/mariadb/load_mariadb_collections.py) loads the topics as
    collections and the 2D positions as reductions with the shorthand `TM-UZH-UMAP-15-0.0-2`.
 
@@ -668,8 +744,6 @@ More detailed notes are in [`docs/`](docs):
 - The `backend` service in `docker-compose.yml` refers to a `backend/` folder that no longer exists. Do not start it.
 - The Aurora predictors need TensorFlow 2.11, which is not in the pipeline's Poetry environment (see
   [SDG predictions](#5-sdg-predictions)).
-- `load_mariadb_users.py` and `load_mariadb_fixtures.py` are configured by editing values in the file, not by
-  command-line options.
 - The port table in [`docs/docker.md`](docs/docker.md) is outdated; the table in this README matches
   `docker-compose.yml`.
 
