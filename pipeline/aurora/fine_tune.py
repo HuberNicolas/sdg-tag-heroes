@@ -6,7 +6,6 @@ import os
 import pandas as pd
 import tensorflow as tf
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
-from tensorflow.keras.mixed_precision import set_global_policy
 from tqdm import tqdm
 from transformers import BertTokenizer, TFBertModel
 

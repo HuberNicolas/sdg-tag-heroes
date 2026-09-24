@@ -1,6 +1,7 @@
-import os
-import logging
 import argparse
+import logging
+import os
+
 from db.mariadb_connector import conn as mconn
 from db.mongodb_connector import client as mclient
 from db.qdrantdb_connector import client as qclient
@@ -8,6 +9,7 @@ from db.qdrantdb_connector import client as qclient
 # Set up logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # Utility function to check database connection
 def check_connection(connector, db_name):
@@ -27,10 +29,10 @@ def check_connection(connector, db_name):
 def load_env_for_simulation(is_docker_simulated=False):
     if is_docker_simulated:
         logger.info("Simulating Docker environment...")
-        os.environ['IN_DOCKER'] = 'true'
+        os.environ["IN_DOCKER"] = "true"
     else:
         logger.info("Simulating local environment...")
-        os.environ['IN_DOCKER'] = 'false'
+        os.environ["IN_DOCKER"] = "false"
 
 
 # Test function to check the status of each database connector
@@ -41,10 +43,11 @@ def test_db_connections():
     check_connection(mclient, "MongoDB")
     check_connection(qclient, "QdrantDB")
 
+
 def main():
     # Set up argument parsing to switch between Docker and local simulations
     parser = argparse.ArgumentParser(description="Simulate database environment (Docker or local).")
-    parser.add_argument('--docker', action='store_true', help='Simulate Docker environment')
+    parser.add_argument("--docker", action="store_true", help="Simulate Docker environment")
     args = parser.parse_args()
 
     # Load the environment based on the flag (Docker or local)
@@ -52,6 +55,7 @@ def main():
 
     # Test all database connections
     test_db_connections()
+
 
 if __name__ == "__main__":
     main()

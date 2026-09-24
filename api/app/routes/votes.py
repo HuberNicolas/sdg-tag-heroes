@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-from models import Vote, SDGUserLabel, Annotation
+from models import Annotation, SDGUserLabel, Vote
 from request_models.vote import VoteCreateRequest
 from schemas.vote import VoteSchemaFull
 from settings.settings import VotesSettings
@@ -45,15 +45,11 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/",
-    response_model=VoteSchemaFull,
-    description="Create a new vote"
-)
+@router.post("/", response_model=VoteSchemaFull, description="Create a new vote")
 async def create_vote(
-        request: VoteCreateRequest,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    request: VoteCreateRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> VoteSchemaFull:
     """
     Create a new vote.
@@ -76,18 +72,14 @@ async def create_vote(
 
         # Check if the SDGUserLabel or Annotation exists
         if request.sdg_user_label_id:
-            sdg_user_label = db.query(SDGUserLabel).filter(
-                SDGUserLabel.label_id == request.sdg_user_label_id
-            ).first()
+            sdg_user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == request.sdg_user_label_id).first()
             if not sdg_user_label:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"SDGUserLabel with ID {request.sdg_user_label_id} not found.",
                 )
         elif request.annotation_id:
-            annotation = db.query(Annotation).filter(
-                Annotation.annotation_id == request.annotation_id
-            ).first()
+            annotation = db.query(Annotation).filter(Annotation.annotation_id == request.annotation_id).first()
             if not annotation:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -127,14 +119,10 @@ async def create_vote(
         )
 
 
-@router.get(
-    "/",
-    response_model=List[VoteSchemaFull],
-    description="Retrieve all votes"
-)
+@router.get("/", response_model=List[VoteSchemaFull], description="Retrieve all votes")
 async def get_all_votes(
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> List[VoteSchemaFull]:
     """
     Retrieve all votes in the system.
@@ -155,15 +143,11 @@ async def get_all_votes(
         )
 
 
-@router.get(
-    "/{vote_id}",
-    response_model=VoteSchemaFull,
-    description="Retrieve a specific vote by ID"
-)
+@router.get("/{vote_id}", response_model=VoteSchemaFull, description="Retrieve a specific vote by ID")
 async def get_vote(
-        vote_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    vote_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> VoteSchemaFull:
     """
     Retrieve a specific vote by its ID.

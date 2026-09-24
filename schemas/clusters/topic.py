@@ -15,14 +15,11 @@ class ClusterTopicSchemaBase(BaseModel):
     topic_name: str
     publications: List[Union["PublicationClusterSchemaBase", "PublicationClusterSchemaFull"]]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 class ClusterTopicSchemaFull(ClusterTopicSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

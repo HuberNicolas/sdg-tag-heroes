@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, DateTime, Text, CheckConstraint
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -13,6 +13,7 @@ class Annotation(Base):
     """
     Annotation model representing content created by a user.
     """
+
     __tablename__ = "annotations"
 
     annotation_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -30,15 +31,15 @@ class Annotation(Base):
     user: Mapped["User"] = relationship("User", back_populates="annotations")
 
     # Relationship to SDGUserLabel (optional)
-    sdg_user_label: Mapped["SDGUserLabel"] = relationship("SDGUserLabel", back_populates="annotations",
-                                                          foreign_keys=[sdg_user_label_id])
-    # Relationship to SDGLabelDecision (optional)
-    decision: Mapped["SDGLabelDecision"] = relationship("SDGLabelDecision", back_populates="annotations",
-                                                        foreign_keys=[decision_id])
-    # Relationship to Votes
-    votes: Mapped[list["Vote"]] = relationship(
-        "Vote", back_populates="annotation", cascade="all, delete-orphan"
+    sdg_user_label: Mapped["SDGUserLabel"] = relationship(
+        "SDGUserLabel", back_populates="annotations", foreign_keys=[sdg_user_label_id]
     )
+    # Relationship to SDGLabelDecision (optional)
+    decision: Mapped["SDGLabelDecision"] = relationship(
+        "SDGLabelDecision", back_populates="annotations", foreign_keys=[decision_id]
+    )
+    # Relationship to Votes
+    votes: Mapped[list["Vote"]] = relationship("Vote", back_populates="annotation", cascade="all, delete-orphan")
 
     labeler_score: Mapped[float] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(Text(), nullable=False)

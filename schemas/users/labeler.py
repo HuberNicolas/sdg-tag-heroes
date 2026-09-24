@@ -9,15 +9,11 @@ class LabelerSchemaBase(BaseModel):
     labeler_score: float
     user: Optional[Union["UserSchemaBase", "UserSchemaFull"]]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class LabelerSchemaFull(LabelerSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

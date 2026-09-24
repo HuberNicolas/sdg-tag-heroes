@@ -7,6 +7,7 @@ ChatGPT). Here it is built from the two most representative keywords of each top
 Run from the repository root after generate_umap_with_tm.py:
     PYTHONPATH=. python utils/mariadb/simplify_topic_info.py
 """
+
 import ast
 import csv
 import os

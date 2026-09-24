@@ -1,16 +1,17 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.routes.authentication import verify_token
+from api.app.security import Security
+from db.mariadb_connector import engine as mariadb_engine
 from models import SDGRank, SDGXPBank
 from models.users.user import User
 from request_models.sdg_rank import UserIdsRequest
-from db.mariadb_connector import engine as mariadb_engine
-from schemas.sdg_ranks import UsersSDGRankSchemaBase, SDGRankSchemaBase, SDGRankSchemaFull
+from schemas.sdg_ranks import SDGRankSchemaFull, UsersSDGRankSchemaBase
 from schemas.users.user import UserSchemaFull
 from settings.settings import SDGRanksSettings
-from api.app.security import Security
 from utils.logger import logger
 
 # Setup Logging
@@ -24,6 +25,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -31,6 +33,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API router
 router = APIRouter(
@@ -42,6 +45,7 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
+
 
 @router.get("/", response_model=List[SDGRankSchemaFull], description="Retrieve all SDG ranks")
 async def get_all_sdg_ranks(
@@ -76,12 +80,15 @@ async def get_all_sdg_ranks(
         )
 
 
-@router.get("/users/{user_id}/", response_model=List[SDGRankSchemaFull],
-            description="Retrieve all SDG ranks (1-17) for a specific user based on their XP bank")
+@router.get(
+    "/users/{user_id}/",
+    response_model=List[SDGRankSchemaFull],
+    description="Retrieve all SDG ranks (1-17) for a specific user based on their XP bank",
+)
 async def get_user_ranks_and_xp(
-        user_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    user_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Retrieve all SDG ranks (1-17) for a specific user by their user ID based on their XP bank.
@@ -142,6 +149,7 @@ async def get_user_ranks_and_xp(
             detail=f"An error occurred while fetching ranks and XP: {e}",
         )
 
+
 @router.get("/users/", response_model=List[UsersSDGRankSchemaBase], description="Retrieve ranks for all users")
 async def get_ranks_for_all_users(
     db: Session = Depends(get_db),
@@ -155,10 +163,7 @@ async def get_ranks_for_all_users(
         users = db.query(User).all()
 
         if not users:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No users found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found")
 
         # Query XP banks for all users
         user_xp_banks = db.query(SDGXPBank).filter(SDGXPBank.user_id.in_([u.user_id for u in users])).all()
@@ -173,18 +178,19 @@ async def get_ranks_for_all_users(
             user_ranks = []
             for sdg_id in range(1, 18):  # SDG 1-17
                 sdg_xp = getattr(xp_bank, f"sdg{sdg_id}_xp")
-                rank = db.query(SDGRank).filter(SDGRank.sdg_goal_id == sdg_id, SDGRank.xp_required <= sdg_xp).order_by(SDGRank.xp_required.desc()).first()
+                rank = (
+                    db.query(SDGRank)
+                    .filter(SDGRank.sdg_goal_id == sdg_id, SDGRank.xp_required <= sdg_xp)
+                    .order_by(SDGRank.xp_required.desc())
+                    .first()
+                )
 
                 if rank:
                     user_ranks.append(SDGRankSchemaFull.model_validate(rank))
 
             if user_ranks:
                 user_info = UserSchemaFull.model_validate(user)
-                all_user_ranks.append({
-                    "user_id": user.user_id,
-                    "user": user_info,
-                    "ranks": user_ranks
-                })
+                all_user_ranks.append({"user_id": user.user_id, "user": user_info, "ranks": user_ranks})
 
         return all_user_ranks
 
@@ -196,21 +202,17 @@ async def get_ranks_for_all_users(
             detail=f"An error occurred while fetching SDG ranks: {e}",
         )
 
+
 @router.post("/users/", response_model=List[UsersSDGRankSchemaBase], description="Get SDG ranks for a list of user IDs")
 async def get_sdg_ranks_for_users(
-    request: UserIdsRequest,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    request: UserIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     try:
         # Ensure user is authenticated
         verify_token(token, db)
 
         if not request.user_ids:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No user IDs provided"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No user IDs provided")
 
         # Query users and XP banks for the provided user IDs
         users = db.query(User).filter(User.user_id.in_(request.user_ids)).all()
@@ -218,8 +220,7 @@ async def get_sdg_ranks_for_users(
 
         if not users or not user_xp_banks:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No SDG ranks found for the provided user IDs"
+                status_code=status.HTTP_404_NOT_FOUND, detail="No SDG ranks found for the provided user IDs"
             )
 
         response_data = []
@@ -232,18 +233,19 @@ async def get_sdg_ranks_for_users(
             user_ranks = []
             for sdg_id in range(1, 18):  # SDG 1-17
                 sdg_xp = getattr(xp_bank, f"sdg{sdg_id}_xp")
-                rank = db.query(SDGRank).filter(SDGRank.sdg_goal_id == sdg_id, SDGRank.xp_required <= sdg_xp).order_by(SDGRank.xp_required.desc()).first()
+                rank = (
+                    db.query(SDGRank)
+                    .filter(SDGRank.sdg_goal_id == sdg_id, SDGRank.xp_required <= sdg_xp)
+                    .order_by(SDGRank.xp_required.desc())
+                    .first()
+                )
 
                 if rank:
                     user_ranks.append(SDGRankSchemaFull.model_validate(rank))
 
             if user_ranks:
                 user_info = UserSchemaFull.model_validate(user)
-                response_data.append({
-                    "user_id": user.user_id,
-                    "user": user_info,
-                    "ranks": user_ranks
-                })
+                response_data.append({"user_id": user.user_id, "user": user_info, "ranks": user_ranks})
 
         return response_data
 

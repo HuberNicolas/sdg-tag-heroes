@@ -1,6 +1,6 @@
 from .authentication import LoginRequest
-from .publication import PublicationIdsRequest
 from .collections import CollectionsIdsRequest
+from .publication import PublicationIdsRequest
 
 # Export all models for external use
 __all__ = [

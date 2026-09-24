@@ -1,32 +1,36 @@
 import argparse
 import random
-from types import SimpleNamespace
 from datetime import datetime
 from random import choice, randint, uniform
+from types import SimpleNamespace
 from typing import List
 
-from sqlalchemy import text, func
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 from faker import Faker
+from sqlalchemy import func, text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from models import (
-    SDGUserLabel,
-    Vote,
-    Annotation,
-    SDGLabelDecision,
-    Expert,
-    SDGLabelHistory,
-    Publication,
-    User, SDGCoinWallet, SDGXPBank, SDGCoinWalletHistory, SDGXPBankHistory, SDGLabelSummary,
-)
 from db.mariadb_connector import engine as mariadb_engine
+from enums.enums import DecisionType, ScenarioType, SDGType, VoteType
+from models import (
+    Annotation,
+    Expert,
+    Publication,
+    SDGCoinWallet,
+    SDGCoinWalletHistory,
+    SDGLabelDecision,
+    SDGLabelHistory,
+    SDGLabelSummary,
+    SDGUserLabel,
+    SDGXPBank,
+    SDGXPBankHistory,
+    User,
+    Vote,
+)
 from models.base import Base
-from enums.enums import SDGType, DecisionType, VoteType, ScenarioType
 from services.gpt.gpt_assistant_service import GPTAssistantService
-from services.gpt.strategies.persona_comment_generator_strategy import GenerateCommentStrategy, GenerateAnnotationStrategy
-from utils.logger import logger
 from settings.settings import FixturesSettings
+from utils.logger import logger
 from utils.personas.personas_generator import assign_personas
 
 fixtures_settings = FixturesSettings()
@@ -40,7 +44,6 @@ faker = Faker()
 SEED = 31011997
 faker.seed_instance(SEED)
 random.seed(SEED)
-
 
 
 class FakerCommentService:
@@ -63,15 +66,16 @@ class FakerCommentService:
 # Set in __main__: GPTAssistantService (default) or FakerCommentService (--no-gpt)
 gpt_service = None
 
+
 def truncate_tables(session: Session, tables: list):
     """
     Truncate specified tables in the database.
     """
     logging.info("Truncating tables...")
-    session.execute(text(f"SET foreign_key_checks = 0;"))
+    session.execute(text("SET foreign_key_checks = 0;"))
     for table in tables:
         session.execute(text(f"TRUNCATE TABLE {table};"))
-    session.execute(text(f"SET foreign_key_checks = 1;"))
+    session.execute(text("SET foreign_key_checks = 1;"))
     session.commit()
     logging.info("Tables truncated successfully.")
 
@@ -95,6 +99,7 @@ def load_publications(session: Session, max_pubs: int = 10):
         logging.error("No publications found in the database.")
     return publications
 
+
 def load_relevant_publications_with_sdg_labels(session: Session, max_pubs: int = 500) -> List[Publication]:
     """
     Load a subset of publications that have at least one SDG label set to 1 in their SDGLabelSummary.
@@ -103,23 +108,23 @@ def load_relevant_publications_with_sdg_labels(session: Session, max_pubs: int =
         session.query(Publication)
         .join(SDGLabelSummary)
         .filter(
-            (SDGLabelSummary.sdg1 == 1) |
-            (SDGLabelSummary.sdg2 == 1) |
-            (SDGLabelSummary.sdg3 == 1) |
-            (SDGLabelSummary.sdg4 == 1) |
-            (SDGLabelSummary.sdg5 == 1) |
-            (SDGLabelSummary.sdg6 == 1) |
-            (SDGLabelSummary.sdg7 == 1) |
-            (SDGLabelSummary.sdg8 == 1) |
-            (SDGLabelSummary.sdg9 == 1) |
-            (SDGLabelSummary.sdg10 == 1) |
-            (SDGLabelSummary.sdg11 == 1) |
-            (SDGLabelSummary.sdg12 == 1) |
-            (SDGLabelSummary.sdg13 == 1) |
-            (SDGLabelSummary.sdg14 == 1) |
-            (SDGLabelSummary.sdg15 == 1) |
-            (SDGLabelSummary.sdg16 == 1) |
-            (SDGLabelSummary.sdg17 == 1)
+            (SDGLabelSummary.sdg1 == 1)
+            | (SDGLabelSummary.sdg2 == 1)
+            | (SDGLabelSummary.sdg3 == 1)
+            | (SDGLabelSummary.sdg4 == 1)
+            | (SDGLabelSummary.sdg5 == 1)
+            | (SDGLabelSummary.sdg6 == 1)
+            | (SDGLabelSummary.sdg7 == 1)
+            | (SDGLabelSummary.sdg8 == 1)
+            | (SDGLabelSummary.sdg9 == 1)
+            | (SDGLabelSummary.sdg10 == 1)
+            | (SDGLabelSummary.sdg11 == 1)
+            | (SDGLabelSummary.sdg12 == 1)
+            | (SDGLabelSummary.sdg13 == 1)
+            | (SDGLabelSummary.sdg14 == 1)
+            | (SDGLabelSummary.sdg15 == 1)
+            | (SDGLabelSummary.sdg16 == 1)
+            | (SDGLabelSummary.sdg17 == 1)
         )
         .limit(max_pubs)
         .all()
@@ -127,6 +132,7 @@ def load_relevant_publications_with_sdg_labels(session: Session, max_pubs: int =
     if not publications:
         logging.error("No relevant publications found in the database.")
     return publications
+
 
 def load_experts(session: Session):
     """
@@ -211,7 +217,12 @@ def create_annotations(session: Session, users: list[User], user_labels: list[SD
 
 
 def create_sdg_label_decisions(
-    session: Session, histories: list[SDGLabelHistory], user_labels: list[SDGUserLabel], experts: list[Expert], publications: list[Publication], num_decisions: int = 10
+    session: Session,
+    histories: list[SDGLabelHistory],
+    user_labels: list[SDGUserLabel],
+    experts: list[Expert],
+    publications: list[Publication],
+    num_decisions: int = 10,
 ):
     """
     Create SDGLabelDecisions and store them in the database.
@@ -225,10 +236,10 @@ def create_sdg_label_decisions(
         decision = SDGLabelDecision(
             history_id=history.history_id,
             expert_id=expert.expert_id,
-            publication_id=choice(publications).publication_id, # Ensure decision is linked to a publication
-            suggested_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
-            decided_label=randint(1, 18), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
-            decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
+            publication_id=choice(publications).publication_id,  # Ensure decision is linked to a publication
+            suggested_label=randint(1, 18),  # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
+            decided_label=randint(1, 18),  # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
+            decision_type=DecisionType.CONSENSUS_MAJORITY,  # choice(list(DecisionType)),  # Random decision type
             scenario_type=choice(list(ScenarioType)),
             comment=faker.text(max_nb_chars=200),
             # decided_at=datetime.now(),
@@ -245,9 +256,6 @@ def create_sdg_label_decisions(
         decisions.append(decision)
     session.commit()
 
-
-
-
     unfinished_decisions = []
     for _ in range(num_decisions):
         history = choice(histories)
@@ -255,9 +263,9 @@ def create_sdg_label_decisions(
         decision = SDGLabelDecision(
             history_id=history.history_id,
             publication_id=choice(publications).publication_id,  # Ensure decision is linked to a publication
-            suggested_label=randint(1, 17), # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
+            suggested_label=randint(1, 17),  # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
             decided_label=0,  # Random SDG goal between 1 and 17, 0 not decided, 18 zero class
-            decision_type=DecisionType.CONSENSUS_MAJORITY, # choice(list(DecisionType)),  # Random decision type
+            decision_type=DecisionType.CONSENSUS_MAJORITY,  # choice(list(DecisionType)),  # Random decision type
             scenario_type=choice(list(ScenarioType)),
             comment=choice(list(["Not decided yet", None])),
             created_at=faker.date_time_this_year(before_now=True),
@@ -276,6 +284,7 @@ def create_sdg_label_decisions(
     logging.info(f"Created {num_decisions} SDGLabelDecisions.")
     logging.info(f"Created {num_decisions} unfinished SDGLabelDecisions.")
     return decisions
+
 
 def create_wallets(session: Session, users: list[User]):
     """
@@ -297,6 +306,7 @@ def create_wallets(session: Session, users: list[User]):
     logging.info(f"Created {len(wallets)} SDGCoinWallets.")
     return wallets
 
+
 def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_entries: int = 5):
     """
     Create incremental history entries for each wallet.
@@ -315,9 +325,15 @@ def create_wallet_histories(session: Session, wallets: list[SDGCoinWallet], num_
             session.add(history)
             logging.info(f"Created {history}.")
         # Update the wallet total after inserting histories
-        wallet.total_coins = session.query(func.sum(SDGCoinWalletHistory.increment)).filter_by(wallet_id=wallet.sdg_coin_wallet_id).scalar() or 0.0
+        wallet.total_coins = (
+            session.query(func.sum(SDGCoinWalletHistory.increment))
+            .filter_by(wallet_id=wallet.sdg_coin_wallet_id)
+            .scalar()
+            or 0.0
+        )
     session.commit()
     logging.info("Created wallet histories.")
+
 
 def create_xp_banks(session: Session, users: list[User]):
     """
@@ -350,9 +366,7 @@ def create_xp_banks(session: Session, users: list[User]):
             updated_at=faker.date_time_this_year(before_now=True),
         )
         # Calculate the total XP as the sum of SDG-specific XP values
-        xp_bank.total_xp = sum(
-            getattr(xp_bank, f"sdg{i}_xp") for i in range(1, 18)
-        )
+        xp_bank.total_xp = sum(getattr(xp_bank, f"sdg{i}_xp") for i in range(1, 18))
         session.add(xp_bank)
         logging.info(f"Created {xp_bank}.")
         xp_banks.append(xp_bank)
@@ -391,13 +405,14 @@ def create_xp_bank_histories(session: Session, xp_banks: list[SDGXPBank], num_en
             if hasattr(xp_bank, sdg_field):
                 current_value = getattr(xp_bank, sdg_field, 0.0)
                 setattr(xp_bank, sdg_field, max(0.0, current_value + increment))  # Ensure no negative XP
-            xp_bank.total_xp = sum(
-                getattr(xp_bank, f"sdg{i}_xp") for i in range(1, 18)
-            )
+            xp_bank.total_xp = sum(getattr(xp_bank, f"sdg{i}_xp") for i in range(1, 18))
     session.commit()
     logging.info("Created XP bank histories.")
 
-def create_votes_for_annotations(session: Session, annotations: list[Annotation], users: list[User], num_votes: int = 20):
+
+def create_votes_for_annotations(
+    session: Session, annotations: list[Annotation], users: list[User], num_votes: int = 20
+):
     """
     Create Votes attached to Annotations and store them in the database.
     """
@@ -408,7 +423,9 @@ def create_votes_for_annotations(session: Session, annotations: list[Annotation]
         user = choice(users)
 
         # Ensure the user hasn't already voted on this annotation
-        existing_vote = session.query(Vote).filter_by(annotation_id=annotation.annotation_id, user_id=user.user_id).first()
+        existing_vote = (
+            session.query(Vote).filter_by(annotation_id=annotation.annotation_id, user_id=user.user_id).first()
+        )
         if existing_vote:
             continue
 
@@ -428,8 +445,12 @@ def create_votes_for_annotations(session: Session, annotations: list[Annotation]
     logging.info(f"Created {len(votes)} Votes for Annotations.")
     return votes
 
+
 def create_sdg_label_decisions_for_scenarios(
-    session: Session, publications: List[Publication], experts: List[Expert], users: List[User],
+    session: Session,
+    publications: List[Publication],
+    experts: List[Expert],
+    users: List[User],
 ):
     """
     Create SDGLabelDecisions for publications based on scenarios and ground truth data.
@@ -446,7 +467,7 @@ def create_sdg_label_decisions_for_scenarios(
 
     for publication in publications:
         if not publication or publication.publication_id is None:
-            logging.error(f"No valid publication found! Skipping this scenario.")
+            logging.error("No valid publication found! Skipping this scenario.")
             continue  # Skip if no valid publication
 
         sdg_label_summary = publication.sdg_label_summary
@@ -468,7 +489,9 @@ def create_sdg_label_decisions_for_scenarios(
 
         expert = choice(experts)
         # Only the scenarios this script can build a vote distribution for
-        scenario = choice([ScenarioType.CONFIRM, ScenarioType.TIEBREAKER, ScenarioType.INVESTIGATE, ScenarioType.EXPLORE])
+        scenario = choice(
+            [ScenarioType.CONFIRM, ScenarioType.TIEBREAKER, ScenarioType.INVESTIGATE, ScenarioType.EXPLORE]
+        )
 
         logging.debug(f"Selected scenario for publication ID {publication.publication_id}: {scenario}")
 
@@ -527,7 +550,9 @@ def create_sdg_label_decisions_for_scenarios(
 
         # Ensure labels list is not empty
         if not labels:
-            logging.error(f"No labels generated for publication ID {publication.publication_id} and scenario {scenario}. Skipping.")
+            logging.error(
+                f"No labels generated for publication ID {publication.publication_id} and scenario {scenario}. Skipping."
+            )
             continue
 
         # Extract the SDG number from the true_sdg (e.g., "SDG12" -> 12)
@@ -550,7 +575,7 @@ def create_sdg_label_decisions_for_scenarios(
                     persona=persona_data["persona"].value,
                     interest=persona_data["interest"],
                     skill=persona_data["skill"],
-                    trust_score=persona_data["trust_score"]
+                    trust_score=persona_data["trust_score"],
                 )
                 decision_comment = response.comment_text  # Use AI-generated comment
 
@@ -608,7 +633,7 @@ def create_sdg_label_decisions_for_scenarios(
                         persona=persona_data["persona"].value,
                         interest=persona_data["interest"],
                         skill=persona_data["skill"],
-                        trust_score=persona_data["trust_score"]
+                        trust_score=persona_data["trust_score"],
                     )
                     logging.debug(response)
 
@@ -654,7 +679,7 @@ def create_sdg_label_decisions_for_scenarios(
                     interest=persona_data["interest"],
                     skill=persona_data["skill"],
                     trust_score=persona_data["trust_score"],
-                    user_label_comment=user_label.comment
+                    user_label_comment=user_label.comment,
                 )
                 logging.debug(response)
 
@@ -688,7 +713,7 @@ def create_sdg_label_decisions_for_scenarios(
                     interest=persona_data["interest"],
                     skill=persona_data["skill"],
                     trust_score=persona_data["trust_score"],
-                    decision_comment=decision.comment
+                    decision_comment=decision.comment,
                 )
                 logging.debug(response)
 
@@ -758,7 +783,18 @@ def populate_db(
     try:
         # Truncate tables if the flag is set
         if truncate:
-            truncate_tables(session, ["sdg_user_labels", "votes", "annotations", "sdg_label_decisions", "sdg_label_decision_user_label", "sdg_coin_wallets", "sdg_xp_banks"])
+            truncate_tables(
+                session,
+                [
+                    "sdg_user_labels",
+                    "votes",
+                    "annotations",
+                    "sdg_label_decisions",
+                    "sdg_label_decision_user_label",
+                    "sdg_coin_wallets",
+                    "sdg_xp_banks",
+                ],
+            )
 
         # Load users, user_personas, publications, and experts
         users = load_users(session, max_users)
@@ -801,7 +837,6 @@ def populate_db(
             # Create SDGLabelDecisions
             create_sdg_label_decisions(session, histories, user_labels, experts, publications, num_decisions)
 
-
         # Create scenario-based decisions
         relevant_publications = load_relevant_publications_with_sdg_labels(session, max_pubs=max_scenario_pubs)
 
@@ -827,10 +862,17 @@ if __name__ == "__main__":
     from sqlalchemy.orm import sessionmaker
 
     parser = argparse.ArgumentParser(description="Fill the game tables with simulated activity (truncates them first).")
-    parser.add_argument("--no-gpt", action="store_true",
-                        help="write comments and annotations with Faker instead of the OpenAI API (free, offline)")
-    parser.add_argument("--max-publications", type=int, default=500,
-                        help="publications with a ground-truth label that get a scenario (default: 500)")
+    parser.add_argument(
+        "--no-gpt",
+        action="store_true",
+        help="write comments and annotations with Faker instead of the OpenAI API (free, offline)",
+    )
+    parser.add_argument(
+        "--max-publications",
+        type=int,
+        default=500,
+        help="publications with a ground-truth label that get a scenario (default: 500)",
+    )
     args = parser.parse_args()
 
     gpt_service = FakerCommentService() if args.no_gpt else GPTAssistantService()

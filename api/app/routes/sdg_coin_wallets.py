@@ -9,7 +9,7 @@ from db.mariadb_connector import engine as mariadb_engine
 from models import SDGCoinWallet, SDGCoinWalletHistory
 from request_models.sdg_coin_wallet import WalletIncrementRequest
 from schemas.sdg_coin_wallet import SDGCoinWalletSchemaFull
-from schemas.sdg_coin_wallet_history import SDGCoinWalletHistorySchemaFull, NoSDGCoinWalletHistorySchemaBase
+from schemas.sdg_coin_wallet_history import NoSDGCoinWalletHistorySchemaBase, SDGCoinWalletHistorySchemaFull
 from settings.settings import CoinWalletsRouterSettings
 from utils.logger import logger
 
@@ -24,6 +24,7 @@ oauth2_scheme = security.oauth2_scheme
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
+
 
 # Dependency for getting DB session
 def get_db():
@@ -45,8 +46,12 @@ router = APIRouter(
     },
 )
 
-@router.get("/users/{user_id}/wallet", response_model=SDGCoinWalletSchemaFull,
-            description="Retrieve the wallet for a specific user")
+
+@router.get(
+    "/users/{user_id}/wallet",
+    response_model=SDGCoinWalletSchemaFull,
+    description="Retrieve the wallet for a specific user",
+)
 async def get_user_wallet(
     user_id: int,
     db: Session = Depends(get_db),
@@ -77,6 +82,7 @@ async def get_user_wallet(
             detail=f"An error occurred while fetching the wallet: {e}",
         )
 
+
 @router.get("/latest", response_model=SDGCoinWalletHistorySchemaFull | NoSDGCoinWalletHistorySchemaBase)
 async def get_latest_wallet_history(
     db: Session = Depends(get_db),
@@ -99,7 +105,7 @@ async def get_latest_wallet_history(
             .first()
         )
 
-        if latest_history and not latest_history.is_shown: # Trap, True did not work!
+        if latest_history and not latest_history.is_shown:  # Trap, True did not work!
             latest_history.is_shown = True
             db.commit()
             # Return the latest wallet history entry
@@ -113,10 +119,13 @@ async def get_latest_wallet_history(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while fetching the latest wallet history: {e}"
+            detail=f"An error occurred while fetching the latest wallet history: {e}",
         )
 
-@router.get("/users/wallets", response_model=List[SDGCoinWalletSchemaFull], description="Retrieve wallets for all users")
+
+@router.get(
+    "/users/wallets", response_model=List[SDGCoinWalletSchemaFull], description="Retrieve wallets for all users"
+)
 async def get_all_wallets(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
@@ -141,8 +150,11 @@ async def get_all_wallets(
         )
 
 
-@router.post("/users/{user_id}/wallets/histories", response_model=SDGCoinWalletHistorySchemaFull,
-             description="Add a wallet increment for a specific user")
+@router.post(
+    "/users/{user_id}/wallets/histories",
+    response_model=SDGCoinWalletHistorySchemaFull,
+    description="Add a wallet increment for a specific user",
+)
 async def add_wallet_increment(
     user_id: int,
     wallet_increment_data: WalletIncrementRequest,  # Use a schema for input validation
@@ -165,9 +177,9 @@ async def add_wallet_increment(
 
         # Create the wallet increment history entry
         new_history = SDGCoinWalletHistory(
-            wallet_id = wallet.sdg_coin_wallet_id,
-            increment = wallet_increment_data.increment,
-            reason = wallet_increment_data.reason,
+            wallet_id=wallet.sdg_coin_wallet_id,
+            increment=wallet_increment_data.increment,
+            reason=wallet_increment_data.reason,
         )
         db.add(new_history)
 
@@ -189,8 +201,9 @@ async def add_wallet_increment(
         )
 
 
-@router.get("/personal", response_model=SDGCoinWalletSchemaFull,
-            description="Retrieve the personal wallet for current user")
+@router.get(
+    "/personal", response_model=SDGCoinWalletSchemaFull, description="Retrieve the personal wallet for current user"
+)
 async def get_personal_wallet(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),

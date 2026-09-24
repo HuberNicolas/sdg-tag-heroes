@@ -4,8 +4,8 @@ from typing import ClassVar, List, Tuple
 import pytz
 from pydantic_settings import BaseSettings
 
-
 ### Project Settings and Context
+
 
 class ProjectSettings(BaseSettings):
     APP_NAME: str = "iCoGaLa"
@@ -17,11 +17,12 @@ class SDGSettings(BaseSettings):
     SDTARGET_NUMBER: int = 169
 
 
-
 ### General Settings
+
 
 class SeedSettings(BaseSettings):
     SEED: ClassVar[int] = 31011997
+
 
 class TimeZoneSettings(BaseSettings):
     ZURICH_TZ_STRING: str = "Europe/Zurich"  # Specify the timezone for Zurich
@@ -32,9 +33,11 @@ class LoggingSettings(BaseSettings):
     LOG_PATH: ClassVar[str] = "logs"
     LOG_FORMAT: ClassVar[str] = "{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
 
+
 class EnvLoaderSettings(BaseSettings):
     # Do not set this to True in prod as it will print secrets
     ENV_LOADER_DEBUG_OUTPUT: ClassVar[bool] = False
+
 
 ### DB-Settings
 class MariaDBSettings(BaseSettings):
@@ -48,12 +51,16 @@ class MariaDBSettings(BaseSettings):
     DEFAULT_PREDICTION_THRESHOLD: ClassVar[float] = 0.98
     DEFAULT_SDG_EXPLORATION_SIZE: ClassVar[int] = 100
 
+
 class QdrantDBSettings(BaseSettings):
     QDRANTDB_LOG_NAME: ClassVar[str] = "db_qdrantdb.log"
     QDRANT_TIMEOUT: ClassVar[int] = 120
-    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt" #TODO: remove duplicate and leave here; do NOT remove here
+    PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = (
+        "publications-mt"  # TODO: remove duplicate and leave here; do NOT remove here
+    )
     PUBLICATIONS_CONTENT_VECTOR_NAME: ClassVar[str] = "content"
     PUBLICATIONS_SQL_ID_PAYLOAD_FIELD_NAME: ClassVar[str] = "sql_id"
+
 
 class MongoDBSDGSettings(BaseSettings):
     MONGODB_LOG_NAME: ClassVar[str] = "db_mongodb.log"
@@ -61,10 +68,7 @@ class MongoDBSDGSettings(BaseSettings):
     DB_COLLECTION_NAME: ClassVar[str] = "explanations_scaled_new"
     SVG_ENCODING: ClassVar[str] = "utf-8"
     GOAL_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/Color_Goal_{goal_index}.svg"
-    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = (
-        "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
-    )
-
+    TARGET_SVG_PATH_TEMPLATE: ClassVar[str] = "data/icons/target/GOAL_{goal_index}_TARGET_{index}.svg"
 
 
 ### Pipeline Settings
@@ -86,15 +90,12 @@ class EmbeddingsSettings(BaseSettings):
     ]
 
 
-
 # For Goals
 class PredictionSettings(BaseSettings):
     AURORA_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_aurora.log"
     DVDBLK_PREDICTOR_LOG_NAME: ClassVar[str] = "predictor_dvdblk.log"
 
-    MODEL_DIR: ClassVar[str] = os.path.join(
-        "data", "pipeline", "aurora_models", "targets"
-    )
+    MODEL_DIR: ClassVar[str] = os.path.join("data", "pipeline", "aurora_models", "targets")
     AURORA_MODEL_GOAL_LINKS: ClassVar[str] = "aurora-model-goal-only-links.csv"
 
     CUDA_VISIBLE_DEVICES_KEY: ClassVar[str] = "CUDA_VISIBLE_DEVICES"
@@ -115,10 +116,12 @@ class PredictionSettings(BaseSettings):
 class TargetPredictionSettings(PredictionSettings):
     AURORA_TARGET_PREDICTOR_LOG_NAME: ClassVar[str] = "target_predictor_aurora.log"
 
+
 class LoaderSettings(BaseSettings):
     LOADER_LOG_NAME: ClassVar[str] = "loader.log"
     DEFAULT_BATCH_SIZE: ClassVar[int] = 64
     PUBLICATIONS_COLLECTION_NAME: ClassVar[str] = "publications-mt"
+
 
 class CollectorSettings(BaseSettings):
     COLLECTOR_LOG_NAME: ClassVar[str] = "collector.log"
@@ -131,6 +134,7 @@ class CollectorSettings(BaseSettings):
     ZORA_SET_LIST_URL: ClassVar[str] = "https://www.zora.uzh.ch/cgi/oai2?verb=ListSets"
 
     PUBLICATION_LIMIT: ClassVar[int] = 300000
+
 
 class ReducerSettings(BaseSettings):
     REDUCER_LOG_NAME: ClassVar[str] = "reducer.log"
@@ -146,7 +150,6 @@ class ReducerSettings(BaseSettings):
     UMAP_N_COMPONENTS_ARRAY: ClassVar[List[int]] = [2]  # Example array for n_components
     UMAP_MIN_DIST_ARRAY: ClassVar[List[float]] = [0.0]
 
-
     # Model path
     UMAP_MODEL_PATH: ClassVar[str] = os.path.join("data", "api", "umap_model")
 
@@ -159,6 +162,7 @@ class ReducerSettings(BaseSettings):
 
     MAP_PARTITION_SIZE: ClassVar[int] = 9
 
+
 class PrefectSettings(BaseSettings):
     PREFECT_LOG_NAME: ClassVar[str] = "prefect.log"
 
@@ -169,33 +173,38 @@ class PrefectSettings(BaseSettings):
     LOADER_BATCH_SIZE: ClassVar[int] = 64
 
 
-
-
 ### Service Settings
+
 
 class GPTAssistantServiceSettings(BaseSettings):
     PROMPT_PATH: ClassVar[str] = "/prompts"
-    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06" # o4 required for Instructor library
+    GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"  # o4 required for Instructor library
     # smaller model (cheapest as of 06.2024) to keep the cost down: "gpt-3.5-turbo-0125"
     GPT_TEMPERATURE: ClassVar[float] = 0.2
+
 
 class UserAnnotationEvaluatorServiceSettings(BaseSettings):
     GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"
     BERT_PRETRAINED_MODEL_NAME: ClassVar[str] = "distilbert-base-uncased"
 
+
 class DecisionServiceSettings(BaseSettings):
     DECISION_SERVICE_LOG_NAME: ClassVar[str] = "service_decision.log"
     DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
-    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = 10 # 10
-    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 11 # 15
+    VOTES_NEEDED_FOR_SCENARIO: ClassVar[int] = 10  # 10
+    VOTES_NEEDED_FOR_CONSENSUS: ClassVar[int] = 11  # 15
+
 
 class LabelServiceSettings(BaseSettings):
     LABEL_SERVICE_LOG_NAME: ClassVar[str] = "service_label.log"
 
+
 class RewardServiceSettings(BaseSettings):
     REWARD_SERVICE_LOG_NAME: ClassVar[str] = "service_reward.log"
 
+
 ### Router Settings
+
 
 class FastAPISettings(BaseSettings):
     FASTAPI_LOG_NAME: ClassVar[str] = "api_.log"
@@ -207,8 +216,10 @@ class AuthenticationRouterSettings(BaseSettings):
     CRYPT_CONTEXT_DEPRECATED: ClassVar[str] = "auto"
     TOKEN_URL: ClassVar[str] = "auth/token"
 
+
 class UsersRouterSettings(BaseSettings):
     USERS_ROUTER_LOG_NAME: ClassVar[str] = "api_users.log"
+
 
 class UserProfilesRouterSettings(BaseSettings):
     USER_PROFILES_ROUTER_LOG_NAME: ClassVar[str] = "api_user_profiles_.log"
@@ -217,30 +228,39 @@ class UserProfilesRouterSettings(BaseSettings):
 class SDGsRouterSettings(BaseSettings):
     SDGS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdgs.log"
 
+
 class PublicationsRouterSettings(BaseSettings):
     PUBLICATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_publications.log"
+
 
 class AuthorsRouterSettings(BaseSettings):
     AUTHORS_ROUTER_LOG_NAME: ClassVar[str] = "api_authors.log"
 
+
 class CollectionsRouterSettings(BaseSettings):
     COLLECTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_collections.log"
+
 
 class SDGPredictionsRouterSettings(BaseSettings):
     SDGPREDICTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_predictions.log"
     DEFAULT_MODEL: ClassVar[str] = MariaDBSettings().DEFAULT_PREDICTION_MODEL
 
+
 class DimensionalityReductionsRouterSettings(BaseSettings):
-    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = ("api_dimensionality_reductions.log")
+    DIMENSIONALITYREDUCTIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_dimensionality_reductions.log"
+
 
 class XPBanksRouterSettings(BaseSettings):
     XP_BANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_xp_banks.log"
 
+
 class CoinWalletsRouterSettings(BaseSettings):
     COIN_WALLETS_ROUTER_LOG_NAME: ClassVar[str] = "api_coin_wallets.log"
 
+
 class ExplanationsRouterSettings(BaseSettings):
     EXPLANATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_explanations.log"
+
 
 class SDGSLabelSummariesRouterSettings(BaseSettings):
     SDGLABELSUMMARIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_summaries.log"
@@ -249,8 +269,10 @@ class SDGSLabelSummariesRouterSettings(BaseSettings):
 class SDGSLabelHistoriesRouterSettings(BaseSettings):
     SDGLABELHISTORIES_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_histories.log"
 
+
 class SDGSLabelDecisionsRouterSettings(BaseSettings):
     SDGLABELDECISIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_label_decisions.log"
+
 
 class SDGUserLabelsSettings(BaseSettings):
     SDGUSERLABELS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_user_labels.log"
@@ -259,8 +281,10 @@ class SDGUserLabelsSettings(BaseSettings):
 class AnnotationsSettings(BaseSettings):
     ANNOTATIONS_ROUTER_LOG_NAME: ClassVar[str] = "api_annotations.log"
 
+
 class VotesSettings(BaseSettings):
     VOTES_ROUTER_LOG_NAME: ClassVar[str] = "api_votes.log"
+
 
 class SDGRanksSettings(BaseSettings):
     SDGRANKS_ROUTER_LOG_NAME: ClassVar[str] = "api_sdg_ranks.log"

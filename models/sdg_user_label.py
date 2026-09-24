@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, DateTime, Integer, CheckConstraint, Text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models import Base
@@ -14,6 +14,7 @@ class SDGUserLabel(Base):
     """
     Represents a user-defined label in the SDG system.
     """
+
     __tablename__ = "sdg_user_labels"
 
     label_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -30,15 +31,11 @@ class SDGUserLabel(Base):
     )
 
     # Relationship to Votes
-    votes: Mapped[list["Vote"]] = relationship(
-        "Vote", back_populates="sdg_user_label", cascade="all, delete-orphan"
-    )
+    votes: Mapped[list["Vote"]] = relationship("Vote", back_populates="sdg_user_label", cascade="all, delete-orphan")
 
     # Many-to-Many relationship with SDGLabelDecision
     label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
-        "SDGLabelDecision",
-        secondary=sdg_label_decision_user_label_association,
-        back_populates="user_labels"
+        "SDGLabelDecision", secondary=sdg_label_decision_user_label_association, back_populates="user_labels"
     )
 
     proposed_label: Mapped[int] = mapped_column(Integer, nullable=True)
@@ -51,7 +48,6 @@ class SDGUserLabel(Base):
 
     # Relationship to Publication
     publication: Mapped["Publication"] = relationship("Publication", back_populates="user_labels")
-
 
     labeled_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

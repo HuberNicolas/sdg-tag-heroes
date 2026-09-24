@@ -1,6 +1,7 @@
-from sqlalchemy import ForeignKey, DateTime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models import Base
 from settings.settings import TimeZoneSettings
@@ -13,6 +14,7 @@ class Expert(Base):
     Expert role, extending the User.
     Represents a one-to-one relationship where an Expert is always linked to exactly one User.
     """
+
     __tablename__ = "experts"
 
     expert_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), primary_key=True)

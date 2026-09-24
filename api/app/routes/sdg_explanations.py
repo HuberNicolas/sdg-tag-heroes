@@ -24,6 +24,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -43,22 +44,23 @@ router = APIRouter(
     },
 )
 
+
 @router.get(
     "/publications/{publication_id}",
     response_model=ExplanationSchema,
-    description="Get a single SHAP explanation by publication ID"
+    description="Get a single SHAP explanation by publication ID",
 )
 async def get_sdg_explanation(
     publication_id: int,
     db: Session = Depends(get_db),
     mongo_db: Database = Depends(get_explanations_db),
-    token: str = Depends(oauth2_scheme)
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Fetch SHAP explanations for a given publication ID by first querying the publications table.
     """
 
-    user = verify_token(token, db) # Ensure user is authenticated
+    user = verify_token(token, db)  # Ensure user is authenticated
 
     # Query publications table
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -74,8 +76,8 @@ async def get_sdg_explanation(
     explanation["sql_id"] = publication_id
 
     # Lifesaver for index creation, can also be done in Mongodb directly
-    #indexes = explanations_collection.index_information()
-    #explanations_collection.create_index("id", unique=True)
+    # indexes = explanations_collection.index_information()
+    # explanations_collection.create_index("id", unique=True)
 
     if not explanation:
         raise HTTPException(status_code=404, detail="Explanation not found for the given publication.")

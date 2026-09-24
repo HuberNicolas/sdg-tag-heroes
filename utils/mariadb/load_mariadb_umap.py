@@ -1,23 +1,23 @@
 import os
 import time
+from datetime import datetime
+from itertools import product  # For generating parameter combinations
 
 import joblib
+import umap
 from sqlalchemy import desc
 from sqlalchemy.orm import sessionmaker
 
-from settings.settings import ReducerSettings, LoaderSettings, EmbeddingsSettings
-from datetime import datetime
-from itertools import product  # For generating parameter combinations
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qclient
 from models.publications.dimensionality_reduction import DimensionalityReduction
-from models.sdg_prediction import SDGPrediction
 from models.publications.publication import Publication
-import umap
-import numpy as np
+from models.sdg_prediction import SDGPrediction
+from settings.settings import EmbeddingsSettings, LoaderSettings, ReducerSettings
 
 # Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
 from settings.settings import MariaDBSettings as _PredictionModelSettings
+
 PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
 
 MIN_PUBLICATIONS_PER_MAP = 5
@@ -30,25 +30,25 @@ embeddings_settings = EmbeddingsSettings()
 Session = sessionmaker(bind=mariadb_engine)
 
 
-
 def generate_umap_params():
     """Generate a dictionary of UMAP parameter combinations."""
     param_combinations = list(
         product(
             reducer_settings.UMAP_N_NEIGHBORS_ARRAY,
             reducer_settings.UMAP_MIN_DIST_ARRAY,
-            reducer_settings.UMAP_N_COMPONENTS_ARRAY
+            reducer_settings.UMAP_N_COMPONENTS_ARRAY,
         )
     )
     umap_params = {
         idx + 1: {
-            'n_neighbors': combination[0],
-            'min_dist': combination[1],
-            'n_components': combination[2],
+            "n_neighbors": combination[0],
+            "min_dist": combination[1],
+            "n_components": combination[2],
         }
         for idx, combination in enumerate(param_combinations)
     }
     return umap_params
+
 
 def create_dimensionality_reductions():
     sdg_columns = [f"sdg{i}" for i in range(1, 18)]  # SDG1 to SDG17
@@ -85,7 +85,9 @@ def create_dimensionality_reductions():
                 )
                 end = time.time()
 
-                print(f"  Found {len(publications)} publications for SDG{sdg_index} in range {upper} - {lower}. Took {end - start} seconds.")
+                print(
+                    f"  Found {len(publications)} publications for SDG{sdg_index} in range {upper} - {lower}. Took {end - start} seconds."
+                )
 
                 if not publications:
                     continue  # Skip if no publications for this SDG and range
@@ -98,17 +100,13 @@ def create_dimensionality_reductions():
                     continue
 
                 # Map SQL IDs to embeddings
-                sql_id_to_embedding = {item['sql_id']: item['content'] for item in embeddings_data}
+                sql_id_to_embedding = {item["sql_id"]: item["content"] for item in embeddings_data}
 
                 # Filter publications with valid embeddings
-                filtered_publications = [
-                    pub for pub in publications if pub.publication_id in sql_id_to_embedding
-                ]
+                filtered_publications = [pub for pub in publications if pub.publication_id in sql_id_to_embedding]
 
                 # Prepare ordered embeddings
-                ordered_embeddings = [
-                    sql_id_to_embedding[pub.publication_id] for pub in filtered_publications
-                ]
+                ordered_embeddings = [sql_id_to_embedding[pub.publication_id] for pub in filtered_publications]
 
                 if not ordered_embeddings:
                     print(f"  No matching embeddings found for SDG{sdg_index} in range {upper} - {lower}.")
@@ -116,7 +114,9 @@ def create_dimensionality_reductions():
 
                 # UMAP cannot embed a handful of points (small datasets, e.g. the dummy dataset)
                 if len(ordered_embeddings) < MIN_PUBLICATIONS_PER_MAP:
-                    print(f"  Only {len(ordered_embeddings)} publications for SDG{sdg_index} level {level}, skipping this map.")
+                    print(
+                        f"  Only {len(ordered_embeddings)} publications for SDG{sdg_index} level {level}, skipping this map."
+                    )
                     continue
 
                 # Initialize container for dimensionality reductions
@@ -127,11 +127,11 @@ def create_dimensionality_reductions():
 
                     # Perform UMAP reduction
                     reducer = umap.UMAP(
-                        n_neighbors=params['n_neighbors'],
-                        min_dist=params['min_dist'],
-                        n_components=params['n_components'],
+                        n_neighbors=params["n_neighbors"],
+                        min_dist=params["min_dist"],
+                        n_components=params["n_components"],
                         random_state=31011997,
-                        n_jobs = 1  # Explicitly disable parallelism
+                        n_jobs=1,  # Explicitly disable parallelism
                     )
                     start = time.time()
                     umap_result = reducer.fit_transform(ordered_embeddings)
@@ -177,13 +177,11 @@ def create_dimensionality_reductions():
                     print(f"    Committed {len(data_to_insert)} dimensionality reductions.")
                     data_to_insert = []
 
-
                 # Only increment the level after all insertions for the current filter range
                 level += 1
 
 
 def fetch_embeddings_from_qdrant(publications):
-
 
     # Extract publication IDs (oai_identifier_num) from the publications
     publication_ids = [int(pub.oai_identifier_num) for pub in publications]
@@ -201,24 +199,19 @@ def fetch_embeddings_from_qdrant(publications):
         print(f"Retrieved {len(publication_ids)} publications in {end - start} seconds.")
 
         # Extract embeddings and SQL IDs
-        embeddings = [
-            {'sql_id': result.payload['sql_id'], 'content': result.vector['content']}
-            for result in results
-        ]
+        embeddings = [{"sql_id": result.payload["sql_id"], "content": result.vector["content"]} for result in results]
 
         # Debug: Log the number of embeddings retrieved
         print(f"Successfully retrieved {len(embeddings)} embeddings.")
         return embeddings  # Return structured embeddings for further processing
 
     except Exception as e:
-
         print(f"Failed to fetch embeddings from Qdrant: {e}")
         # Return an empty list in case of failure
         return []
 
 
 def main():
-
 
     # Call the function
     create_dimensionality_reductions()

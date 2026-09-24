@@ -4,10 +4,12 @@ from pydantic import BaseModel
 
 from enums.enums import SDGType
 
+
 class AnnotationCreateRequest(BaseModel):
     """
     Request model for creating an annotation.
     """
+
     user_id: int  # ID of the user creating the annotation
     passage: str  # The passage being annotated
     sdg_user_label_id: Optional[int] = None  # Optional link to SDGUserLabel
@@ -17,6 +19,7 @@ class AnnotationCreateRequest(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class AnnotationEvaluationRequest(BaseModel):
     passage: str

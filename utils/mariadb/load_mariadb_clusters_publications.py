@@ -1,13 +1,14 @@
 import re
+
 from sqlalchemy.orm import sessionmaker
+
 from db.mariadb_connector import engine as mariadb_engine
-from models import PublicationCluster
-from models import ClusterTopic
+from models import ClusterTopic, PublicationCluster
 
 
 def load_publication_clusters(file_path, batch_size=100):
     # Read the file containing only values
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         file_content = f.read()
 
     # Extract individual tuples using regex
@@ -21,7 +22,7 @@ def load_publication_clusters(file_path, batch_size=100):
             continue
 
         try:
-            fields = [field.strip().strip("'") for field in tuple_str.split(',')]
+            fields = [field.strip().strip("'") for field in tuple_str.split(",")]
 
             publication_id = int(fields[0])
             cluster_id_raw = fields[1]  # e.g., 'sdg10_level10_topic3'
@@ -40,7 +41,8 @@ def load_publication_clusters(file_path, batch_size=100):
                     continue
 
                 print(
-                    f"Adding record: publication_id={publication_id}, cluster_id={cluster_topic.topic_id}, sdg={sdg}, level={level}, topic={topic}")
+                    f"Adding record: publication_id={publication_id}, cluster_id={cluster_topic.topic_id}, sdg={sdg}, level={level}, topic={topic}"
+                )
 
                 publication_cluster = PublicationCluster(
                     publication_id=publication_id,
@@ -48,7 +50,7 @@ def load_publication_clusters(file_path, batch_size=100):
                     cluster_id_string=cluster_id,  # Still store the string for reference
                     sdg=sdg,
                     level=level,
-                    topic=topic
+                    topic=topic,
                 )
                 data.append(publication_cluster)
 
@@ -72,7 +74,6 @@ def load_publication_clusters(file_path, batch_size=100):
 
 
 def main():
-
 
     # Call the function with your file path
     file_path = "./data/db/publications_clusters.txt"

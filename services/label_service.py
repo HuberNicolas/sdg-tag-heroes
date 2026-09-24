@@ -1,21 +1,29 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from sqlalchemy.orm import Session, joinedload
 
 from enums import SDGType
-from enums.enums import ScenarioType, LevelType
-from models import SDGUserLabel, sdg_label_decision_user_label_association, SDGPrediction, SDGXPBankHistory, \
-    SDGCoinWalletHistory, SDGCoinWallet, SDGXPBank
+from enums.enums import LevelType
+from models import (
+    SDGCoinWallet,
+    SDGCoinWalletHistory,
+    SDGPrediction,
+    SDGUserLabel,
+    SDGXPBank,
+    SDGXPBankHistory,
+    sdg_label_decision_user_label_association,
+)
 from request_models.sdg_user_label import UserLabelRequest
-from schemas import SDGLabelDistribution, SDGUserLabelStatisticsSchema, SDGUserLabelSchemaFull, UserVotingDetails
+from schemas import SDGLabelDistribution, SDGUserLabelSchemaFull, SDGUserLabelStatisticsSchema, UserVotingDetails
 from services.decision_service import DecisionService
 from services.reward_service import RewardService
 from services.scoring_service import score
-from settings.settings import TimeZoneSettings, LabelServiceSettings
-from utils.logger import logger
+from settings.settings import LabelServiceSettings, TimeZoneSettings
 
 # Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
 from settings.settings import MariaDBSettings as _PredictionModelSettings
+from utils.logger import logger
+
 PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
 
 time_zone_settings = TimeZoneSettings()
@@ -65,7 +73,9 @@ class LabelService:
         logging.info("Check new scenario and update scenario in decision based on new user label.")
         scenario = decision_service.evaluate_vote_scenario(decision.user_labels)
 
-        logging.info(f"Update scenario in decision based on new user label: Old scenario {old_scenario}; New scenario {scenario}.")
+        logging.info(
+            f"Update scenario in decision based on new user label: Old scenario {old_scenario}; New scenario {scenario}."
+        )
         decision.scenario_type = scenario
 
         logging.info("Check consensus - can we finalize this label?")
@@ -93,7 +103,8 @@ class LabelService:
         total_xp = int(additional_xp + base_xp)
 
         logging.info(
-            f"User {new_user_label.user_id} gets {total_xp} = {base_xp} (Base) + {additional_xp} (Additional) XP.")
+            f"User {new_user_label.user_id} gets {total_xp} = {base_xp} (Base) + {additional_xp} (Additional) XP."
+        )
 
         # **Convert voted_label (int) to SDGType Enum**
         new_user_sdg_enum_value = SDGType[f"SDG_{new_user_label.voted_label}"]
@@ -128,14 +139,14 @@ class LabelService:
 
         # **Final Coin & XP Reward if Consensus is Reached**
         if decision.decided_label:
-
             # **Determine Task Difficulty Based on SDG Probability**
             voted_sdg_key = f"sdg{request.voted_label}"
             P_max = getattr(prediction, voted_sdg_key, 0.0)  # Probability of the voted SDG
             level = LevelType.get_level(P_max)
 
             logging.info(
-                f"Consensus reached! (Level: {level}, ({level.min_prob}) -  ({level.max_prob}), (Prediction: {P_max} for {voted_sdg_key})) to users who voted correctly.")
+                f"Consensus reached! (Level: {level}, ({level.min_prob}) -  ({level.max_prob}), (Prediction: {P_max} for {voted_sdg_key})) to users who voted correctly."
+            )
 
             # **Sort labels by created_at to calculate score incrementally**
             sorted_labels = sorted(decision.user_labels, key=lambda x: x.labeled_at)
@@ -145,7 +156,6 @@ class LabelService:
             # **Award XP & Coins to All Users Who Voted Correctly**
             for idx, label in enumerate(sorted_labels):
                 if label.voted_label == decision.decided_label:
-
                     if label.user_id in rewarded_user_ids:
                         logging.info(f"User {label.user_id} has already received a coin reward. Skipping reward.")
                         continue  # Skip if user has already been rewarded
@@ -173,7 +183,8 @@ class LabelService:
                     )
                     self.db.add(coin_entry)
                     logging.info(
-                        f"Logged coin transaction for user {label.user_id}: +{coin_reward} Coins. Updated total: {user_wallet.total_coins}")
+                        f"Logged coin transaction for user {label.user_id}: +{coin_reward} Coins. Updated total: {user_wallet.total_coins}"
+                    )
 
                     rewarded_user_ids.append(label.user_id)
 
@@ -258,14 +269,11 @@ class LabelService:
 
         # Convert user voting details to the schema format
         user_voting_details_schema = [
-            UserVotingDetails(user_id=user_id, voted_labels=labels)
-            for user_id, labels in user_voting_details.items()
+            UserVotingDetails(user_id=user_id, voted_labels=labels) for user_id, labels in user_voting_details.items()
         ]
 
         # Convert the latest labels to the schema format
-        sdg_user_labels_schema = [
-            SDGUserLabelSchemaFull.model_validate(label) for label in latest_labels
-        ]
+        sdg_user_labels_schema = [SDGUserLabelSchemaFull.model_validate(label) for label in latest_labels]
 
         # Return the statistics and full entities
         return SDGUserLabelStatisticsSchema(

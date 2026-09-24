@@ -1,17 +1,18 @@
-from sqlalchemy import create_engine, event, inspect
+from sqlalchemy import event, inspect
 from sqlalchemy.orm import sessionmaker
 
-from models.base import Base
-
 from db.mariadb_connector import engine as mariadb_engine  # MariaDB engine
+from models.base import Base
 
 # Initialize SQLAlchemy engine and session
 engine = mariadb_engine
 Session = sessionmaker(bind=engine)
 
+
 # Function to log table creation
 def log_table_creation(target, connection, **kwargs):
     print(f"Table '{target.name}' has been created.")
+
 
 # Print success message and table details
 def print_table_summary(engine, session):
@@ -38,8 +39,8 @@ def main():
 
     # Attach the 'after_create' event to all tables dynamically
     for table_name, table_class in Base.registry._class_registry.items():
-        if hasattr(table_class, '__table__'):
-            event.listen(table_class.__table__, 'after_create', log_table_creation)
+        if hasattr(table_class, "__table__"):
+            event.listen(table_class.__table__, "after_create", log_table_creation)
 
     # Ensure tables are created
     Base.metadata.create_all(engine)

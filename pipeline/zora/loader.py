@@ -1,34 +1,24 @@
 import argparse
+
 from qdrant_client.http.models import Distance, PointStruct, VectorParams
 from sqlalchemy.orm import sessionmaker
 
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qdrantdb_client
-
+from models import Publication
+from models.sdg_prediction import SDGPrediction
 from pipeline.zora.embeddings import PublicationEmbeddingGenerator
 
-
-
-from models.base import Base
-from models import Author
-from models import Division
-from models import Faculty
-from models import Institute
-from models.sdg_prediction import SDGPrediction
-from models.sdg_label_history import SDGLabelHistory
-from models.sdg_label_decision import SDGLabelDecision
-from models.sdg_user_label import SDGUserLabel
-from models import DimensionalityReduction
-from models import Publication
-
 # Ensure these settings are properly initialized
-from settings.settings import EmbeddingsSettings, SDGSettings, LoaderSettings
+from settings.settings import EmbeddingsSettings, LoaderSettings, SDGSettings
+
 embeddings_settings = EmbeddingsSettings()
 sdg_settings = SDGSettings()
 loader_settings = LoaderSettings()
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(loader_settings.LOADER_LOG_NAME)
 
 # Prediction models stored as a vector per publication (named goal_<model>)
@@ -44,11 +34,7 @@ class QdrantUploader:
         """Fetch SDG predictions for a list of publications."""
         goal_predictions = {}
         for pub in publications:
-            sdg_preds = (
-                session.query(SDGPrediction)
-                .filter_by(publication_id=pub.publication_id)
-                .all()
-            )
+            sdg_preds = session.query(SDGPrediction).filter_by(publication_id=pub.publication_id).all()
             # Only models with a vector in the collection (see init_collection). The collector adds an empty
             # placeholder prediction (model "") per publication, which Qdrant would reject.
             sdg_preds = [p for p in sdg_preds if (p.prediction_model or "").lower() in GOAL_VECTOR_MODELS]
@@ -56,20 +42,36 @@ class QdrantUploader:
                 for sdg_pred in sdg_preds:
                     model_name = sdg_pred.prediction_model.lower()
                     predictions = [
-                        sdg_pred.sdg1, sdg_pred.sdg2, sdg_pred.sdg3, sdg_pred.sdg4,
-                        sdg_pred.sdg5, sdg_pred.sdg6, sdg_pred.sdg7, sdg_pred.sdg8,
-                        sdg_pred.sdg9, sdg_pred.sdg10, sdg_pred.sdg11, sdg_pred.sdg12,
-                        sdg_pred.sdg13, sdg_pred.sdg14, sdg_pred.sdg15, sdg_pred.sdg16,
+                        sdg_pred.sdg1,
+                        sdg_pred.sdg2,
+                        sdg_pred.sdg3,
+                        sdg_pred.sdg4,
+                        sdg_pred.sdg5,
+                        sdg_pred.sdg6,
+                        sdg_pred.sdg7,
+                        sdg_pred.sdg8,
+                        sdg_pred.sdg9,
+                        sdg_pred.sdg10,
+                        sdg_pred.sdg11,
+                        sdg_pred.sdg12,
+                        sdg_pred.sdg13,
+                        sdg_pred.sdg14,
+                        sdg_pred.sdg15,
+                        sdg_pred.sdg16,
                         sdg_pred.sdg17,
                     ]
                     if pub.publication_id not in goal_predictions:
                         goal_predictions[pub.publication_id] = {}
                     goal_predictions[pub.publication_id][f"goal_{model_name}"] = predictions
-                logging.info(f"SDG predictions for publication ID {pub.publication_id}: {goal_predictions[pub.publication_id]}")
+                logging.info(
+                    f"SDG predictions for publication ID {pub.publication_id}: {goal_predictions[pub.publication_id]}"
+                )
             else:
                 # No goal vector; Qdrant allows named vectors to be missing (there is no "goal_default" vector)
                 goal_predictions[pub.publication_id] = {}
-                logging.warning(f"No SDG predictions found for publication ID {pub.publication_id}. Defaulting to zeros.")
+                logging.warning(
+                    f"No SDG predictions found for publication ID {pub.publication_id}. Defaulting to zeros."
+                )
 
         return goal_predictions
 
@@ -166,6 +168,7 @@ class QdrantUploader:
                 logging.error(f"Error during processing and uploading: {e}")
                 break
 
+
 def main(db, batch_size):
     logging.info("Starting main Qdrant loader...")
 
@@ -202,11 +205,22 @@ def main(db, batch_size):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the Qdrant loader with SQLite or MariaDB.")
-    parser.add_argument("--db", choices=["sqlite", "mariadb"], default="sqlite", help="Specify the database to use: sqlite or mariadb (default: sqlite).")
-    parser.add_argument("--batch_size", type=int, default=loader_settings.DEFAULT_BATCH_SIZE, help=f"Specify the batch size for embedding generation and uploading (default: {loader_settings.DEFAULT_BATCH_SIZE}).")
+    parser.add_argument(
+        "--db",
+        choices=["sqlite", "mariadb"],
+        default="sqlite",
+        help="Specify the database to use: sqlite or mariadb (default: sqlite).",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=loader_settings.DEFAULT_BATCH_SIZE,
+        help=f"Specify the batch size for embedding generation and uploading (default: {loader_settings.DEFAULT_BATCH_SIZE}).",
+    )
 
     args = parser.parse_args()
     main(args.db, args.batch_size)
+
 
 def loader_main(db, batch_size):
     main(db, batch_size)

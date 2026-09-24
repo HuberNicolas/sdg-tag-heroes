@@ -8,7 +8,7 @@ from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGLabelSummary
 from models.publications.publication import Publication
-from schemas.sdg_label_summary import SDGLabelSummarySchemaFull, SDGLabelSummarySchemaBase
+from schemas.sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull
 from settings.settings import SDGSLabelSummariesRouterSettings
 from utils.logger import logger
 
@@ -24,6 +24,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -31,6 +32,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API Router
 router = APIRouter(
@@ -42,6 +44,7 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
     },
 )
+
 
 @router.get(
     "/",
@@ -64,7 +67,9 @@ async def get_label_summaries(
         # Use FastAPI Pagination to fetch paginated data
         paginated_query = sqlalchemy_paginate(query)
 
-        paginated_query.items = [SDGLabelSummarySchemaBase.model_validate(label_summary) for label_summary in paginated_query.items]
+        paginated_query.items = [
+            SDGLabelSummarySchemaBase.model_validate(label_summary) for label_summary in paginated_query.items
+        ]
 
         return paginated_query
 
@@ -96,7 +101,9 @@ async def get_label_summary(
         user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the SDGLabelSummary
-        label_summary = db.query(SDGLabelSummary).filter(SDGLabelSummary.sdg_label_summary_id == label_summary_id).first()
+        label_summary = (
+            db.query(SDGLabelSummary).filter(SDGLabelSummary.sdg_label_summary_id == label_summary_id).first()
+        )
 
         if not label_summary:
             raise HTTPException(
@@ -115,10 +122,11 @@ async def get_label_summary(
             detail="An error occurred while fetching the SDGLabelSummary",
         )
 
+
 @router.get(
     "/publications/{publication_id}",
     response_model=SDGLabelSummarySchemaFull,
-    description="Retrieve the SDGLabelSummary associated with a specific publication"
+    description="Retrieve the SDGLabelSummary associated with a specific publication",
 )
 async def get_sdg_label_summary(
     publication_id: int,

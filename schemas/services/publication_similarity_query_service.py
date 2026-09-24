@@ -2,7 +2,6 @@ from typing import List
 
 from pydantic import BaseModel
 
-
 # Not directly derived from models
 # Todo: Generate TS type
 
@@ -13,6 +12,7 @@ class FunctionResponsePublicationSimilaritySchema(BaseModel):
     title: str
     abstract: str
     score: float
+
 
 class FunctionResponsePublicationsSimilaritySchema(BaseModel):
     query_building_time: float

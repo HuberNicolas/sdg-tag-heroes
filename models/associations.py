@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, Table
 
 from models.base import Base
 
@@ -15,7 +15,7 @@ user_group_association = Table(
     "user_group_association",
     Base.metadata,
     Column("user_id", ForeignKey("users.user_id"), primary_key=True),
-    Column("group_id", ForeignKey("groups.group_id"), primary_key=True)
+    Column("group_id", ForeignKey("groups.group_id"), primary_key=True),
 )
 
 # Association table for the many-to-many relationship

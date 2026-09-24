@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -48,10 +48,9 @@ class UserCoordinatesSchema(BaseModel):
                 "z": 0.0,
                 "embedding_time": 0.045,
                 "model_loading_time": 0.012,
-                "umap_reduction_transform_time": 0.009
+                "umap_reduction_transform_time": 0.009,
             }
         }
-
 
 
 ### One Endpoint
@@ -62,8 +61,11 @@ class FilteredSDGStatisticsSchema(BaseModel):
     max_prediction_value: Optional[float]
     publications_per_model: Dict[str, int]
 
+
 class FilteredDimensionalityReductionStatisticsSchema(BaseModel):
-    statistics: Dict[str, FilteredSDGStatisticsSchema]  # Includes general and SDG-specific statistics, any is actual SDGStatisticsSchema
+    statistics: Dict[
+        str, FilteredSDGStatisticsSchema
+    ]  # Includes general and SDG-specific statistics, any is actual SDGStatisticsSchema
     dimensionality_reductions: Dict[str, List[DimensionalityReductionSchemaFull]]
 
     class Config:
@@ -77,9 +79,9 @@ class FilteredDimensionalityReductionStatisticsSchema(BaseModel):
                             "retrieved_count": 5,
                             "min_prediction_value": 0.981,
                             "max_prediction_value": 0.989,
-                            "publications_per_model": {"Aurora": 5}
+                            "publications_per_model": {"Aurora": 5},
                         }
-                    }
+                    },
                 },
                 "dimensionality_reductions": {
                     "sdg1": [
@@ -94,14 +96,12 @@ class FilteredDimensionalityReductionStatisticsSchema(BaseModel):
                             "y_coord": -0.123,
                             "z_coord": 0.789,
                             "created_at": "2025-01-02T12:00:00",
-                            "updated_at": "2025-01-02T13:00:00"
+                            "updated_at": "2025-01-02T13:00:00",
                         }
                     ]
-                }
+                },
             }
         }
-
-
 
 
 ### One Endpoint
@@ -115,6 +115,7 @@ class GroupedDimensionalityReductionStatisticsSchema(BaseModel):
     total_levels: int
     total_dimensionality_reductions: int
     sdg_breakdown: Dict[str, GroupedSDGStatisticsSchema]
+
 
 class GroupedDimensionalityReductionResponseSchema(BaseModel):
     dimensionality_reductions: Dict[str, Dict[str, List[DimensionalityReductionSchemaFull]]]
@@ -137,7 +138,7 @@ class GroupedDimensionalityReductionResponseSchema(BaseModel):
                                 "sdg": 1,
                                 "level": 1,
                                 "created_at": "2025-01-01T12:34:56",
-                                "updated_at": "2025-01-01T12:34:56"
+                                "updated_at": "2025-01-01T12:34:56",
                             }
                         ]
                     }
@@ -146,12 +147,7 @@ class GroupedDimensionalityReductionResponseSchema(BaseModel):
                     "total_sdg_groups": 1,
                     "total_levels": 1,
                     "total_dimensionality_reductions": 1,
-                    "sdg_breakdown": {
-                        "sdg1": {
-                            "total_levels": 1,
-                            "total_reductions": 1
-                        }
-                    }
-                }
+                    "sdg_breakdown": {"sdg1": {"total_levels": 1, "total_reductions": 1}},
+                },
             }
         }

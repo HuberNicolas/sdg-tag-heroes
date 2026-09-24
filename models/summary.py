@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Text, ForeignKey, DateTime
+from sqlalchemy import DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models import Base
@@ -13,6 +13,7 @@ class Summary(Base):
     """
     Represents a concise summary of a publication, with one-to-one mapping.
     """
+
     __tablename__ = "summaries"
 
     summary_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -22,11 +23,9 @@ class Summary(Base):
     publication_id: Mapped[int] = mapped_column(
         ForeignKey("publications.publication_id", ondelete="cascade"),
         unique=True,  # Ensures one-to-one mapping
-        nullable=False
+        nullable=False,
     )
-    publication: Mapped["Publication"] = relationship(
-        "Publication", back_populates="summary"
-    )
+    publication: Mapped["Publication"] = relationship("Publication", back_populates="summary")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

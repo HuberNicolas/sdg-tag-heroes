@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -34,23 +34,17 @@ class MetricsService:
             List[Dict[str, Any]]: List of dictionaries containing publication ID, entropy, and standard deviation.
         """
         # Query SDG predictions for the given publication IDs
-        sdg_predictions = (
-            db.query(SDGPrediction)
-            .filter(SDGPrediction.publication_id.in_(publication_ids))
-            .all()
-        )
+        sdg_predictions = db.query(SDGPrediction).filter(SDGPrediction.publication_id.in_(publication_ids)).all()
 
         # Filter the SDG predictions by prediction_model
         default_model_predictions = [
-            prediction for prediction in sdg_predictions
+            prediction
+            for prediction in sdg_predictions
             if prediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL
         ]
 
         if not default_model_predictions:
-            raise HTTPException(
-                status_code=404,
-                detail=f"No SDG predictions found for the provided publication IDs."
-            )
+            raise HTTPException(status_code=404, detail="No SDG predictions found for the provided publication IDs.")
 
         # Calculate metrics for each prediction
         results = []
@@ -59,17 +53,17 @@ class MetricsService:
             entropy = self.math_service.calculate_entropy(sdg_values)
             sd = self.math_service.calculate_standard_deviation(sdg_values)
 
-            results.append({
-                "publication_id": prediction.publication_id,
-                "entropy": entropy,
-                "standard_deviation": sd,
-            })
+            results.append(
+                {
+                    "publication_id": prediction.publication_id,
+                    "entropy": entropy,
+                    "standard_deviation": sd,
+                }
+            )
 
         return results
 
-    def get_publication_metrics_by_id(
-        self, publication_id: int, db: Session
-    ) -> Dict[str, Any]:
+    def get_publication_metrics_by_id(self, publication_id: int, db: Session) -> Dict[str, Any]:
         """
         Fetch the entropy and standard deviation for the SDG prediction values of a specific publication.
 
@@ -81,22 +75,18 @@ class MetricsService:
             Dict[str, Any]: A dictionary with entropy and standard deviation of the predictions.
         """
         # Fetch the SDG predictions for the publication
-        sdg_predictions = (
-            db.query(SDGPrediction)
-            .filter(SDGPrediction.publication_id == publication_id)
-            .all()
-        )
+        sdg_predictions = db.query(SDGPrediction).filter(SDGPrediction.publication_id == publication_id).all()
 
         # Filter the SDG predictions by prediction_model
         default_model_prediction = [
-            prediction for prediction in sdg_predictions
+            prediction
+            for prediction in sdg_predictions
             if prediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL
         ]
 
         if not default_model_prediction:
             raise HTTPException(
-                status_code=404,
-                detail=f"SDG predictions for publication ID {publication_id} not found."
+                status_code=404, detail=f"SDG predictions for publication ID {publication_id} not found."
             )
 
         # Extract the first (and only) prediction from the list
@@ -113,9 +103,7 @@ class MetricsService:
             "standard_deviation": sd,
         }
 
-    def get_publications_by_metric(
-        self, metric_type: str, order: str, top_n: int, db: Session
-    ) -> List[Dict[str, Any]]:
+    def get_publications_by_metric(self, metric_type: str, order: str, top_n: int, db: Session) -> List[Dict[str, Any]]:
         """
         Fetch the top or bottom N publications based on entropy or standard deviation.
 
@@ -131,34 +119,26 @@ class MetricsService:
         # Validate metric type
         if metric_type not in {"entropy", "standard_deviation"}:
             raise HTTPException(
-                status_code=400,
-                detail="Invalid metric type. Allowed values are 'entropy' or 'standard_deviation'."
+                status_code=400, detail="Invalid metric type. Allowed values are 'entropy' or 'standard_deviation'."
             )
 
         # Validate order
         if order not in {"top", "bottom"}:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid order value. Allowed values are 'top' or 'bottom'."
-            )
+            raise HTTPException(status_code=400, detail="Invalid order value. Allowed values are 'top' or 'bottom'.")
 
         # Validate top_n
         if top_n <= 0:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid top_n value. It must be a positive integer."
-            )
+            raise HTTPException(status_code=400, detail="Invalid top_n value. It must be a positive integer.")
 
         # Query all SDG predictions
-        sdg_predictions = db.query(SDGPrediction).filter(
-            SDGPrediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL
-        ).all()
+        sdg_predictions = (
+            db.query(SDGPrediction)
+            .filter(SDGPrediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL)
+            .all()
+        )
 
         if not sdg_predictions:
-            raise HTTPException(
-                status_code=404,
-                detail="No SDG predictions found."
-            )
+            raise HTTPException(status_code=404, detail="No SDG predictions found.")
 
         # Calculate metrics for each prediction
         metrics = []
@@ -167,17 +147,17 @@ class MetricsService:
             entropy = self.math_service.calculate_entropy(sdg_values)
             sd = self.math_service.calculate_standard_deviation(sdg_values)
 
-            metrics.append({
-                "publication_id": prediction.publication_id,
-                "entropy": entropy,
-                "standard_deviation": sd,
-            })
+            metrics.append(
+                {
+                    "publication_id": prediction.publication_id,
+                    "entropy": entropy,
+                    "standard_deviation": sd,
+                }
+            )
 
         # Sort by the specified metric in the correct order
         reverse_order = order == "top"
-        sorted_results = sorted(
-            metrics, key=lambda x: x[metric_type], reverse=reverse_order
-        )[:top_n]
+        sorted_results = sorted(metrics, key=lambda x: x[metric_type], reverse=reverse_order)[:top_n]
 
         # Add metric type and order to the response for clarity
         for entry in sorted_results:
@@ -197,9 +177,21 @@ class MetricsService:
             List[float]: A list of SDG values.
         """
         return [
-            prediction.sdg1, prediction.sdg2, prediction.sdg3, prediction.sdg4,
-            prediction.sdg5, prediction.sdg6, prediction.sdg7, prediction.sdg8,
-            prediction.sdg9, prediction.sdg10, prediction.sdg11, prediction.sdg12,
-            prediction.sdg13, prediction.sdg14, prediction.sdg15, prediction.sdg16,
-            prediction.sdg17
+            prediction.sdg1,
+            prediction.sdg2,
+            prediction.sdg3,
+            prediction.sdg4,
+            prediction.sdg5,
+            prediction.sdg6,
+            prediction.sdg7,
+            prediction.sdg8,
+            prediction.sdg9,
+            prediction.sdg10,
+            prediction.sdg11,
+            prediction.sdg12,
+            prediction.sdg13,
+            prediction.sdg14,
+            prediction.sdg15,
+            prediction.sdg16,
+            prediction.sdg17,
         ]

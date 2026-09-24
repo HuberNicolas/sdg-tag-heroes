@@ -1,6 +1,4 @@
-from mysql.connector import connect, Error
-from sqlalchemy.orm import sessionmaker, configure_mappers
-
+from sqlalchemy.orm import sessionmaker
 
 # Establish MariaDB connection
 from db.mariadb_connector import engine as mariadb_engine
@@ -8,11 +6,11 @@ from models import Base, SDGPrediction
 
 # Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
 from settings.settings import MariaDBSettings as _PredictionModelSettings
+
 PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
 
 Session = sessionmaker(bind=mariadb_engine)
 session = Session()
-
 
 
 def scale_sdg_values(sdg_value):
@@ -27,13 +25,13 @@ def scale_sdg_values(sdg_value):
         return (sdg_value / 0.85) * 0.5
     return None  # For unexpected values
 
+
 def create_scaled_predictions():
     try:
         # Fetch all existing predictions
-        predictions = (session.query(SDGPrediction)
-                       .filter(SDGPrediction.prediction_model.in_([PREDICTION_MODEL]))
-                       .limit(5)
-                       .all())
+        predictions = (
+            session.query(SDGPrediction).filter(SDGPrediction.prediction_model.in_([PREDICTION_MODEL])).limit(5).all()
+        )
         new_predictions = []
 
         for prediction in predictions:
@@ -65,11 +63,11 @@ def create_scaled_predictions():
 
         print(new_predictions)
         # Add all new scaled predictions to the session
-        #session.add_all(new_predictions)
+        # session.add_all(new_predictions)
 
         # Commit to the database
-        #session.commit()
-        #print(f"Successfully created {len(new_predictions)} scaled predictions.")
+        # session.commit()
+        # print(f"Successfully created {len(new_predictions)} scaled predictions.")
     except Exception as e:
         session.rollback()
         print(f"An error occurred: {e}")
@@ -79,7 +77,6 @@ def create_scaled_predictions():
 
 def main():
     Base.metadata.create_all(mariadb_engine)
-
 
     create_scaled_predictions()
 

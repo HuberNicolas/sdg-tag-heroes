@@ -29,15 +29,11 @@ class SDGPredictionSchemaBase(BaseModel):
     entropy: float
     std: float
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class SDGPredictionSchemaFull(SDGPredictionSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

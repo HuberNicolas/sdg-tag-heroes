@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Enum, ForeignKey, DateTime, CheckConstraint
+from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from enums.enums import VoteType
@@ -9,10 +9,12 @@ from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
+
 class Vote(Base):
     """
     Represents a vote on an SDGUserLabel or Annotation by a User. The vote can be positive, neutral, or negative.
     """
+
     __tablename__ = "votes"
 
     vote_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -37,8 +39,7 @@ class Vote(Base):
 
     vote_type: Mapped[VoteType] = mapped_column(Enum(VoteType), default=VoteType.NEUTRAL, nullable=False)
 
-    score : Mapped[float] = mapped_column(default=0, nullable=False)
-
+    score: Mapped[float] = mapped_column(default=0, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -57,6 +58,6 @@ class Vote(Base):
         CheckConstraint(
             "(sdg_user_label_id IS NOT NULL AND annotation_id IS NULL) OR "
             "(sdg_user_label_id IS NULL AND annotation_id IS NOT NULL)",
-            name="check_one_target_not_both"
+            name="check_one_target_not_both",
         ),
     )

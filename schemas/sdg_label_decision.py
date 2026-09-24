@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -18,18 +18,15 @@ class SDGLabelDecisionSchemaBase(BaseModel):
     comment: Optional[str]
     annotations: List[Union["AnnotationSchemaBase", "AnnotationSchemaFull"]]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class SDGLabelDecisionSchemaFull(SDGLabelDecisionSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 class SDGLabelDecisionSchemaExtended(SDGLabelDecisionSchemaBase):
     created_at: datetime
@@ -41,6 +38,4 @@ class SDGLabelDecisionSchemaExtended(SDGLabelDecisionSchemaBase):
     # Include all annotations directly attached to the decision
     annotations: List["AnnotationSchemaFull"]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

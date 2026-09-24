@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Float
+from sqlalchemy import DateTime, Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -13,6 +13,7 @@ class SDGCoinWallet(Base):
     """
     CoinWallet model to store SDG coins for each user.
     """
+
     __tablename__ = "sdg_coin_wallets"
 
     sdg_coin_wallet_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -24,9 +25,7 @@ class SDGCoinWallet(Base):
 
     # Relationship to track changes over time
     histories: Mapped[list["SDGCoinWalletHistory"]] = relationship(
-        "SDGCoinWalletHistory",
-        back_populates="wallet",
-        cascade="all, delete-orphan"
+        "SDGCoinWalletHistory", back_populates="wallet", cascade="all, delete-orphan"
     )
 
     created_at: Mapped[datetime] = mapped_column(

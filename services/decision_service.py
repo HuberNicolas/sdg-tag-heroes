@@ -1,5 +1,4 @@
-import re
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime
 from typing import List, Optional
 
@@ -10,8 +9,7 @@ from enums.enums import DecisionType, ScenarioType
 from models import SDGLabelDecision, SDGLabelHistory, SDGLabelSummary, SDGPrediction, SDGUserLabel
 from models.publications.publication import Publication
 from request_models.sdg_user_label import UserLabelRequest
-from services.reward_service import RewardService
-from settings.settings import TimeZoneSettings, DecisionServiceSettings
+from settings.settings import DecisionServiceSettings, TimeZoneSettings
 from utils.logger import logger
 
 time_zone_settings = TimeZoneSettings()
@@ -33,12 +31,15 @@ class DecisionService:
         user_to_label = {}  # Maps user_id to their most recent voted_label
         for label in user_labels:
             if label.user_id not in user_to_label or label.labeled_at.replace(tzinfo=None) > user_to_label[
-                label.user_id].labeled_at.replace(tzinfo=None):
+                label.user_id
+            ].labeled_at.replace(tzinfo=None):
                 user_to_label[label.user_id] = label
         return [label.voted_label for label in user_to_label.values()]
 
     # TODO: Debug, not correct yet
-    def evaluate_vote_scenario(self, user_labels: List["SDGUserLabel"], votes_needed: int = decision_service_settings.VOTES_NEEDED_FOR_SCENARIO) -> ScenarioType:
+    def evaluate_vote_scenario(
+        self, user_labels: List["SDGUserLabel"], votes_needed: int = decision_service_settings.VOTES_NEEDED_FOR_SCENARIO
+    ) -> ScenarioType:
         """
         Evaluate the current scenario based on the distribution of votes.
         Only the most recent label per user is counted.
@@ -67,12 +68,16 @@ class DecisionService:
             return ScenarioType.CONFIRM
 
         # Scenario 2: Tiebreaker (50/50 split between exactly two classes)
-        if len(sorted_counts) == 2 and sorted_counts[0] == sorted_counts[1]: # and sorted_counts[0] == total_votes / 2:
+        if len(sorted_counts) == 2 and sorted_counts[0] == sorted_counts[1]:  # and sorted_counts[0] == total_votes / 2:
             logging.info("Scenario: Tiebreaker (50/50 split).")
             return ScenarioType.TIEBREAKER
 
         # Scenario 3: Investigate (More than 2 classes with significant counts)
-        if len(sorted_counts) >= 3 and sorted_counts[0] >= significant_count_threshold and sorted_counts[1] >= significant_count_threshold:
+        if (
+            len(sorted_counts) >= 3
+            and sorted_counts[0] >= significant_count_threshold
+            and sorted_counts[1] >= significant_count_threshold
+        ):
             logging.info("Scenario: Investigate (Multiple significant counts).")
             return ScenarioType.INVESTIGATE
 
@@ -122,7 +127,6 @@ class DecisionService:
 
         # Ensure label summary is updated after finalizing decision
         self.update_label_summary(decision)
-
 
     def update_label_summary(self, decision: SDGLabelDecision) -> None:
         """
@@ -191,9 +195,9 @@ class DecisionService:
         logging.info("Finding or creating a decision.")
         if request.decision_id:
             logging.info(f"Decision ID provided: {request.decision_id}.")
-            decision = self.db.query(SDGLabelDecision).filter(
-                SDGLabelDecision.decision_id == request.decision_id
-            ).first()
+            decision = (
+                self.db.query(SDGLabelDecision).filter(SDGLabelDecision.decision_id == request.decision_id).first()
+            )
             if not decision:
                 logging.error(f"Decision with ID {request.decision_id} not found.")
                 raise HTTPException(
@@ -209,9 +213,7 @@ class DecisionService:
                 detail="Either publication_id or decision_id must be provided",
             )
 
-        publication = self.db.query(Publication).filter(
-            Publication.publication_id == request.publication_id
-        ).first()
+        publication = self.db.query(Publication).filter(Publication.publication_id == request.publication_id).first()
         if not publication:
             logging.error(f"Publication with ID {request.publication_id} not found.")
             raise HTTPException(
@@ -219,9 +221,9 @@ class DecisionService:
                 detail=f"Publication with ID {request.publication_id} not found",
             )
 
-        sdg_label_summary = self.db.query(SDGLabelSummary).filter(
-            SDGLabelSummary.publication_id == publication.publication_id
-        ).first()
+        sdg_label_summary = (
+            self.db.query(SDGLabelSummary).filter(SDGLabelSummary.publication_id == publication.publication_id).first()
+        )
         if not sdg_label_summary:
             logging.error("SDGLabelSummary not found for the given publication.")
             raise HTTPException(
@@ -229,9 +231,9 @@ class DecisionService:
                 detail="SDGLabelSummary not found for the given publication",
             )
 
-        history = self.db.query(SDGLabelHistory).filter(
-            SDGLabelHistory.history_id == sdg_label_summary.history_id
-        ).first()
+        history = (
+            self.db.query(SDGLabelHistory).filter(SDGLabelHistory.history_id == sdg_label_summary.history_id).first()
+        )
         if not history:
             logging.error("SDGLabelHistory not found for the given summary.")
             raise HTTPException(
@@ -239,16 +241,21 @@ class DecisionService:
                 detail="SDGLabelHistory not found for the given summary",
             )
 
-        sdg_prediction = self.db.query(SDGPrediction).filter(
-            SDGPrediction.publication_id == publication.publication_id,
-            SDGPrediction.prediction_model == decision_service_settings.DEFAULT_MODEL
-        ).first()
+        sdg_prediction = (
+            self.db.query(SDGPrediction)
+            .filter(
+                SDGPrediction.publication_id == publication.publication_id,
+                SDGPrediction.prediction_model == decision_service_settings.DEFAULT_MODEL,
+            )
+            .first()
+        )
 
         highest_sdg_number = None
         if sdg_prediction:
             highest_sdg_key, highest_sdg_number, highest_sdg_value = sdg_prediction.get_highest_sdg()
             logging.info(
-                f"Highest SDG prediction: {highest_sdg_key} ({highest_sdg_number}), Value: {highest_sdg_value}.")
+                f"Highest SDG prediction: {highest_sdg_key} ({highest_sdg_number}), Value: {highest_sdg_value}."
+            )
 
         unfinished_decision = next((d for d in history.decisions if d.decided_label == 0), None)
         if unfinished_decision:

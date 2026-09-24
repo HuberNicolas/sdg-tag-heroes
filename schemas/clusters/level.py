@@ -10,14 +10,11 @@ class ClusterLevelSchemaBase(BaseModel):
     level_number: int
     cluster_topics: List[Union["ClusterTopicSchemaBase", "ClusterTopicSchemaFull"]]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 class ClusterLevelSchemaFull(ClusterLevelSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

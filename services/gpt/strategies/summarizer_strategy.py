@@ -1,13 +1,15 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from .base_strategy import PromptStrategy
 
 
 class SummarizeSinglePublicationStrategy(PromptStrategy):
-    """ Summarizes a publication."""
+    """Summarizes a publication."""
 
     def __init__(self):
-        self.context = "You are a summarization expert. Create a concise and informative summary of the given publication."
+        self.context = (
+            "You are a summarization expert. Create a concise and informative summary of the given publication."
+        )
 
     def generate_prompt(self, title: str, abstract: str) -> dict:
         return {
@@ -16,8 +18,9 @@ class SummarizeSinglePublicationStrategy(PromptStrategy):
                 "making it understandable and engaging for non-experts."
             ),
             "title": title,
-            "abstract": abstract
+            "abstract": abstract,
         }
+
 
 class SummarizeMultiplePublicationsStrategy(PromptStrategy):
     """Summarizes a set of publications into a single sentence and extracts keywords."""
@@ -27,7 +30,7 @@ class SummarizeMultiplePublicationsStrategy(PromptStrategy):
 
     def generate_prompt(self, publications: List[Dict[str, str]]) -> dict:
         summaries = [
-            f"Title: { pub.get('title', 'No Title')} Abstract: {pub.get('abstract', 'No Abstract')}"
+            f"Title: {pub.get('title', 'No Title')} Abstract: {pub.get('abstract', 'No Abstract')}"
             for pub in publications
         ]
         joined_summaries = "\n\n".join(summaries)
@@ -39,5 +42,5 @@ class SummarizeMultiplePublicationsStrategy(PromptStrategy):
                 "Make the summary concise, engaging, and understandable for non-experts. "
                 "Additionally, extract exactly 5 keywords that capture the overarching nature of the publications."
             ),
-            "publications": joined_summaries
+            "publications": joined_summaries,
         }

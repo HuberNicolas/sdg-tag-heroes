@@ -1,20 +1,20 @@
 from datetime import datetime
-from typing import Tuple
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Integer
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import DateTime, Float, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-from enums import SDGType
 from models.base import Base
-from settings.settings import TimeZoneSettings, MariaDBSettings
+from settings.settings import MariaDBSettings, TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 mariadb_settings = MariaDBSettings()
+
 
 class SDGRank(Base):
     """
     Tracks the gamification rank for each SDG goal (1-17) with corresponding XP thresholds.
     """
+
     __tablename__ = "sdg_ranks"
 
     rank_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -38,4 +38,3 @@ class SDGRank(Base):
 
     def __repr__(self):
         return f"<SDGRank(rank_id={self.rank_id}, sdg_goal_id={self.sdg_goal_id}, tier={self.tier}, name={self.name}, xp_required={self.xp_required})>"
-

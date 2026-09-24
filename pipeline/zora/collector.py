@@ -10,31 +10,27 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
+from models import Author, Division, Faculty, Institute, Publication
+
 # ORDER MATTERS!
 from models.base import Base
-from models import Author
-from models import Division
-from models import Faculty
-from models import Institute
 from models.sdg_prediction import SDGPrediction
-from models.sdg_label_history import SDGLabelHistory
-from models.sdg_label_decision import SDGLabelDecision
-from models.sdg_user_label import SDGUserLabel
-from models import DimensionalityReduction
-from models import Publication
-
 from settings.settings import CollectorSettings
+
 collector_settings = CollectorSettings()
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(collector_settings.COLLECTOR_LOG_NAME)
+
 
 def save_resumption_token(token, file_path="resumption_token.txt"):
     """Save the resumption token to a text file."""
     with open(file_path, "w") as f:
         f.write(token)
     logging.info(f"Resumption token saved to {file_path}")
+
 
 def load_resumption_token(file_path="resumption_token.txt"):
     """Load the resumption token from a text file, return None if not found."""
@@ -45,19 +41,19 @@ def load_resumption_token(file_path="resumption_token.txt"):
         return token if token else None
     return None
 
+
 def save_raw_metadata(metadata, identifier, subfolder):
     """Save raw metadata as a JSON file."""
     # Prepare raw metadata and save copy
     raw_metadata = xmltodict.parse(ET.tostring(metadata, encoding="unicode"))
-    raw_file_path = os.path.join(
-        f"{CollectorSettings.JSON_PATH}/{subfolder}", f"{identifier.replace(':', '_')}.json"
-    )
+    raw_file_path = os.path.join(f"{CollectorSettings.JSON_PATH}/{subfolder}", f"{identifier.replace(':', '_')}.json")
 
     # Ensure the directory exists
     os.makedirs(os.path.dirname(raw_file_path), exist_ok=True)
 
     with open(raw_file_path, "w") as f:
         json.dump(raw_metadata, f, indent=4)
+
 
 # Function to configure the database engine
 def setup_database(engine_str):
@@ -67,13 +63,16 @@ def setup_database(engine_str):
     Session = sessionmaker(bind=engine)
     return Session
 
+
 def setup_mariadb_connection():
     from db.mariadb_connector import engine as mariadb_engine
 
     return mariadb_engine
 
+
 def setup_sqlite_connection(db_path="sqlite:///publications.db"):
     return create_engine(db_path)
+
 
 def reset_database(session):
     # Disable foreign key checks
@@ -145,7 +144,6 @@ def extract_organization_info(setSpec, setName):
             institute_setName = " ".join(parts_setName[1:]).strip()
 
         elif len(parts_setSpec) == 3 and len(parts_setName) == 4:
-
             faculty_setSpec = parts_setSpec[0].strip()
             institute_setSpec = parts_setSpec[1].strip()
             division_setSpec = parts_setSpec[2].strip()
@@ -199,13 +197,9 @@ def get_or_create_faculty(faculty_setSpec, faculty_name, session):
 
 def get_or_create_institute(institute_setSpec, institute_name, session):
     """Get or create an institute in the database."""
-    institute = (
-        session.query(Institute).filter_by(institute_setSpec=institute_setSpec).first()
-    )
+    institute = session.query(Institute).filter_by(institute_setSpec=institute_setSpec).first()
     if not institute and institute_setSpec:
-        institute = Institute(
-            institute_setSpec=institute_setSpec, institute_name=institute_name
-        )
+        institute = Institute(institute_setSpec=institute_setSpec, institute_name=institute_name)
         session.add(institute)
         session.flush()  # Ensure institute is persisted
         # logging.info(f"Institute created: {institute.institute_setSpec}")
@@ -215,13 +209,9 @@ def get_or_create_institute(institute_setSpec, institute_name, session):
 
 def get_or_create_division(division_setSpec, division_name, session):
     """Get or create a division in the database."""
-    division = (
-        session.query(Division).filter_by(division_setSpec=division_setSpec).first()
-    )
+    division = session.query(Division).filter_by(division_setSpec=division_setSpec).first()
     if not division and division_setSpec:
-        division = Division(
-            division_setSpec=division_setSpec, division_name=division_name
-        )
+        division = Division(division_setSpec=division_setSpec, division_name=division_name)
         session.add(division)
         session.flush()  # Ensure division is persisted
         # logging.info(f"Division created: {division.division_setSpec}")
@@ -275,6 +265,7 @@ def parse_author(author_str):
     orcid_id = parts[1].strip() if len(parts) > 1 else None
     return name, orcid_id
 
+
 def read_oai_page(source_dir, params):
     """
     Read an OAI-PMH response from a folder instead of the repository (--from-dir), e.g. the output of the
@@ -316,13 +307,9 @@ def fetch_batch(base_url, params, session, source_dir=None):
         identifier = record.find(".//oai:identifier", ns).text
         metadata = record.find(".//oai_dc:dc", ns)
         if metadata is None:
-            logging.info(
-                f"No metadata found for record with ID: {identifier}, skipping."
-            )
+            logging.info(f"No metadata found for record with ID: {identifier}, skipping.")
         elif metadata.findtext(".//dc:description", namespaces=ns, default="") == "":
-            logging.info(
-                f"No abstract found for record with ID: {identifier}, skipping."
-            )
+            logging.info(f"No abstract found for record with ID: {identifier}, skipping.")
             save_raw_metadata(metadata, identifier, collector_settings.NO_ABSTRACT_PUBLICATIONS_FOLDER_PATH)
         else:
             # Check if already in db
@@ -351,23 +338,15 @@ def fetch_batch(base_url, params, session, source_dir=None):
             "oai_identifier": identifier,
             "oai_identifier_num": identifier.split(":")[-1],
             "title": metadata.findtext(".//dc:title", namespaces=ns),
-            "description": metadata.findtext(
-                ".//dc:description", namespaces=ns, default=""
-            ),
-            "publisher": metadata.findtext(
-                ".//dc:publisher", namespaces=ns, default=""
-            ),
+            "description": metadata.findtext(".//dc:description", namespaces=ns, default=""),
+            "publisher": metadata.findtext(".//dc:publisher", namespaces=ns, default=""),
             "date": metadata.findtext(".//dc:date", namespaces=ns, default=""),
             "source": metadata.findtext(".//dc:source", namespaces=ns, default=""),
             "language": metadata.findtext(".//dc:language", namespaces=ns, default=""),
             "format": metadata.findtext(".//dc:format", namespaces=ns, default=""),
-            "authors": [
-                creator.text for creator in metadata.findall(".//dc:creator", ns)
-            ],
+            "authors": [creator.text for creator in metadata.findall(".//dc:creator", ns)],
             "set_spec": (
-                record.find(".//oai:setSpec", ns).text
-                if record.find(".//oai:setSpec", ns) is not None
-                else None
+                record.find(".//oai:setSpec", ns).text if record.find(".//oai:setSpec", ns) is not None else None
             ),
         }
         publications.append(publication)
@@ -375,9 +354,7 @@ def fetch_batch(base_url, params, session, source_dir=None):
     resumption_token = resumption_token.text if resumption_token is not None else None
 
     if resumption_token and not source_dir:
-        logging.info(
-            f"Storing resumption token: {resumption_token}."
-        )
+        logging.info(f"Storing resumption token: {resumption_token}.")
         save_resumption_token(resumption_token)  # Save the token after fetching a batch
 
     logging.info(f"Batch fetching completed, {len(publications)} records fetched.")
@@ -387,51 +364,31 @@ def fetch_batch(base_url, params, session, source_dir=None):
 def insert_publication_with_org(publication_data, session):
     """Insert a publication and its related organization hierarchy."""
     try:
-        if (
-            session.query(Publication)
-            .filter_by(oai_identifier=publication_data["oai_identifier"])
-            .first()
-        ):
-            logging.debug(
-                f"Publication {publication_data['oai_identifier']} already exists. Skipping."
-            )
+        if session.query(Publication).filter_by(oai_identifier=publication_data["oai_identifier"]).first():
+            logging.debug(f"Publication {publication_data['oai_identifier']} already exists. Skipping.")
             return
 
-        logging.debug(
-            f"Extract organization info from setSpec and use it to lookup hierarchy"
-        )
+        logging.debug("Extract organization info from setSpec and use it to lookup hierarchy")
         # Extract organization info from setSpec and use it to lookup hierarchy
         set_spec = publication_data.get("set_spec", "")
 
         logging.debug(f"Query with {set_spec} to insert publication information")
         faculty_setSpec, institute_setSpec, division_setSpec = extract_setSpec(set_spec)
 
-        logging.debug(
-            f"Query with {faculty_setSpec, institute_setSpec, division_setSpec}"
-        )
+        logging.debug(f"Query with {faculty_setSpec, institute_setSpec, division_setSpec}")
 
         # Query the database for the existing organization hierarchy
-        faculty = (
-            session.query(Faculty).filter_by(faculty_setSpec=faculty_setSpec).first()
-            if faculty_setSpec
-            else None
-        )
+        faculty = session.query(Faculty).filter_by(faculty_setSpec=faculty_setSpec).first() if faculty_setSpec else None
         institute = (
-            session.query(Institute)
-            .filter_by(institute_setSpec=institute_setSpec)
-            .first()
+            session.query(Institute).filter_by(institute_setSpec=institute_setSpec).first()
             if institute_setSpec
             else None
         )
         division = (
-            session.query(Division).filter_by(division_setSpec=division_setSpec).first()
-            if division_setSpec
-            else None
+            session.query(Division).filter_by(division_setSpec=division_setSpec).first() if division_setSpec else None
         )
 
-        logging.debug(
-            f"Publication {publication_data['oai_identifier']}: {faculty}, {institute}, {division}"
-        )
+        logging.debug(f"Publication {publication_data['oai_identifier']}: {faculty}, {institute}, {division}")
 
         default_sdg_prediction = SDGPrediction()
 
@@ -468,10 +425,9 @@ def insert_publication_with_org(publication_data, session):
         session.commit()
         logging.info(f"Inserted publication {new_publication.oai_identifier}")
     except IntegrityError:
-        logging.error(
-            f"IntegrityError: Duplicate publication {publication_data['oai_identifier']}"
-        )
+        logging.error(f"IntegrityError: Duplicate publication {publication_data['oai_identifier']}")
         session.rollback()
+
 
 def crawl_publications(session, max_count=collector_settings.PUBLICATION_LIMIT, source_dir=None):
     """Crawl the publications from the OAI-PMH repository (or from files in source_dir)."""
@@ -484,13 +440,9 @@ def crawl_publications(session, max_count=collector_settings.PUBLICATION_LIMIT, 
         params["resumptionToken"] = resumption_token
 
     while total_fetched < max_count:
-        publications, resumption_token = fetch_batch(
-            collector_settings.ZORA_BASE_URL, params, session, source_dir
-        )
+        publications, resumption_token = fetch_batch(collector_settings.ZORA_BASE_URL, params, session, source_dir)
         if not publications:
-            logging.info(
-                "No valid records found in this batch, continuing to next batch."
-            )
+            logging.info("No valid records found in this batch, continuing to next batch.")
             if resumption_token:
                 params["resumptionToken"] = resumption_token
                 continue
@@ -502,9 +454,7 @@ def crawl_publications(session, max_count=collector_settings.PUBLICATION_LIMIT, 
             insert_publication_with_org(publication_data, session)
 
         total_fetched += len(publications)
-        logging.info(
-            f"Processed a batch of {len(publications)} publications. Total processed: {total_fetched}"
-        )
+        logging.info(f"Processed a batch of {len(publications)} publications. Total processed: {total_fetched}")
 
         if not resumption_token:
             logging.info("No more data to fetch or max count reached.")
@@ -524,16 +474,12 @@ def main(db, reset, recreate_organizational_structure, source_dir=None):
 
         session_maker = sessionmaker(bind=mariadb_engine)
         logging.info("Using MariaDB database.")
-        Base.metadata.create_all(
-                mariadb_engine
-            )  # Ensure tables are created if they don't exist
+        Base.metadata.create_all(mariadb_engine)  # Ensure tables are created if they don't exist
         if reset == "true":
             reset_database(session_maker())
             logging.info("Reset MariaDB database.")
         else:
-            Base.metadata.create_all(
-                mariadb_engine
-            )  # Ensure tables are created if they don't exist
+            Base.metadata.create_all(mariadb_engine)  # Ensure tables are created if they don't exist
     else:
         sqlite_engine = setup_sqlite_connection()
         session_maker = sessionmaker(bind=sqlite_engine)
@@ -553,9 +499,7 @@ def main(db, reset, recreate_organizational_structure, source_dir=None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run publication collector with SQLite or MariaDB."
-    )
+    parser = argparse.ArgumentParser(description="Run publication collector with SQLite or MariaDB.")
     parser.add_argument(
         "--db",
         choices=["sqlite", "mariadb"],
@@ -582,6 +526,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.db, args.reset, args.recreate_organizational_structure, args.from_dir)
+
 
 def collector_main(db, reset, recreate_organizational_structure, source_dir=None):
     main(db, reset, recreate_organizational_structure, source_dir)

@@ -15,18 +15,15 @@ class SDGXPBankHistorySchemaBase(BaseModel):
     is_shown: Optional[bool] = False
     timestamp: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class SDGXPBankHistorySchemaFull(SDGXPBankHistorySchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 # Not directly derived from models
 # Todo: Generate TS type

@@ -2,23 +2,23 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
-from sqlalchemy import func
-from sqlalchemy.orm import Session, sessionmaker, joinedload
+from sqlalchemy.orm import Session, joinedload, sessionmaker
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from enums import SDGType
-from models import SDGUserLabel, SDGLabelDecision, sdg_label_decision_user_label_association, Vote, Annotation
+from models import Annotation, SDGLabelDecision, SDGUserLabel, Vote, sdg_label_decision_user_label_association
 from models.publications.publication import Publication
 from models.sdg_label_summary import SDGLabelSummary
-from request_models.annotations_gpt import AnnotationEvaluationRequest
-from request_models.sdg_user_label import UserLabelRequest, UserLabelIdsRequest
-from schemas import SDGUserLabelSchemaFull, SDGUserLabelSchemaBase
-from schemas.gpt_assistant_service import GPTResponseCommentSummarySchema, SDGUserLabelsCommentSummarySchema, \
-    AnnotationEvaluationSchema
+from request_models.sdg_user_label import UserLabelIdsRequest, UserLabelRequest
+from schemas import SDGUserLabelSchemaBase, SDGUserLabelSchemaFull
+from schemas.gpt_assistant_service import (
+    AnnotationEvaluationSchema,
+    SDGUserLabelsCommentSummarySchema,
+)
 from schemas.sdg_label_decision import SDGLabelDecisionSchemaExtended
-from schemas.sdg_user_label import SDGUserLabelStatisticsSchema, SDGLabelDistribution, UserVotingDetails
+from schemas.sdg_user_label import SDGUserLabelStatisticsSchema
 from schemas.vote import VoteSchemaFull
 from services.gpt.gpt_assistant_service import GPTAssistantService
 from services.gpt.user_annotation_evaluator_service import UserAnnotationEvaluatorService
@@ -37,6 +37,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -44,6 +45,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API router
 router = APIRouter(
@@ -59,10 +61,9 @@ router = APIRouter(
 # Use the GPT Assistant service for user-label-centred operations
 assistant = GPTAssistantService()
 
+
 @router.get(
-    "/{label_id}",
-    response_model=SDGUserLabelSchemaFull,
-    description="Retrieve a specific SDG user label by ID"
+    "/{label_id}", response_model=SDGUserLabelSchemaFull, description="Retrieve a specific SDG user label by ID"
 )
 async def get_sdg_user_label(
     label_id: int,
@@ -94,11 +95,8 @@ async def get_sdg_user_label(
             detail="An error occurred while fetching the SDG user label",
         )
 
-@router.get(
-    "/",
-    response_model=List[SDGUserLabelSchemaFull],
-    description="Retrieve all SDG user labels"
-)
+
+@router.get("/", response_model=List[SDGUserLabelSchemaFull], description="Retrieve all SDG user labels")
 async def get_all_sdg_user_labels(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
@@ -121,10 +119,11 @@ async def get_all_sdg_user_labels(
             detail="An error occurred while fetching SDG user labels",
         )
 
+
 @router.post(
     "/{user_label_id}/evaluate",
     response_model=AnnotationEvaluationSchema,
-    description="Evaluate a user label's comment against the abstract selection."
+    description="Evaluate a user label's comment against the abstract selection.",
 )
 async def evaluate_user_label(
     user_label_id: int,
@@ -200,16 +199,13 @@ async def evaluate_user_label(
         )
 
 
-
 @router.post(
-    "/summary", # TODO: Rename into comments/summary
+    "/summary",  # TODO: Rename into comments/summary
     response_model=SDGUserLabelsCommentSummarySchema,
-    description="Summarize a collection of SDG user comments into a cohesive summary."
+    description="Summarize a collection of SDG user comments into a cohesive summary.",
 )
 async def create_comment_summary(
-    request: UserLabelIdsRequest,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    request: UserLabelIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> SDGUserLabelsCommentSummarySchema:
     """
     Given a list of SDG user label IDs, retrieve their comments and generate a summary.
@@ -223,20 +219,17 @@ async def create_comment_summary(
 
         if not user_labels:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No SDG user labels found for the given IDs."
+                status_code=status.HTTP_404_NOT_FOUND, detail="No SDG user labels found for the given IDs."
             )
 
         # Prepare data for summarization (just the comment field)
-        user_labels_data = [
-            {"comment": label.comment or "No comment provided"} for label in user_labels
-        ]
+        user_labels_data = [{"comment": label.comment or "No comment provided"} for label in user_labels]
 
         # Call the assistant to generate the summary and keywords
         summary_response = assistant.summarize_comments(user_labels=user_labels_data)
 
         return SDGUserLabelsCommentSummarySchema(
-            user_labels_ids = user_labels_ids,
+            user_labels_ids=user_labels_ids,
             summary=summary_response.summary,
         )
 
@@ -248,6 +241,7 @@ async def create_comment_summary(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while generating the comment summary.",
         )
+
 
 @router.get(
     "/publications/{publication_id}/",
@@ -265,11 +259,13 @@ async def get_sdg_user_labels_for_publication(
     try:
         verify_token(token, db)  # Ensure user is authenticated
 
-
         # Retrieve the publication with its associated SDGLabelSummary and SDGLabelHistory
-        publication = db.query(Publication).options(
-            joinedload(Publication.sdg_label_summary).joinedload(SDGLabelSummary.history)
-        ).filter(Publication.publication_id == publication_id).first()
+        publication = (
+            db.query(Publication)
+            .options(joinedload(Publication.sdg_label_summary).joinedload(SDGLabelSummary.history))
+            .filter(Publication.publication_id == publication_id)
+            .first()
+        )
 
         if not publication:
             raise HTTPException(
@@ -286,19 +282,24 @@ async def get_sdg_user_labels_for_publication(
         history = publication.sdg_label_summary.history
 
         # Retrieve all SDGUserLabels and their related entities in a single query
-        labels = db.query(SDGUserLabel).options(
-            joinedload(SDGUserLabel.votes),
-            joinedload(SDGUserLabel.annotations),
-            joinedload(SDGUserLabel.label_decisions),
-        ).join(
-            sdg_label_decision_user_label_association,
-            sdg_label_decision_user_label_association.c.user_label_id == SDGUserLabel.label_id
-        ).join(
-            SDGLabelDecision,
-            sdg_label_decision_user_label_association.c.decision_id == SDGLabelDecision.decision_id
-        ).filter(
-            SDGLabelDecision.history_id == history.history_id
-        ).all()
+        labels = (
+            db.query(SDGUserLabel)
+            .options(
+                joinedload(SDGUserLabel.votes),
+                joinedload(SDGUserLabel.annotations),
+                joinedload(SDGUserLabel.label_decisions),
+            )
+            .join(
+                sdg_label_decision_user_label_association,
+                sdg_label_decision_user_label_association.c.user_label_id == SDGUserLabel.label_id,
+            )
+            .join(
+                SDGLabelDecision,
+                sdg_label_decision_user_label_association.c.decision_id == SDGLabelDecision.decision_id,
+            )
+            .filter(SDGLabelDecision.history_id == history.history_id)
+            .all()
+        )
 
         # Convert SQLAlchemy models to Pydantic models
         return [SDGUserLabelSchemaFull.model_validate(label) for label in labels]
@@ -316,7 +317,7 @@ async def get_sdg_user_labels_for_publication(
 @router.get(
     "/{label_id}/votes/{vote_id}",
     response_model=VoteSchemaFull,
-    description="Retrieve a specific vote associated with a specific SDG user label"
+    description="Retrieve a specific vote associated with a specific SDG user label",
 )
 async def get_vote_for_sdg_user_label(
     label_id: int,
@@ -331,10 +332,7 @@ async def get_vote_for_sdg_user_label(
         user = verify_token(token, db)  # Ensure user is authenticated
 
         # Directly query the Vote table with both label_id and vote_id
-        vote = db.query(Vote).filter(
-            Vote.sdg_user_label_id == label_id,
-            Vote.vote_id == vote_id
-        ).first()
+        vote = db.query(Vote).filter(Vote.sdg_user_label_id == label_id, Vote.vote_id == vote_id).first()
 
         if not vote:
             raise HTTPException(
@@ -357,7 +355,7 @@ async def get_vote_for_sdg_user_label(
 @router.get(
     "/{label_id}/votes",
     response_model=List[VoteSchemaFull],
-    description="Retrieve all votes associated with a specific SDG user label"
+    description="Retrieve all votes associated with a specific SDG user label",
 )
 async def get_votes_for_sdg_user_label(
     label_id: int,
@@ -388,10 +386,11 @@ async def get_votes_for_sdg_user_label(
             detail="An error occurred while fetching votes for the SDG user label",
         )
 
+
 @router.get(
     "/label-decisions/{decision_id}/",
     response_model=List[SDGUserLabelSchemaBase],
-    description="Retrieve all SDGUserLabel entries associated with a specific SDGLabelDecision"
+    description="Retrieve all SDGUserLabel entries associated with a specific SDGLabelDecision",
 )
 async def get_sdg_user_labels(
     decision_id: int,
@@ -430,12 +429,13 @@ async def get_sdg_user_labels(
             detail="An error occurred while fetching SDGUserLabels for the decision",
         )
 
+
 @router.get(
     "/label-decisions/{decision_id}/{label_id}",
     response_model=SDGUserLabelSchemaFull,
-    description="Retrieve a specific SDGUserLabel entry associated with a specific SDGLabelDecision"
+    description="Retrieve a specific SDGUserLabel entry associated with a specific SDGLabelDecision",
 )
-async def get_sdg_user_label(
+async def get_sdg_user_label(  # noqa: F811 (another route with the same function name; FastAPI registers both)
     decision_id: int,
     label_id: int,
     db: Session = Depends(get_db),
@@ -462,7 +462,7 @@ async def get_sdg_user_label(
             )
 
         # Check if the SDGUserLabel is associated with the decision
-        label = next((l for l in decision.user_labels if l.label_id == label_id), None)
+        label = next((user_label for user_label in decision.user_labels if user_label.label_id == label_id), None)
 
         if not label:
             raise HTTPException(
@@ -481,11 +481,8 @@ async def get_sdg_user_label(
             detail="An error occurred while fetching the SDGUserLabel for the decision",
         )
 
-@router.post(
-    "/",
-    response_model=SDGUserLabelSchemaFull,
-    description="Create or link an SDG user label"
-)
+
+@router.post("/", response_model=SDGUserLabelSchemaFull, description="Create or link an SDG user label")
 async def create_sdg_user_label(
     request: UserLabelRequest,
     db: Session = Depends(get_db),
@@ -495,7 +492,6 @@ async def create_sdg_user_label(
     Create or link an SDG user label.
     """
     try:
-
         user = verify_token(token, db)  # Ensure user is authenticated
         label_service = LabelService(db)
         print(request)
@@ -511,6 +507,7 @@ async def create_sdg_user_label(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while creating or linking the SDG user label",
         )
+
 
 @router.get(
     "/label-decisions/{decision_id}/statistics/",
@@ -545,10 +542,11 @@ async def get_sdg_user_labels_statistics(
             detail="An error occurred while fetching SDGUserLabel statistics with entities",
         )
 
+
 @router.get(
     "/users/{user_id}",
     response_model=List[SDGLabelDecisionSchemaExtended],
-    description="Retrieve all SDG label decisions a user has interacted with, along with their associated labels and annotations."
+    description="Retrieve all SDG label decisions a user has interacted with, along with their associated labels and annotations.",
 )
 async def get_user_interacted_sdg_label_decisions(
     user_id: int,
@@ -571,7 +569,7 @@ async def get_user_interacted_sdg_label_decisions(
             .filter(SDGUserLabel.user_id == user_id)
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
@@ -583,7 +581,7 @@ async def get_user_interacted_sdg_label_decisions(
             .filter(Annotation.user_id == user_id)
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
@@ -596,7 +594,7 @@ async def get_user_interacted_sdg_label_decisions(
             .filter(Annotation.user_id == user_id)
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
@@ -620,4 +618,3 @@ async def get_user_interacted_sdg_label_decisions(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching SDGLabelDecisions for user {user_id}.",
         )
-

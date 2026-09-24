@@ -14,25 +14,17 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tqdm import tqdm
 from transformers import BertTokenizer, TFBertMainLayer, TFBertModel
 
-from models.base import Base
-from models import Author
-from models import Division
-from models import Faculty
-from models import Institute
-from models.sdg_prediction import SDGPrediction
-from models.sdg_label_history import SDGLabelHistory
-from models.sdg_label_decision import SDGLabelDecision
-from models.sdg_user_label import SDGUserLabel
-from models import DimensionalityReduction
 from models import Publication
-
+from models.sdg_prediction import SDGPrediction
 from settings.settings import PredictionSettings
+
 predictor_settings = PredictionSettings()
 
-#os.environ[PredictionSettings.CUDA_VISIBLE_DEVICES_KEY] = PredictionSettings.CUDA_VISIBLE_DEVICES_VALUE
+# os.environ[PredictionSettings.CUDA_VISIBLE_DEVICES_KEY] = PredictionSettings.CUDA_VISIBLE_DEVICES_VALUE
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(predictor_settings.AURORA_PREDICTOR_LOG_NAME)
 
 # Download nltk tokenizer if not already downloaded
@@ -54,7 +46,7 @@ print(os.listdir(model_dir))
 
 # Tensorflow Verification
 print(tf.__version__)
-print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
 
 
 def sort_model_files(model_files):
@@ -79,9 +71,7 @@ def update_sdg_field(prediction_entry, model_file, prediction, precision=8):
     field_name = f"sdg{sdg_number}"
 
     # Convert TensorFlow EagerTensor to a NumPy value
-    prediction_value = prediction.numpy()[
-        0
-    ]  # Convert TensorFlow tensor to NumPy array and get the first value
+    prediction_value = prediction.numpy()[0]  # Convert TensorFlow tensor to NumPy array and get the first value
 
     # Format the prediction to the specified precision using string formatting
     rounded_prediction = float(f"{prediction_value:.{precision}f}")
@@ -136,9 +126,7 @@ def abstracts_to_ids(abstracts):
 
 def pad_ids(input_ids, max_len):
     """Padds sequences of a given IDs."""
-    p_input_ids = pad_sequences(
-        input_ids, maxlen=max_len, dtype="long", truncating="post", padding="post"
-    )
+    p_input_ids = pad_sequences(input_ids, maxlen=max_len, dtype="long", truncating="post", padding="post")
     return p_input_ids
 
 
@@ -152,6 +140,7 @@ def create_attention_masks(inputs):
         masks.append(sequence_mask)
     return masks
 
+
 def load_model_from_path(model_path):
     """Load model and predict for a batch of publications."""
     logging.info(f"Loading model from {model_path}")
@@ -163,12 +152,13 @@ def load_model_from_path(model_path):
 
     return model
 
+
 def predict(model, publications, batch_size):
 
     predictions = []
 
     for i in range(0, len(publications), batch_size):
-        batch = publications[i: i + batch_size]
+        batch = publications[i : i + batch_size]
 
         # TODO: Add to settings for simpler config
         abstracts = [f"{pub.title}\n{pub.description}" for pub in batch]
@@ -182,9 +172,7 @@ def predict(model, publications, batch_size):
         masks = convert_to_tensor(masks)
 
         # Log tensor shapes before prediction
-        logging.info(
-            f"Batch {i // batch_size + 1}: Input shape: {inputs.shape}, Mask shape: {masks.shape}"
-        )
+        logging.info(f"Batch {i // batch_size + 1}: Input shape: {inputs.shape}, Mask shape: {masks.shape}")
 
         # Predict
         logging.info(
@@ -198,8 +186,8 @@ def predict(model, publications, batch_size):
     del model, abstracts, ids, padded_ids, masks, inputs, batch_predictions
     gc.collect()
 
-
     return predictions
+
 
 def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     """
@@ -211,8 +199,8 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     # Fetch all publications that are not fully predicted
     publications = (
         session.query(Publication)
-        #.join(SDGPrediction)
-        #.filter(~SDGPrediction.prediction_model.in_(["Aurora"]))
+        # .join(SDGPrediction)
+        # .filter(~SDGPrediction.prediction_model.in_(["Aurora"]))
         .all()
     )
 
@@ -234,16 +222,18 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     # For each model, predict across all publications
     for model_idx, model_file in enumerate(model_files, start=1):
         model_path = os.path.join(model_dir, model_file)
-        logging.info(
-            f"Processing model: {model_file} (Model {model_idx} of {len(model_files)})"
-        )
+        logging.info(f"Processing model: {model_file} (Model {model_idx} of {len(model_files)})")
 
         # Flush progress bar
         print()
 
         # Add progress bars for prediction and uploading
-        prediction_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Predicting", unit="pub", position=0)
-        upload_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Uploading", unit="pub", position=1)
+        prediction_pbar = tqdm(
+            total=len(publications), desc=f"Model {model_idx}: {model_file} - Predicting", unit="pub", position=0
+        )
+        upload_pbar = tqdm(
+            total=len(publications), desc=f"Model {model_idx}: {model_file} - Uploading", unit="pub", position=1
+        )
 
         try:
             # Load the model
@@ -255,7 +245,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
         # Generate predictions for all publications
         predictions = []
         for i in range(0, len(publications), batch_size):
-            batch = publications[i: i + batch_size]
+            batch = publications[i : i + batch_size]
             batch_predictions = predict(model, batch, batch_size)
             predictions.extend(batch_predictions)
             prediction_pbar.update(len(batch))  # Update progress bar for prediction
@@ -265,8 +255,8 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
 
         # Process predictions in batches for uploading
         for i in range(0, len(publications), mariadb_batch_size):
-            batch = publications[i: i + mariadb_batch_size]
-            batch_predictions = predictions[i: i + mariadb_batch_size]
+            batch = publications[i : i + mariadb_batch_size]
+            batch_predictions = predictions[i : i + mariadb_batch_size]
 
             logging.info(
                 f"Processing batch {i // mariadb_batch_size + 1} (Publication IDs {batch[0].publication_id} to {batch[-1].publication_id})"
@@ -275,26 +265,24 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
             # Collect all prediction entries to update in a batch
             updated_entries = []
             for pub, prediction in zip(batch, batch_predictions):
-                prediction_entry = (
-                    session.query(SDGPrediction)
-                    .filter_by(publication_id=pub.publication_id)
-                    .first()
-                )
+                prediction_entry = session.query(SDGPrediction).filter_by(publication_id=pub.publication_id).first()
                 print(prediction_entry)
 
                 # Check if the prediction entry exists first before adding
                 if not prediction_entry:
                     logging.info(
-                        f"Prediction entry does not exists for publication {pub.publication_id}. Creating new record.")
+                        f"Prediction entry does not exists for publication {pub.publication_id}. Creating new record."
+                    )
                     # If the entry does not exist, create a new one
                     prediction_entry = SDGPrediction(
                         publication_id=pub.publication_id,
                         prediction_model="Aurora",
                     )
-                    #session.add(prediction_entry) # THIS CAUSES DUPLICAITON
+                    # session.add(prediction_entry) # THIS CAUSES DUPLICAITON
                 else:
                     logging.info(
-                        f"Prediction entry already exists for publication {pub.publication_id}. Updating existing record.")
+                        f"Prediction entry already exists for publication {pub.publication_id}. Updating existing record."
+                    )
 
                 print(prediction_entry)
 
@@ -316,9 +304,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
                 session.bulk_save_objects(updated_entries)
                 try:
                     session.commit()
-                    logging.info(
-                        f"Batch {i // mariadb_batch_size + 1} predictions for model {model_file} saved."
-                    )
+                    logging.info(f"Batch {i // mariadb_batch_size + 1} predictions for model {model_file} saved.")
                 except Exception as e:
                     logging.error(f"Error committing batch {i // mariadb_batch_size + 1}: {e}")
                     session.rollback()  # Rollback on error
@@ -346,8 +332,6 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     logging.info("All predictions complete.")
 
 
-
-
 def setup_sqlite_connection():
     """Setup SQLite database connection."""
     db_url = "sqlite:///publications.db"
@@ -361,11 +345,12 @@ def reset_database(session):
     session.commit()
     logging.info("Database reset complete.")
 
+
 def main(db, batch_size, mariadb_batch_size):
     logging.info("Starting Predictor...")
 
     # Check if GPU is available
-    if tf.config.list_physical_devices('GPU'):
+    if tf.config.list_physical_devices("GPU"):
         print("GPU is available")
     else:
         print("GPU is not available")
@@ -393,10 +378,9 @@ def main(db, batch_size, mariadb_batch_size):
     session.close()
     logging.info("Batch prediction process complete.")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run SDG batch predictor with SQLite or MariaDB."
-    )
+    parser = argparse.ArgumentParser(description="Run SDG batch predictor with SQLite or MariaDB.")
     parser.add_argument(
         "--db",
         choices=["sqlite", "mariadb"],

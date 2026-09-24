@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -7,6 +7,7 @@ class UserLabelRequest(BaseModel):
     """
     Request model for creating or linking an SDGUserLabel.
     """
+
     user_id: int  # The user creating the label
     voted_label: int  # The SDG label voted by the user
     abstract_section: Optional[str] = ""  # Optional abstract section
@@ -17,6 +18,7 @@ class UserLabelRequest(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class UserLabelIdsRequest(BaseModel):
     user_labels_ids: List[int]

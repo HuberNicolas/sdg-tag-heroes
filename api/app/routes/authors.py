@@ -25,6 +25,7 @@ logging = logger(authors_router_settings.AUTHORS_ROUTER_LOG_NAME)
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -32,6 +33,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 router = APIRouter(
     prefix="/authors",
@@ -43,13 +45,9 @@ router = APIRouter(
     },
 )
 
-@router.get(
-    "/", description="Get all authors (minimal or full detail)"
-)
-async def get_authors(
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-) -> Page[AuthorSchemaFull]:
+
+@router.get("/", description="Get all authors (minimal or full detail)")
+async def get_authors(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> Page[AuthorSchemaFull]:
     """
     Retrieve all authors. Responds with a minimal or full response based on the 'minimal' query parameter.
     """
@@ -75,15 +73,9 @@ async def get_authors(
             detail="An error occurred while fetching authors",
         )
 
-@router.get(
-    "/{author_id}",
-    description="Get single author by ID (minimal or full detail)"
-)
-async def get_author(
-    author_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-):
+
+@router.get("/{author_id}", description="Get single author by ID (minimal or full detail)")
+async def get_author(author_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     """
     Retrieve a single author by ID. Responds with minimal or full details based on the 'minimal' query parameter.
     """
@@ -95,9 +87,7 @@ async def get_author(
 
         if not author:
             logging.warning(f"No author found with ID: {author_id}")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Author not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Author not found")
 
         return AuthorSchemaFull.model_validate(author)
 
@@ -110,10 +100,11 @@ async def get_author(
             detail="An error occurred while fetching the author",
         )
 
+
 @router.get(
     "/publications/{publication_id}",
     response_model=List[AuthorSchemaFull],
-    description="Retrieve all authors associated with a specific publication"
+    description="Retrieve all authors associated with a specific publication",
 )
 async def get_publication_authors(
     publication_id: int,

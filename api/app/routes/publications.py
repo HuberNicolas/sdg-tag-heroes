@@ -3,15 +3,15 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
-from sqlalchemy import and_, func
-from sqlalchemy.orm import Session, sessionmaker, aliased
+from sqlalchemy import func
+from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from db.qdrantdb_connector import client as qdrant_client
 from enums.enums import LevelType, ScenarioType
-from models import SDGPrediction, SDGLabelDecision, SDGUserLabel, SDGLabelSummary
+from models import SDGLabelDecision, SDGLabelSummary, SDGPrediction, SDGUserLabel
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
 from request_models.publication import PublicationIdsRequest
@@ -19,11 +19,12 @@ from request_models.publication_similarity_query_service import PublicationSimil
 from schemas import PublicationSchemaBase, PublicationSchemaFull
 from schemas.services.publication_similarity_query_service import PublicationSimilaritySchema
 from services.publication_similarity_query_service import PublicationSimilarityQueryService
-from settings.settings import PublicationsRouterSettings, MariaDBSettings
-from utils.logger import logger
+from settings.settings import MariaDBSettings, PublicationsRouterSettings
 
 # Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
 from settings.settings import MariaDBSettings as _PredictionModelSettings
+from utils.logger import logger
+
 PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
 
 # Setup Logging
@@ -38,6 +39,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -45,6 +47,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API Router
 router = APIRouter(
@@ -57,15 +60,10 @@ router = APIRouter(
     },
 )
 
-@router.post(
-    "/",
-    response_model=List[PublicationSchemaBase],
-    description="Get a list of publications by IDs"
-)
+
+@router.post("/", response_model=List[PublicationSchemaBase], description="Get a list of publications by IDs")
 async def get_publications_by_ids(
-    request: PublicationIdsRequest,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    request: PublicationIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[PublicationSchemaBase]:
     """
     Returns a list of publications by IDs
@@ -74,8 +72,7 @@ async def get_publications_by_ids(
         user = verify_token(token, db)  # Ensure user is authenticated
         publication_ids = request.publication_ids
 
-        publications = (db.query(Publication)
-                        .filter(Publication.publication_id.in_(publication_ids)).all())
+        publications = db.query(Publication).filter(Publication.publication_id.in_(publication_ids)).all()
 
         return [PublicationSchemaBase.model_validate(publication) for publication in publications]
     except HTTPException:
@@ -88,14 +85,9 @@ async def get_publications_by_ids(
         )
 
 
-@router.get(
-    "/",
-    response_model=Page[PublicationSchemaBase],
-    description="Get all publications"
-)
+@router.get("/", response_model=Page[PublicationSchemaBase], description="Get all publications")
 async def get_publications(
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> Page[PublicationSchemaBase]:
     """
     Retrieve all publications with optional minimal or full details based on the 'minimal' query parameter.
@@ -123,15 +115,10 @@ async def get_publications(
             detail=f"An error occurred while fetching publications: {e}",
         )
 
-@router.get(
-    "/{publication_id}",
-    response_model=PublicationSchemaFull,
-    description="Get a single publication by ID"
-)
+
+@router.get("/{publication_id}", response_model=PublicationSchemaFull, description="Get a single publication by ID")
 async def get_publication(
-    publication_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> PublicationSchemaFull:
     """
     Retrieve a single publication by ID.
@@ -140,14 +127,12 @@ async def get_publication(
         user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query to fetch the publication by ID
-        publication = (db.query(Publication)
-                       .filter(Publication.publication_id == publication_id).first())
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
 
         if not publication:
             logging.warning(f"Publication with ID {publication_id} not found")
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Publication with ID {publication_id} not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail=f"Publication with ID {publication_id} not found"
             )
 
         # Validate and return the full schema
@@ -162,16 +147,17 @@ async def get_publication(
             detail=f"An error occurred while fetching the publication with ID {publication_id}: {e}",
         )
 
+
 @router.post(
     "/similar/{top_k}",
     response_model=PublicationSimilaritySchema,
-    description="Retrieve publications similar to the user query along with their similarity scores."
+    description="Retrieve publications similar to the user query along with their similarity scores.",
 )
 async def get_similar_publications(
     top_k: int,
     request: PublicationSimilarityQueryRequest,
     db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    token: str = Depends(oauth2_scheme),
 ) -> PublicationSimilaritySchema:
     """
     Retrieve publications similar to the user query based on vector similarity.
@@ -184,15 +170,14 @@ async def get_similar_publications(
 
     # Call the service to get similar publications
     return similarity_service.get_similar_publications(
-        user_query=request.user_query,
-        top_k=top_k,
-        publication_ids=request.publication_ids
+        user_query=request.user_query, top_k=top_k, publication_ids=request.publication_ids
     )
+
 
 @router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
     response_model=List[PublicationSchemaBase],
-    description="Retrieve the corresponding publications for a given SDG, reduction shorthand, and level."
+    description="Retrieve the corresponding publications for a given SDG, reduction shorthand, and level.",
 )
 async def get_publications_for_dimensionality_reductions(
     sdg: int,
@@ -217,17 +202,21 @@ async def get_publications_for_dimensionality_reductions(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
-                SDGPrediction.prediction_model == PREDICTION_MODEL
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
             )
             .order_by(Publication.publication_id)
-            #.limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE) # THIS DID NO work, much less pubs, idk why
+            # .limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE) # THIS DID NO work, much less pubs, idk why
             .all()
         )
 
-        logging.info(f"Retrieved {len(publications)} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
-        logging.info(f"Returning {len(publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(
+            f"Retrieved {len(publications)} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'."
+        )
+        logging.info(
+            f"Returning {len(publications[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} publications for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'."
+        )
 
-        return publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+        return publications[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
     except HTTPException:
         raise
     except Exception as e:
@@ -238,12 +227,12 @@ async def get_publications_for_dimensionality_reductions(
 @router.get(
     "/global/scenarios/max-entropy/{top_k}",
     response_model=List[PublicationSchemaBase],
-    description="Retrieve Publications for the top-k SDGs with the highest entropy."
+    description="Retrieve Publications for the top-k SDGs with the highest entropy.",
 )
 async def get_top_k_entropy_publications(
-        top_k: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    top_k: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> List[PublicationSchemaBase]:
     try:
         user = verify_token(token, db)
@@ -280,22 +269,19 @@ async def get_top_k_entropy_publications(
 @router.get(
     "/global/scenarios/least-labeled/{top_k}",
     response_model=List[PublicationSchemaBase],
-    description="Retrieve Publications for the top-k publications associated with the least-labeled SDG."
+    description="Retrieve Publications for the top-k publications associated with the least-labeled SDG.",
 )
 async def get_least_labeled_publications(
-        top_k: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    top_k: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> List[PublicationSchemaBase]:
     try:
         user = verify_token(token, db)
 
-        sdg_counts = (
-            db.query(
-                *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
-            )
-            .first()
-        )
+        sdg_counts = db.query(
+            *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
+        ).first()
         least_labeled_sdg = min(
             (i for i in range(1, 18) if getattr(sdg_counts, f"sdg{i}") is not None),
             key=lambda i: getattr(sdg_counts, f"sdg{i}"),
@@ -323,7 +309,7 @@ async def get_least_labeled_publications(
 @router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
     response_model=List[PublicationSchemaBase],
-    description="Retrieve the corresponding publications for a given SDG, reduction shorthand, and scenario type."
+    description="Retrieve the corresponding publications for a given SDG, reduction shorthand, and scenario type.",
 )
 async def get_publications_for_dimensionality_reductions_with_scenario(
     sdg: int,
@@ -344,27 +330,30 @@ async def get_publications_for_dimensionality_reductions_with_scenario(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 DimensionalityReduction.sdg == sdg,
                 SDGPrediction.prediction_model == PREDICTION_MODEL,
-                SDGLabelDecision.scenario_type == scenario_type  # Filtering by scenario_type
+                SDGLabelDecision.scenario_type == scenario_type,  # Filtering by scenario_type
             )
             .order_by(Publication.publication_id)
             # .limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
             .all()
         )
 
-        logging.info(f"Retrieved {len(publications)} publications for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'.")
-        logging.info(f"Returning {len(publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} publications.")
+        logging.info(
+            f"Retrieved {len(publications)} publications for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'."
+        )
+        logging.info(f"Returning {len(publications[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} publications.")
 
-        return publications[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+        return publications[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"Error fetching publications: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching publications: {e}")
 
+
 @router.get(
     "/dimensionality-reductions/{reduction_shorthand}/{part_number}/{total_parts}/",
     response_model=List[PublicationSchemaBase],
-    description="Retrieve the corresponding publications for a specific part of dimensionality reductions."
+    description="Retrieve the corresponding publications for a specific part of dimensionality reductions.",
 )
 async def get_publications_for_dimensionality_reductions_partitioned(
     reduction_shorthand: str,
@@ -389,9 +378,11 @@ async def get_publications_for_dimensionality_reductions_partitioned(
             )
 
         # Query the total number of dimensionality reductions for the given shorthand
-        total_count = db.query(DimensionalityReduction).filter(
-            DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).count()
+        total_count = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand)
+            .count()
+        )
 
         logging.debug(f"P - Total Count (Dimensionality Reductions): {total_count}")
 
@@ -409,16 +400,22 @@ async def get_publications_for_dimensionality_reductions_partitioned(
         end_index = start_index + part_size
 
         logging.debug(
-            f" P - Part Size: {part_size}, Remainder: {remainder}, Start Index: {start_index}, End Index: {end_index}")
+            f" P - Part Size: {part_size}, Remainder: {remainder}, Start Index: {start_index}, End Index: {end_index}"
+        )
 
         # Adjust for the remainder in the last part
         if part_number == total_parts:
             end_index += remainder
 
         # Fetch the specific part of dimensionality reductions
-        dimensionality_reductions = db.query(DimensionalityReduction).filter(
-            DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).order_by(DimensionalityReduction.dim_red_id).offset(start_index).limit(end_index - start_index).all()
+        dimensionality_reductions = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand)
+            .order_by(DimensionalityReduction.dim_red_id)
+            .offset(start_index)
+            .limit(end_index - start_index)
+            .all()
+        )
 
         logging.debug(f"P - Dimensionality Reductions: {len(dimensionality_reductions)}")
 
@@ -430,13 +427,16 @@ async def get_publications_for_dimensionality_reductions_partitioned(
         if not publication_ids:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No publications found for the specified part of dimensionality reductions.",
+                detail="No publications found for the specified part of dimensionality reductions.",
             )
 
         # Fetch the corresponding publications
-        publications = db.query(Publication).filter(
-            Publication.publication_id.in_(publication_ids)
-        ).order_by(Publication.publication_id).all()
+        publications = (
+            db.query(Publication)
+            .filter(Publication.publication_id.in_(publication_ids))
+            .order_by(Publication.publication_id)
+            .all()
+        )
         return publications
         # return [PublicationSchemaFull.model_validate(pub) for pub in publications] # slows it down very hard
 
@@ -452,7 +452,7 @@ async def get_publications_for_dimensionality_reductions_partitioned(
 @router.get(
     "/scenarios/{scenario_type}/{top_k}",
     response_model=List[PublicationSchemaBase],
-    description="Retrieve publications associated with a specific scenario type."
+    description="Retrieve publications associated with a specific scenario type.",
 )
 async def get_publications_by_scenario(
     scenario_type: ScenarioType,
@@ -495,7 +495,7 @@ async def get_publications_by_scenario(
 @router.get(
     "/users/{user_id}/labeled",
     response_model=List[PublicationSchemaBase],
-    description="Get all publications labeled by a specific user"
+    description="Get all publications labeled by a specific user",
 )
 async def get_user_labeled_publications(
     user_id: int,

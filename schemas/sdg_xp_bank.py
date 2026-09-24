@@ -27,15 +27,11 @@ class SDGXPBankSchemaBase(BaseModel):
     sdg17_xp: float
     histories: List[Union["SDGXPBankHistorySchemaBase", "SDGXPBankHistorySchemaFull"]]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class SDGXPBankSchemaFull(SDGXPBankSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

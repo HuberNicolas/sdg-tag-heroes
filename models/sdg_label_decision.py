@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, DateTime, Text, Integer, Enum
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from enums.enums import DecisionType, ScenarioType
@@ -15,22 +15,24 @@ class SDGLabelDecision(Base):
     """
     Represents a decision related to one or more SDGUserLabels.
     """
+
     __tablename__ = "sdg_label_decisions"
 
     decision_id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     suggested_label: Mapped[int] = mapped_column(Integer, nullable=False)
-    decided_label: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # 0 not decided, 18 zero class
-    decision_type: Mapped[DecisionType] = mapped_column(Enum(DecisionType), default=DecisionType.CONSENSUS_MAJORITY, nullable=False)
-    scenario_type: Mapped[ScenarioType] = mapped_column(Enum(ScenarioType), default=ScenarioType.NOT_ENOUGH_VOTES, nullable=False)
+    decided_label: Mapped[int] = mapped_column(Integer, default=0, nullable=False)  # 0 not decided, 18 zero class
+    decision_type: Mapped[DecisionType] = mapped_column(
+        Enum(DecisionType), default=DecisionType.CONSENSUS_MAJORITY, nullable=False
+    )
+    scenario_type: Mapped[ScenarioType] = mapped_column(
+        Enum(ScenarioType), default=ScenarioType.NOT_ENOUGH_VOTES, nullable=False
+    )
 
     # Many-to-Many relationship with SDGUserLabel
     user_labels: Mapped[list["SDGUserLabel"]] = relationship(
-        "SDGUserLabel",
-        secondary=sdg_label_decision_user_label_association,
-        back_populates="label_decisions"
+        "SDGUserLabel", secondary=sdg_label_decision_user_label_association, back_populates="label_decisions"
     )
-
 
     # Optional One-to-Many relationship with Expert
     expert_id: Mapped[int | None] = mapped_column(ForeignKey("users.user_id"), nullable=True)
@@ -47,7 +49,6 @@ class SDGLabelDecision(Base):
         back_populates="decision",
         cascade="all, delete-orphan",
     )
-
 
     comment: Mapped[str] = mapped_column(Text(), nullable=True)
 

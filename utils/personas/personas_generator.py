@@ -1,10 +1,10 @@
-import numpy as np
-from collections import Counter
-from typing import List, Tuple
-from faker import Faker
 from random import choices
+from typing import List, Tuple
 
-from enums.enums import BartlePersonaType, BartlePersonaDistributionType
+import numpy as np
+from faker import Faker
+
+from enums.enums import BartlePersonaDistributionType, BartlePersonaType
 from models.users.user import User
 
 faker = Faker()
@@ -37,11 +37,7 @@ def assign_personas(users: List[User]) -> dict:
         return {}
 
     dist = generate_realistic_distribution()
-    personas = choices(
-        population=list(dist.keys()),
-        weights=list(dist.values()),
-        k=len(users)
-    )
+    personas = choices(population=list(dist.keys()), weights=list(dist.values()), k=len(users))
 
     user_persona_map = {}  # Temporary mapping of users to personas
 
@@ -67,7 +63,7 @@ def generate_interest_and_skill(persona: BartlePersonaType) -> Tuple[str, str]:
         BartlePersonaType.ACHIEVER: "SDG",
         BartlePersonaType.EXPLORER: "General",
         BartlePersonaType.SOCIALIZER: "Hobby",
-        BartlePersonaType.KILLER: "Mixed"
+        BartlePersonaType.KILLER: "Mixed",
     }
 
     # SDG-Related Fields (Higher education and specialized skills)
@@ -76,7 +72,7 @@ def generate_interest_and_skill(persona: BartlePersonaType) -> Tuple[str, str]:
         "AI Ethics": ["Data Scientist", "Ethics Researcher", "AI Policy Analyst"],
         "Healthcare Innovation": ["Biomedical Engineer", "Public Health Expert", "Medical Researcher"],
         "Social Justice": ["Human Rights Activist", "Community Organizer", "Legal Advocate"],
-        "Economics & Development": ["Economist", "Urban Planner", "Policy Analyst"]
+        "Economics & Development": ["Economist", "Urban Planner", "Policy Analyst"],
     }
 
     # Non-SDG High-Skill Fields
@@ -86,7 +82,7 @@ def generate_interest_and_skill(persona: BartlePersonaType) -> Tuple[str, str]:
         "Arts & Entertainment": ["Graphic Designer", "Filmmaker", "Music Producer"],
         "Gaming & Esports": ["Professional Gamer", "Game Streamer", "Level Designer"],
         "Sports & Fitness": ["Athlete", "Personal Trainer", "Sports Journalist"],
-        "Education": ["Teacher", "Professor", "Education Consultant"]
+        "Education": ["Teacher", "Professor", "Education Consultant"],
     }
 
     # Everyday Professions (Low-Skill or General Public Jobs)
@@ -95,7 +91,7 @@ def generate_interest_and_skill(persona: BartlePersonaType) -> Tuple[str, str]:
         "Transportation": ["Bus Driver", "Taxi Driver", "Delivery Worker"],
         "Trades & Labor": ["Electrician", "Factory Worker", "Construction Worker"],
         "Food Industry": ["Chef", "Baker", "Bartender"],
-        "Manual & Maintenance": ["Janitor", "Security Guard", "Mechanic"]
+        "Manual & Maintenance": ["Janitor", "Security Guard", "Mechanic"],
     }
 
     # Casual and Hobby Interests
@@ -103,14 +99,14 @@ def generate_interest_and_skill(persona: BartlePersonaType) -> Tuple[str, str]:
         "Music": ["Musician", "DJ", "Music Teacher"],
         "Art": ["Painter", "Illustrator", "Sculptor"],
         "Shopping": ["Retail Worker", "Fashion Consultant", "Salesperson"],
-        "Hiking": ["Tour Guide", "Outdoor Enthusiast", "Park Ranger"]
+        "Hiking": ["Tour Guide", "Outdoor Enthusiast", "Park Ranger"],
     }
 
     # Mixed Interests
     mixed_fields = {
         "Psychology & Human Behavior": ["Psychologist", "Behavioral Researcher", "Mental Health Advocate"],
         "Media & Communication": ["Journalist", "Content Creator", "Public Relations Manager"],
-        "History & Society": ["Historian", "Anthropologist", "Museum Curator"]
+        "History & Society": ["Historian", "Anthropologist", "Museum Curator"],
     }
 
     interest_category = persona_interest_map.get(persona, "General")

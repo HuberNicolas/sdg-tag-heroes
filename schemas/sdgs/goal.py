@@ -13,7 +13,9 @@ class SDGGoalSchemaBase(BaseModel):
     keywords: str
     explanation: str
     icon: Optional[str] = None  # Default to None if missing
-    sdg_targets: Optional[List[Union["SDGTargetSchemaBase", "SDGTargetSchemaFull"]]] = Field(list) # Todo: Double check if Field(list) is fine
+    sdg_targets: Optional[List[Union["SDGTargetSchemaBase", "SDGTargetSchemaFull"]]] = Field(
+        list
+    )  # Todo: Double check if Field(list) is fine
 
     model_config = {
         "from_attributes": True  # Enables ORM-style model validation

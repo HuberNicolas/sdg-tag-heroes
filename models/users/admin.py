@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, DateTime
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models import Base
@@ -14,6 +14,7 @@ class Admin(Base):
     Admin role, extending the User.
     Represents a one-to-one relationship where an Admin is always linked to exactly one User.
     """
+
     __tablename__ = "admins"
 
     admin_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), primary_key=True)

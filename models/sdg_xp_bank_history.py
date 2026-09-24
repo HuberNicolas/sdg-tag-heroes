@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Enum
-from sqlalchemy import ForeignKey, Float, DateTime, Boolean, Text
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from enums.enums import SDGType
@@ -15,6 +14,7 @@ class SDGXPBankHistory(Base):
     """
     Tracks incremental changes in the SDGXPBank over time.
     """
+
     __tablename__ = "sdg_xp_bank_histories"
 
     history_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -23,7 +23,9 @@ class SDGXPBankHistory(Base):
     increment: Mapped[float] = mapped_column(Float, nullable=False)  # Incremental change in XP (+/-)
     reason: Mapped[str] = mapped_column(Text(), nullable=True)  # Optional reason for the change
     is_shown: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
-    timestamp: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(time_zone_settings.ZURICH_TZ), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(time_zone_settings.ZURICH_TZ), nullable=False
+    )
 
     # Relationship with SDGXPBank
     xp_bank: Mapped["SDGXPBank"] = relationship("SDGXPBank", back_populates="histories")

@@ -1,24 +1,26 @@
 from pymongo import MongoClient
-from utils.env_loader import load_env, get_env_variable, is_running_in_docker
 
 from settings.settings import MongoDBSDGSettings
+from utils.env_loader import get_env_variable, is_running_in_docker, load_env
+
 mongodb_settings = MongoDBSDGSettings()
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(mongodb_settings.MONGODB_LOG_NAME)
 
 # Load the MongoDB environment variables
-load_env('mongodb.env')
+load_env("mongodb.env")
 
 # Determine if the script is running inside a Docker container
 running_in_docker = is_running_in_docker()
 
 # Fetch MongoDB connection details from environment variables
-user = get_env_variable('MONGO_INITDB_ROOT_USERNAME')
-password = get_env_variable('MONGO_INITDB_ROOT_PASSWORD')
-host = get_env_variable('MONGODB_HOST') if running_in_docker else get_env_variable('MONGODB_HOST_LOCAL_IP')
-port = get_env_variable('MONGODB_PORT') if running_in_docker else get_env_variable('MONGODB_PORT_LOCAL')
+user = get_env_variable("MONGO_INITDB_ROOT_USERNAME")
+password = get_env_variable("MONGO_INITDB_ROOT_PASSWORD")
+host = get_env_variable("MONGODB_HOST") if running_in_docker else get_env_variable("MONGODB_HOST_LOCAL_IP")
+port = get_env_variable("MONGODB_PORT") if running_in_docker else get_env_variable("MONGODB_PORT_LOCAL")
 mongo_url = f"mongodb://{user}:{password}@{host}:{port}/"
 
 # Log the connection details
@@ -33,11 +35,13 @@ try:
 except Exception as e:
     logging.error(f"Failed to connect to MongoDB: {e}")
 
+
 def get_explanations_db():
     """
     Provides a connection to the sdg_explanations database.
     """
-    return client['sdg_explanations']
+    return client["sdg_explanations"]
+
 
 def test_mongodb_connection():
     """

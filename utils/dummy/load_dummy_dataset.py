@@ -14,6 +14,7 @@ Poetry environment of pipeline/pyproject.toml:
 Several scripts drop or truncate what they fill. The run therefore only starts on empty databases, and a resumed run
 (--from-step) only when every publication in MariaDB is a dummy publication.
 """
+
 import argparse
 import os
 import subprocess
@@ -29,8 +30,11 @@ PREDICTION_MODEL = "Dvdblk"
 # (name, script, arguments), in order
 STEPS = [
     ("schema", "db/scripts/init_mariadb.py", []),
-    ("collector", "pipeline/zora/collector.py",
-     ["--db", "mariadb", "--recreate_organizational_structure", "true", "--from-dir", OAI_DIR]),
+    (
+        "collector",
+        "pipeline/zora/collector.py",
+        ["--db", "mariadb", "--recreate_organizational_structure", "true", "--from-dir", OAI_DIR],
+    ),
     ("predictions", "pipeline/zora/predictor_dvdblk.py", ["--db", "mariadb"]),
     ("entropy", "utils/mariadb/load_mariadb_sdg_predictions_entropy.py", []),
     ("embeddings", "pipeline/zora/loader.py", ["--db", "mariadb"]),
@@ -97,7 +101,7 @@ def main() -> None:
     if args.from_step:
         if args.from_step not in names:
             raise SystemExit(f"Unknown step: {args.from_step} (steps: {', '.join(names)})")
-        steps = steps[names.index(args.from_step):]
+        steps = steps[names.index(args.from_step) :]
     if problems := database_problems(resume=bool(args.from_step)):
         raise SystemExit("Refusing to load the dummy dataset:\n  - " + "\n  - ".join(problems))
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, DateTime, Text
+from sqlalchemy import DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -13,6 +13,7 @@ class Fact(Base):
     """
     Represents an interesting fact based on the content (abstract) and title from a publication.
     """
+
     __tablename__ = "facts"
 
     fact_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -22,11 +23,9 @@ class Fact(Base):
     publication_id: Mapped[int] = mapped_column(
         ForeignKey("publications.publication_id", ondelete="cascade"),
         unique=True,  # Ensures one-to-one mapping
-        nullable=False
+        nullable=False,
     )
-    publication: Mapped["Publication"] = relationship(
-        "Publication", back_populates="fact"
-    )
+    publication: Mapped["Publication"] = relationship("Publication", back_populates="fact")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

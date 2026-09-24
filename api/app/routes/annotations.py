@@ -8,7 +8,7 @@ from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models import Annotation
-from request_models.annotations_gpt import AnnotationEvaluationRequest, AnnotationCreateRequest
+from request_models.annotations_gpt import AnnotationCreateRequest, AnnotationEvaluationRequest
 from schemas import VoteSchemaFull
 from schemas.annotation import AnnotationSchemaFull
 from schemas.gpt_assistant_service import AnnotationEvaluationSchema
@@ -27,6 +27,7 @@ oauth2_scheme = security.oauth2_scheme
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
+
 
 # Dependency for getting DB session
 def get_db():
@@ -47,15 +48,12 @@ router = APIRouter(
     },
 )
 
-@router.post(
-    "/",
-    response_model=AnnotationSchemaFull,
-    description="Create a new annotation."
-)
+
+@router.post("/", response_model=AnnotationSchemaFull, description="Create a new annotation.")
 async def create_annotation(
-        request: AnnotationCreateRequest,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    request: AnnotationCreateRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> AnnotationSchemaFull:
     """
     Create a new annotation.
@@ -103,14 +101,12 @@ async def create_annotation(
 
 
 @router.post(
-    "/score",
-    response_model=AnnotationEvaluationSchema,
-    description="Evaluate an annotation against an SDG label."
+    "/score", response_model=AnnotationEvaluationSchema, description="Evaluate an annotation against an SDG label."
 )
 async def evaluate_annotation_score(
-        request: AnnotationEvaluationRequest,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    request: AnnotationEvaluationRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> AnnotationEvaluationSchema:
     """
     Evaluate an annotation's scores for relevance, depth, correctness, and creativity.
@@ -159,12 +155,12 @@ async def evaluate_annotation_score(
 @router.get(
     "/label-decisions/{label_decision_id}",
     response_model=List[AnnotationSchemaFull],
-    description="Retrieve all annotations for a specific label decision."
+    description="Retrieve all annotations for a specific label decision.",
 )
 async def get_annotations_by_label_decision(
-        label_decision_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    label_decision_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> List[AnnotationSchemaFull]:
     """
     Retrieve all annotations associated with a specific SDG label decision.
@@ -192,16 +188,11 @@ async def get_annotations_by_label_decision(
         )
 
 
-
-@router.get(
-    "/{annotation_id}",
-    response_model=AnnotationSchemaFull,
-    description="Retrieve a specific annotation by ID"
-)
+@router.get("/{annotation_id}", response_model=AnnotationSchemaFull, description="Retrieve a specific annotation by ID")
 async def get_annotation(
-        annotation_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    annotation_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> AnnotationSchemaFull:
     """
     Retrieve a specific annotation by its ID.
@@ -229,14 +220,10 @@ async def get_annotation(
         )
 
 
-@router.get(
-    "/",
-    response_model=List[AnnotationSchemaFull],
-    description="Retrieve all annotations"
-)
+@router.get("/", response_model=List[AnnotationSchemaFull], description="Retrieve all annotations")
 async def get_all_annotations(
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> List[AnnotationSchemaFull]:
     """
     Retrieve all annotations in the system.
@@ -260,13 +247,13 @@ async def get_all_annotations(
 @router.get(
     "/{annotation_id}/votes/{vote_id}",
     response_model=VoteSchemaFull,
-    description="Retrieve a specific vote associated with a specific annotation"
+    description="Retrieve a specific vote associated with a specific annotation",
 )
 async def get_vote_for_annotation(
-        annotation_id: int,
-        vote_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    annotation_id: int,
+    vote_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> VoteSchemaFull:
     """
     Retrieve a specific vote associated with a specific annotation.
@@ -303,12 +290,12 @@ async def get_vote_for_annotation(
 @router.get(
     "/{annotation_id}/votes",
     response_model=List[VoteSchemaFull],
-    description="Retrieve all votes associated with a specific annotation"
+    description="Retrieve all votes associated with a specific annotation",
 )
 async def get_votes_for_annotation(
-        annotation_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    annotation_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> List[VoteSchemaFull]:
     """
     Retrieve all votes associated with a specific annotation.

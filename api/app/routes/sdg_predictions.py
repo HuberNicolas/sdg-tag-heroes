@@ -1,25 +1,26 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_, func
-from sqlalchemy.orm import Session, sessionmaker, aliased
+from sqlalchemy import func
+from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from enums.enums import LevelType, ScenarioType
-from models import SDGPrediction, SDGLabelDecision, SDGLabelSummary
+from models import SDGLabelDecision, SDGLabelSummary, SDGPrediction
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
-from request_models.sdg_prediction import SDGPredictionsPublicationsIdsRequest, SDGPredictionsIdsRequest
+from request_models.sdg_prediction import SDGPredictionsIdsRequest, SDGPredictionsPublicationsIdsRequest
 from schemas import SDGPredictionSchemaFull
 from services.math_service import MathService
 from services.metrics_service import MetricsService
-from settings.settings import SDGPredictionsRouterSettings, MariaDBSettings
-from utils.logger import logger
+from settings.settings import MariaDBSettings, SDGPredictionsRouterSettings
 
 # Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
 from settings.settings import MariaDBSettings as _PredictionModelSettings
+from utils.logger import logger
+
 PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
 
 # Setup Logging
@@ -60,15 +61,9 @@ math_service = MathService()
 metrics_service = MetricsService(math_service=math_service)
 
 
-@router.post(
-    "/",
-    response_model=List[SDGPredictionSchemaFull],
-    description="Get a list of predictions by IDs"
-)
+@router.post("/", response_model=List[SDGPredictionSchemaFull], description="Get a list of predictions by IDs")
 async def get_sdg_predictions_by_ids(
-        request: SDGPredictionsIdsRequest,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    request: SDGPredictionsIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
@@ -95,12 +90,10 @@ async def get_sdg_predictions_by_ids(
 @router.post(
     "/publications",
     response_model=List[SDGPredictionSchemaFull],
-    description="Get SDG predictions for a list of publication IDs"
+    description="Get SDG predictions for a list of publication IDs",
 )
 async def get_sdg_predictions_by_publication_ids(
-        request: SDGPredictionsPublicationsIdsRequest,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    request: SDGPredictionsPublicationsIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
@@ -134,27 +127,28 @@ async def get_sdg_predictions_by_publication_ids(
 @router.get(
     "/publications/{publication_id}",
     response_model=List[SDGPredictionSchemaFull],
-    description="Get all SDG predictions for a single publication ID"
+    description="Get all SDG predictions for a single publication ID",
 )
 async def get_sdg_predictions_by_publication_id(
-        publication_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
 
         # Fetch the publication and its SDG predictions filtered by prediction_model
-        publication = db.query(Publication).join(
-            SDGPrediction, SDGPrediction.publication_id == Publication.publication_id
-        ).filter(
-            Publication.publication_id == publication_id,
-        ).first()
+        publication = (
+            db.query(Publication)
+            .join(SDGPrediction, SDGPrediction.publication_id == Publication.publication_id)
+            .filter(
+                Publication.publication_id == publication_id,
+            )
+            .first()
+        )
 
         if publication is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Publication with ID {publication_id} not found or no model predictions available."
+                detail=f"Publication with ID {publication_id} not found or no model predictions available.",
             )
 
         # Return the SDG predictions for the matched publication
@@ -175,37 +169,31 @@ async def get_sdg_predictions_by_publication_id(
 @router.get(
     "/publications/{publication_id}/default-model",
     response_model=List[SDGPredictionSchemaFull],
-    description="Get all default model SDG predictions for a single publication ID"
+    description="Get all default model SDG predictions for a single publication ID",
 )
 async def get_default_model_sdg_predictions_by_publication_id(
-        publication_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
         user = verify_token(token, db)  # Ensure user is authenticated
 
         # Fetch the publication
-        publication = db.query(Publication).filter(
-            Publication.publication_id == publication_id
-        ).first()
+        publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
 
         if publication is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Publication with ID {publication_id} not found."
-            )
+            raise HTTPException(status_code=404, detail=f"Publication with ID {publication_id} not found.")
 
         # Filter the SDG predictions by prediction_model
         default_model_predictions = [
-            prediction for prediction in publication.sdg_predictions
+            prediction
+            for prediction in publication.sdg_predictions
             if prediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL
         ]
 
         if not default_model_predictions:
             raise HTTPException(
                 status_code=404,
-                detail=f"No {sdg_predictions_router_settings.DEFAULT_MODEL} model predictions available for publication ID {publication_id}."
+                detail=f"No {sdg_predictions_router_settings.DEFAULT_MODEL} model predictions available for publication ID {publication_id}.",
             )
 
         # Return the filtered SDG predictions
@@ -225,7 +213,7 @@ async def get_default_model_sdg_predictions_by_publication_id(
 @router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
     response_model=List[SDGPredictionSchemaFull],
-    description="Retrieve SDG predictions for a given SDG, reduction shorthand, and level."
+    description="Retrieve SDG predictions for a given SDG, reduction shorthand, and level.",
 )
 async def get_sdg_predictions_for_dimensionality_reductions(
     sdg: int,
@@ -249,27 +237,32 @@ async def get_sdg_predictions_for_dimensionality_reductions(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
-                SDGPrediction.prediction_model == PREDICTION_MODEL
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
             )
             .order_by(SDGPrediction.publication_id)
-            #.limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
+            # .limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
             .all()
         )
 
-        logging.info(f"Retrieved {len(sdg_predictions)} SDG predictions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
-        logging.info(f"Returning {len(sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} SDG predictions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(
+            f"Retrieved {len(sdg_predictions)} SDG predictions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'."
+        )
+        logging.info(
+            f"Returning {len(sdg_predictions[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} SDG predictions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'."
+        )
 
-        return sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+        return sdg_predictions[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"Error fetching SDG predictions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching SDG predictions: {e}")
 
+
 @router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
     response_model=List[SDGPredictionSchemaFull],
-    description="Retrieve SDG predictions for a given SDG, reduction shorthand, and scenario type."
+    description="Retrieve SDG predictions for a given SDG, reduction shorthand, and scenario type.",
 )
 async def get_sdg_predictions_for_dimensionality_reductions_with_scenario(
     sdg: int,
@@ -289,27 +282,32 @@ async def get_sdg_predictions_for_dimensionality_reductions_with_scenario(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 DimensionalityReduction.sdg == sdg,
                 SDGPrediction.prediction_model == PREDICTION_MODEL,
-                SDGLabelDecision.scenario_type == scenario_type  # Filtering by scenario_type
+                SDGLabelDecision.scenario_type == scenario_type,  # Filtering by scenario_type
             )
             .order_by(SDGPrediction.prediction_id)
             # .limit(mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE)
             .all()
         )
 
-        logging.info(f"Retrieved {len(sdg_predictions)} SDG predictions for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'.")
-        logging.info(f"Returning {len(sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} SDG predictions.")
+        logging.info(
+            f"Retrieved {len(sdg_predictions)} SDG predictions for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'."
+        )
+        logging.info(
+            f"Returning {len(sdg_predictions[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE])} SDG predictions."
+        )
 
-        return sdg_predictions[0:mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
+        return sdg_predictions[0 : mariadb_settings.DEFAULT_SDG_EXPLORATION_SIZE]
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"Error fetching SDG predictions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching SDG predictions: {e}")
 
+
 @router.get(
     "/global/scenarios/max-entropy/{top_k}",
     response_model=List[SDGPredictionSchemaFull],
-    description="Retrieve SDG Predictions for the top-k SDGs with the highest entropy."
+    description="Retrieve SDG Predictions for the top-k SDGs with the highest entropy.",
 )
 async def get_top_k_entropy_sdg_predictions(
     top_k: int,
@@ -344,22 +342,19 @@ async def get_top_k_entropy_sdg_predictions(
 @router.get(
     "/global/scenarios/least-labeled/{top_k}",
     response_model=List[SDGPredictionSchemaFull],
-    description="Retrieve SDG Predictions for the top-k publications associated with the least-labeled SDG."
+    description="Retrieve SDG Predictions for the top-k publications associated with the least-labeled SDG.",
 )
 async def get_least_labeled_sdg_predictions(
-        top_k: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    top_k: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ) -> List[SDGPredictionSchemaFull]:
     try:
         user = verify_token(token, db)
 
-        sdg_counts = (
-            db.query(
-                *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
-            )
-            .first()
-        )
+        sdg_counts = db.query(
+            *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
+        ).first()
         least_labeled_sdg = min(
             (i for i in range(1, 18) if getattr(sdg_counts, f"sdg{i}") is not None),
             key=lambda i: getattr(sdg_counts, f"sdg{i}"),
@@ -370,7 +365,10 @@ async def get_least_labeled_sdg_predictions(
             db.query(SDGPrediction)
             .join(Publication, SDGPrediction.publication_id == Publication.publication_id)
             .join(SDGLabelSummary, Publication.publication_id == SDGLabelSummary.publication_id)
-            .filter(getattr(SDGLabelSummary, f"sdg{least_labeled_sdg}") == 1, SDGPrediction.prediction_model == PREDICTION_MODEL,)
+            .filter(
+                getattr(SDGLabelSummary, f"sdg{least_labeled_sdg}") == 1,
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
+            )
             .order_by(SDGPrediction.publication_id)
             .limit(top_k)
             .all()
@@ -388,7 +386,7 @@ async def get_least_labeled_sdg_predictions(
 @router.get(
     "/dimensionality-reductions/{reduction_shorthand}/{part_number}/{total_parts}/",
     response_model=List[SDGPredictionSchemaFull],
-    description="Retrieve the corresponding SDG predictions for a specific part of dimensionality reductions."
+    description="Retrieve the corresponding SDG predictions for a specific part of dimensionality reductions.",
 )
 async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
     reduction_shorthand: str,
@@ -413,9 +411,11 @@ async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
             )
 
         # Query the total number of dimensionality reductions for the given shorthand
-        total_count = db.query(DimensionalityReduction).filter(
-            DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).count()
+        total_count = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand)
+            .count()
+        )
 
         logging.debug(f"SDG - Total Count (Dimensionality Reductions): {total_count}")
 
@@ -441,9 +441,14 @@ async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
             end_index += remainder
 
         # Fetch the specific part of dimensionality reductions
-        dimensionality_reductions = db.query(DimensionalityReduction).filter(
-            DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).order_by(DimensionalityReduction.publication_id).offset(start_index).limit(end_index - start_index).all()
+        dimensionality_reductions = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand)
+            .order_by(DimensionalityReduction.publication_id)
+            .offset(start_index)
+            .limit(end_index - start_index)
+            .all()
+        )
 
         logging.debug(f"SDG - Dimensionality Reductions: {len(dimensionality_reductions)}")
 
@@ -455,13 +460,16 @@ async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
         if not publication_ids:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No publications found for the specified part of dimensionality reductions.",
+                detail="No publications found for the specified part of dimensionality reductions.",
             )
 
         # Fetch the corresponding SDG predictions
-        sdg_predictions = db.query(SDGPrediction).filter(
-            SDGPrediction.publication_id.in_(publication_ids)
-        ).filter(SDGPrediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL).all()
+        sdg_predictions = (
+            db.query(SDGPrediction)
+            .filter(SDGPrediction.publication_id.in_(publication_ids))
+            .filter(SDGPrediction.prediction_model == sdg_predictions_router_settings.DEFAULT_MODEL)
+            .all()
+        )
 
         logging.debug(f"SDG - SDG Predictions: {len(sdg_predictions)}")
         return sdg_predictions
@@ -475,15 +483,14 @@ async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
             detail=f"An error occurred while fetching SDG predictions: {e}",
         )
 
+
 @router.post(
     "/publications/metrics",
     response_model=List[Dict[str, Any]],
-    description="Get distribution metrics (entropy and standard deviation) for a list of publication IDs"
+    description="Get distribution metrics (entropy and standard deviation) for a list of publication IDs",
 )
 async def get_distribution_metrics_by_publication_ids(
-        request: SDGPredictionsPublicationsIdsRequest,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    request: SDGPredictionsPublicationsIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[Dict[str, Any]]:
     """
     Calculate distribution metrics (entropy and standard deviation) for a list of publication IDs.
@@ -497,15 +504,14 @@ async def get_distribution_metrics_by_publication_ids(
     # Use MetricsService to calculate metrics
     return metrics_service.get_distribution_metrics_by_publication_ids(publication_ids, db)
 
+
 @router.get(
     "/publications/{publication_id}/metrics",
     response_model=Dict[str, Any],
-    description="Get entropy and standard deviation for the predictions of a single publication ID"
+    description="Get entropy and standard deviation for the predictions of a single publication ID",
 )
 async def get_publication_metrics_by_id(
-        publication_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> Dict[str, Any]:
     """
     Fetch the entropy and standard deviation for the SDG prediction values of a specific publication.
@@ -516,17 +522,14 @@ async def get_publication_metrics_by_id(
     # Use MetricsService to calculate metrics
     return metrics_service.get_publication_metrics_by_id(publication_id, db)
 
+
 @router.get(
     "/publications/metrics/{metric_type}/{order}/{top_n}",
     response_model=List[Dict[str, Any]],
-    description="Get top or bottom N publications based on entropy or standard deviation"
+    description="Get top or bottom N publications based on entropy or standard deviation",
 )
 async def get_publications_by_metric(
-        metric_type: str,
-        order: str,
-        top_n: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    metric_type: str, order: str, top_n: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[Dict[str, Any]]:
     """
     Fetch the top or bottom N publications based on entropy or standard deviation.

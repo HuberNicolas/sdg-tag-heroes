@@ -1,50 +1,34 @@
 import argparse
-import gc
-import os
+
 import umap
-from qdrant_client import QdrantClient
-from db.qdrantdb_connector import client as qdrantdb_client
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from tqdm import tqdm
 
+from models import (
+    DimensionalityReduction,
+    Publication,
+)
 from models.base import Base
-from models import Author
-from models import Division
-from models import Faculty
-from models import Institute
-from models.sdg_prediction import SDGPrediction
-from models.sdg_label_history import SDGLabelHistory
-from models.sdg_label_decision import SDGLabelDecision
-from models.sdg_user_label import SDGUserLabel
-from models import DimensionalityReduction
-from models import Publication
-from models import User
-from models import Admin
-from models import Expert
-from models import Labeler
+from settings.settings import EmbeddingsSettings, LoaderSettings, ReducerSettings
 
-
-from settings.settings import ReducerSettings, LoaderSettings, EmbeddingsSettings
 reducer_settings = ReducerSettings()
 loader_settings = LoaderSettings()
 embeddings_settings = EmbeddingsSettings()
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(reducer_settings.REDUCER_LOG_NAME)
+
 
 class UmapProcessor:
     def __init__(self, qdrantdb_client, mariadb_batch_size=100):
         self.qclient = qdrantdb_client
         self.mariadb_batch_size = mariadb_batch_size
 
-
     def fetch_embeddings_from_qdrant(self, publications):
         """Fetch embeddings from Qdrant."""
-        logging.info(
-            f"Fetching embeddings from Qdrant for {len(publications)} publications..."
-        )
+        logging.info(f"Fetching embeddings from Qdrant for {len(publications)} publications...")
 
         # Extract publication IDs (oai_identifier_num) from the publications
         publication_ids = [int(pub.oai_identifier_num) for pub in publications]
@@ -68,16 +52,19 @@ class UmapProcessor:
                 publications
             )  # Return default zero embeddings in case of failure
 
-    def perform_umap(self, embeddings, n_neighbors=ReducerSettings.UMAP_N_NEIGHBORS, min_dist=ReducerSettings.UMAP_MIN_DIST, n_components=ReducerSettings.UMAP_N_COMPONENTS):
+    def perform_umap(
+        self,
+        embeddings,
+        n_neighbors=ReducerSettings.UMAP_N_NEIGHBORS,
+        min_dist=ReducerSettings.UMAP_MIN_DIST,
+        n_components=ReducerSettings.UMAP_N_COMPONENTS,
+    ):
         """Perform UMAP dimensionality reduction on the provided embeddings."""
         logging.info("Starting UMAP dimensionality reduction...")
-        reducer = umap.UMAP(
-            n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components
-        )
+        reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components)
         umap_result = reducer.fit_transform(embeddings)
         logging.info("UMAP dimensionality reduction completed.")
         return umap_result
-
 
     def upload_umap_results(self, publications, umap_results, session):
         """Upload UMAP-reduced coordinates to the database and mark them as reduced in batches."""
@@ -121,14 +108,11 @@ class UmapProcessor:
                 session.commit()
                 logging.info(f"Committed remaining {batch_counter} publications.")
 
-            logging.info(
-                f"Successfully saved UMAP results for {len(publications)} publications."
-            )
+            logging.info(f"Successfully saved UMAP results for {len(publications)} publications.")
         except Exception as e:
             session.rollback()  # Rollback on failure
             logging.error(f"Failed to upload UMAP results: {e}")
             raise  # Re-raise the exception after rollback to handle externally
-
 
     def process_and_reduce(self, session):
         """Process un-UMAPed publications and reduce their embeddings using UMAP."""
@@ -136,16 +120,12 @@ class UmapProcessor:
 
         try:
             # Fetch publications that haven't been UMAP-reduced yet
-            publications = (
-                session.query(Publication).filter_by(is_dim_reduced=False).all()
-            )
+            publications = session.query(Publication).filter_by(is_dim_reduced=False).all()
 
             if not publications:
                 logging.info("No more publications to reduce.")
 
-            logging.info(
-                f"Processing {len(publications)} publications for UMAP reduction..."
-            )
+            logging.info(f"Processing {len(publications)} publications for UMAP reduction...")
 
             # Fetch embeddings from Qdrant
             embeddings = self.fetch_embeddings_from_qdrant(publications)
@@ -158,7 +138,6 @@ class UmapProcessor:
 
         except Exception as e:
             logging.error(f"Error during UMAP processing: {e}")
-
 
 
 def setup_sqlite_connection():
@@ -190,19 +169,17 @@ def main(db, mariadb_batch_size):
         Base.metadata.create_all(engine)
 
         # Initialize UMAP processor
-        #umap_processor = UmapProcessor(qdrantdb_client, mariadb_batch_size=mariadb_batch_size)
+        # umap_processor = UmapProcessor(qdrantdb_client, mariadb_batch_size=mariadb_batch_size)
 
         # Process and reduce un-UMAPed publications
-        #umap_processor.process_and_reduce(session)
+        # umap_processor.process_and_reduce(session)
 
     except Exception as e:
         logging.error(f"Failed to start the UMAP-Qdrant loader: {e}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run the UMAP-Qdrant loader with SQLite or MariaDB."
-    )
+    parser = argparse.ArgumentParser(description="Run the UMAP-Qdrant loader with SQLite or MariaDB.")
     parser.add_argument(
         "--db",
         choices=["sqlite", "mariadb"],
@@ -219,6 +196,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.db, args.mariadb_batch_size)
+
 
 def reducer_main(db, mariadb_batch_size):
     main(db, mariadb_batch_size)

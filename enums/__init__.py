@@ -1,8 +1,4 @@
-from .enums import UserRole
-from .enums import DecisionType
-from .enums import VoteType
-from .enums import SDGType
-
+from .enums import DecisionType, SDGType, UserRole, VoteType
 
 __all__ = [
     "UserRole",

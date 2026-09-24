@@ -1,5 +1,6 @@
 from .base_strategy import PromptStrategy
 
+
 class ExtractKeywordsStrategy(PromptStrategy):
     """Extracts keywords from an abstract."""
 
@@ -10,5 +11,5 @@ class ExtractKeywordsStrategy(PromptStrategy):
         return {
             "instruction": "Extract exactly 4 keywords that represent the main topics of the abstract.",
             "title": title,
-            "abstract": abstract
+            "abstract": abstract,
         }

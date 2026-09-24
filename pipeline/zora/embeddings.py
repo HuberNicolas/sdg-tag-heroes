@@ -1,24 +1,20 @@
+import torch
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import sessionmaker
-import torch
 
-from models.base import Base
-from models import Author
-from models import Division
-from models import Faculty
-from models import Institute
-from models.sdg_prediction import SDGPrediction
 from models import Publication
-
 from settings.settings import EmbeddingsSettings
+
 embeddings_settings = EmbeddingsSettings()
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(embeddings_settings.EMBEDDINGS_LOG_NAME)
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 logging.info(f"Embedding device available: {device}")
+
 
 class PublicationEmbeddingGenerator:
     def __init__(self, engine, batch_size=embeddings_settings.DEFAULT_BATCH_SIZE):
@@ -46,9 +42,7 @@ class PublicationEmbeddingGenerator:
     def encode_publications(self, publications):
         """Generate embeddings for a batch of publications."""
         prompts = [self.make_prompt(pub) for pub in publications]
-        embeddings = self._encoder.encode(
-            prompts, batch_size=self.batch_size, show_progress_bar=True
-        )
+        embeddings = self._encoder.encode(prompts, batch_size=self.batch_size, show_progress_bar=True)
         logging.info(f"Generated {len(embeddings)} encodings for {len(publications)} publications...")
         return embeddings
 
@@ -58,7 +52,7 @@ class PublicationEmbeddingGenerator:
         logging.info(f"Fetched {len(publications)} publications from the database.")
 
         for i in range(0, len(publications), self.batch_size):
-            batch = publications[i: i + self.batch_size]
+            batch = publications[i : i + self.batch_size]
             logging.info(f"Processing batch {i // self.batch_size + 1} with {len(batch)} publications.")
 
             embeddings = self.encode_publications(batch)

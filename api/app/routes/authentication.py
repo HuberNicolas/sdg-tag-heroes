@@ -1,15 +1,15 @@
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
-from jwt import ExpiredSignatureError, InvalidTokenError, DecodeError
+from jwt import DecodeError, ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
 from models.users.user import User
 from request_models import LoginRequest
-from schemas import UserDataSchemaFull, TokenDataSchemaFull, LoginSchemaFull
+from schemas import LoginSchemaFull, TokenDataSchemaFull, UserDataSchemaFull
 from settings.settings import AuthenticationRouterSettings
 from utils.logger import logger
 
@@ -20,6 +20,7 @@ logging = logger(authentication_router_settings.AUTHENTICATION_ROUTER_LOG_NAME)
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency to get the database session
 def get_db():
     db = SessionLocal()
@@ -27,6 +28,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Secrets and Security
 security = Security()
@@ -47,6 +49,7 @@ router = APIRouter(
     tags=["Authentication"],
     responses={404: {"description": "Not found"}},
 )
+
 
 # Function to verify JWT tokens and extract claims using PyJWT
 def verify_token(token: str, db: Session):
@@ -102,20 +105,22 @@ def verify_token(token: str, db: Session):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+
 @router.get("/protected")
 async def protected_route(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
-        Protected endpoint that requires JWT authentication.
+    Protected endpoint that requires JWT authentication.
 
-        Parameters:
-            token: The JWT provided in the Authorization header.
-            db: The database session.
+    Parameters:
+        token: The JWT provided in the Authorization header.
+        db: The database session.
 
-        Returns:
-            Information about the authenticated user.
-        """
+    Returns:
+        Information about the authenticated user.
+    """
     user_token = verify_token(token, db)
     return UserDataSchemaFull(user_id=user_token.user_id, email=user_token.email, roles=user_token.roles)
+
 
 @router.post("/login")
 async def login(request: LoginRequest, db: Session = Depends(get_db)):

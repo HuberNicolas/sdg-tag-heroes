@@ -9,6 +9,7 @@ every request inherit the collection's Bearer auth, fills the login body from va
 that stores the token. It removes the converter's random IDs, so a regenerated collection only differs where the API
 changed. Only the standard library is used.
 """
+
 import json
 import sys
 
@@ -80,8 +81,10 @@ def main(source: str, target: str) -> None:
     with open(target, "w", encoding="utf-8") as f:
         json.dump(collection, f, indent=2, ensure_ascii=False)
         f.write("\n")
-    print(f"{sum(len(items) for items in folders.values()) + len(top_level)} requests in {len(folders)} folders "
-          f"written to {target}")
+    print(
+        f"{sum(len(items) for items in folders.values()) + len(top_level)} requests in {len(folders)} folders "
+        f"written to {target}"
+    )
 
 
 if __name__ == "__main__":

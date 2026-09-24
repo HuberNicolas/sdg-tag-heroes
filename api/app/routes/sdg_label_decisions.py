@@ -2,21 +2,22 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
-from sqlalchemy.orm import Session, sessionmaker, joinedload
+from sqlalchemy.orm import Session, joinedload, sessionmaker
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
 from db.mariadb_connector import engine as mariadb_engine
-from enums.enums import ScenarioType, LevelType, DecisionType
-from models import SDGLabelDecision, SDGPrediction, SDGLabelSummary, SDGLabelHistory, Annotation, SDGUserLabel
+from enums.enums import DecisionType, LevelType, ScenarioType
+from models import Annotation, SDGLabelDecision, SDGLabelHistory, SDGLabelSummary, SDGPrediction, SDGUserLabel
 from models.publications.dimensionality_reduction import DimensionalityReduction
 from models.publications.publication import Publication
-from schemas import SDGLabelDecisionSchemaFull, SDGLabelDecisionSchemaExtended
-from settings.settings import SDGSLabelDecisionsRouterSettings
-from utils.logger import logger
+from schemas import SDGLabelDecisionSchemaExtended, SDGLabelDecisionSchemaFull
 
 # Model whose predictions drive maps, levels and quests (settings: PREDICTION_MODEL, default "Aurora")
 from settings.settings import MariaDBSettings as _PredictionModelSettings
+from settings.settings import SDGSLabelDecisionsRouterSettings
+from utils.logger import logger
+
 PREDICTION_MODEL = _PredictionModelSettings.DEFAULT_PREDICTION_MODEL
 
 # Setup Logging
@@ -30,6 +31,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -37,6 +39,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API Router
 router = APIRouter(
@@ -49,10 +52,11 @@ router = APIRouter(
     },
 )
 
+
 @router.get(
     "/global/scenarios/least-labeled/{top_k}",
     response_model=List[SDGLabelDecisionSchemaFull],
-    description="Retrieve SDG Label Decisions for the top-k publications associated with the least-labeled SDG. If no decision exists, create a new one."
+    description="Retrieve SDG Label Decisions for the top-k publications associated with the least-labeled SDG. If no decision exists, create a new one.",
 )
 async def get_or_create_least_labeled_sdg_decisions(
     top_k: int,
@@ -68,12 +72,9 @@ async def get_or_create_least_labeled_sdg_decisions(
         user = verify_token(token, db)
 
         # Count occurrences of SDG labels in SDGLabelSummary
-        sdg_counts = (
-            db.query(
-                *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
-            )
-            .first()
-        )
+        sdg_counts = db.query(
+            *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
+        ).first()
 
         # Find the SDG with the least labels
         least_labeled_sdg = min(
@@ -100,13 +101,15 @@ async def get_or_create_least_labeled_sdg_decisions(
             sdg_label_summary = publication.sdg_label_summary
 
             # Check if SDGLabelHistory exists
-            history = db.query(SDGLabelHistory).filter(
-                SDGLabelHistory.history_id == sdg_label_summary.history_id
-            ).first()
+            history = (
+                db.query(SDGLabelHistory).filter(SDGLabelHistory.history_id == sdg_label_summary.history_id).first()
+            )
 
             # If no history exists, create a new one
             if not history:
-                logging.info(f"No SDGLabelHistory found for publication {publication.publication_id}, creating a new history.")
+                logging.info(
+                    f"No SDGLabelHistory found for publication {publication.publication_id}, creating a new history."
+                )
 
                 new_history = SDGLabelHistory(active=True)
                 db.add(new_history)
@@ -118,7 +121,9 @@ async def get_or_create_least_labeled_sdg_decisions(
                 db.refresh(new_history)
 
                 history = new_history  # Assign the newly created history
-                logging.info(f"Created new SDGLabelHistory (ID: {history.history_id}) for publication {publication.publication_id}.")
+                logging.info(
+                    f"Created new SDGLabelHistory (ID: {history.history_id}) for publication {publication.publication_id}."
+                )
 
             # Filter out decisions that have scenario_type == DECIDED
             existing_decisions = [
@@ -126,12 +131,17 @@ async def get_or_create_least_labeled_sdg_decisions(
             ]
 
             if not existing_decisions:
-                logging.info(f"No valid SDGLabelDecisions found for publication {publication.publication_id}, creating a new decision.")
+                logging.info(
+                    f"No valid SDGLabelDecisions found for publication {publication.publication_id}, creating a new decision."
+                )
 
                 # Fetch the best SDG prediction from the 'Aurora' model
                 prediction = (
                     db.query(SDGPrediction)
-                    .filter(SDGPrediction.publication_id == publication.publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL)
+                    .filter(
+                        SDGPrediction.publication_id == publication.publication_id,
+                        SDGPrediction.prediction_model == PREDICTION_MODEL,
+                    )
                     .first()
                 )
 
@@ -162,7 +172,9 @@ async def get_or_create_least_labeled_sdg_decisions(
                 logging.info(f"Created new SDGLabelDecision for publication {publication.publication_id}.")
                 decisions_list.append(SDGLabelDecisionSchemaFull.model_validate(new_decision))
             else:
-                decisions_list.extend([SDGLabelDecisionSchemaFull.model_validate(decision) for decision in existing_decisions])
+                decisions_list.extend(
+                    [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in existing_decisions]
+                )
 
         return decisions_list
 
@@ -172,10 +184,11 @@ async def get_or_create_least_labeled_sdg_decisions(
         logging.error(f"Error fetching SDGLabelDecisions for the least-labeled SDG: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching SDGLabelDecisions: {e}")
 
+
 @router.get(
     "/global/scenarios/max-entropy/{top_k}",
     response_model=List[SDGLabelDecisionSchemaFull],
-    description="Retrieve SDG Label Decisions for the top-k SDGs with the highest entropy. If no decision exists, create a new one."
+    description="Retrieve SDG Label Decisions for the top-k SDGs with the highest entropy. If no decision exists, create a new one.",
 )
 async def get_or_create_top_k_entropy_sdg_decisions(
     top_k: int,
@@ -218,13 +231,15 @@ async def get_or_create_top_k_entropy_sdg_decisions(
             sdg_label_summary = publication.sdg_label_summary
 
             # Check if SDGLabelHistory exists
-            history = db.query(SDGLabelHistory).filter(
-                SDGLabelHistory.history_id == sdg_label_summary.history_id
-            ).first()
+            history = (
+                db.query(SDGLabelHistory).filter(SDGLabelHistory.history_id == sdg_label_summary.history_id).first()
+            )
 
             # If no history exists, create a new one
             if not history:
-                logging.info(f"No SDGLabelHistory found for publication {publication.publication_id}, creating a new history.")
+                logging.info(
+                    f"No SDGLabelHistory found for publication {publication.publication_id}, creating a new history."
+                )
 
                 new_history = SDGLabelHistory(active=True)
                 db.add(new_history)
@@ -236,16 +251,23 @@ async def get_or_create_top_k_entropy_sdg_decisions(
                 db.refresh(new_history)
 
                 history = new_history  # Assign the newly created history
-                logging.info(f"Created new SDGLabelHistory (ID: {history.history_id}) for publication {publication.publication_id}.")
+                logging.info(
+                    f"Created new SDGLabelHistory (ID: {history.history_id}) for publication {publication.publication_id}."
+                )
 
             # Check for existing decisions
             if not history.decisions:
-                logging.info(f"No SDGLabelDecisions found for publication {publication.publication_id}, creating a new decision.")
+                logging.info(
+                    f"No SDGLabelDecisions found for publication {publication.publication_id}, creating a new decision."
+                )
 
                 # Fetch the best SDG prediction from the 'Aurora' model
                 prediction = (
                     db.query(SDGPrediction)
-                    .filter(SDGPrediction.publication_id == publication.publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL)
+                    .filter(
+                        SDGPrediction.publication_id == publication.publication_id,
+                        SDGPrediction.prediction_model == PREDICTION_MODEL,
+                    )
                     .first()
                 )
 
@@ -276,7 +298,9 @@ async def get_or_create_top_k_entropy_sdg_decisions(
                 logging.info(f"Created new SDGLabelDecision for publication {publication.publication_id}.")
                 decisions_list.append(SDGLabelDecisionSchemaFull.model_validate(new_decision))
             else:
-                decisions_list.extend([SDGLabelDecisionSchemaFull.model_validate(decision) for decision in history.decisions])
+                decisions_list.extend(
+                    [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in history.decisions]
+                )
 
         return decisions_list
 
@@ -287,11 +311,10 @@ async def get_or_create_top_k_entropy_sdg_decisions(
         raise HTTPException(status_code=500, detail=f"Error fetching SDGLabelDecisions: {e}")
 
 
-
 @router.get(
     "/{reduction_shorthand}/scenarios/{scenario_type}/",
     response_model=List[SDGLabelDecisionSchemaFull],
-    description="Retrieve SDG Label Decisions for a given reduction shorthand, and scenario type."
+    description="Retrieve SDG Label Decisions for a given reduction shorthand, and scenario type.",
 )
 async def get_sdg_label_decisions_for_scenario(
     reduction_shorthand: str,
@@ -313,13 +336,15 @@ async def get_sdg_label_decisions_for_scenario(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 SDGPrediction.prediction_model == PREDICTION_MODEL,
-                SDGLabelDecision.scenario_type == scenario_type  # Filter by scenario type
+                SDGLabelDecision.scenario_type == scenario_type,  # Filter by scenario type
             )
             .order_by(Publication.publication_id)
             .all()
         )
 
-        logging.info(f"Retrieved {len(decisions)} SDGLabelDecisions for scenario type '{scenario_type}' and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(
+            f"Retrieved {len(decisions)} SDGLabelDecisions for scenario type '{scenario_type}' and reduction shorthand '{reduction_shorthand}'."
+        )
 
         return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in decisions]
 
@@ -329,12 +354,13 @@ async def get_sdg_label_decisions_for_scenario(
         logging.error(f"Error fetching SDGLabelDecisions: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching SDGLabelDecisions: {e}")
 
+
 @router.get(
     "/sdgs/{sdg}/{reduction_shorthand}/scenarios/{scenario_type}/",
     response_model=List[SDGLabelDecisionSchemaFull],
-    description="Retrieve SDG Label Decisions for a given SDG, reduction shorthand, and scenario type."
+    description="Retrieve SDG Label Decisions for a given SDG, reduction shorthand, and scenario type.",
 )
-async def get_sdg_label_decisions_for_scenario(
+async def get_sdg_label_decisions_for_scenario(  # noqa: F811 (another route with the same function name; FastAPI registers both)
     sdg: int,
     reduction_shorthand: str,
     scenario_type: ScenarioType,
@@ -357,13 +383,15 @@ async def get_sdg_label_decisions_for_scenario(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 DimensionalityReduction.sdg == sdg,
                 SDGPrediction.prediction_model == PREDICTION_MODEL,
-                SDGLabelDecision.scenario_type == scenario_type  # Filter by scenario type
+                SDGLabelDecision.scenario_type == scenario_type,  # Filter by scenario type
             )
             .order_by(Publication.publication_id)
             .all()
         )
 
-        logging.info(f"Retrieved {len(decisions)} SDGLabelDecisions for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(
+            f"Retrieved {len(decisions)} SDGLabelDecisions for SDG {sdg}, scenario type '{scenario_type}', and reduction shorthand '{reduction_shorthand}'."
+        )
 
         return [SDGLabelDecisionSchemaFull.model_validate(decision) for decision in decisions]
 
@@ -377,7 +405,7 @@ async def get_sdg_label_decisions_for_scenario(
 @router.get(
     "/dimensionality-reductions/sdgs/{sdg}/{reduction_shorthand}/{level}/",
     response_model=List[SDGLabelDecisionSchemaExtended],
-    description="Retrieve the newest SDG Label Decisions corresponding to the publications selected by dimensionality reduction."
+    description="Retrieve the newest SDG Label Decisions corresponding to the publications selected by dimensionality reduction.",
 )
 async def get_newest_sdg_label_decisions_for_reduction(
     sdg: int,
@@ -402,7 +430,7 @@ async def get_newest_sdg_label_decisions_for_reduction(
             .filter(
                 DimensionalityReduction.reduction_shorthand == reduction_shorthand,
                 getattr(SDGPrediction, f"sdg{sdg}").between(min_value, max_value),
-                SDGPrediction.prediction_model == PREDICTION_MODEL
+                SDGPrediction.prediction_model == PREDICTION_MODEL,
             )
             .order_by(Publication.publication_id)
             .all()
@@ -413,18 +441,17 @@ async def get_newest_sdg_label_decisions_for_reduction(
         decisions = (
             db.query(SDGLabelDecision)
             .join(SDGLabelSummary, SDGLabelDecision.history_id == SDGLabelSummary.history_id)
-            .filter(
-                SDGLabelSummary.publication_id.in_(publication_ids),
-                SDGLabelDecision.decided_label == 0
-            )
+            .filter(SDGLabelSummary.publication_id.in_(publication_ids), SDGLabelDecision.decided_label == 0)
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
 
-        logging.info(f"Retrieved {len(decisions)} newest SDGLabelDecisions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'.")
+        logging.info(
+            f"Retrieved {len(decisions)} newest SDGLabelDecisions for SDG {sdg}, level {level}, and reduction shorthand '{reduction_shorthand}'."
+        )
 
         return [SDGLabelDecisionSchemaExtended.model_validate(decision) for decision in decisions]
     except HTTPException:
@@ -437,7 +464,7 @@ async def get_newest_sdg_label_decisions_for_reduction(
 @router.get(
     "/publications/{publication_id}",
     response_model=List[SDGLabelDecisionSchemaFull],
-    description="Retrieve all SDGLabelDecision entries associated with a publication's SDGLabelHistory"
+    description="Retrieve all SDGLabelDecision entries associated with a publication's SDGLabelHistory",
 )
 async def get_sdg_label_decisions(
     publication_id: int,
@@ -464,9 +491,7 @@ async def get_sdg_label_decisions(
         sdg_label_summary = publication.sdg_label_summary
 
         # Check if SDGLabelHistory exists
-        history = db.query(SDGLabelHistory).filter(
-            SDGLabelHistory.history_id == sdg_label_summary.history_id
-        ).first()
+        history = db.query(SDGLabelHistory).filter(SDGLabelHistory.history_id == sdg_label_summary.history_id).first()
 
         # If no history exists, create a new one
         if not history:
@@ -493,7 +518,9 @@ async def get_sdg_label_decisions(
             # Fetch the best SDG prediction from the 'Aurora' model
             prediction = (
                 db.query(SDGPrediction)
-                .filter(SDGPrediction.publication_id == publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL)
+                .filter(
+                    SDGPrediction.publication_id == publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL
+                )
                 .first()
             )
 
@@ -536,11 +563,10 @@ async def get_sdg_label_decisions(
         )
 
 
-
 @router.get(
     "/publications/{publication_id}/{decision_id}",
     response_model=SDGLabelDecisionSchemaFull,
-    description="Retrieve a specific SDGLabelDecision entry associated with a publication's SDGLabelHistory"
+    description="Retrieve a specific SDGLabelDecision entry associated with a publication's SDGLabelHistory",
 )
 async def get_sdg_label_decision(
     publication_id: int,
@@ -584,18 +610,17 @@ async def get_sdg_label_decision(
     except HTTPException:
         raise
     except Exception as e:
-        logging.error(
-            f"Error fetching SDGLabelDecision ID {decision_id} for publication ID {publication_id}: {str(e)}"
-        )
+        logging.error(f"Error fetching SDGLabelDecision ID {decision_id} for publication ID {publication_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the SDGLabelDecision for the publication",
         )
 
+
 @router.get(
     "/scenarios/{scenario}",
     response_model=List[SDGLabelDecisionSchemaFull],
-    description="Retrieve all SDGLabelDecision entries associated with a specific scenario"
+    description="Retrieve all SDGLabelDecision entries associated with a specific scenario",
 )
 async def get_sdg_label_decisions_by_scenario(
     scenario: ScenarioType,
@@ -632,7 +657,7 @@ async def get_sdg_label_decisions_by_scenario(
 @router.get(
     "/{reduction_shorthand}/{part_number}/{total_parts}/",
     response_model=List[SDGLabelDecisionSchemaFull],
-    description="Retrieve or initialize SDGLabelDecision entries for a batch of publications linked to a specific part of dimensionality reductions."
+    description="Retrieve or initialize SDGLabelDecision entries for a batch of publications linked to a specific part of dimensionality reductions.",
 )
 async def get_sdg_label_decisions_partitioned(
     reduction_shorthand: str,
@@ -657,9 +682,11 @@ async def get_sdg_label_decisions_partitioned(
             )
 
         # Query the total number of dimensionality reductions for the given shorthand
-        total_count = db.query(DimensionalityReduction).filter(
-            DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).count()
+        total_count = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand)
+            .count()
+        )
 
         logging.debug(f"Total Count (Dimensionality Reductions): {total_count}")
 
@@ -676,16 +703,23 @@ async def get_sdg_label_decisions_partitioned(
         start_index = (part_number - 1) * part_size
         end_index = start_index + part_size
 
-        logging.debug(f"Part Size: {part_size}, Remainder: {remainder}, Start Index: {start_index}, End Index: {end_index}")
+        logging.debug(
+            f"Part Size: {part_size}, Remainder: {remainder}, Start Index: {start_index}, End Index: {end_index}"
+        )
 
         # Adjust for the remainder in the last part
         if part_number == total_parts:
             end_index += remainder
 
         # Fetch the specific part of dimensionality reductions
-        dimensionality_reductions = db.query(DimensionalityReduction).filter(
-            DimensionalityReduction.reduction_shorthand == reduction_shorthand
-        ).order_by(DimensionalityReduction.publication_id).offset(start_index).limit(end_index - start_index).all()
+        dimensionality_reductions = (
+            db.query(DimensionalityReduction)
+            .filter(DimensionalityReduction.reduction_shorthand == reduction_shorthand)
+            .order_by(DimensionalityReduction.publication_id)
+            .offset(start_index)
+            .limit(end_index - start_index)
+            .all()
+        )
 
         logging.debug(f"Dimensionality Reductions Retrieved: {len(dimensionality_reductions)}")
 
@@ -699,9 +733,7 @@ async def get_sdg_label_decisions_partitioned(
             )
 
         # Fetch all SDGLabelDecisions for these publications
-        decisions = db.query(SDGLabelDecision).filter(
-            SDGLabelDecision.publication_id.in_(publication_ids)
-        ).all()
+        decisions = db.query(SDGLabelDecision).filter(SDGLabelDecision.publication_id.in_(publication_ids)).all()
 
         existing_decision_pub_ids = {decision.publication_id for decision in decisions}
         missing_pub_ids = set(publication_ids) - existing_decision_pub_ids
@@ -720,9 +752,9 @@ async def get_sdg_label_decisions_partitioned(
                 continue
 
             # Retrieve or create SDGLabelHistory
-            history = db.query(SDGLabelHistory).filter(
-                SDGLabelHistory.history_id == sdg_label_summary.history_id
-            ).first()
+            history = (
+                db.query(SDGLabelHistory).filter(SDGLabelHistory.history_id == sdg_label_summary.history_id).first()
+            )
 
             if not history:
                 history = SDGLabelHistory(active=True)
@@ -733,10 +765,13 @@ async def get_sdg_label_decisions_partitioned(
                 db.refresh(history)
 
             # Fetch the best SDG prediction from 'Aurora' model
-            prediction = db.query(SDGPrediction).filter(
-                SDGPrediction.publication_id == publication_id,
-                SDGPrediction.prediction_model == PREDICTION_MODEL
-            ).first()
+            prediction = (
+                db.query(SDGPrediction)
+                .filter(
+                    SDGPrediction.publication_id == publication_id, SDGPrediction.prediction_model == PREDICTION_MODEL
+                )
+                .first()
+            )
 
             suggested_label = 0  # Default if no prediction exists
             if prediction:
@@ -781,7 +816,7 @@ async def get_sdg_label_decisions_partitioned(
 @router.get(
     "/users/{user_id}",
     response_model=List[SDGLabelDecisionSchemaExtended],
-    description="Retrieve all SDG label decisions a user has interacted with via SDGUserLabels, annotations, or direct decision creation."
+    description="Retrieve all SDG label decisions a user has interacted with via SDGUserLabels, annotations, or direct decision creation.",
 )
 async def get_user_interacted_sdg_label_decisions(
     user_id: int,
@@ -808,7 +843,7 @@ async def get_user_interacted_sdg_label_decisions(
             .filter(SDGLabelDecision.expert_id == user_id)  # Assuming the expert_id is the creator
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
@@ -820,7 +855,7 @@ async def get_user_interacted_sdg_label_decisions(
             .filter(SDGUserLabel.user_id == user_id)
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
@@ -832,7 +867,7 @@ async def get_user_interacted_sdg_label_decisions(
             .filter(Annotation.user_id == user_id)
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
@@ -845,18 +880,15 @@ async def get_user_interacted_sdg_label_decisions(
             .filter(Annotation.user_id == user_id)
             .options(
                 joinedload(SDGLabelDecision.user_labels).joinedload(SDGUserLabel.annotations),
-                joinedload(SDGLabelDecision.annotations)
+                joinedload(SDGLabelDecision.annotations),
             )
             .all()
         )
 
         # Combine results and remove duplicates
-        all_decisions = list(set(
-            user_created_decisions +
-            user_label_decisions +
-            annotation_decisions +
-            annotation_user_label_decisions
-        ))
+        all_decisions = list(
+            set(user_created_decisions + user_label_decisions + annotation_decisions + annotation_user_label_decisions)
+        )
 
         if not all_decisions:
             raise HTTPException(

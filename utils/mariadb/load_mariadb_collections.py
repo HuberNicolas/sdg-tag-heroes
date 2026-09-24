@@ -1,12 +1,13 @@
 import json
+from datetime import datetime
 
 import pandas as pd
-from datetime import datetime
 from sqlalchemy.orm import sessionmaker
-from models.publications.publication import Publication
-from models.publications.dimensionality_reduction import DimensionalityReduction
-from models.collection import Collection
+
 from db.mariadb_connector import engine
+from models.collection import Collection
+from models.publications.dimensionality_reduction import DimensionalityReduction
+from models.publications.publication import Publication
 
 # Initialize session
 Session = sessionmaker(bind=engine)
@@ -18,6 +19,7 @@ TOPIC_DATA_PATH = "./data/pipeline/collections/uzh_topic_data.csv"
 BATCH_SIZE = 1000  # Process entities in batches
 
 WWF_TOPIC_ID_OFFSET = 1000
+
 
 def create_collections_and_reductions():
     """
@@ -33,7 +35,7 @@ def create_collections_and_reductions():
 
         collections_to_add = [
             Collection(
-                topic_id=int(row["Topic"]), #  + WWF_TOPIC_ID_OFFSET,  # Unique topic_id
+                topic_id=int(row["Topic"]),  #  + WWF_TOPIC_ID_OFFSET,  # Unique topic_id
                 count=int(row["Count"]),
                 name=row["Name"].strip(),
                 short_name=row["GPT_Name"].strip(),
@@ -86,7 +88,7 @@ def create_collections_and_reductions():
             # cluster_method_params = {"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
 
             reduction_details = (
-                f"TM for UZH set using UMAP with n_neighbors=15, min_dist=0.0, n_components=2, metric=cosine"
+                "TM for UZH set using UMAP with n_neighbors=15, min_dist=0.0, n_components=2, metric=cosine"
             )
             reduction_shorthand = "TM-UZH-UMAP-15-0.0-2"
 
@@ -117,6 +119,7 @@ def create_collections_and_reductions():
             session.bulk_save_objects(reductions_to_add)
             session.commit()
             print(f"Committed the remaining {len(reductions_to_add)} dimensionality reductions.")
+
 
 if __name__ == "__main__":
     create_collections_and_reductions()

@@ -13,14 +13,11 @@ class PublicationClusterSchemaBase(BaseModel):
     level: Optional[int]
     topic: Optional[int]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 class PublicationClusterSchemaFull(PublicationClusterSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

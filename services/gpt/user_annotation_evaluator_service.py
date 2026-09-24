@@ -1,15 +1,15 @@
 import os
-import warnings
+
 # OpenBLAS Warning : Detect OpenMP Loop and this application may hang. Please rebuild the library with USE_OPENMP=1 option.
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 # https://stackoverflow.com/questions/77137232/identifying-source-of-and-understanding-openblas-and-openmp-warnings
 # warnings.filterwarnings('ignore', category=UserWarning, module='openblas')
 
 import torch
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoModel, AutoTokenizer
 
 from enums import SDGType
-from schemas.gpt_assistant_service import GPTResponseAnnotationScoreSchema, AnnotationEvaluationSchema
+from schemas.gpt_assistant_service import AnnotationEvaluationSchema, GPTResponseAnnotationScoreSchema
 from settings.sdg_descriptions import sdgs
 from settings.settings import UserAnnotationEvaluatorServiceSettings
 
@@ -17,6 +17,7 @@ from settings.settings import UserAnnotationEvaluatorServiceSettings
 user_annotation_evaluator_service_settings = UserAnnotationEvaluatorServiceSettings()
 tokenizer = AutoTokenizer.from_pretrained(user_annotation_evaluator_service_settings.BERT_PRETRAINED_MODEL_NAME)
 model = AutoModel.from_pretrained(user_annotation_evaluator_service_settings.BERT_PRETRAINED_MODEL_NAME)
+
 
 class UserAnnotationEvaluatorService:
     """Service for evaluating annotations with semantic similarity and combined scoring."""
@@ -36,7 +37,9 @@ class UserAnnotationEvaluatorService:
         similarity = torch.nn.functional.cosine_similarity(annotation_vector, sdg_vector, dim=0).item()
         return similarity
 
-    def evaluate_annotation(self, passage: str, annotation: str, sdg_label: SDGType, llm_scores: GPTResponseAnnotationScoreSchema) -> AnnotationEvaluationSchema:
+    def evaluate_annotation(
+        self, passage: str, annotation: str, sdg_label: SDGType, llm_scores: GPTResponseAnnotationScoreSchema
+    ) -> AnnotationEvaluationSchema:
         """Combines LLM and semantic similarity scores."""
 
         # Convert SDGType enum to string (e.g., SDGType.SDG_1 -> "sdg1")
@@ -52,11 +55,9 @@ class UserAnnotationEvaluatorService:
 
         semantic_score = self.calculate_semantic_similarity(annotation, sdg_description)
 
-        llm_avg_score = (
-            llm_scores.relevance + llm_scores.depth + llm_scores.correctness + llm_scores.creativity
-        ) / 4
+        llm_avg_score = (llm_scores.relevance + llm_scores.depth + llm_scores.correctness + llm_scores.creativity) / 4
 
-        combined_score = (0.5 * llm_avg_score + 0.5 * semantic_score)
+        combined_score = 0.5 * llm_avg_score + 0.5 * semantic_score
 
         return AnnotationEvaluationSchema(
             passage=passage,

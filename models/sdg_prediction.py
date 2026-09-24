@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from enums import SDGType
 from models.base import Base
-from settings.settings import TimeZoneSettings, MariaDBSettings
+from settings.settings import MariaDBSettings, TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 mariadb_settings = MariaDBSettings()
@@ -91,7 +91,6 @@ class SDGPrediction(Base):
         highest_sdg_key, (highest_sdg_number, highest_sdg_value) = max(sdg_values.items(), key=lambda item: item[1][1])
 
         return highest_sdg_key, highest_sdg_number, highest_sdg_value
-
 
     def get_sdgs_above_threshold(self, threshold=mariadb_settings.DEFAULT_PREDICTION_THRESHOLD):
         """

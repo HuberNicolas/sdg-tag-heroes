@@ -5,39 +5,45 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi_pagination import add_pagination
 
-from api.app.routes import annotations
-from api.app.routes import authentication
-from api.app.routes import authors
-from api.app.routes import collections
-from api.app.routes import dimensionality_reductions
-from api.app.routes import publications
-from api.app.routes import publications_gpt
-from api.app.routes import sdg_coin_wallets
-from api.app.routes import sdg_explanations
-from api.app.routes import sdg_label_decisions
-from api.app.routes import sdg_label_histories
-from api.app.routes import sdg_label_summaries
-from api.app.routes import sdg_predictions
-from api.app.routes import sdg_user_labels
-from api.app.routes import sdg_xp_banks
-from api.app.routes import sdgs
-from api.app.routes import user_profiles_gpt
-from api.app.routes import users
-from api.app.routes import votes
-from api.app.routes import sdg_ranks
-
+from api.app.routes import (
+    annotations,
+    authentication,
+    authors,
+    collections,
+    dimensionality_reductions,
+    publications,
+    publications_gpt,
+    sdg_coin_wallets,
+    sdg_explanations,
+    sdg_label_decisions,
+    sdg_label_histories,
+    sdg_label_summaries,
+    sdg_predictions,
+    sdg_ranks,
+    sdg_user_labels,
+    sdg_xp_banks,
+    sdgs,
+    user_profiles_gpt,
+    users,
+    votes,
+)
 from settings.settings import FastAPISettings
+
 fastapi_settings = FastAPISettings()
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(fastapi_settings.FASTAPI_LOG_NAME)
 
 
 # Import test utilities for each database
-from db.mariadb_connector import test_mariadb_connection, conn as mariadb_conn
-from db.mongodb_connector import test_mongodb_connection, client as mongo_client
-from db.qdrantdb_connector import test_qdrant_connection, client as qdrant_client
+from db.mariadb_connector import conn as mariadb_conn
+from db.mariadb_connector import test_mariadb_connection
+from db.mongodb_connector import client as mongo_client
+from db.mongodb_connector import test_mongodb_connection
+from db.qdrantdb_connector import test_qdrant_connection
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -84,9 +90,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logging.warning(f"Error while cleaning up Qdrant client: {e}")
 
+
 app = FastAPI(lifespan=lifespan)
 add_pagination(app)  # important! add pagination to your app
-
 
 
 app.include_router(authentication.router)
@@ -121,13 +127,13 @@ app.include_router(sdg_ranks.router)
 
 
 # CORS (development only)
-app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
 
 @app.get("/")
 def read_root():
     return {"message": "Hello, FastAPI!"}
+
 
 # Custom OpenAPI schema to include JWT in Swagger UI
 def custom_openapi():
@@ -152,5 +158,6 @@ def custom_openapi():
             openapi_schema["paths"][path][method]["security"] = [{"BearerAuth": []}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
+
 
 app.openapi = custom_openapi

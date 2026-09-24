@@ -37,7 +37,7 @@ The role of climate change in biodiversity loss is well recognized. This researc
 
     # Results
     print(f"Predicted probabilities: {probabilities}")
-    print(f"Predicted SDG class: {predicted_class.item()+1}")
+    print(f"Predicted SDG class: {predicted_class.item() + 1}")
 
 
 if __name__ == "__main__":

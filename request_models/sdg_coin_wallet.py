@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class WalletIncrementRequest(BaseModel):
     increment: float
     reason: str

@@ -13,6 +13,7 @@ class SDGLabelHistory(Base):
     """
     Represents a historical record of SDG label evaluations.
     """
+
     __tablename__ = "sdg_label_histories"
 
     history_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -23,9 +24,7 @@ class SDGLabelHistory(Base):
     )
 
     # One-to-One relationship with SDGLabelSummary
-    label_summary: Mapped["SDGLabelSummary"] = relationship(
-        "SDGLabelSummary", back_populates="history", uselist=False
-    )
+    label_summary: Mapped["SDGLabelSummary"] = relationship("SDGLabelSummary", back_populates="history", uselist=False)
 
     active: Mapped[bool] = mapped_column(default=True, nullable=False)
 

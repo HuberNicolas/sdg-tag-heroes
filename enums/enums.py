@@ -8,15 +8,18 @@ class UserRole(PyEnum):
     LABELER = "labeler"
     EXPERT = "expert"
 
+
 class DecisionType(PyEnum):
     CONSENSUS_MAJORITY = "Consensus Majority"
     CONSENSUS_TECHNOCRATIC = "Consensus Technocratic"
     EXPERT_DECISION = "Expert Decision"
 
+
 class VoteType(PyEnum):
     POSITIVE = "positive"
     NEUTRAL = "neutral"
     NEGATIVE = "negative"
+
 
 class SDGType(PyEnum):
     SDG_1 = "sdg1"
@@ -39,18 +42,20 @@ class SDGType(PyEnum):
 
     # In sdg_label decision:
     SDG_0 = "sdg0"  # not defined
-    SDG_18 = "sdg18" # zero class
+    SDG_18 = "sdg18"  # zero class
+
 
 class ScenarioType(PyEnum):
-    CONFIRM = "Confirm" # Crown the Champion: 6, 4
-    TIEBREAKER = "Tiebreaker" # Tip the Scales: 5, 5
-    INVESTIGATE = "Investigate" # Unravel the Mystery: 3, 3, 3, 1
-    EXPLORE = "Explore" # Chart the Unknown: 1, 2, 2, 2, 1, 1, 1
+    CONFIRM = "Confirm"  # Crown the Champion: 6, 4
+    TIEBREAKER = "Tiebreaker"  # Tip the Scales: 5, 5
+    INVESTIGATE = "Investigate"  # Unravel the Mystery: 3, 3, 3, 1
+    EXPLORE = "Explore"  # Chart the Unknown: 1, 2, 2, 2, 1, 1, 1
 
-    NOT_ENOUGH_VOTES = "Not enough votes" # Gather the Troops
-    NO_SPECIFIC_SCENARIO = "No specific scenario" # Await the Signal
+    NOT_ENOUGH_VOTES = "Not enough votes"  # Gather the Troops
+    NO_SPECIFIC_SCENARIO = "No specific scenario"  # Await the Signal
 
     DECIDED = "Decided"
+
 
 class LevelType(PyEnum):
     LEVEL_1 = (1, 0.98, 100)  # max_prob, min_prob, coins
@@ -78,12 +83,11 @@ class LevelType(PyEnum):
         return (self.min_prob, self.max_prob)
 
     @classmethod
-    def get_level(cls, P_max: float) -> 'LevelType':
+    def get_level(cls, P_max: float) -> "LevelType":
         """Determine level based on probability."""
         return next(
-            (level for level in cls
-             if level.min_prob <= P_max < level.max_prob),
-            cls.LEVEL_1  # Default case
+            (level for level in cls if level.min_prob <= P_max < level.max_prob),
+            cls.LEVEL_1,  # Default case
         )
 
 
@@ -92,6 +96,7 @@ class BartlePersonaType(PyEnum):
     EXPLORER = "Explorer"
     SOCIALIZER = "Socializer"
     KILLER = "Killer"
+
 
 class BartlePersonaDistributionType(PyEnum):
     ACHIEVER_PORTION = 0.4

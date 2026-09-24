@@ -1,5 +1,5 @@
 from .base_strategy import PromptStrategy
-import random
+
 
 class GenerateCommentStrategy(PromptStrategy):
     """Strategy for generating user comments based on persona, trust score, and abstract relevance."""
@@ -33,22 +33,18 @@ class GenerateCommentStrategy(PromptStrategy):
             "Achiever": "values measurable impact, scalability, and efficiency. Typically focused on outcomes that can be tracked and optimized. Could emphasize practical applications or theoretical limits, depending on user skill.",
             "Explorer": "actively seeks knowledge gaps and theoretical extensions, interested in unexpected applications and novel concepts. More likely to provide open-ended, exploratory thoughts.",
             "Socializer": "concerned with community relevance, ethical considerations, and the broader discussion potential. Can be more conversational, using accessible language while remaining scientific. Often encourages further inquiry or debates.",
-            "Killer": "interested in challenging assumptions, identifying flaws, and questioning methodological validity. Likely to point out gaps, inconsistencies, or areas needing clarification. Often delivers critiques that demand attention."
+            "Killer": "interested in challenging assumptions, identifying flaws, and questioning methodological validity. Likely to point out gaps, inconsistencies, or areas needing clarification. Often delivers critiques that demand attention.",
         }
 
         # Define expertise-based response tone, with additional adjustments
         expertise_styles = {
             "Expert": "Provide a high-depth, technical response using precise terminology, but also ensure that the explanation is directly relevant to the abstract. Avoid generalizations, focus on specificity.",
             "Intermediate": "Provide a balanced, well-structured response with some technical detail, but make it approachable. The aim is for clarity and relevance without overwhelming the reader.",
-            "Basic": "Provide a concise, simplified observation that stays grounded in the core points of the abstract. Avoid complexity, focusing on easily digestible ideas that do not assume deep technical knowledge."
+            "Basic": "Provide a concise, simplified observation that stays grounded in the core points of the abstract. Avoid complexity, focusing on easily digestible ideas that do not assume deep technical knowledge.",
         }
 
         # Assign expertise level dynamically based on trust score
-        expertise_level = (
-            "Expert" if trust_score > 0.9 else
-            "Intermediate" if trust_score > 0.4 else
-            "Basic"
-        )
+        expertise_level = "Expert" if trust_score > 0.9 else "Intermediate" if trust_score > 0.4 else "Basic"
 
         # Add personality considerations for a diverse set of responses
         prompt = {
@@ -64,10 +60,9 @@ class GenerateCommentStrategy(PromptStrategy):
             "persona": persona,
             "interest": interest,
             "skill": skill,
-            "trust_score": trust_score
+            "trust_score": trust_score,
         }
         return prompt
-
 
 
 class GenerateAnnotationStrategy(PromptStrategy):
@@ -80,8 +75,16 @@ class GenerateAnnotationStrategy(PromptStrategy):
             "Ensure that annotations are tailored to be relevant to the user's background and knowledge, focusing on insightful contributions."
         )
 
-    def generate_prompt(self, abstract: str, persona: str, interest: str, skill: str, trust_score: float,
-                        user_label_comment: str = None, decision_comment: str = None) -> dict:
+    def generate_prompt(
+        self,
+        abstract: str,
+        persona: str,
+        interest: str,
+        skill: str,
+        trust_score: float,
+        user_label_comment: str = None,
+        decision_comment: str = None,
+    ) -> dict:
         """
         Generates a structured prompt for annotation generation based on user labels and decision comments.
 
@@ -101,20 +104,16 @@ class GenerateAnnotationStrategy(PromptStrategy):
             "Achiever": "values measurable outcomes, focusing on practicality and efficiency. The Achiever persona will likely favor annotations with a clear, actionable takeaway.",
             "Explorer": "seeks new knowledge and theoretical perspectives. Explorers will appreciate annotations that suggest open-ended questions or novel interpretations.",
             "Socializer": "enjoys engaging discussions with ethical or community-related concerns. Annotations for Socializers can be more accessible and emphasize social impact.",
-            "Killer": "prefers to critically examine assumptions and highlight flaws. Annotations for Killers should question methods, results, or gaps in the research."
+            "Killer": "prefers to critically examine assumptions and highlight flaws. Annotations for Killers should question methods, results, or gaps in the research.",
         }
 
         expertise_styles = {
             "Expert": "Provide highly detailed and technical insights. Assume familiarity with complex terminology and focus on deep analysis.",
             "Intermediate": "Provide insights that are thorough but still digestible for those with some technical background. Keep it concise but informative.",
-            "Basic": "Simplify the annotation for easy understanding. Focus on the general themes without diving into complex details or jargon."
+            "Basic": "Simplify the annotation for easy understanding. Focus on the general themes without diving into complex details or jargon.",
         }
 
-        expertise_level = (
-            "Expert" if trust_score > 0.9 else
-            "Intermediate" if trust_score > 0.4 else
-            "Basic"
-        )
+        expertise_level = "Expert" if trust_score > 0.9 else "Intermediate" if trust_score > 0.4 else "Basic"
 
         prompt_text = (
             f"Analyze the following abstract and relevant comments. Identify key takeaways for a user with a '{persona}' persona, "
@@ -138,6 +137,5 @@ class GenerateAnnotationStrategy(PromptStrategy):
             "skill": skill,
             "trust_score": trust_score,
             "user_label_comment": user_label_comment,
-            "decision_comment": decision_comment
+            "decision_comment": decision_comment,
         }
-

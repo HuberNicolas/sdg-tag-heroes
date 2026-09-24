@@ -24,6 +24,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -31,6 +32,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API router
 router = APIRouter(
@@ -43,12 +45,14 @@ router = APIRouter(
     },
 )
 
-@router.get("/users/{user_id}/bank", response_model=SDGXPBankSchemaFull,
-            description="Retrieve the bank for a specific user")
+
+@router.get(
+    "/users/{user_id}/bank", response_model=SDGXPBankSchemaFull, description="Retrieve the bank for a specific user"
+)
 async def get_user_bank(
-        user_id: int,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    user_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Retrieve the bank (SDGXPBank) for a specific user by their ID.
@@ -76,11 +80,10 @@ async def get_user_bank(
         )
 
 
-@router.get("/users/banks", response_model=List[SDGXPBankSchemaFull],
-            description="Retrieve banks for all users")
+@router.get("/users/banks", response_model=List[SDGXPBankSchemaFull], description="Retrieve banks for all users")
 async def get_all_banks(
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Retrieve all banks (SDGXPBank) for all users.
@@ -102,13 +105,16 @@ async def get_all_banks(
         )
 
 
-@router.post("/users/{user_id}/banks/histories", response_model=SDGXPBankHistorySchemaFull,
-             description="Add a bank increment for a specific user")
+@router.post(
+    "/users/{user_id}/banks/histories",
+    response_model=SDGXPBankHistorySchemaFull,
+    description="Add a bank increment for a specific user",
+)
 async def add_bank_increment(
-        user_id: int,
-        request: BankIncrementRequest,
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    user_id: int,
+    request: BankIncrementRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Add a bank increment (SDGXPBankHistory) for a specific user.
@@ -160,6 +166,7 @@ async def add_bank_increment(
             detail="An error occurred while adding the bank increment",
         )
 
+
 @router.get("/latest", response_model=SDGXPBankHistorySchemaFull | NoSDGXPBankHistorySchemaBase)
 async def get_latest_bank_history(
     db: Session = Depends(get_db),
@@ -194,15 +201,14 @@ async def get_latest_bank_history(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while fetching the latest bank history: {e}"
+            detail=f"An error occurred while fetching the latest bank history: {e}",
         )
 
 
-@router.get("/personal", response_model=SDGXPBankSchemaFull,
-            description="Retrieve the personal bank for current user")
+@router.get("/personal", response_model=SDGXPBankSchemaFull, description="Retrieve the personal bank for current user")
 async def get_personal_bank(
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Retrieve the bank (SDGXPBank) for current user by their ID.

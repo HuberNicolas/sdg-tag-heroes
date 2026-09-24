@@ -10,6 +10,7 @@ from settings.settings import EmbeddingsSettings, ReducerSettings
 embeddings_settings = EmbeddingsSettings()
 reducer_settings = ReducerSettings()
 
+
 class UMAPCoordinateService:
     def __init__(self):
         """
@@ -22,16 +23,17 @@ class UMAPCoordinateService:
         self.umap_model_dir = os.path.abspath(os.path.join(base_dir, reducer_settings.UMAP_MODEL_PATH))
 
         self.embedding_model = SentenceTransformer(
-            model_name_or_path=embeddings_settings.ENCODER_MODEL,
-            device=embeddings_settings.ENCODER_DEVICE
+            model_name_or_path=embeddings_settings.ENCODER_MODEL, device=embeddings_settings.ENCODER_DEVICE
         )
 
         if not os.path.exists(self.umap_model_dir):
             raise ValueError(f"UMAP model directory does not exist: {self.umap_model_dir}")
 
         # Load a default UMAP model (predefined path)
-        #self.default_umap_model_path = os.path.join(self.umap_model_dir, "umap_model_UZH.joblib")
-        self.default_umap_model_path = os.path.join(self.umap_model_dir, f"config_15_0.0_2", f"SDG1.joblib") # TODO: takes ages to load
+        # self.default_umap_model_path = os.path.join(self.umap_model_dir, "umap_model_UZH.joblib")
+        self.default_umap_model_path = os.path.join(
+            self.umap_model_dir, "config_15_0.0_2", "SDG1.joblib"
+        )  # TODO: takes ages to load
 
         if os.path.exists(self.default_umap_model_path):
             self.default_umap_model = joblib.load(self.default_umap_model_path)
@@ -56,7 +58,7 @@ class UMAPCoordinateService:
         :return: UMAP model instance.
         """
         # TODO: do de-hardcode model confis
-        model_path = os.path.join(self.umap_model_dir,f"config_15_0.0_2", f"SDG{sdg}.joblib")
+        model_path = os.path.join(self.umap_model_dir, "config_15_0.0_2", f"SDG{sdg}.joblib")
         print(f"Loading UMAP model from {model_path}")
         if not os.path.exists(model_path):
             raise Exception(f"UMAP model for SDG{sdg}, Level{level} not found.")
@@ -79,7 +81,6 @@ class UMAPCoordinateService:
             end = time.time()
             embedding_time = end - start
 
-
             # Load the appropriate UMAP model
             start = time.time()
             umap_model = self._load_umap_model(sdg, level)
@@ -99,12 +100,11 @@ class UMAPCoordinateService:
                 z_coord=0.0,
                 embedding_time=embedding_time,
                 model_loading_time=model_loading_time,
-                umap_reduction_transform_time=umap_reduction_transform_time
+                umap_reduction_transform_time=umap_reduction_transform_time,
             )
 
         except Exception as e:
             raise e
-
 
     def get_coordinates_using_default_model(self, query: str) -> UserCoordinatesSchema:
         """
@@ -136,7 +136,7 @@ class UMAPCoordinateService:
                 z_coord=0.0,
                 embedding_time=embedding_time,
                 model_loading_time=0.0,  # No loading time, as default is preloaded
-                umap_reduction_transform_time=umap_reduction_transform_time
+                umap_reduction_transform_time=umap_reduction_transform_time,
             )
 
         except Exception as e:

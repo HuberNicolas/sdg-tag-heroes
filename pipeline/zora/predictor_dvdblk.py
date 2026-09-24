@@ -4,6 +4,7 @@ and store them as SDGPrediction rows with prediction_model="Dvdblk".
 
 This is an alternative to the Aurora predictor (predictor.py).
 """
+
 import argparse
 import gc
 
@@ -11,27 +12,26 @@ import torch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from models import Publication, SDGPrediction
+from settings.settings import PredictionSettings
 from utils.sdg_predictor import sdg_predictor
 
-from models import Publication, SDGPrediction
-
-from settings.settings import PredictionSettings
 predictor_settings = PredictionSettings()
 
-#os.environ[PredictionSettings.CUDA_VISIBLE_DEVICES_KEY] = PredictionSettings.CUDA_VISIBLE_DEVICES_VALUE
+# os.environ[PredictionSettings.CUDA_VISIBLE_DEVICES_KEY] = PredictionSettings.CUDA_VISIBLE_DEVICES_VALUE
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(predictor_settings.DVDBLK_PREDICTOR_LOG_NAME)
-
-
 
 
 def update_sdg_field(prediction_entry, predictions, precision=8):
     """Dynamically update all relevant SDG fields for a prediction entry, rounding the value to a specified precision."""
     for i in range(1, 18):
         rounded_prediction = round(predictions[i - 1], precision)
-        setattr(prediction_entry, f'sdg{i}', rounded_prediction)  # Set sdg1 to sdg17
+        setattr(prediction_entry, f"sdg{i}", rounded_prediction)  # Set sdg1 to sdg17
+
 
 def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     """
@@ -54,18 +54,17 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     # Generate predictions for all publications
     predictions = []
     for i in range(0, len(publications), batch_size):
-        batch = publications[i: i + batch_size]
+        batch = publications[i : i + batch_size]
 
         # TODO: Add to settings for simpler config
         abstracts = [f"{pub.title}\n{pub.description}" for pub in batch]
         batch_predictions = [sdg_predictor(abstract) for abstract in abstracts]
         predictions.extend(batch_predictions)
 
-
     # Process predictions in batches for uploading
     for i in range(0, len(publications), mariadb_batch_size):
-        batch = publications[i: i + mariadb_batch_size]
-        batch_predictions = predictions[i: i + mariadb_batch_size]
+        batch = publications[i : i + mariadb_batch_size]
+        batch_predictions = predictions[i : i + mariadb_batch_size]
 
         logging.info(
             f"Processing batch {i // mariadb_batch_size + 1} (Publication IDs {batch[0].publication_id} to {batch[-1].publication_id})"
@@ -88,15 +87,12 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
             # Add to the list of updated entries
             updated_entries.append(prediction_entry)
 
-
         # Perform bulk update
         if updated_entries:
             session.bulk_save_objects(updated_entries)
             try:
                 session.commit()
-                logging.info(
-                    f"Batch {i // mariadb_batch_size + 1} predictions for model Dvdblk saved."
-                )
+                logging.info(f"Batch {i // mariadb_batch_size + 1} predictions for model Dvdblk saved.")
             except Exception as e:
                 logging.error(f"Error committing batch {i // mariadb_batch_size + 1}: {e}")
                 session.rollback()  # Rollback on error
@@ -104,7 +100,6 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
         # Clear memory
         del batch, batch_predictions
         gc.collect()
-
 
     # Clear memory
     del predictions
@@ -125,6 +120,7 @@ def reset_database(session):
     session.query(SDGPrediction).delete()
     session.commit()
     logging.info("Database reset complete.")
+
 
 def main(db, batch_size, mariadb_batch_size):
     logging.info("Starting Predictor...")
@@ -154,10 +150,9 @@ def main(db, batch_size, mariadb_batch_size):
     session.close()
     logging.info("Batch prediction process complete.")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run SDG batch predictor with SQLite or MariaDB."
-    )
+    parser = argparse.ArgumentParser(description="Run SDG batch predictor with SQLite or MariaDB.")
     parser.add_argument(
         "--db",
         choices=["sqlite", "mariadb"],

@@ -3,10 +3,8 @@ from typing import List
 
 from pydantic import BaseModel
 
-
 # Not directly derived from models
 # Todo: Generate TS type
-
 
 
 # Function Output Schemas
@@ -23,12 +21,14 @@ class MetricSchema(BaseModel):
     class Config:
         from_attributes = True  # Enables ORM-style model validation
 
+
 class PublicationMetricsSchema(BaseModel):
     publication_id: int
     metrics: List[MetricSchema]
 
     class Config:
         from_attributes = True  # Enables ORM-style model validation
+
 
 class FilteredMetricsSchema(BaseModel):
     metric_type: str

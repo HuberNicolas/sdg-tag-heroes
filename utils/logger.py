@@ -8,6 +8,7 @@ from utils.env_loader import is_running_in_docker
 
 logging_settings = LoggingSettings()
 
+
 # Function to configure logger
 def logger(name: str):
     # Use os.path.join to construct safe file paths
@@ -17,7 +18,6 @@ def logger(name: str):
         base_path = logging_settings.LOG_PATH
 
     log_file_path = os.path.join(base_path, f"{name}")
-
 
     # Remove any existing handlers before reconfiguring
     loguru_logger.remove()
@@ -33,7 +33,6 @@ def logger(name: str):
 
     # Colors in docker/terminal: https://github.com/Delgan/loguru/issues/1173
     loguru_logger.add(sys.stderr, colorize=True)
-
 
     """
         #  https://www.highlight.io/blog/5-best-python-logging-libraries

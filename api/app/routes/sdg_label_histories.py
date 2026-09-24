@@ -21,6 +21,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -28,6 +29,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API Router
 router = APIRouter(
@@ -44,7 +46,7 @@ router = APIRouter(
 @router.get(
     "/publications/{publication_id}/",
     response_model=SDGLabelHistorySchemaFull,
-    description="Retrieve the SDGLabelHistory associated with a specific publication"
+    description="Retrieve the SDGLabelHistory associated with a specific publication",
 )
 async def get_sdg_label_history(
     publication_id: int,
@@ -84,12 +86,11 @@ async def get_sdg_label_history(
             detail="An error occurred while fetching the SDGLabelHistory for the publication",
         )
 
+
 @router.get(
-    "/{history_id}/",
-    response_model=SDGLabelHistorySchemaFull,
-    description="Retrieve the a specific SDGLabelHistory"
+    "/{history_id}/", response_model=SDGLabelHistorySchemaFull, description="Retrieve the a specific SDGLabelHistory"
 )
-async def get_sdg_label_history(
+async def get_sdg_label_history(  # noqa: F811 (another route with the same function name; FastAPI registers both)
     history_id: int,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),

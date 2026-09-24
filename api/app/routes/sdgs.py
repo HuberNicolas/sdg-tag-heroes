@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, sessionmaker, joinedload
+from sqlalchemy.orm import Session, joinedload, sessionmaker
 
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
@@ -22,6 +22,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -29,6 +30,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 router = APIRouter(
     prefix="/sdgs",
@@ -40,16 +42,13 @@ router = APIRouter(
     },
 )
 
+
 @router.get(
     "/{sdg_id}",
     response_model=SDGGoalSchemaFull,
-    description="Get a single SDG goal by ID with optional inclusion of targets"
+    description="Get a single SDG goal by ID with optional inclusion of targets",
 )
-async def get_sdg(
-    sdg_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-) -> SDGGoalSchemaFull:
+async def get_sdg(sdg_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> SDGGoalSchemaFull:
     """
     Retrieve a single SDG goal by its ID with optional inclusion of targets.
     """
@@ -81,15 +80,11 @@ async def get_sdg(
             detail=f"An error occurred while fetching the SDG goal {sdg_id}: {e}",
         )
 
+
 @router.get(
-    "/",
-    response_model=List[SDGGoalSchemaFull],
-    description="Get all SDG goals with optional inclusion of targets"
+    "/", response_model=List[SDGGoalSchemaFull], description="Get all SDG goals with optional inclusion of targets"
 )
-async def get_sdgs(
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-):
+async def get_sdgs(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     """
     Retrieve all SDG goals with optional inclusion of targets.
     Supports pagination.
@@ -103,7 +98,6 @@ async def get_sdgs(
 
         # Map the paginated items to Pydantic models
         return [SDGGoalSchemaFull.model_validate(goal) for goal in goals]
-
 
     except HTTPException:
         raise

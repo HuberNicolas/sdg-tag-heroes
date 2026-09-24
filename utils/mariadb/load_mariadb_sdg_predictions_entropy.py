@@ -1,10 +1,13 @@
 import math
+
 from sqlalchemy.orm import sessionmaker
+
 from db.mariadb_connector import engine as mariadb_engine
 from models.sdg_prediction import SDGPrediction
 
 # Initialize session
 Session = sessionmaker(bind=mariadb_engine)
+
 
 def calculate_entropy(values):
     """
@@ -12,6 +15,7 @@ def calculate_entropy(values):
     """
     entropy_value = -sum(p * math.log2(p) if p != 0 else 0 for p in values)
     return round(entropy_value, 4)
+
 
 def calculate_std(values):
     """
@@ -25,11 +29,10 @@ def calculate_std(values):
     std_deviation = math.sqrt(variance)
     return round(std_deviation, 4)
 
+
 def load_and_update_predictions(batch_size=100):
     with Session() as session:
-        query = session.query(SDGPrediction).filter(
-            SDGPrediction.predicted.is_(True)
-        )
+        query = session.query(SDGPrediction).filter(SDGPrediction.predicted.is_(True))
         predictions_count = query.count()
 
         batch_count = (predictions_count // batch_size) + 1
@@ -54,6 +57,7 @@ def load_and_update_predictions(batch_size=100):
             # Commit batch updates
             session.commit()
             print(f"Committed batch {batch_index + 1} of {batch_count}")
+
 
 if __name__ == "__main__":
     load_and_update_predictions(batch_size=500)

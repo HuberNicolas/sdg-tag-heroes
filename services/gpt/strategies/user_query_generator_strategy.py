@@ -40,6 +40,7 @@ class InterestsQueryStrategy(PromptStrategy):
             "interests": interests,
         }
 
+
 class SDGSkillsStrategy(PromptStrategy):
     """Strategy for proposing an SDG based on skills."""
 
@@ -56,10 +57,11 @@ class SDGSkillsStrategy(PromptStrategy):
                 "Provide the id (1-17) of a single SDG and a concise reasoning for your choice. "
                 "Your answer is straightforward, easy to understand and has max 2 sentences. "
                 "Your answer makes the non-sustainable expert curious and want to explore. "
-                #"For transparency reasons, your answers start with a short introduction who generated the answer, somthing like: As your helpful SDG-AI assistant, I recommend..."
+                # "For transparency reasons, your answers start with a short introduction who generated the answer, somthing like: As your helpful SDG-AI assistant, I recommend..."
             ),
             "skills": skills,
         }
+
 
 class SDGInterestsStrategy(PromptStrategy):
     """Strategy for proposing an SDG based on interests."""
@@ -77,7 +79,7 @@ class SDGInterestsStrategy(PromptStrategy):
                 "Provide the id (1-17) of a single SDG and a concise reasoning for your choice."
                 "Your answer is straightforward, easy to understand and has max 2 sentences. "
                 "Your answer makes the non-sustainable expert curious and want to explore. "
-                #"For transparency reasons, your answers start with a short introduction who generated the answer, somthing like: As your helpful SDG-AI assistant, I recommend..."
+                # "For transparency reasons, your answers start with a short introduction who generated the answer, somthing like: As your helpful SDG-AI assistant, I recommend..."
             ),
             "interests": interests,
         }

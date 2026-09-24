@@ -1,25 +1,23 @@
+import json
 import os
-import copy
+import time
 
-import joblib
 import numpy as np
 import pandas as pd
-import json
-import time
-import sys
+from bertopic import BERTopic
+from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, TextGeneration, ZeroShotClassification
+from bertopic.vectorizers import ClassTfidfTransformer
+from hdbscan import HDBSCAN
+from qdrant_client.http.models import FieldCondition, Filter, MatchAny
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import CountVectorizer
-from umap import UMAP
-from hdbscan import HDBSCAN
-from bertopic import BERTopic
-from bertopic.vectorizers import ClassTfidfTransformer
-from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, TextGeneration, ZeroShotClassification
-from transformers import pipeline
 from sqlalchemy.orm import sessionmaker
-from db.qdrantdb_connector import client as qdrantdb_client
+from transformers import pipeline
+from umap import UMAP
+
 from db.mariadb_connector import engine as mariadb_engine
-from qdrant_client.http.models import Filter, MatchAny, FieldCondition
+from db.qdrantdb_connector import client as qdrantdb_client
 from models.publications.publication import Publication
 from settings.sdg_descriptions import sdgs
 from settings.settings import EmbeddingsSettings
@@ -33,46 +31,49 @@ db = Session()
 LIMIT = 50000
 COLLECTIONS_DIR = "./data/pipeline/collections"
 
+
 class PubWrapper:
     def __init__(self, data):
         self.title = data.get("title")
         self.description = data.get("description")
 
+
 # Topic Modeling Pipeline
 class TopicModelPipeline:
     """
-       A modular pipeline for creating a BERTopic model with advanced representation techniques.
+    A modular pipeline for creating a BERTopic model with advanced representation techniques.
     """
-    def __init__(self, embedding_model="distilbert-base-uncased"): # all-MiniLM-L6-v2
-        """
-               Initialize the pipeline with default settings.
 
-               Args:
-                   embedding_model (str): The name of the embedding model to use.
-               """
+    def __init__(self, embedding_model="distilbert-base-uncased"):  # all-MiniLM-L6-v2
+        """
+        Initialize the pipeline with default settings.
+
+        Args:
+            embedding_model (str): The name of the embedding model to use.
+        """
 
         # Step 1: Embedding models
         # https://maartengr.github.io/BERTopic/getting_started/embeddings/embeddings.html
         self.embedding_model = embedding_model
-        self.dim_reduction_model = None # Instantiate a second UMAP to not interfere with the orig. pipeline
+        self.dim_reduction_model = None  # Instantiate a second UMAP to not interfere with the orig. pipeline
 
     def create_topic_model(self, **params):
         """
-               Create a fully-configured BERTopic model.
+        Create a fully-configured BERTopic model.
 
-               Args:
-                   dim_reduction_method (str): The dimensionality reduction method, either 'umap' or 'pca'.
-                   dim_reduction_params (dict): Parameters for the dimensionality reduction model.
-                   cluster_method (str): The name of the cluster method to use, either 'hdbscan', 'kmeans' or 'agglomerative'.
-                   cluster_method_params (dict): Parameters for the cluster method.
-                   vectorizer_method_params (dict): Parameters for the vectorizer method.
-                   ctfidf_method_params (dict): Parameters for the ctfidf method.
-                   representation_models_params (dict): Parameters for the representation models.
-                   verbose (bool): Whether to enable verbose output.
+        Args:
+            dim_reduction_method (str): The dimensionality reduction method, either 'umap' or 'pca'.
+            dim_reduction_params (dict): Parameters for the dimensionality reduction model.
+            cluster_method (str): The name of the cluster method to use, either 'hdbscan', 'kmeans' or 'agglomerative'.
+            cluster_method_params (dict): Parameters for the cluster method.
+            vectorizer_method_params (dict): Parameters for the vectorizer method.
+            ctfidf_method_params (dict): Parameters for the ctfidf method.
+            representation_models_params (dict): Parameters for the representation models.
+            verbose (bool): Whether to enable verbose output.
 
-               Returns:
-                   BERTopic: Configured BERTopic model.
-               """
+        Returns:
+            BERTopic: Configured BERTopic model.
+        """
         dim_reduction_params = params.get("dim_reduction_params", {})
         cluster_method_params = params.get("cluster_method_params", {})
         vectorizer_params = params.get("vectorizer_params", {})
@@ -83,10 +84,8 @@ class TopicModelPipeline:
         # https://maartengr.github.io/BERTopic/getting_started/dim_reduction/dim_reduction.html
         dim_model = self._get_dim_model(**dim_reduction_params)
 
-
         # Step 3: Clustering
         # https://maartengr.github.io/BERTopic/getting_started/clustering/clustering.html
-
 
         """
         Modify Clustering Parameters -> To many topics? (Topics depend on clusters):
@@ -147,28 +146,28 @@ class TopicModelPipeline:
 
     def _get_dim_model(self, method="umap", **kwargs):
         """
-                Private method to create the dimensionality reduction model.
+        Private method to create the dimensionality reduction model.
 
-                Args:
-                    method (str): The dimensionality reduction method, either 'umap' or 'pca'.
-                    **kwargs: Additional arguments for the dimensionality reduction model.
+        Args:
+            method (str): The dimensionality reduction method, either 'umap' or 'pca'.
+            **kwargs: Additional arguments for the dimensionality reduction model.
 
-                Returns:
-                    object: Dimensionality reduction model.
-                """
+        Returns:
+            object: Dimensionality reduction model.
+        """
         return UMAP(**kwargs) if method.lower() == "umap" else PCA(**kwargs)
 
     def _get_cluster_model(self, method="hdbscan", **kwargs):
         """
-                Private method to create the cluster model.
+        Private method to create the cluster model.
 
-                Args:
-                    method (str): The cluster method, either 'hdbscan', 'kmeans', or 'agglomerative'.
-                    **kwargs: Additional arguments for the cluster model.
+        Args:
+            method (str): The cluster method, either 'hdbscan', 'kmeans', or 'agglomerative'.
+            **kwargs: Additional arguments for the cluster model.
 
-                Returns:
-                    object: Cluster model.
-                """
+        Returns:
+            object: Cluster model.
+        """
         if method.lower() == "hdbscan":
             return HDBSCAN(**kwargs)
         elif method.lower() == "kmeans":
@@ -177,21 +176,19 @@ class TopicModelPipeline:
             return AgglomerativeClustering(**kwargs)
         raise ValueError(f"Unsupported cluster method: {method}")
 
-
-
     def _get_representation_models(self, **kwargs):
         """
-               Create and configure advanced representation models for BERTopic.
+        Create and configure advanced representation models for BERTopic.
 
-               Args:
-                    **kwargs: Additional arguments for the representation models, such as:
-                   - diversity (float): The diversity parameter for MaximalMarginalRelevance.
-                   - candidate_topics (list): A list of candidate topics for ZeroShotClassification.
-                   - text_generator_model (str): Model name for text generation.
+        Args:
+             **kwargs: Additional arguments for the representation models, such as:
+            - diversity (float): The diversity parameter for MaximalMarginalRelevance.
+            - candidate_topics (list): A list of candidate topics for ZeroShotClassification.
+            - text_generator_model (str): Model name for text generation.
 
-               Returns:
-                   dict: Dictionary of representation models.
-               """
+        Returns:
+            dict: Dictionary of representation models.
+        """
         # Main representation model (KeyBERT-inspired)
         main_model = KeyBERTInspired()
 
@@ -205,7 +202,9 @@ class TopicModelPipeline:
         aspect_model_2 = TextGeneration(generator)
 
         # Zero-shot classification model
-        candidate_topics = kwargs.get("candidate_topics", )
+        candidate_topics = kwargs.get(
+            "candidate_topics",
+        )
         candidate_topics = candidate_topics
         aspect_model_3 = ZeroShotClassification(candidate_topics, model="facebook/bart-large-mnli")
 
@@ -218,11 +217,10 @@ class TopicModelPipeline:
         }
         return representation_models
 
-from settings.settings import ReducerSettings
-
 
 # Visualize Documents with Plotly and Save as HTML
-import plotly.io as pio
+
+from settings.settings import ReducerSettings
 
 
 def main():
@@ -275,12 +273,14 @@ def main():
     for pub in publications:
         pub_id = pub["id"]
         if pub_id in embeddings_dict:
-            merged_data.append({
-                "id": pub_id,
-                "description": pub["description"],
-                "title": pub["title"],
-                "embedding": embeddings_dict[pub_id]
-            })
+            merged_data.append(
+                {
+                    "id": pub_id,
+                    "description": pub["description"],
+                    "title": pub["title"],
+                    "embedding": embeddings_dict[pub_id],
+                }
+            )
 
     if not merged_data:
         raise ValueError("No matching publications and embeddings found.")
@@ -308,7 +308,6 @@ def main():
     embeddings = np.array([item["embedding"] for item in merged_data])  # Embeddings as NumPy array
     print(f"Sample embedding: {embeddings[0]}")
 
-
     print(f"Total documents: {len(docs)}, total embeddings: {len(embeddings)}, total ids: {len(ids)}")
 
     tm_pipeline = TopicModelPipeline()
@@ -330,8 +329,12 @@ def main():
         dim_reduction_params=dim_reduction_params,
         cluster_method_params={"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
         # c-TF-IDF counts topics as documents; small datasets (e.g. the dummy dataset) have fewer than 10 topics
-        vectorizer_params={"stop_words": "english", "ngram_range": (1, 3), "min_df": 10 if len(docs) >= 10_000 else 1,
-                           "max_features": 10_000},
+        vectorizer_params={
+            "stop_words": "english",
+            "ngram_range": (1, 3),
+            "min_df": 10 if len(docs) >= 10_000 else 1,
+            "max_features": 10_000,
+        },
         ctfidf_params={"bm25_weighting": True, "reduce_frequent_words": True},
         representation_params={"diversity": 0.5, "candidate_topics": seed_words},
     )
@@ -340,15 +343,12 @@ def main():
     topic_model.fit(docs, embeddings)
     print(f"Fitting took {time.time() - start:.2f}s")
 
-
     # Reduce the number of topics
     # nr_topics specifies the desired number of topics after reduction
-    reduced_topic_model = topic_model.reduce_topics(docs, nr_topics=21) # 20 + 1 Null Class
-
-
+    reduced_topic_model = topic_model.reduce_topics(docs, nr_topics=21)  # 20 + 1 Null Class
 
     # Data Export for Visualization
-    #topic_model.visualize_documents(docs, embeddings=embeddings)
+    # topic_model.visualize_documents(docs, embeddings=embeddings)
 
     # Step 1: Reduce Dimensionality to 2D
     reduced_embeddings = reduced_topic_model._reduce_dimensionality(embeddings=embeddings)
@@ -362,7 +362,7 @@ def main():
     data = pd.DataFrame(reduced_embeddings, columns=["x", "y"])
     data["id"] = ids  # Reuse the passed IDs
     data["title"] = titles
-    data["descriptions"] =descriptions
+    data["descriptions"] = descriptions
     doc_info = reduced_topic_model.get_document_info(docs)
     topic_info = reduced_topic_model.get_topic_info()
     data["topic"] = doc_info["Topic"]

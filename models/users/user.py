@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 
 from passlib.context import CryptContext
-from sqlalchemy import String, Boolean, DateTime, JSON
+from sqlalchemy import JSON, Boolean, DateTime, String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +22,7 @@ class User(Base):
     """
     Base user model for FastAPI with SQLAlchemy using Mapped.
     """
+
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -31,16 +32,19 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Directly mapped column for roles as JSON
-    _roles: Mapped[str] = mapped_column("roles", JSON, default=lambda: json.dumps([UserRole.USER.value]),
-                                        nullable=False)
+    _roles: Mapped[str] = mapped_column(
+        "roles", JSON, default=lambda: json.dumps([UserRole.USER.value]), nullable=False
+    )
 
-    def __init__(self, email: str, nickname: str = None, hashed_password: str = None, roles: List[UserRole] = None, **kwargs):
+    def __init__(
+        self, email: str, nickname: str = None, hashed_password: str = None, roles: List[UserRole] = None, **kwargs
+    ):
         """
         Custom initializer to handle `roles` and other parameters.
         """
         self.nickname = nickname
         self.email = email
-        self.is_active = kwargs.get('is_active', True)
+        self.is_active = kwargs.get("is_active", True)
         self._roles = json.dumps([role.value for role in (roles or [UserRole.USER])])
         if hashed_password:
             self.set_password(hashed_password)
@@ -77,28 +81,20 @@ class User(Base):
     )
 
     # Relationship to Votes
-    votes: Mapped[list["Vote"]] = relationship(
-        "Vote", back_populates="user", cascade="all, delete-orphan"
-    )
+    votes: Mapped[list["Vote"]] = relationship("Vote", back_populates="user", cascade="all, delete-orphan")
 
     # One-to-Many relationship with SDGLabelDecision (as an Expert)
-    sdg_label_decisions: Mapped[list["SDGLabelDecision"]] = relationship(
-        "SDGLabelDecision", back_populates="expert"
-    )
+    sdg_label_decisions: Mapped[list["SDGLabelDecision"]] = relationship("SDGLabelDecision", back_populates="expert")
 
     # Many-to-Many relationship with Group
-    groups: Mapped[list["Group"]] = relationship(
-        "Group",
-        secondary=user_group_association,
-        back_populates="members"
-    )
+    groups: Mapped[list["Group"]] = relationship("Group", secondary=user_group_association, back_populates="members")
 
     # One-to-One relationship with Inventory
     inventory: Mapped["Inventory"] = relationship(
         "Inventory",
         back_populates="user",
         uselist=False,  # Ensure one-to-one
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
 
     # One-to-One relationship with SDGCoinWallet
@@ -106,7 +102,7 @@ class User(Base):
         "SDGCoinWallet",
         back_populates="user",
         uselist=False,  # Ensure one-to-one
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
 
     # One-to-One relationship with SDGXPBank
@@ -114,9 +110,8 @@ class User(Base):
         "SDGXPBank",
         back_populates="user",
         uselist=False,  # Ensure one-to-one
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
-
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -143,6 +138,8 @@ class User(Base):
         self.hashed_password = pwd_context.hash(password)
 
     def __repr__(self):
-        return (f"<User(user_id={self.user_id}, email={self.email}, nickname={self.nickname}, "
-                f"roles={self.roles}, is_active={self.is_active},"
-                f"created_at={self.created_at}, updated_at={self.updated_at})>")
+        return (
+            f"<User(user_id={self.user_id}, email={self.email}, nickname={self.nickname}, "
+            f"roles={self.roles}, is_active={self.is_active},"
+            f"created_at={self.created_at}, updated_at={self.updated_at})>"
+        )

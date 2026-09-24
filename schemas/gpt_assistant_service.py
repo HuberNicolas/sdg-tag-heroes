@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 from enums import SDGType
 
-
 # Not directly derived from models
 # Todo: Generate TS type
 
@@ -13,30 +12,38 @@ from enums import SDGType
 class GPTResponseKeywordsSchema(BaseModel):
     keywords: List[str]
 
+
 class GPTResponseSDGAnalysisSchema(BaseModel):
     relevance: str
     reasoning: str
 
+
 class GPTResponseFactSchema(BaseModel):
     fact: str
 
+
 class GPTResponseSummarySchema(BaseModel):
     summary: str
+
 
 class GPTResponseCollectiveSummarySchema(BaseModel):
     summary: str
     keywords: List[str]
 
+
 class GPTResponseCommentSummarySchema(BaseModel):
     summary: str
+
 
 class GPTResponseSkillsQuerySchema(BaseModel):
     skills: str
     generated_query: str
 
+
 class GPTResponseInterestsQuerySchema(BaseModel):
     interests: str
     generated_query: str
+
 
 class GPTResponseAnnotationScoreSchema(BaseModel):
     relevance: float
@@ -45,14 +52,18 @@ class GPTResponseAnnotationScoreSchema(BaseModel):
     creativity: float
     reasoning: str
 
+
 class GPTPersonaResponseCommentSchema(BaseModel):
     comment_text: str  # The generated comment
-    abstract_section: str # The selected passage
+    abstract_section: str  # The selected passage
+
 
 class GPTPersonaResponseAnnotationSchema(BaseModel):
     annotation_text: str  # The generated annotation
 
+
 # API Response Schemas
+
 
 # GPT SDG relevance explanation
 class PublicationSDGAnalysisSchema(BaseModel):
@@ -65,6 +76,7 @@ class PublicationSDGAnalysisSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 # Single Publication Summary Schema
 class PublicationSummarySchema(BaseModel):
     publication_id: int
@@ -73,14 +85,16 @@ class PublicationSummarySchema(BaseModel):
     class Config:
         from_attributes = True  # Enables ORM-style model validation
 
+
 # Summary for multiple publications
 class PublicationsCollectiveSummarySchema(BaseModel):
     publication_ids: List[int]
     summary: str
     keywords: List[str]
 
-class Config:
+    class Config:
         from_attributes = True  # Enables ORM-style model validation
+
 
 # Keywords for a Single Publication Schema
 class PublicationKeywordsSchema(BaseModel):
@@ -90,12 +104,13 @@ class PublicationKeywordsSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 # Summary for multiple SDG User Labels
 class SDGUserLabelsCommentSummarySchema(BaseModel):
     user_labels_ids: List[int]
     summary: str
 
-class Config:
+    class Config:
         from_attributes = True  # Enables ORM-style model validation
 
 
@@ -106,12 +121,14 @@ class UserEnrichedSkillsDescriptionSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserEnrichedInterestsDescriptionSchema(BaseModel):
     input_interests: str
     enriched_description: str
 
     class Config:
         from_attributes = True
+
 
 class SDGPredictionSchema(BaseModel):
     input: str

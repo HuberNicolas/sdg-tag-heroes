@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
+
+from enums.enums import SDGType
+from models import SDGUserLabel
 from services.gpt.gpt_assistant_service import GPTAssistantService
 from services.gpt.user_annotation_evaluator_service import UserAnnotationEvaluatorService
-from models import SDGLabelDecision, SDGPrediction, SDGUserLabel
-from enums.enums import SDGType
 from settings.settings import RewardServiceSettings
 from utils.logger import logger
 

@@ -1,11 +1,13 @@
-from logging.config import fileConfig
 import logging
-from alembic import context
-from sqlalchemy import engine_from_config, pool, create_engine, text, inspect
+from logging.config import fileConfig
+
+from sqlalchemy import create_engine, engine_from_config, inspect, pool, text
 from sqlalchemy.exc import OperationalError
-from utils.env_loader import load_env, get_env_variable, is_running_in_docker
-from settings.settings import MariaDBSettings  # Ensure this is correctly imported
+
+from alembic import context
 from models.base import Base  # Replace with the actual import for your Base metadata
+from settings.settings import MariaDBSettings  # Ensure this is correctly imported
+from utils.env_loader import get_env_variable, is_running_in_docker, load_env
 
 # Load environment variables
 load_env("mariadb.env")
@@ -27,8 +29,7 @@ collation = mariadb_settings.MARIADB_COLLATION
 
 # Construct the SQLAlchemy URL with charset and collation
 db_url = (
-    f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database_name}"
-    f"?charset={charset}&collation={collation}"
+    f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database_name}?charset={charset}&collation={collation}"
 )
 
 # Alembic configuration object
@@ -48,6 +49,7 @@ if config.config_file_name is not None:
 
 logger = logging.getLogger("alembic")  # Use the logger configured via fileConfig
 
+
 def test_db_connection():
     """Test the database connection before running migrations."""
     try:
@@ -60,7 +62,6 @@ def test_db_connection():
         # Compare tables
         print("Tables in the database but not in metadata:", db_tables - metadata_tables)
         print("Tables in metadata but not in the database:", metadata_tables - db_tables)
-
 
         with engine.connect() as connection:
             connection.execute(text("SHOW databases"))  # Use sqlalchemy.text to create an executable object

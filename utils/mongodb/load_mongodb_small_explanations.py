@@ -1,15 +1,12 @@
-import json
-import os
-import sys
-import numpy as np
+from bson import BSON  # to handle $oid and BSON size calculation
 from tqdm import tqdm
-from bson import ObjectId, BSON  # to handle $oid and BSON size calculation
+
 from db.mongodb_connector import client
 from settings.settings import MongoDBSDGSettings
 
 # Define the database and collection names
-db_name = 'sdg_explanations'
-source_collection_name = 'explanations'
+db_name = "sdg_explanations"
+source_collection_name = "explanations"
 # The collection the API reads the explanations from
 target_collection_name = MongoDBSDGSettings.DB_COLLECTION_NAME
 
@@ -34,9 +31,7 @@ def main():
 
         # Round each number in the nested lists of token_scores
         token_scores = document.get("token_scores", [])
-        token_scores_reduced = [
-            [int(f"{round(10000*num)}") for num in sublist] for sublist in token_scores
-        ]
+        token_scores_reduced = [[int(f"{round(10000 * num)}") for num in sublist] for sublist in token_scores]
 
         # Update the token_scores field in the copied document
         reduced_document["token_scores"] = token_scores_reduced
@@ -47,10 +42,12 @@ def main():
         target_collection.insert_one(reduced_document)
 
         if original_size - reduced_size > 0:
-            print(f"Processed Zora OAI: {document.get('id')} - Original ID: {document.get('_id')} | Size Reduction: {original_size - reduced_size} bytes")
-        #print(f"Original Document Size: {original_size} bytes")
-        #print(f"Reduced Document Size: {reduced_size} bytes")
-        #print(f"Size Reduction: {original_size - reduced_size} bytes")
+            print(
+                f"Processed Zora OAI: {document.get('id')} - Original ID: {document.get('_id')} | Size Reduction: {original_size - reduced_size} bytes"
+            )
+        # print(f"Original Document Size: {original_size} bytes")
+        # print(f"Reduced Document Size: {reduced_size} bytes")
+        # print(f"Size Reduction: {original_size - reduced_size} bytes")
 
     print(f"All documents processed and uploaded to '{target_collection_name}'.")
 

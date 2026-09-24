@@ -1,56 +1,58 @@
 # Note: This was/should be deactivated as the circular imports are hard to handle for automatic schema generation via pydantic-to-typescript
 print("Initializing schemas")
-from .authentication import UserDataSchemaBase, UserDataSchemaFull, TokenDataSchemaBase, TokenDataSchemaFull, LoginSchemaBase, LoginSchemaFull
-
-from .sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
-from .sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
-
-from .users.user import UserSchemaBase, UserSchemaFull
-from .users.admin import AdminSchemaBase, AdminSchemaFull
-from .users.expert import ExpertSchemaBase, ExpertSchemaFull
-from .users.labeler import LabelerSchemaBase, LabelerSchemaFull
-from .users.group import GroupSchemaBase, GroupSchemaFull
-
-from .author import AuthorSchemaBase, AuthorSchemaFull
-from .publication import PublicationSchemaBase, PublicationSchemaFull
-
-from .faculty import FacultySchemaBase, FacultySchemaFull
-from .institute import InstituteSchemaBase, InstituteSchemaFull
-from .division import DivisionSchemaBase, DivisionSchemaFull
-
-from .dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
-
-from .sdg_prediction import SDGPredictionSchemaBase, SDGPredictionSchemaFull
-from .sdg_target_prediction import SDGTargetPredictionSchemaBase, SDGTargetPredictionSchemaFull
-from .sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull
-from .sdg_label_history import SDGLabelHistorySchemaBase, SDGLabelHistorySchemaFull
-from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull, SDGLabelDecisionSchemaExtended
-from .sdg_user_label import SDGUserLabelSchemaBase, SDGUserLabelSchemaFull
-from .sdg_user_label import SDGLabelDistribution, UserVotingDetails, SDGUserLabelStatisticsSchema # NON-Entity-derived
-
-from .vote import VoteSchemaBase, VoteSchemaFull
-from .annotation import AnnotationSchemaBase, AnnotationSchemaFull
-
-from .sdg_coin_wallet_history import SDGCoinWalletHistorySchemaBase, SDGCoinWalletHistorySchemaFull
-from .sdg_coin_wallet import SDGCoinWalletSchemaBase, SDGCoinWalletSchemaFull
-from .sdg_xp_bank_history import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
-from .sdg_xp_bank import SDGXPBankSchemaBase, SDGXPBankSchemaFull
-
-from .fact import FactSchemaBase, FactSchemaFull
-from .summary import SummarySchemaBase, SummarySchemaFull
-
 from .achievement import AchievementSchemaBase, AchievementSchemaFull
-from .inventory import InventorySchemaBase, InventorySchemaFull
-from .inventory_achievement_association import InventoryAchievementAssociationSchemaBase, InventoryAchievementAssociationSchemaFull
-
-from .clusters.publication_cluster import PublicationClusterSchemaBase, PublicationClusterSchemaFull
+from .annotation import AnnotationSchemaBase, AnnotationSchemaFull
+from .authentication import (
+    LoginSchemaBase,
+    LoginSchemaFull,
+    TokenDataSchemaBase,
+    TokenDataSchemaFull,
+    UserDataSchemaBase,
+    UserDataSchemaFull,
+)
+from .author import AuthorSchemaBase, AuthorSchemaFull
 from .clusters.group import ClusterGroupSchemaBase, ClusterGroupSchemaFull
 from .clusters.level import ClusterLevelSchemaBase, ClusterLevelSchemaFull
+from .clusters.publication_cluster import PublicationClusterSchemaBase, PublicationClusterSchemaFull
 from .clusters.topic import ClusterTopicSchemaBase, ClusterTopicSchemaFull
-
 from .collection import CollectionSchemaBase, CollectionSchemaFull
-
+from .dimensionality_reduction import DimensionalityReductionSchemaBase, DimensionalityReductionSchemaFull
+from .division import DivisionSchemaBase, DivisionSchemaFull
+from .fact import FactSchemaBase, FactSchemaFull
+from .faculty import FacultySchemaBase, FacultySchemaFull
+from .institute import InstituteSchemaBase, InstituteSchemaFull
+from .inventory import InventorySchemaBase, InventorySchemaFull
+from .inventory_achievement_association import (
+    InventoryAchievementAssociationSchemaBase,
+    InventoryAchievementAssociationSchemaFull,
+)
+from .publication import PublicationSchemaBase, PublicationSchemaFull
+from .sdg_coin_wallet import SDGCoinWalletSchemaBase, SDGCoinWalletSchemaFull
+from .sdg_coin_wallet_history import SDGCoinWalletHistorySchemaBase, SDGCoinWalletHistorySchemaFull
+from .sdg_label_decision import SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaExtended, SDGLabelDecisionSchemaFull
+from .sdg_label_history import SDGLabelHistorySchemaBase, SDGLabelHistorySchemaFull
+from .sdg_label_summary import SDGLabelSummarySchemaBase, SDGLabelSummarySchemaFull
+from .sdg_prediction import SDGPredictionSchemaBase, SDGPredictionSchemaFull
 from .sdg_ranks import SDGRankSchemaBase, SDGRankSchemaFull, UsersSDGRankSchemaBase
+from .sdg_target_prediction import SDGTargetPredictionSchemaBase, SDGTargetPredictionSchemaFull
+from .sdg_user_label import (  # NON-Entity-derived
+    SDGLabelDistribution,
+    SDGUserLabelSchemaBase,
+    SDGUserLabelSchemaFull,
+    SDGUserLabelStatisticsSchema,
+    UserVotingDetails,
+)
+from .sdg_xp_bank import SDGXPBankSchemaBase, SDGXPBankSchemaFull
+from .sdg_xp_bank_history import SDGXPBankHistorySchemaBase, SDGXPBankHistorySchemaFull
+from .sdgs.goal import SDGGoalSchemaBase, SDGGoalSchemaFull
+from .sdgs.target import SDGTargetSchemaBase, SDGTargetSchemaFull
+from .summary import SummarySchemaBase, SummarySchemaFull
+from .users.admin import AdminSchemaBase, AdminSchemaFull
+from .users.expert import ExpertSchemaBase, ExpertSchemaFull
+from .users.group import GroupSchemaBase, GroupSchemaFull
+from .users.labeler import LabelerSchemaBase, LabelerSchemaFull
+from .users.user import UserSchemaBase, UserSchemaFull
+from .vote import VoteSchemaBase, VoteSchemaFull
 
 print("Export all models")
 # Export all models for external use
@@ -61,121 +63,83 @@ __all__ = [
     "TokenDataSchemaFull",
     "LoginSchemaBase",
     "LoginSchemaFull",
-
     "SDGTargetSchemaBase",
     "SDGTargetSchemaFull",
-
     "SDGGoalSchemaBase",
     "SDGGoalSchemaFull",
-
     "UserSchemaBase",
     "UserSchemaFull",
-
     "AdminSchemaBase",
     "AdminSchemaFull",
-
     "ExpertSchemaBase",
     "ExpertSchemaFull",
-
     "GroupSchemaBase",
     "GroupSchemaFull",
-
     "LabelerSchemaBase",
     "LabelerSchemaFull",
-
     "AuthorSchemaBase",
     "AuthorSchemaFull",
-
     "PublicationSchemaBase",
     "PublicationSchemaFull",
-
     "FacultySchemaBase",
     "FacultySchemaFull",
-
     "InstituteSchemaBase",
     "InstituteSchemaFull",
-
     "DivisionSchemaBase",
     "DivisionSchemaFull",
-
     "DimensionalityReductionSchemaBase",
     "DimensionalityReductionSchemaFull",
-
     "SDGPredictionSchemaBase",
     "SDGPredictionSchemaFull",
-
     "SDGTargetPredictionSchemaBase",
     "SDGTargetPredictionSchemaFull",
-
     "SDGLabelSummarySchemaBase",
     "SDGLabelSummarySchemaFull",
-
     "SDGLabelHistorySchemaBase",
     "SDGLabelHistorySchemaFull",
-
     "SDGLabelDecisionSchemaBase",
     "SDGLabelDecisionSchemaFull",
     "SDGLabelDecisionSchemaExtended",
-
     "SDGUserLabelSchemaBase",
     "SDGUserLabelSchemaFull",
-
-    "SDGLabelDistribution", # Non-entity-derived
+    "SDGLabelDistribution",  # Non-entity-derived
     "UserVotingDetails",  # Non-entity-derived
     "SDGUserLabelStatisticsSchema",  # Non-entity-derived
-
-
     "VoteSchemaBase",
     "VoteSchemaFull",
-
     "AnnotationSchemaBase",
     "AnnotationSchemaFull",
-
     "SDGCoinWalletHistorySchemaBase",
     "SDGCoinWalletHistorySchemaFull",
-
     "SDGCoinWalletSchemaBase",
     "SDGCoinWalletSchemaFull",
-
     "SDGXPBankHistorySchemaBase",
     "SDGXPBankHistorySchemaFull",
-
     "SDGXPBankSchemaBase",
     "SDGXPBankSchemaFull",
-
     "FactSchemaBase",
     "FactSchemaFull",
-
     "SummarySchemaBase",
     "SummarySchemaFull",
-
-
     "AchievementSchemaBase",
     "AchievementSchemaFull",
-
     "InventorySchemaBase",
     "InventorySchemaFull",
-
     "InventoryAchievementAssociationSchemaBase",
     "InventoryAchievementAssociationSchemaFull",
-
-
     "PublicationClusterSchemaBase",
     "PublicationClusterSchemaFull",
-
     "ClusterGroupSchemaBase",
     "ClusterGroupSchemaFull",
     "ClusterLevelSchemaBase",
     "ClusterLevelSchemaFull",
     "ClusterTopicSchemaBase",
     "ClusterTopicSchemaFull",
-
     "CollectionSchemaBase",
     "CollectionSchemaFull",
-
     "SDGRankSchemaBase",
     "SDGRankSchemaFull",
-    "UsersSDGRankSchemaBase" # Non-entity-derived
+    "UsersSDGRankSchemaBase",  # Non-entity-derived
 ]
 
 # Black magic below:

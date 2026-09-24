@@ -7,7 +7,7 @@ import nltk
 import tensorflow as tf
 from nltk import tokenize
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, joinedload
+from sqlalchemy.orm import joinedload, sessionmaker
 from tensorflow import convert_to_tensor
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -15,16 +15,17 @@ from tqdm import tqdm
 from transformers import BertTokenizer, TFBertMainLayer, TFBertModel
 
 from models import SDGTargetPrediction
-from models.sdg_prediction import SDGPrediction
 from models.publications.publication import Publication
-
+from models.sdg_prediction import SDGPrediction
 from settings.settings import TargetPredictionSettings
+
 target_predictor_settings = TargetPredictionSettings()
 
-#os.environ[PredictionSettings.CUDA_VISIBLE_DEVICES_KEY] = PredictionSettings.CUDA_VISIBLE_DEVICES_VALUE
+# os.environ[PredictionSettings.CUDA_VISIBLE_DEVICES_KEY] = PredictionSettings.CUDA_VISIBLE_DEVICES_VALUE
 
 # Setup Logging
 from utils.logger import logger
+
 logging = logger(target_predictor_settings.AURORA_TARGET_PREDICTOR_LOG_NAME)
 
 # Download nltk tokenizer if not already downloaded
@@ -46,7 +47,7 @@ print(os.listdir(model_dir))
 
 # Tensorflow Verification
 print(tf.__version__)
-print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
 
 
 def sort_model_files(model_files):
@@ -96,7 +97,6 @@ def update_sdg_target_field(prediction_entry, model_file, prediction, precision=
         )
 
 
-
 def tokenize_abstracts(abstracts):
     """For given texts, adds '[CLS]' and '[SEP]' tokens
     at the beginning and the end of each sentence, respectively.
@@ -139,9 +139,7 @@ def abstracts_to_ids(abstracts):
 
 def pad_ids(input_ids, max_len):
     """Padds sequences of a given IDs."""
-    p_input_ids = pad_sequences(
-        input_ids, maxlen=max_len, dtype="long", truncating="post", padding="post"
-    )
+    p_input_ids = pad_sequences(input_ids, maxlen=max_len, dtype="long", truncating="post", padding="post")
     return p_input_ids
 
 
@@ -155,6 +153,7 @@ def create_attention_masks(inputs):
         masks.append(sequence_mask)
     return masks
 
+
 def load_model_from_path(model_path):
     """Load model and predict for a batch of publications."""
     logging.info(f"Loading model from {model_path}")
@@ -166,12 +165,13 @@ def load_model_from_path(model_path):
 
     return model
 
+
 def predict(model, publications, batch_size):
 
     predictions = []
 
     for i in range(0, len(publications), batch_size):
-        batch = publications[i: i + batch_size]
+        batch = publications[i : i + batch_size]
 
         # TODO: Add to settings for simpler config
         abstracts = [f"{pub.title}\n{pub.description}" for pub in batch]
@@ -185,9 +185,7 @@ def predict(model, publications, batch_size):
         masks = convert_to_tensor(masks)
 
         # Log tensor shapes before prediction
-        logging.info(
-            f"Batch {i // batch_size + 1}: Input shape: {inputs.shape}, Mask shape: {masks.shape}"
-        )
+        logging.info(f"Batch {i // batch_size + 1}: Input shape: {inputs.shape}, Mask shape: {masks.shape}")
 
         # Predict
         logging.info(
@@ -201,8 +199,8 @@ def predict(model, publications, batch_size):
     del model, abstracts, ids, padded_ids, masks, inputs, batch_predictions
     gc.collect()
 
-
     return predictions
+
 
 def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     """
@@ -241,9 +239,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
     # For each model, predict across all publications
     for model_idx, model_file in enumerate(model_files, start=1):
         model_path = os.path.join(model_dir, model_file)
-        logging.info(
-            f"Processing model: {model_file} (Model {model_idx} of {len(model_files)})"
-        )
+        logging.info(f"Processing model: {model_file} (Model {model_idx} of {len(model_files)})")
 
         # Extract the SDG target identifier (e.g., '1_1', '2_a') from the model file name
         match = re.match(r"(\d+_[a-z0-9]+)", model_file)
@@ -253,16 +249,19 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
 
         target_identifier = match.group(1)  # e.g., '1_1', '2_a'
         logging.info(
-            f"Processing target: {target_identifier} for model {model_file} (Model {model_idx} of {len(model_files)})")
+            f"Processing target: {target_identifier} for model {model_file} (Model {model_idx} of {len(model_files)})"
+        )
 
         # Flush progress bar
         print()
 
         # Add progress bars for prediction and uploading
-        prediction_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Predicting",
-                               unit="pub", position=0)
-        upload_pbar = tqdm(total=len(publications), desc=f"Model {model_idx}: {model_file} - Uploading", unit="pub",
-                           position=1)
+        prediction_pbar = tqdm(
+            total=len(publications), desc=f"Model {model_idx}: {model_file} - Predicting", unit="pub", position=0
+        )
+        upload_pbar = tqdm(
+            total=len(publications), desc=f"Model {model_idx}: {model_file} - Uploading", unit="pub", position=1
+        )
 
         try:
             # Load the model
@@ -277,7 +276,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
         # Generate predictions for all publications
         predictions = []
         for i in range(0, len(publications), batch_size):
-            batch = publications[i: i + batch_size]
+            batch = publications[i : i + batch_size]
             batch_predictions = predict(model, batch, batch_size)
             predictions.extend(batch_predictions)
             prediction_pbar.update(len(batch))  # Update progress bar for prediction
@@ -287,8 +286,8 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
 
         # Process predictions in batches for uploading
         for i in range(0, len(publications), mariadb_batch_size):
-            batch = publications[i: i + mariadb_batch_size]
-            batch_predictions = predictions[i: i + mariadb_batch_size]
+            batch = publications[i : i + mariadb_batch_size]
+            batch_predictions = predictions[i : i + mariadb_batch_size]
 
             logging.info(
                 f"Processing batch {i // mariadb_batch_size + 1} (Publication IDs {batch[0].publication_id} to {batch[-1].publication_id})"
@@ -298,9 +297,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
             updated_entries = []
             for pub, prediction in zip(batch, batch_predictions):
                 prediction_entry = (
-                    session.query(SDGTargetPrediction)
-                    .filter_by(publication_id=pub.publication_id)
-                    .first()
+                    session.query(SDGTargetPrediction).filter_by(publication_id=pub.publication_id).first()
                 )
 
                 # Check if the prediction entry exists first before adding
@@ -336,9 +333,7 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
                 session.bulk_save_objects(updated_entries)
                 try:
                     session.commit()
-                    logging.info(
-                        f"Batch {i // mariadb_batch_size + 1} predictions for model {model_file} saved."
-                    )
+                    logging.info(f"Batch {i // mariadb_batch_size + 1} predictions for model {model_file} saved.")
                 except Exception as e:
                     logging.error(f"Error committing batch {i // mariadb_batch_size + 1}: {e}")
                     session.rollback()  # Rollback on error
@@ -366,19 +361,14 @@ def process_and_predict_in_stages(session, batch_size, mariadb_batch_size):
                 # overwrite default 17.19
 
         session.query(SDGTargetPrediction).filter(
-            SDGTargetPrediction.last_predicted_target == last_target_identifier).update(
-            {"predicted": True}, synchronize_session=False
-        )
+            SDGTargetPrediction.last_predicted_target == last_target_identifier
+        ).update({"predicted": True}, synchronize_session=False)
         session.commit()
     except Exception as e:
         logging.error(f"Error marking publications as fully predicted: {e}")
         session.rollback()
 
     logging.info("All predictions complete.")
-
-
-
-
 
 
 def setup_sqlite_connection():
@@ -394,11 +384,12 @@ def reset_database(session):
     session.commit()
     logging.info("Database reset complete.")
 
+
 def main(db, batch_size, mariadb_batch_size):
     logging.info("Starting Predictor...")
 
     # Check if GPU is available
-    if tf.config.list_physical_devices('GPU'):
+    if tf.config.list_physical_devices("GPU"):
         print("GPU is available")
     else:
         print("GPU is not available")
@@ -426,10 +417,9 @@ def main(db, batch_size, mariadb_batch_size):
     session.close()
     logging.info("Batch prediction process complete.")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run SDG batch predictor with SQLite or MariaDB."
-    )
+    parser = argparse.ArgumentParser(description="Run SDG batch predictor with SQLite or MariaDB.")
     parser.add_argument(
         "--db",
         choices=["sqlite", "mariadb"],

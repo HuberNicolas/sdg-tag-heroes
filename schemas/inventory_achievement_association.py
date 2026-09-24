@@ -11,15 +11,11 @@ class InventoryAchievementAssociationSchemaBase(BaseModel):
     comment: Optional[str]
     added_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class InventoryAchievementAssociationSchemaFull(InventoryAchievementAssociationSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

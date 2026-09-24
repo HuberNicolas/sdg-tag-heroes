@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, DateTime
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -10,13 +10,15 @@ time_zone_settings = TimeZoneSettings()
 
 
 class ClusterGroup(Base):
-    __tablename__ = 'cluster_groups'
+    __tablename__ = "cluster_groups"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)  # Name of the SDG cluster group, e.g., 'cluster_group_01'
+    name: Mapped[str] = mapped_column(
+        String(255), nullable=False
+    )  # Name of the SDG cluster group, e.g., 'cluster_group_01'
 
     # Relationship to cluster levels
-    cluster_levels: Mapped[list["ClusterLevel"]] = relationship('ClusterLevel', back_populates='cluster_group')
+    cluster_levels: Mapped[list["ClusterLevel"]] = relationship("ClusterLevel", back_populates="cluster_group")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

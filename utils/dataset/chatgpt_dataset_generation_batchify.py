@@ -1,21 +1,22 @@
-import os
 import json
 import time
+
 import pandas as pd
-from sqlalchemy.orm import sessionmaker, joinedload
+from openai import OpenAI
+from sqlalchemy.orm import joinedload, sessionmaker
+
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGLabelSummary
-from models.publications.publication import Publication
-from utils.env_loader import load_env, get_env_variable
-from openai import OpenAI
+from utils.env_loader import load_env
 
 # Initialize OpenAI client
-load_env('api.env')
+load_env("api.env")
 client = OpenAI()
 
 
 # Initialize database session
 Session = sessionmaker(bind=mariadb_engine)
+
 
 def fetch_publications_by_sdg(session, sdg_number):
     """
@@ -43,39 +44,42 @@ def fetch_publications_by_sdg(session, sdg_number):
 
     return results
 
+
 def create_jsonl_file(file_name, publications):
     """
     Creates a JSONL file for OpenAI Batch API containing abstracts.
     """
-    with open(file_name, 'w') as file:
+    with open(file_name, "w") as file:
         for pub in publications:
             abstract_text = pub.description
-            file.write(json.dumps({
-                "prompt": f"Analyze the following abstract and provide SDG relevance and confidence for each SDG (1–17):\n\n{abstract_text}",
-                "completion": ""
-            }) + '\n')
+            file.write(
+                json.dumps(
+                    {
+                        "prompt": f"Analyze the following abstract and provide SDG relevance and confidence for each SDG (1–17):\n\n{abstract_text}",
+                        "completion": "",
+                    }
+                )
+                + "\n"
+            )
+
 
 def upload_jsonl_file(jsonl_file_path):
     """
     Uploads a JSONL file to OpenAI for batch processing.
     """
-    response = client.files.create(
-        file=open(jsonl_file_path, "rb"),
-        purpose="batch"
-    )
+    response = client.files.create(file=open(jsonl_file_path, "rb"), purpose="batch")
     return response.id
+
 
 def create_batch_job(file_id):
     """
     Creates a batch job for processing uploaded JSONL file.
     """
     response = client.batches.create(
-        input_file_id=file_id,
-        endpoint='/v1/completions',
-        model="gpt-4",
-        completion_window="24h"
+        input_file_id=file_id, endpoint="/v1/completions", model="gpt-4", completion_window="24h"
     )
     return response.id
+
 
 def monitor_batch_job(batch_id):
     """
@@ -87,6 +91,7 @@ def monitor_batch_job(batch_id):
             return status
         time.sleep(10)
 
+
 def download_batch_results(result_file_id, output_file="batch_results.jsonl"):
     """
     Downloads the batch processing results and saves to a file.
@@ -95,6 +100,7 @@ def download_batch_results(result_file_id, output_file="batch_results.jsonl"):
     with open(output_file, "wb") as f:
         f.write(response)
     return output_file
+
 
 def parse_results_to_dataframe(result_file):
     """
@@ -108,6 +114,7 @@ def parse_results_to_dataframe(result_file):
     df = pd.DataFrame(results)
     return df
 
+
 def process_batches(file_id, batch_size=10):
     """
     Processes abstracts in batches manually by splitting input data into chunks.
@@ -119,7 +126,7 @@ def process_batches(file_id, batch_size=10):
     # Break the data into chunks
     results = []
     for i in range(0, len(data), batch_size):
-        batch = data[i:i + batch_size]
+        batch = data[i : i + batch_size]
         prompts = [entry["prompt"] for entry in batch]
 
         # Send the batch to OpenAI API
@@ -127,8 +134,8 @@ def process_batches(file_id, batch_size=10):
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Act as an expert and analyze the following prompts."},
-                {"role": "user", "content": "\n\n".join(prompts)}
-            ]
+                {"role": "user", "content": "\n\n".join(prompts)},
+            ],
         )
 
         # Process and store the results
@@ -165,4 +172,3 @@ if __name__ == "__main__":
     results_df = pd.DataFrame(results)
     results_df.to_csv("batch_results.csv", index=False)
     print("Results saved to 'batch_results.csv'.")
-

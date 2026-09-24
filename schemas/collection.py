@@ -11,13 +11,12 @@ class CollectionSchemaBase(BaseModel):
     name: str
     short_name: str
     representation: List[str]
-    aspect1: List[str] # Same assumption for these JSON fields
+    aspect1: List[str]  # Same assumption for these JSON fields
     aspect2: List[str]
     aspect3: List[str]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 class CollectionSchemaFull(CollectionSchemaBase):
     created_at: datetime

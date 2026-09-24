@@ -207,7 +207,6 @@ class SDGTargetPrediction(Base):
     target17_18: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
     target17_19: Mapped[float] = mapped_column(Float(precision=4), default=0.0)
 
-
     predicted: Mapped[bool] = mapped_column(Boolean, default=False)
     last_predicted_target: Mapped[str] = mapped_column(String(255), default="No prediction made")
 

@@ -1,17 +1,20 @@
 import json
 import os
-from tqdm import tqdm
+
 from bson import ObjectId  # to handle $oid
+from tqdm import tqdm
+
 from db.mongodb_connector import client
 
 # Define the database and collection names
-db_name = 'sdg_explanations'
-collection_name = 'explanations'
+db_name = "sdg_explanations"
+collection_name = "explanations"
+
 
 # Function to convert $oid to ObjectId
 def convert_oid(doc):
-    if '_id' in doc and '$oid' in doc['_id']:
-        doc['_id'] = ObjectId(doc['_id']['$oid'])
+    if "_id" in doc and "$oid" in doc["_id"]:
+        doc["_id"] = ObjectId(doc["_id"]["$oid"])
     return doc
 
 
@@ -36,10 +39,9 @@ awk '{
 }' sdg_explanations.json
 """
 
-
     # Directory containing the split files
-    split_files_directory = './data/db/explanations/'
-    split_files_prefix = 'split_part_'  # Prefix of the split files
+    split_files_directory = "./data/db/explanations/"
+    split_files_prefix = "split_part_"  # Prefix of the split files
 
     # Iterate through each split file
     for filename in tqdm(sorted(os.listdir(split_files_directory)), desc="Loading files"):
@@ -47,7 +49,7 @@ awk '{
             file_path = os.path.join(split_files_directory, filename)
 
             # Load the JSON objects from the file
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 data = [json.loads(line) for line in f]
 
             # Convert _id fields and insert documents

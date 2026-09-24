@@ -1,16 +1,17 @@
 import argparse
-import os
 import logging
+import os
+
+from faker import Faker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from faker import Faker
 
 from models import Inventory
-from utils.env_loader import load_env
-from models.users.user import User, UserRole
-from models.users.labeler import Labeler
-from models.users.expert import Expert
 from models.users.admin import Admin
+from models.users.expert import Expert
+from models.users.labeler import Labeler
+from models.users.user import User, UserRole
+from utils.env_loader import load_env
 
 # Load environment variables
 load_env("users.env")
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 fake = Faker()
 Faker.seed(31011997)
-fake = Faker('de_CH')
+fake = Faker("de_CH")
 
 
 def get_env_variable(key: str) -> str:
@@ -115,9 +116,10 @@ def create_initial_users(session: Session, auto_generate: bool = False, user_cou
 
 
 if __name__ == "__main__":
+    from sqlalchemy.orm import sessionmaker
+
     from db.mariadb_connector import engine as mariadb_engine
     from models.base import Base
-    from sqlalchemy.orm import sessionmaker
 
     # Setup database session
     Session = sessionmaker(bind=mariadb_engine)
@@ -126,8 +128,12 @@ if __name__ == "__main__":
     Base.metadata.create_all(mariadb_engine)
 
     parser = argparse.ArgumentParser(description="Create users with their roles and inventory.")
-    parser.add_argument("--generate", type=int, metavar="N",
-                        help="create N generated labelers (password01) instead of the accounts in env/users.env")
+    parser.add_argument(
+        "--generate",
+        type=int,
+        metavar="N",
+        help="create N generated labelers (password01) instead of the accounts in env/users.env",
+    )
     args = parser.parse_args()
 
     with Session() as session:

@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import List, Optional, Union
+
 from pydantic import BaseModel
-from typing import Optional, List, Union
 
 
 class SDGRankSchemaBase(BaseModel):
@@ -11,18 +12,15 @@ class SDGRankSchemaBase(BaseModel):
     description: Optional[str] = None
     xp_required: float
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class SDGRankSchemaFull(SDGRankSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
 
 # Not directly derived derived from models
 class UsersSDGRankSchemaBase(BaseModel):
@@ -30,6 +28,4 @@ class UsersSDGRankSchemaBase(BaseModel):
     user: Optional[Union["UserSchemaBase", "UserSchemaFull"]]
     ranks: List[SDGRankSchemaFull]  # List of SDG ranks for that user
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

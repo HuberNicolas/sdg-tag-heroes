@@ -1,39 +1,52 @@
 import json
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import instructor
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
-from sympy.physics.units import temperature
 
 from enums import SDGType
-from schemas.gpt_assistant_service import GPTResponseKeywordsSchema, GPTResponseSDGAnalysisSchema, \
-    GPTResponseFactSchema, GPTResponseSummarySchema, GPTResponseCollectiveSummarySchema, GPTResponseSkillsQuerySchema, \
-    GPTResponseAnnotationScoreSchema, GPTResponseCommentSummarySchema, SDGPredictionSchema, \
-    GPTPersonaResponseAnnotationSchema, GPTPersonaResponseCommentSchema
+from schemas.gpt_assistant_service import (
+    GPTPersonaResponseAnnotationSchema,
+    GPTPersonaResponseCommentSchema,
+    GPTResponseAnnotationScoreSchema,
+    GPTResponseCollectiveSummarySchema,
+    GPTResponseCommentSummarySchema,
+    GPTResponseFactSchema,
+    GPTResponseKeywordsSchema,
+    GPTResponseSDGAnalysisSchema,
+    GPTResponseSkillsQuerySchema,
+    GPTResponseSummarySchema,
+    SDGPredictionSchema,
+)
 from settings.settings import GPTAssistantServiceSettings
-from utils.env_loader import load_env, get_env_variable
+from utils.env_loader import get_env_variable, load_env
+
 from .strategies.fact_generator_strategy import FactStrategy
 from .strategies.keyword_extractor_strategy import ExtractKeywordsStrategy
-from .strategies.persona_comment_generator_strategy import GenerateCommentStrategy, GenerateAnnotationStrategy
+from .strategies.persona_comment_generator_strategy import GenerateAnnotationStrategy, GenerateCommentStrategy
 from .strategies.sdg_explainer_strategy import GoalStrategy, TargetStrategy
 from .strategies.summarize_sdg_user_label_comments import SummarizeSDGUserLabelCommentsStrategy
-from .strategies.summarizer_strategy import SummarizeSinglePublicationStrategy, SummarizeMultiplePublicationsStrategy
+from .strategies.summarizer_strategy import SummarizeMultiplePublicationsStrategy, SummarizeSinglePublicationStrategy
 from .strategies.user_annotation_evaluator_strategy import AnnotationEvaluatorStrategy
-from .strategies.user_query_generator_strategy import SkillsQueryStrategy, InterestsQueryStrategy, SDGSkillsStrategy, \
-    SDGInterestsStrategy
+from .strategies.user_query_generator_strategy import (
+    InterestsQueryStrategy,
+    SDGInterestsStrategy,
+    SDGSkillsStrategy,
+    SkillsQueryStrategy,
+)
 
 # Load the API environment variables
-load_env('api.env')
+load_env("api.env")
 
 gpt_assistant_service_settings = GPTAssistantServiceSettings()
-client = instructor.from_openai(OpenAI(api_key=get_env_variable('OPENAI_API_KEY')))
+client = instructor.from_openai(OpenAI(api_key=get_env_variable("OPENAI_API_KEY")))
 
 
 class GPTAssistantService:
     """General-purpose GPT client for structured API calls with contextual prompts."""
 
-    def __init__(self, client: Any=client, model: str=gpt_assistant_service_settings.GPT_MODEL):
+    def __init__(self, client: Any = client, model: str = gpt_assistant_service_settings.GPT_MODEL):
         self.client = client
         self.model = model
 
@@ -42,12 +55,9 @@ class GPTAssistantService:
         try:
             response = self.client.beta.chat.completions.parse(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": context},
-                    {"role": "user", "content": json.dumps(prompt_data)}
-                ],
+                messages=[{"role": "system", "content": context}, {"role": "user", "content": json.dumps(prompt_data)}],
                 temperature=0.7,
-                response_format=response_model
+                response_format=response_model,
             )
             return response.choices[0].message.parsed
         except ValidationError as e:
@@ -58,12 +68,9 @@ class GPTAssistantService:
         try:
             response = self.client.beta.chat.completions.parse(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": context},
-                    {"role": "user", "content": json.dumps(prompt_data)}
-                ],
+                messages=[{"role": "system", "content": context}, {"role": "user", "content": json.dumps(prompt_data)}],
                 temperature=1.2,  # Set temperature (0.7-1.5 recommended for high creativity)
-                response_format=response_model
+                response_format=response_model,
             )
             return response.choices[0].message.parsed
         except ValidationError as e:
@@ -76,7 +83,9 @@ class GPTAssistantService:
         response = self._call_model(strategy.context, prompt_data, GPTResponseKeywordsSchema)
         return response.keywords
 
-    def analyze_sdg(self, title: str, abstract: str, goal: Optional[str] = None, target: Optional[str] = None) -> GPTResponseSDGAnalysisSchema:
+    def analyze_sdg(
+        self, title: str, abstract: str, goal: Optional[str] = None, target: Optional[str] = None
+    ) -> GPTResponseSDGAnalysisSchema:
         """Analyzes SDG relevance using the provided goal or target."""
         if target:
             strategy = TargetStrategy(target)
@@ -111,10 +120,7 @@ class GPTAssistantService:
             response = self._call_model(strategy.context, prompt_data, GPTResponseCollectiveSummarySchema)
             return response
         except Exception as e:
-            return GPTResponseCollectiveSummarySchema(
-                summary=f"Error generating summary: {str(e)}",
-                keywords=[]
-            )
+            return GPTResponseCollectiveSummarySchema(summary=f"Error generating summary: {str(e)}", keywords=[])
 
     def summarize_comments(self, user_labels: List[Dict[str, str]]) -> GPTResponseCommentSummarySchema:
         """Summarizes a set comments form sdg_user_labels into a single comment."""
@@ -125,10 +131,7 @@ class GPTAssistantService:
             response = self._call_model(strategy.context, prompt_data, GPTResponseCommentSummarySchema)
             return response
         except Exception as e:
-            return GPTResponseCollectiveSummarySchema(
-                summary=f"Error generating summary: {str(e)}",
-                keywords=[]
-            )
+            return GPTResponseCollectiveSummarySchema(summary=f"Error generating summary: {str(e)}", keywords=[])
 
     def generate_skills_description(self, skills: str) -> GPTResponseSkillsQuerySchema:
         """Generates an enriched description for the user's skills."""
@@ -154,16 +157,18 @@ class GPTAssistantService:
         prompt_data = strategy.generate_prompt(interests)
         return self._call_model(strategy.context, prompt_data, SDGPredictionSchema)
 
-
-    def evaluate_annotation(self, passage: str, annotation: str, sdg_label: SDGType) -> GPTResponseAnnotationScoreSchema:
+    def evaluate_annotation(
+        self, passage: str, annotation: str, sdg_label: SDGType
+    ) -> GPTResponseAnnotationScoreSchema:
         """Evaluates user annotations based on relevance, depth, correctness, and creativity."""
         strategy = AnnotationEvaluatorStrategy()
         prompt_data = strategy.generate_prompt(passage, annotation, sdg_label)
         response = self._call_model(strategy.context, prompt_data, GPTResponseAnnotationScoreSchema)
         return response
 
-    def generate_comment(self, abstract: str, persona: str, interest: str, skill: str,
-                            trust_score: float) -> GPTPersonaResponseCommentSchema:
+    def generate_comment(
+        self, abstract: str, persona: str, interest: str, skill: str, trust_score: float
+    ) -> GPTPersonaResponseCommentSchema:
         """Generates a comment tailored to the user's persona and expertise level."""
         strategy = GenerateCommentStrategy()
         prompt_data = strategy.generate_prompt(abstract, persona, interest, skill, trust_score)
@@ -171,8 +176,14 @@ class GPTAssistantService:
         return response
 
     def generate_annotation(
-            self, abstract: str, persona: str, interest: str, skill: str, trust_score: float,
-            user_label_comment: str = None, decision_comment: str = None
+        self,
+        abstract: str,
+        persona: str,
+        interest: str,
+        skill: str,
+        trust_score: float,
+        user_label_comment: str = None,
+        decision_comment: str = None,
     ) -> GPTPersonaResponseAnnotationSchema:
         """
         Generates an annotation based on the structured prompt.

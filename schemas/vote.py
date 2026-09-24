@@ -14,15 +14,11 @@ class VoteSchemaBase(BaseModel):
     vote_type: VoteType
     score: float
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class VoteSchemaFull(VoteSchemaBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

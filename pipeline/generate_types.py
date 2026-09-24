@@ -1,12 +1,13 @@
+import os
 import subprocess
 from pathlib import Path
-import os
 
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 OUTPUT_DIR = PROJECT_ROOT / "types"
 
 # Ensure the output directory exists
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def generate_typescript(schema_module: str, output_file_name: str):
     """Generate TypeScript for a specific schema module."""
@@ -15,12 +16,21 @@ def generate_typescript(schema_module: str, output_file_name: str):
 
     output_path = OUTPUT_DIR / output_file_name
 
-    subprocess.run([
-        "poetry", "run", "pydantic2ts",  # Use Poetry to invoke pydantic2ts
-        "--module", schema_module,
-        "--output", str(output_path),
-        "--json2ts-cmd", "pnpm exec json2ts"
-    ], check=True, env=env)
+    subprocess.run(
+        [
+            "poetry",
+            "run",
+            "pydantic2ts",  # Use Poetry to invoke pydantic2ts
+            "--module",
+            schema_module,
+            "--output",
+            str(output_path),
+            "--json2ts-cmd",
+            "pnpm exec json2ts",
+        ],
+        check=True,
+        env=env,
+    )
 
     print(f"Generated TypeScript for {schema_module} -> {output_path}")
 

@@ -22,6 +22,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -29,6 +30,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API Router
 router = APIRouter(
@@ -41,14 +43,10 @@ router = APIRouter(
     },
 )
 
-@router.get(
-    "/",
-    response_model=List[CollectionSchemaFull],
-    description="Get all collections"
-)
+
+@router.get("/", response_model=List[CollectionSchemaFull], description="Get all collections")
 async def get_collections(
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[CollectionSchemaFull]:
     """
     Retrieve all collections
@@ -71,15 +69,10 @@ async def get_collections(
             detail=f"An error occurred while fetching collections: {e}",
         )
 
-@router.get(
-    "/{collection_id}",
-    response_model=CollectionSchemaFull,
-    description="Get a single collection by ID"
-)
+
+@router.get("/{collection_id}", response_model=CollectionSchemaFull, description="Get a single collection by ID")
 async def get_collection(
-    collection_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    collection_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> CollectionSchemaFull:
     """
     Retrieve a single collection by ID.
@@ -88,14 +81,12 @@ async def get_collection(
         user = verify_token(token, db)  # Ensure user is authenticated
 
         # Query to fetch the collection by ID
-        collection = (db.query(Collection)
-                       .filter(Collection.collection_id == collection_id).first())
+        collection = db.query(Collection).filter(Collection.collection_id == collection_id).first()
 
         if not collection:
             logging.warning(f"Collection with ID {collection_id} not found")
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Publication with ID {collection_id} not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail=f"Publication with ID {collection_id} not found"
             )
 
         # Convert the collection instance to a dictionary
@@ -103,7 +94,6 @@ async def get_collection(
 
         # Validate and return the full schema
         return CollectionSchemaFull.model_validate(collection_dict)
-
 
     except HTTPException:
         raise

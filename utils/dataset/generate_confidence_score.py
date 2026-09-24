@@ -1,48 +1,44 @@
 import time
-from typing import Literal
-import pandas as pd
-from sqlalchemy.orm import sessionmaker, relationship, joinedload
-from db.mariadb_connector import engine as mariadb_engine
-
 from datetime import datetime
+from typing import Literal
 from zoneinfo import ZoneInfo
 
-from models.sdg_prediction import SDGPrediction
+import pandas as pd
+from sqlalchemy.orm import joinedload, sessionmaker
+
+from db.mariadb_connector import engine as mariadb_engine
 from models.publications.publication import Publication
+from models.sdg_prediction import SDGPrediction
 from utils.logger import logger
+
 logging = logger("confidence_score_chatGPT_dataset_generator.log")
 
 
-
-from enum import Enum
-import json
-
-import requests
+import instructor
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-from utils.env_loader import load_env, get_env_variable
-import instructor
+from utils.env_loader import get_env_variable, load_env
 
 # Apply the patch to the OpenAI client
 # enables response_model keyword
 
 
 # Load the API environment variables
-load_env('api.env')
+load_env("api.env")
 
-client = OpenAI(api_key=get_env_variable('OPENAI_API_KEY'))
+client = OpenAI(api_key=get_env_variable("OPENAI_API_KEY"))
 
 MODEL = "gpt-4o-2024-08-06"
 MODEL = "gpt-4o-mini-2024-07-18"
 print(client)
-logging.info(f"Initialized ChatGPT with model... ")
+logging.info("Initialized ChatGPT with model... ")
 
 # Apply the patch to the OpenAI client
 # enables response_model keyword
 client = instructor.from_openai(OpenAI())
 print(client)
-logging.info(f"Patched ChatGPT with model... ")
+logging.info("Patched ChatGPT with model... ")
 
 
 # Define the initial classification prompt
@@ -89,6 +85,7 @@ def generate_initial_query(title, abstract):
     Abstract: {abstract}
     """
 
+
 def generate_refinement_query(title, abstract, current_sdg_goal, model_prediction_score):
     return f"""
     Title: {title}
@@ -97,17 +94,14 @@ def generate_refinement_query(title, abstract, current_sdg_goal, model_predictio
     Model Prediction Score: {model_prediction_score}
     """
 
+
 # Define the structured output for initial classification
 class InitialClassificationResponse(BaseModel):
     abstract_information_density: Literal["High", "Average", "Low"] = Field(
         description="The density of information in the abstract."
     )
-    initial_sdg_guess: int = Field(
-        description="The initial SDG guess, a number from 0 to 17."
-    )
-    initial_reasoning_for: str = Field(
-        description="The reasoning for why the content matches the selected SDG."
-    )
+    initial_sdg_guess: int = Field(description="The initial SDG guess, a number from 0 to 17.")
+    initial_reasoning_for: str = Field(description="The reasoning for why the content matches the selected SDG.")
     initial_reasoning_against: str = Field(
         description="The reasoning for why the content might not fully align with the selected SDG."
     )
@@ -118,9 +112,7 @@ class InitialClassificationResponse(BaseModel):
 
 # Define the structured output for prediction refinement
 class RefinementResponse(BaseModel):
-    reasoning_for: str = Field(
-        description="Reasoning for why the SDG prediction aligns with the content."
-    )
+    reasoning_for: str = Field(description="Reasoning for why the SDG prediction aligns with the content.")
     reasoning_against: str = Field(
         description="Reasoning for why the SDG prediction might not fully align with the content."
     )
@@ -161,7 +153,6 @@ Session = sessionmaker(bind=mariadb_engine)
 
 def main():
 
-
     sdg_columns = [f"sdg{i}" for i in range(1, 18)]  # SDG1 to SDG17
     print(sdg_columns)
     filter_ranges = [[1.0, 0.99]]
@@ -172,9 +163,7 @@ def main():
 
     load = True
     if load:
-        with (Session() as session):
-
-
+        with Session() as session:
             for sdg_index, sdg_column in enumerate(sdg_columns, start=1):
                 print(f"Processing SDG{sdg_index}...")
 
@@ -196,7 +185,6 @@ def main():
                         )
                         .order_by(getattr(SDGPrediction, sdg_column).desc())
                         .all()
-
                     )
                     end = time.time()
 
@@ -226,7 +214,7 @@ def main():
 
                     logging.info(
                         f"  Selected Top {len(candidates)} for SDG{sdg_index}: "
-                    f"{', '.join([f'({candidate.publication_id}, {candidate.title.split()[0]} ... {candidate.title.split()[-1]}, {getattr(candidate.sdg_predictions[0], sdg_column):.4f})' for candidate in candidates])}"
+                        f"{', '.join([f'({candidate.publication_id}, {candidate.title.split()[0]} ... {candidate.title.split()[-1]}, {getattr(candidate.sdg_predictions[0], sdg_column):.4f})' for candidate in candidates])}"
                     )
 
                     for publication in candidates:
@@ -262,38 +250,39 @@ def main():
 
                         timestamp = datetime.now(ZoneInfo("Europe/Zurich"))
 
-
                         # Append the extracted data to the results list
-                        results.append({
-                            "publication_id": publication_id,
-                            "title": title,
-                            "abstract": abstract,
-                            "oai_identifier": oai_identifier,
-                            "prediction": model_prediction,
-                            "sdg": sdg_index,
-                            "OUT_Q1_abstract_information_density": abstract_information_density,
-                            "OUT_Q1_initial_sdg_guess": initial_sdg_guess,
-                            "OUT_Q1_initial_reasoning_for": initial_reasoning_for,
-                            "OUT_Q1_initial_reasoning_against": initial_reasoning_against,
-                            "OUT_Q1_initial_sdg_guess_confidence_score": initial_sdg_guess_confidence_score,
-                            #"initial_query": initial_query,
-                            # Store query parameters instead of full query
-                            #"initial_query_params": {
-                                #"title": title,
-                                #"abstract": abstract,
-                            #},
-                            "OUT_Q2_refinement_reasoning_for": model_prediction_assessment_reasoning_for,
-                            "OUT_Q2_refinement_reasoning_against": model_prediction_assessment_reasoning_against,
-                            "OUT_Q2_model_prediction_confidence_score": model_prediction_confidence_score,
-                            #"refinement_query": refinement_query,
-                            #"refinement_query_params": {
-                                #"title": title,
-                                #"abstract": abstract,
-                                #"current_sdg_goal": sdg_index,
-                                #"model_prediction_score": model_prediction,
-                            #},
-                            "created_at": timestamp,
-                        })
+                        results.append(
+                            {
+                                "publication_id": publication_id,
+                                "title": title,
+                                "abstract": abstract,
+                                "oai_identifier": oai_identifier,
+                                "prediction": model_prediction,
+                                "sdg": sdg_index,
+                                "OUT_Q1_abstract_information_density": abstract_information_density,
+                                "OUT_Q1_initial_sdg_guess": initial_sdg_guess,
+                                "OUT_Q1_initial_reasoning_for": initial_reasoning_for,
+                                "OUT_Q1_initial_reasoning_against": initial_reasoning_against,
+                                "OUT_Q1_initial_sdg_guess_confidence_score": initial_sdg_guess_confidence_score,
+                                # "initial_query": initial_query,
+                                # Store query parameters instead of full query
+                                # "initial_query_params": {
+                                # "title": title,
+                                # "abstract": abstract,
+                                # },
+                                "OUT_Q2_refinement_reasoning_for": model_prediction_assessment_reasoning_for,
+                                "OUT_Q2_refinement_reasoning_against": model_prediction_assessment_reasoning_against,
+                                "OUT_Q2_model_prediction_confidence_score": model_prediction_confidence_score,
+                                # "refinement_query": refinement_query,
+                                # "refinement_query_params": {
+                                # "title": title,
+                                # "abstract": abstract,
+                                # "current_sdg_goal": sdg_index,
+                                # "model_prediction_score": model_prediction,
+                                # },
+                                "created_at": timestamp,
+                            }
+                        )
 
     # abstract information densitiy: High Average Low
     # initial SDG guess: 0 - 17
@@ -301,8 +290,6 @@ def main():
     # initial SDG guess confidence score: 0-1
     # model prediction assessment resoning: Text
     # model prediction confidence score: 0-1
-
-
 
     # Create a DataFrame from the results
     df = pd.DataFrame(results)

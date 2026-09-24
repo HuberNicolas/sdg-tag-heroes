@@ -1,15 +1,10 @@
-
-import json
-import re
-import os
 from collections import defaultdict
 
 from db.mongodb_connector import client
 
-
 # Define the database and collection names
-db_name = 'sdg_explanations'
-collection_name = 'explanations'
+db_name = "sdg_explanations"
+collection_name = "explanations"
 
 
 def main():
@@ -17,7 +12,6 @@ def main():
     # Check if the database exists and drop it if it does
     if db_name in client.list_database_names():
         print(f"Database '{db_name}' has is present.")
-
 
     db = client.sdg_explanations
     collection = db.explanations

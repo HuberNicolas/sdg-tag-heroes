@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
 from settings.settings import TimeZoneSettings
@@ -14,6 +14,7 @@ class Inventory(Base):
     Inventory model for each user.
     Each user has exactly one inventory.
     """
+
     __tablename__ = "inventories"
 
     inventory_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -24,9 +25,7 @@ class Inventory(Base):
 
     # Updated Many-to-Many relationship with Achievements through association model
     inventory_achievements: Mapped[list["InventoryAchievementAssociation"]] = relationship(
-        "InventoryAchievementAssociation",
-        back_populates="inventory",
-        cascade="all, delete-orphan"
+        "InventoryAchievementAssociation", back_populates="inventory", cascade="all, delete-orphan"
     )
 
     @property

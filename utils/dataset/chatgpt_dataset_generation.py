@@ -1,34 +1,25 @@
 import time
-from typing import Literal
+
 import pandas as pd
-from sqlalchemy.orm import sessionmaker, relationship, joinedload
+from sqlalchemy.orm import joinedload, sessionmaker
 from tqdm import tqdm
 
 from db.mariadb_connector import engine as mariadb_engine
-
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
 from models import SDGLabelSummary
-from models.sdg_prediction import SDGPrediction
 from models.publications.publication import Publication
 from utils.logger import logger
+
 logging = logger("chatGPT_dataset_generator.log")
 
 
-
-from enum import Enum
 import json
 
-import requests
 from openai import OpenAI
-from pydantic import BaseModel, Field
 
-from utils.env_loader import load_env, get_env_variable
-
+from utils.env_loader import load_env
 
 # Load the API environment variables
-load_env('api.env')
+load_env("api.env")
 
 #
 LIMIT = 5
@@ -46,9 +37,11 @@ COST_PER_MILLION_INPUT_TOKENS = 2.50  # $ per 1M input tokens
 COST_PER_MILLION_OUTPUT_TOKENS = 10.00  # $ per 1M output tokens
 TOKENS_PER_WORD_ESTIMATE = 100 / 75  # Approx. 100 tokens ~ 75 words
 
+
 # Function to estimate tokens from word count
 def estimate_tokens(word_count):
     return int(word_count * TOKENS_PER_WORD_ESTIMATE)
+
 
 # Function to count words
 def count_words(text):
@@ -74,9 +67,7 @@ def fetch_publications_by_sdg(session, sdg_number):
     sdg_label_summaries = (
         session.query(SDGLabelSummary)
         .filter(getattr(SDGLabelSummary, sdg_field) == 1)
-        .options(
-            joinedload(SDGLabelSummary.publication).joinedload(Publication.sdg_predictions)
-        )
+        .options(joinedload(SDGLabelSummary.publication).joinedload(Publication.sdg_predictions))
         .limit(LIMIT)
         .all()
     )
@@ -86,16 +77,13 @@ def fetch_publications_by_sdg(session, sdg_number):
         publication = label_summary.publication
         # Filter publication's SDG predictions for "Aurora"
         aurora_predictions = [
-            prediction for prediction in publication.sdg_predictions
-            if prediction.prediction_model == "Aurora"
+            prediction for prediction in publication.sdg_predictions if prediction.prediction_model == "Aurora"
         ]
         if aurora_predictions:
-            results.append({
-                "publication": publication,
-                "predictions": aurora_predictions
-            })
+            results.append({"publication": publication, "predictions": aurora_predictions})
 
     return results
+
 
 results = []
 
@@ -189,7 +177,7 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
         raise ValueError("SDG number must be between 1 and 17")
 
     # Count words in the abstract text (input)
-    input_word_count = len(abstract_text.split()) + 1 # + 1 for sdg_number
+    input_word_count = len(abstract_text.split()) + 1  # + 1 for sdg_number
 
     messages = [
         {
@@ -219,7 +207,7 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
                 Second, evaluate the contribution of the text to SDG {sdg_number}. Be more discriminative in this evaluation and consider if the text directly contributes to the SDG. In \"arguments_for_contribution\", state why the text directly contributes to SDG {sdg_number}. In \"arguments_against_contribution\", state why the text does not directly contribute to SDG {sdg_number}. Finally, in \"contribution_score\", provide a numerical evaluation of the contribution (0 to 1). A score closer to 1 indicates direct contribution, while a score closer to 0 indicates no direct contribution.
                 Here is the abstract:
                 {abstract_text}
-            """
+            """,
         },
     ]
 
@@ -233,7 +221,6 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
     try:
         # Access and return the JSON response
         response_content = response.choices[0].message.content
-
 
         output_word_count = len(response_content.split())  # Count words in the output
 
@@ -256,7 +243,6 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
 
 
 def main():
-
 
     # Initialize an empty DataFrame to store the results
     columns = [
@@ -283,15 +269,20 @@ def main():
 
     # Add additional columns to track word and token counts, and costs
     columns += [
-        "abstract_word_count", "abstract_token_count",
-        "input_word_count", "input_token_count", "input_cost",
-        "output_word_count", "output_token_count", "output_cost",
-        "total_cost"
+        "abstract_word_count",
+        "abstract_token_count",
+        "input_word_count",
+        "input_token_count",
+        "input_cost",
+        "output_word_count",
+        "output_token_count",
+        "output_cost",
+        "total_cost",
     ]
 
     results_df = pd.DataFrame(columns=columns)
 
-    with (Session() as session):
+    with Session() as session:
         for sdg in range(1, 18):
             print(f"Fetching publications for SDG {sdg}...")
             start = time.time()
@@ -396,14 +387,15 @@ def main():
                     missing_in_row_data = set(results_df.columns) - set(new_row_df.columns)
                     missing_in_results_df = set(new_row_df.columns) - set(results_df.columns)
                     raise ValueError(
-                        f"Column mismatch detected.\nMissing in row_data: {missing_in_row_data}\nMissing in results_df: {missing_in_results_df}")
+                        f"Column mismatch detected.\nMissing in row_data: {missing_in_row_data}\nMissing in results_df: {missing_in_results_df}"
+                    )
 
                 # Concatenate safely with ignore_index
                 results_df = pd.concat([results_df, new_row_df], ignore_index=True)
 
                 logging.info(f"Finished publication {publication_zora_id}.")
-                #break Only 1 per SDG
-            #break Only SDG 1
+                # break Only 1 per SDG
+            # break Only SDG 1
 
     # Save the DataFrame to a CSV file
     results_df.to_csv("sdg_evaluation_results_with_costs.csv", index=False)

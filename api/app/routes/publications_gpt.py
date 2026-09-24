@@ -9,10 +9,10 @@ from models.publications.publication import Publication
 from request_models.publications_gpt import PublicationIdsRequest
 from schemas import FactSchemaFull
 from schemas.gpt_assistant_service import (
-    PublicationSummarySchema,
+    PublicationKeywordsSchema,
     PublicationsCollectiveSummarySchema,
     PublicationSDGAnalysisSchema,
-    PublicationKeywordsSchema,
+    PublicationSummarySchema,
 )
 from services.gpt.gpt_assistant_service import GPTAssistantService
 from settings.settings import PublicationsRouterSettings
@@ -29,6 +29,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -36,6 +37,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API Router
 router = APIRouter(
@@ -51,50 +53,58 @@ router = APIRouter(
 # Use the GPT Assistant service for publication-centred operations
 assistant = GPTAssistantService()
 
+
 @router.get("/{publication_id}/explain/goal/{sdg_id}", response_model=PublicationSDGAnalysisSchema)
 async def explain_publication_sdg_relevance(
-    publication_id: int,
-    sdg_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    publication_id: int, sdg_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     user = verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
-    sdg_goal_analysis = assistant.analyze_sdg(title=publication.title, abstract=publication.description, goal=str(sdg_id))
-    return {**sdg_goal_analysis.model_dump(), "publication_id": publication_id, "title": publication.title ,"abstract": publication.description}
+    sdg_goal_analysis = assistant.analyze_sdg(
+        title=publication.title, abstract=publication.description, goal=str(sdg_id)
+    )
+    return {
+        **sdg_goal_analysis.model_dump(),
+        "publication_id": publication_id,
+        "title": publication.title,
+        "abstract": publication.description,
+    }
+
 
 @router.get("/{publication_id}/explain/target/{target_id}", response_model=PublicationSDGAnalysisSchema)
 async def explain_publication_sdg_target(
-    publication_id: int,
-    target_id: str,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    publication_id: int, target_id: str, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     user = verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
-    sdg_target_analysis = assistant.analyze_sdg(title=publication.title, abstract=publication.description, target=target_id)
-    return {**sdg_target_analysis.model_dump(), "publication_id": publication_id,  "title": publication.title, "abstract": publication.description}
+    sdg_target_analysis = assistant.analyze_sdg(
+        title=publication.title, abstract=publication.description, target=target_id
+    )
+    return {
+        **sdg_target_analysis.model_dump(),
+        "publication_id": publication_id,
+        "title": publication.title,
+        "abstract": publication.description,
+    }
 
 
 @router.get("/{publication_id}/keywords", response_model=PublicationKeywordsSchema)
-async def extract_keywords(
-    publication_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
-):
+async def extract_keywords(publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     user = verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
     if not publication.title and not publication.description:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for keyword extraction")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for keyword extraction"
+        )
 
     keywords = assistant.extract_keywords(title=publication.title, abstract=publication.description)
     return PublicationKeywordsSchema(publication_id=publication_id, keywords=keywords)
@@ -102,9 +112,7 @@ async def extract_keywords(
 
 @router.get("/{publication_id}/facts", response_model=FactSchemaFull)
 async def create_did_you_know_fact(
-    publication_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     user = verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -130,9 +138,7 @@ async def create_did_you_know_fact(
 
 @router.get("/{publication_id}/summary", response_model=PublicationSummarySchema)
 async def create_or_get_publication_summary(
-    publication_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     user = verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -144,7 +150,9 @@ async def create_or_get_publication_summary(
         return PublicationSummarySchema(publication_id=publication_id, summary=existing_summary.content)
 
     if not publication.title and not publication.description:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for summary generation")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for summary generation"
+        )
 
     new_summary_content = assistant.summarize_publication(title=publication.title, abstract=publication.description)
 
@@ -158,9 +166,7 @@ async def create_or_get_publication_summary(
 
 @router.post("/collective-summaries", response_model=PublicationsCollectiveSummarySchema)
 async def create_collective_summary(
-    request: PublicationIdsRequest,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    request: PublicationIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     user = verify_token(token, db)
     publication_ids = request.publication_ids
@@ -170,8 +176,7 @@ async def create_collective_summary(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No publications found for the given IDs.")
 
     publication_data = [
-        {"id": pub.publication_id, "title": pub.title or "", "abstract": pub.description or ""}
-        for pub in publications
+        {"id": pub.publication_id, "title": pub.title or "", "abstract": pub.description or ""} for pub in publications
     ]
 
     collective_summary_response = assistant.summarize_publications(publications=publication_data)
@@ -179,7 +184,7 @@ async def create_collective_summary(
     collective_summary = PublicationsCollectiveSummarySchema(
         publication_ids=publication_ids,
         summary=collective_summary_response.summary,
-        keywords=collective_summary_response.keywords
+        keywords=collective_summary_response.keywords,
     )
 
     return PublicationsCollectiveSummarySchema.model_validate(collective_summary)

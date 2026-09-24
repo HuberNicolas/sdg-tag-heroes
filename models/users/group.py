@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import String, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy import DateTime, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.associations import user_group_association
 from models.base import Base
@@ -14,17 +14,14 @@ class Group(Base):
     """
     Group model for associating users.
     """
+
     __tablename__ = "groups"
 
     group_id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
     # Many-to-Many relationship with User
-    members: Mapped[list["User"]] = relationship(
-        "User",
-        secondary=user_group_association,
-        back_populates="groups"
-    )
+    members: Mapped[list["User"]] = relationship("User", secondary=user_group_association, back_populates="groups")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from sqlalchemy import Integer, String, DateTime, Text
+from sqlalchemy import DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -11,7 +11,7 @@ time_zone_settings = TimeZoneSettings()
 
 
 class Collection(Base):
-    __tablename__ = 'collections'
+    __tablename__ = "collections"
 
     collection_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     topic_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)  # Unique topic_id

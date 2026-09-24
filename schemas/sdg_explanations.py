@@ -2,9 +2,9 @@ from typing import List
 
 from pydantic import BaseModel
 
-
 # Not directly derived from models
 # Todo: Generate TS type
+
 
 class ExplanationSchema(BaseModel):
     mongodb_id: str

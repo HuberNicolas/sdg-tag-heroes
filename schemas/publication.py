@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -43,12 +43,14 @@ class PublicationSchemaBase(BaseModel):
 
 class PublicationSchemaFull(PublicationSchemaBase):
     sdg_predictions: Optional[List[Union["SDGPredictionSchemaBase", "SDGPredictionSchemaFull"]]]
-    dimensionality_reductions: Optional[List[Union["DimensionalityReductionSchemaBase", "DimensionalityReductionSchemaFull"]]]
+    dimensionality_reductions: Optional[
+        List[Union["DimensionalityReductionSchemaBase", "DimensionalityReductionSchemaFull"]]
+    ]
     sdg_label_summary: Optional[Union["SDGLabelSummarySchemaBase", "SDGLabelSummarySchemaFull"]]
 
     created_at: datetime
     updated_at: datetime
 
     model_config = {
-        "from_attributes": True, # Enables ORM-style model validation
+        "from_attributes": True,  # Enables ORM-style model validation
     }

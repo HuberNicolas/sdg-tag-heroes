@@ -1,6 +1,7 @@
 from typing import Dict
 
 from enums import SDGType
+
 from .base_strategy import PromptStrategy
 
 
@@ -8,9 +9,7 @@ class AnnotationEvaluatorStrategy(PromptStrategy):
     """Evaluates user annotations for relevance, depth, correctness, and creativity."""
 
     def __init__(self):
-        self.context = (
-            "You are a detailed evaluator of user annotations. Assess each annotation based on relevance, depth, correctness, and creativity."
-        )
+        self.context = "You are a detailed evaluator of user annotations. Assess each annotation based on relevance, depth, correctness, and creativity."
 
     def generate_prompt(self, passage: str, annotation: str, sdg_label: SDGType) -> Dict:
         return {
@@ -24,5 +23,5 @@ class AnnotationEvaluatorStrategy(PromptStrategy):
             ),
             "passage": passage,
             "annotation": annotation,
-             "sdg_label": sdg_label.value  # Convert SDGType enum to string
+            "sdg_label": sdg_label.value,  # Convert SDGType enum to string
         }

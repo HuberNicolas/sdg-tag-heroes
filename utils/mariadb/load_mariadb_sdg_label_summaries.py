@@ -1,17 +1,20 @@
 import re
 from datetime import datetime
+
 from sqlalchemy.orm import sessionmaker
+
 from db.mariadb_connector import engine as mariadb_engine
-from models.sdg_label_summary import SDGLabelSummary
-from models.sdg_label_history import SDGLabelHistory
 from models import Publication
+from models.sdg_label_history import SDGLabelHistory
+from models.sdg_label_summary import SDGLabelSummary
 
 # Initialize session
 Session = sessionmaker(bind=mariadb_engine)
 
+
 def load_sdg_label_data(file_path, batch_size=100):
     # Read the file containing SDG label data
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         file_content = f.read()
 
     # Extract tuples from the file
@@ -32,7 +35,7 @@ def load_sdg_label_data(file_path, batch_size=100):
 
         try:
             # Parse the tuple fields
-            fields = [field.strip() for field in tuple_str.split(',')]
+            fields = [field.strip() for field in tuple_str.split(",")]
             first = fields[0].strip("'\"")
             publication_id = int(first) if first.isdigit() else publication_ids_by_oai[first]
             sdg_labels = [int(fields[i]) for i in range(1, 18)]  # SDG labels from sdg1 to sdg17
@@ -40,11 +43,7 @@ def load_sdg_label_data(file_path, batch_size=100):
             print(f"Processing publication_id={publication_id} with SDG labels: {sdg_labels}")
 
             # Create SDGLabelHistory object
-            history = SDGLabelHistory(
-                active=True,
-                created_at=current_timestamp,
-                updated_at=current_timestamp
-            )
+            history = SDGLabelHistory(active=True, created_at=current_timestamp, updated_at=current_timestamp)
             data_history.append(history)
 
             # Create SDGLabelSummary object (initially without history_id)
@@ -68,7 +67,7 @@ def load_sdg_label_data(file_path, batch_size=100):
                 sdg16=sdg_labels[15],
                 sdg17=sdg_labels[16],
                 created_at=current_timestamp,
-                updated_at=current_timestamp
+                updated_at=current_timestamp,
             )
             data_summary.append(summary)
 

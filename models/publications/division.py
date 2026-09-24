@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import String, DateTime
+from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from models.base import Base
@@ -13,7 +13,6 @@ class Division(Base):
     # setName Communities & Collections = 04 Faculty of Medicine: University Hospital Zurich: Division of Psychosocial Medicine (former)
     # setSpec	7375626A656374733D3130313730:3130313938:3130303539
     # Be aware: There can be up to 5 elements
-
 
     __tablename__ = "divisions"
 

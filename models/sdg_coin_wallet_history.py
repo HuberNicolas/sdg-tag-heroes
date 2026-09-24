@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Float, DateTime, Text, Boolean
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -8,10 +8,12 @@ from settings.settings import TimeZoneSettings
 
 time_zone_settings = TimeZoneSettings()
 
+
 class SDGCoinWalletHistory(Base):
     """
     Tracks incremental changes in the SDGCoinWallet over time.
     """
+
     __tablename__ = "sdg_coin_wallet_histories"
 
     history_id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -19,7 +21,9 @@ class SDGCoinWalletHistory(Base):
     increment: Mapped[float] = mapped_column(Float, nullable=False)  # Incremental change in coins (+/-)
     reason: Mapped[str] = mapped_column(Text, nullable=True)  # Optional reason for the change
     is_shown: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
-    timestamp: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(time_zone_settings.ZURICH_TZ), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(time_zone_settings.ZURICH_TZ), nullable=False
+    )
 
     # Relationship with SDGCoinWallet
     wallet: Mapped["SDGCoinWallet"] = relationship("SDGCoinWallet", back_populates="histories")
@@ -49,4 +53,3 @@ class SDGCoinWalletHistory(Base):
             f"updated_at={self.updated_at}"
             f")>"
         )
-

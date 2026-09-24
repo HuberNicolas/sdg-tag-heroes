@@ -1,8 +1,8 @@
 import json
-import re
 from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
+
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGRank
 from settings.settings import TimeZoneSettings
@@ -11,12 +11,13 @@ from settings.settings import TimeZoneSettings
 Session = sessionmaker(bind=mariadb_engine)
 session = Session()
 
+
 # Function to load data from JSON file
 def load_sdgs_ranks_from_json(file_path):
     """
     Loads the ranks for each SDG goal (1-17) from a JSON file into the SDGRank table.
     """
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         data = json.load(file)
 
     current_timestamp = datetime.now(TimeZoneSettings.ZURICH_TZ)
@@ -48,9 +49,8 @@ def load_sdgs_ranks_from_json(file_path):
 
 def main():
 
-
     # Call the function to load data from JSON file into the SDGRank table
-    load_sdgs_ranks_from_json('./data/ranks/sdg_ranks.json')
+    load_sdgs_ranks_from_json("./data/ranks/sdg_ranks.json")
 
 
 if __name__ == "__main__":

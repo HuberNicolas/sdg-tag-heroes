@@ -1,12 +1,13 @@
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, sessionmaker
 
-from db.mariadb_connector import engine as mariadb_engine
-from models import User
-from enums.enums import UserRole
 from api.app.routes.authentication import verify_token
 from api.app.security import Security
+from db.mariadb_connector import engine as mariadb_engine
+from enums.enums import UserRole
+from models import User
 from request_models.user import UserIdsRequest
 from schemas.users.user import UserSchemaFull
 from settings.settings import UsersRouterSettings
@@ -23,6 +24,7 @@ oauth2_scheme = security.oauth2_scheme
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mariadb_engine)
 
+
 # Dependency for getting DB session
 def get_db():
     db = SessionLocal()
@@ -30,6 +32,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # Create the API router
 router = APIRouter(
@@ -96,7 +99,6 @@ async def get_users_by_role(
 
         return [UserSchemaFull.model_validate(user) for user in filtered_users]
 
-
     except HTTPException:
         raise
     except Exception as e:
@@ -104,6 +106,7 @@ async def get_users_by_role(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching users: {e}",
         )
+
 
 @router.get("/{user_id}", response_model=UserSchemaFull, description="Retrieve a specific user by ID")
 async def get_user_by_id(
@@ -134,15 +137,9 @@ async def get_user_by_id(
         )
 
 
-@router.post(
-    "/",
-    response_model=List[UserSchemaFull],
-    description="Get a list of users by IDs"
-)
+@router.post("/", response_model=List[UserSchemaFull], description="Get a list of users by IDs")
 async def get_publications_by_ids(
-    request: UserIdsRequest,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    request: UserIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[UserSchemaFull]:
     user = verify_token(token, db)  # Ensure user is authenticated
 
