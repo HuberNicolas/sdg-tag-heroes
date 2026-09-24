@@ -23,7 +23,11 @@ published.
 - [ ] Only then: remove UZH data from this repository, including its git history
   - [ ] `notebooks/topic_model.ipynb` (contains ZORA titles and abstracts in cell outputs)
   - [ ] `notebooks/topic_data.json` (contains ZORA titles and abstracts)
-  - [ ] Check the other notebooks for publication data
+  - [ ] `notebooks/exploration.ipynb` (Plotly outputs with publication titles, 57 MB)
+  - [ ] `notebooks/publication_comparison.ipynb` (outputs with ZORA identifiers and titles)
+  - [x] Check the other notebooks: `model_comparison.ipynb` has no publication data
+  - Clearing the outputs (`jupyter nbconvert --clear-output`) removes the data from the files; removing it from the
+    history needs a rewrite (`git filter-repo`) and a force push
 
 ## 2. Update the API collection (via openapi.json)
 
