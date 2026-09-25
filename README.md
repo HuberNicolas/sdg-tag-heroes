@@ -67,6 +67,8 @@ expert.
 - [Documentation](#documentation)
 - [Known issues](#known-issues)
 - [Acknowledgements](#acknowledgements)
+- [Related](#related)
+- [Author](#author)
 
 ## Tech stack
 
@@ -323,7 +325,8 @@ The SDG predictions come from the SciBERT model `Dvdblk`, because the Aurora mod
 > refuses to start otherwise, and a resumed run only continues when every publication in MariaDB comes from the dummy
 > dataset.
 
-1. **Generate the data** as described in the generator's README, then copy its `output/data/` into `data/`.
+1. **Generate the data** with the [generator](https://github.com/HuberNicolas/sdg-tag-heroes-dataset-generator#quick-start),
+   then copy its `output/data/` into `data/`.
    `--mode ollama` (a local model, free) or `--mode llm` (Claude, paid) write more realistic abstracts.
 2. **Start the databases and the API:**
 
@@ -430,6 +433,14 @@ More open tasks are in [TODO.md](TODO.md).
   **[`dvdblk/scibert_sdg_cased_zo-up`](https://huggingface.co/dvdblk/scibert_sdg_cased_zo-up)** predict the SDGs.
 - The publications of the thesis dataset come from **[ZORA](https://www.zora.uzh.ch/)**, the open repository of UZH.
 
+## Related
+
+- [sdg-tag-heroes-dataset-generator](https://github.com/HuberNicolas/sdg-tag-heroes-dataset-generator): generates the
+  fictional publications of the [dummy dataset](#dummy-dataset)
+
 ## Author
 
-Nicolas Huber, master's thesis, University of Zurich (UZH).
+Nicolas Huber · [nicolas.huber.dev@gmail.com](mailto:nicolas.huber.dev@gmail.com) ·
+[GitHub](https://github.com/HuberNicolas)
+
+Master's thesis at the University of Zurich (UZH).
