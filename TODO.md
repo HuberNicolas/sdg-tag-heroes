@@ -95,7 +95,7 @@ published.
 
 ## 6. Before publishing
 
-- [ ] Choose and add a license
+- [x] Add a license: MIT for the code (`LICENSE`); third-party data and assets are excluded in the README
 - [ ] Add the thesis title, link, and supervisors to the README
 - [ ] Credit SDG-Scout and the research group
 - [x] Check for secrets (2026-09-24): tracked files and the whole git history contain no API keys, JWTs, real

@@ -12,6 +12,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 ![Postman](https://img.shields.io/badge/Postman-collection-FF6C37?logo=postman&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 [Quick start](#quick-start) · [Dummy dataset](#dummy-dataset) · [API](#api) · [Documentation](#documentation)
 
@@ -68,6 +69,7 @@ expert.
 - [Known issues](#known-issues)
 - [Acknowledgements](#acknowledgements)
 - [Related](#related)
+- [License](#license)
 - [Author](#author)
 
 ## Tech stack
@@ -437,6 +439,15 @@ More open tasks are in [TODO.md](TODO.md).
 
 - [sdg-tag-heroes-dataset-generator](https://github.com/HuberNicolas/sdg-tag-heroes-dataset-generator): generates the
   fictional publications of the [dummy dataset](#dummy-dataset)
+
+## License
+
+The code is released under the [MIT License](LICENSE).
+
+The license covers the code of this repository only. The publication titles and abstracts in the notebook outputs come
+from [ZORA](https://www.zora.uzh.ch/) and remain with their authors; the SDG icons and texts belong to the
+[United Nations](https://www.un.org/sustainabledevelopment/news/communications-material/); third-party models and
+libraries keep their own licenses.
 
 ## Author
 
