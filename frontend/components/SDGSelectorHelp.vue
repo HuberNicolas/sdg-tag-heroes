@@ -7,13 +7,13 @@
       <div
         v-for="(sdg, index) in sdgs"
         :key="sdg.id"
-        @click="toggleSDG(sdg.id)"
         :class="[
           'cursor-pointer flex flex-col items-center justify-center rounded-lg p-2 w-15 h-15 transition-all duration-200',
           selectedSDG === sdg.id
             ? 'bg-gray-300 border-2 border-black' // Selected state
             : 'bg-white hover:bg-gray-100 border-2 border-transparent hover:border-gray-200', // Default and hover states
         ]"
+        @click="toggleSDG(sdg.id)"
       >
         <!-- SDG Icon -->
         <img
@@ -21,7 +21,7 @@
           :src="`data:image/svg+xml;base64,${sdg.icon}`"
           :alt="`SDG ${sdg.id} Icon`"
           class="w-14 h-14 object-contain"
-        />
+        >
         <!-- SDG Short Title from baseSdgShortTitles -->
         <span class="text-xs text-center mt-1">
           {{ baseSdgShortTitles[index] }}
@@ -64,9 +64,5 @@ const selectedSDGDetails = computed(() => sdgs.value.find(s => s.id === selected
 
 const toggleSDG = (sdgId: number) => {
   selectedSDG.value = selectedSDG.value === sdgId ? null : sdgId;
-};
-
-const resetSelection = () => {
-  selectedSDG.value = null;
 };
 </script>

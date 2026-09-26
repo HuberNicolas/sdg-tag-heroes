@@ -1,5 +1,5 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type { AnnotationCreateRequest, AnnotationSchemaBase, AnnotationSchemaFull } from "~/types/annotation";
+import type { AnnotationCreateRequest, AnnotationSchemaFull } from "~/types/annotation";
 import { snakeToCamel } from "~/utils/snakeToCamel";
 
 export default function useAnnotations() {

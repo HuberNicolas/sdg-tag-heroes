@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="frame-title"><b>Explore</b> Community Labels: See How Others Categorized This Publication</div>
-    <CommentSummary></CommentSummary>
+    <CommentSummary/>
     <div v-if="isLoading" class="text-gray-500">Loading...</div>
 
     <div v-if="error">
@@ -50,10 +50,10 @@
         <div class="flex items-center gap-x-2">
           <input
             id="showFinalRound"
-            type="checkbox"
             v-model="showFinalRound"
+            type="checkbox"
             class="h-4 w-4"
-          />
+          >
           <label for="showFinalRound" class="text-sm font-medium">
             Show All Community Labels
           </label>
@@ -86,7 +86,7 @@
                     :src="generateAvatar(usersStore.users.find(user => user.userId === label.userId)?.email)"
                     alt="User Avatar"
                     class="w-10 h-10 rounded-full"
-                  />
+                  >
                 </div>
                 <!-- Plain Avatar if no rank -->
                 <template v-else>
@@ -94,17 +94,18 @@
                     :src="generateAvatar(usersStore.users.find(user => user.userId === label.userId)?.email)"
                     alt="User Avatar"
                     class="w-12 h-12 rounded-full"
-                  />
+                  >
                 </template>
               </NuxtLink>
             </template>
             <!-- Fallback if user data is missing -->
             <template v-else>
-              <div class="w-12 h-12 rounded-full bg-gray-300"></div>
+              <div class="w-12 h-12 rounded-full bg-gray-300"/>
             </template>
 
             <!-- Rank Info Card -->
-            <div v-if="getUserRank(label.userId, label.votedLabel)"
+            <div
+v-if="getUserRank(label.userId, label.votedLabel)"
                  class="mt-8 bg-white rounded-lg shadow p-2 w-full text-center border">
               <p>Rank</p>
               <Icon
@@ -133,7 +134,8 @@
             </div>
 
             <!-- Rank Title Section -->
-            <p class="text-sm border-gray-400 mt-1"
+            <p
+class="text-sm border-gray-400 mt-1"
                :style="{ color: sdgsStore.getColorBySDG(label.votedLabel) }">
               {{ getUserRank(label.userId, label.votedLabel)?.name || "" }}
             </p>
@@ -157,7 +159,7 @@
                   :src="getSDGIcon(label.votedLabel)"
                   alt="SDG Icon"
                   class="w-6 h-6 rounded-full"
-                />
+                >
               </div>
             </div>
 
@@ -186,23 +188,23 @@
 
                 <!-- Negative Vote Button -->
                 <button
-                  @click="voteAnnotation(label.labelId, VoteType.NEGATIVE)"
                   class="flex items-center gap-1 text-gray-400 hover:text-gray-600"
                   aria-label="Vote Negative"
+                  @click="voteAnnotation(label.labelId, VoteType.NEGATIVE)"
                 >
                   <Icon name="mdi-thumb-down-outline" class="w-5 h-5" />
                   <span class="text-gray-400">{{ getLabelVotes(label.labelId).negative }}</span>
                 </button>
 
                 <!-- Vote Plot -->
-                <BarVotePlot :width="350" :height="80" :votesData="getLabelVotes(label.labelId)" />
+                <BarVotePlot :width="350" :height="80" :votes-data="getLabelVotes(label.labelId)" />
 
 
                 <!-- Positive Vote Button -->
                 <button
-                  @click="voteAnnotation(label.labelId, VoteType.POSITIVE)"
                   class="flex items-center gap-1 text-gray-700 hover:text-gray-900"
                   aria-label="Vote Positive"
+                  @click="voteAnnotation(label.labelId, VoteType.POSITIVE)"
                 >
                   <Icon name="mdi-thumb-up-outline" class="w-5 h-5" />
                   <span class="text-gray-700">{{ getLabelVotes(label.labelId).positive }}</span>
@@ -249,6 +251,7 @@ import { formatDate } from "~/utils/formatDate";
 import { VoteType } from "~/types/enums";
 import BarVotePlot from "~/components/plots/BarVotePlot.vue";
 import type { VoteSchemaFull } from "~/types/vote";
+import type { SDGUserLabelSchemaFull } from "~/types/sdgUserLabel";
 import useVotes from "~/composables/useVotes";
 import CommentSummary from "~/components/CommentSummary.vue";
 
@@ -263,11 +266,11 @@ const userLabels = computed(() => {
   }
 
   // Show only the latest label per user
-  const latestLabels = new Map<number, any>();
+  const latestLabels = new Map<number, SDGUserLabelSchemaFull>();
   labelDecisionsStore.userLabels.forEach((label) => {
     if (
       !latestLabels.has(label.userId) ||
-      new Date(label.createdAt) > new Date(latestLabels.get(label.userId).createdAt)
+      new Date(label.createdAt) > new Date(latestLabels.get(label.userId)!.createdAt)
     ) {
       latestLabels.set(label.userId, label);
     }
@@ -291,6 +294,7 @@ const route = useRoute();
 const publicationId = route.params.publicationId; // 88466
 
 // Toggle annotations visibility
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by the commented-out "Show comments" button in the template
 const toggleAnnotations = (labelId: number) => {
   if (expandedLabels.value.includes(labelId)) {
     expandedLabels.value = expandedLabels.value.filter((id) => id !== labelId);
@@ -325,23 +329,9 @@ const getLabelVotes = (labelId: number) => {
 };
 
 
-// Get votes for an annotation
-const getAnnotationVotes = (annotationId: number) => {
-  console.log("getAnnotationVotes", annotationId);
-  const annotation = userLabels.value
-    .flatMap((label) => label.annotations)
-    .find((annotation) => annotation.annotationId === annotationId);
-  if (!annotation) return { positive: 0, neutral: 0, negative: 0 };
-  const dict =  {
-    positive: annotation.votes.filter((vote) => vote.voteType === VoteType.POSITIVE).length,
-    neutral: annotation.votes.filter((vote) => vote.voteType === VoteType.NEUTRAL).length,
-    negative: annotation.votes.filter((vote) => vote.voteType === VoteType.NEGATIVE).length
-  };
-  console.log(dict);
-  return dict
-};
 
 // Vote for a label
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by the commented-out "Neutral" vote button in the template
 async function voteLabel(sdgUserLabelId: number, voteType: VoteType): Promise<VoteSchemaFull> {
   const userId = usersStore.user.userId;
   const score = 1
@@ -408,7 +398,7 @@ const filteredAndSortedUserLabels = computed(() => {
   // Apply sorting after filtering
   return [...filteredLabels].sort((a, b) => {
     switch (sortBy.value) {
-      case "nickname":
+      case "nickname": {
         const nicknameA =
           usersStore.users.find((user) => user.userId === a.userId)?.nickname ||
           "";
@@ -416,6 +406,7 @@ const filteredAndSortedUserLabels = computed(() => {
           usersStore.users.find((user) => user.userId === b.userId)?.nickname ||
           "";
         return nicknameA.localeCompare(nicknameB);
+      }
 
       case "positiveVotes":
         return (

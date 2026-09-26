@@ -6,15 +6,13 @@
       <span class="font-bold text-black-600">{{ totalCount }}</span> publications
     </p>
     <!-- D3 Stacked Bar Chart -->
-    <div ref="chartContainer" class="w-full h-1/2"></div>
+    <div ref="chartContainer" class="w-full h-1/2"/>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
 import * as d3 from "d3";
-import { select, scaleLinear } from 'd3';
-import { transition } from 'd3-transition';
 import { usePublicationsStore } from '@/stores/publications';
 import { useSDGPredictionsStore } from '@/stores/sdgPredictions';
 import { useGameStore } from '@/stores/game';
@@ -82,9 +80,6 @@ const computeSDGStackedData = (predictions) => {
 
 const selectedSDGDistribution = computed(() =>
   computeSDGStackedData(sdgPredictionsStore.selectedPartitionedSDGPredictions)
-);
-const trueSDGDistribution = computed(() =>
-  computeSDGStackedData(sdgPredictionsStore.scenarioTypeSDGPredictions)
 );
 
 const updateChart = () => {

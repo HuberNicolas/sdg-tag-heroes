@@ -1,5 +1,5 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type { VoteCreateSchema, VoteSchemaBase, VoteSchemaFull } from "~/types/vote";
+import type { VoteCreateSchema, VoteSchemaFull } from "~/types/vote";
 import { snakeToCamel } from "~/utils/snakeToCamel";
 
 export default function useVotes() {

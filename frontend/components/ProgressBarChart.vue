@@ -1,5 +1,5 @@
 <template>
-  <div ref="chart" class="progress-bar-chart"></div>
+  <div ref="chart" class="progress-bar-chart"/>
 </template>
 
 <script setup lang="ts">

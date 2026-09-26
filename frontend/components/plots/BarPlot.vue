@@ -4,7 +4,7 @@
     <p class="text-sm text-gray-600">
       Top SDG-Goal Distribution
     </p>
-    <div ref="chartContainer" class="w-full"></div>
+    <div ref="chartContainer" class="w-full"/>
   </div>
 </template>
 
@@ -14,7 +14,7 @@ import * as d3 from "d3";
 import { usePublicationsStore } from "@/stores/publications";
 import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import { useSDGsStore } from "@/stores/sdgs";
-import {baseSdgTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
+import { baseSdgTitles } from "@/constants/constants";
 const sdgTitles = baseSdgTitles
 
 export default {

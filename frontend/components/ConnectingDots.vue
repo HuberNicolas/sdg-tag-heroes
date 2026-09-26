@@ -1,9 +1,7 @@
 <template>
   <div class="flex items-center justify-between">
     <!-- Left Glyph Container (Takes 4/5 of the screen) -->
-    <div id="glyph-container" class="flex justify-center items-center w-4/5">
-
-    </div>
+    <div id="glyph-container" class="flex justify-center items-center w-4/5"/>
     <Icon
       name="line-md-question"
       class="absolute w-[100px] h-[100px] text-gray-600 -translate-x-4"
@@ -18,7 +16,7 @@
         name="line-md-document"
         class="w-[200px] h-[200px] text-gray-600 opacity-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
       />
-      <div id="target-box" class="flex justify-center items-center relative z-20 overflow-visible"></div>
+      <div id="target-box" class="flex justify-center items-center relative z-20 overflow-visible"/>
     </div>
   </div>
 </template>

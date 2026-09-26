@@ -6,7 +6,7 @@
         :src="`data:image/svg+xml;base64,${currentSDG.icon}`"
         :alt="`SDG ${currentSDG.id} Icon`"
         class="w-8 h-8 flex-shrink-0"
-      />
+      >
 
       <!-- SDG Details (Compact) -->
       <div class="flex items-center space-x-2">

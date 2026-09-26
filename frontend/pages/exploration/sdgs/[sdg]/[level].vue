@@ -43,19 +43,13 @@
 
 <script setup lang="ts">
 import ScatterSDGPlot from "~/components/plots/ScatterSDGPlot.vue";
-import RainPlot from "@/components/plots/RainPlot.vue";
 import BarPlot from "@/components/plots/BarPlot.vue";
-import QuestButton from "~/components/QuestButton.vue";
 import ExplorationUserQuery from "~/components/ExplorationUserQuery.vue";
 import { onMounted, ref, watch } from "vue";
 import { useGameStore } from "~/stores/game";
-import PublicationDetails from "~/components/PublicationDetails.vue";
 import { Quadrant, Stage } from "~/types/enums";
 import QuestSection from "~/components/QuestSection.vue";
-import PublicationsTableExploration from "~/components/PublicationsTableExploration.vue";
-import ScatterPlotExplorationLegend from "~/components/ScatterPlotExplorationLegend.vue";
 import RainPlotExploration from "~/components/plots/RainPlotExploration.vue";
-import ScatterPlot from "~/components/plots/ScatterPlot.vue";
 
 
 const route = useRoute()

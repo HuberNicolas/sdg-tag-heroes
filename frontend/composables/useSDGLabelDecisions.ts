@@ -1,6 +1,5 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
 import type {
-  SDGLabelDecisionSchemaBase,
   SDGLabelDecisionSchemaExtended,
   SDGLabelDecisionSchemaFull
 } from "~/types/sdgLabelDecision";

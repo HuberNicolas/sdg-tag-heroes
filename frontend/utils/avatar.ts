@@ -7,7 +7,7 @@ import { thumbs } from '@dicebear/collection';
  * @param options - Additional options for avatar generation.
  * @returns A string containing the Data URI of the generated avatar.
  */
-export function generateAvatar(seed: string, options: Record<string, any> = {}): string {
+export function generateAvatar(seed: string, options: Record<string, unknown> = {}): string {
   return createAvatar(thumbs, {
     seed,
     size: 128,

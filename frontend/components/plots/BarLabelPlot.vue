@@ -1,7 +1,7 @@
 <template>
   <div>
     <div ref="barPlotContainer" class="bar-plot">
-      <div ref="chartContainer" class="chart-container"></div>
+      <div ref="chartContainer" class="chart-container"/>
     </div>
   </div>
 </template>

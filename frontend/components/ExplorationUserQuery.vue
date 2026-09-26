@@ -2,7 +2,7 @@
   <div class="frame-container">
     <div class="frame-title"><b>by creating</b> a Personalized Point of Interest (POI 📍) by sharing your Interests or Skills to select Publications with the <b>Query Box</b></div>
 
-    <form @submit.prevent="handleUserPointGenerator" class="">
+    <form class="" @submit.prevent="handleUserPointGenerator">
       <!-- Radio group and button in the same row -->
       <div class="flex items-center justify-between">
         <!-- Nuxt UI Radio Group with horizontal alignment -->
@@ -26,7 +26,7 @@
             type="text"
             class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 placeholder:text-muted-foreground transition-colors duration-200"
             :placeholder="mode === 'skills' ? 'I work as a nurse' : 'I like to play the piano'"
-          />
+          >
         </div>
 
 
@@ -42,7 +42,7 @@
           {{ isLoading ? 'Processing...' : 'Create POI 📍' }}
           <template #trailing>
             <div v-if="isLoading">
-              <i class="animate-spin i-heroicons-spinner"></i>
+              <i class="animate-spin i-heroicons-spinner"/>
             </div>
           </template>
         </UButton>

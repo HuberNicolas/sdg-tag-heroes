@@ -25,18 +25,19 @@
 
     <!-- Scrollable List -->
     <div class="max-h-[600px] overflow-y-auto border rounded p-4">
-      <div v-for="annotation in sortedAnnotations" :key="annotation.annotationId"
+      <div
+v-for="annotation in sortedAnnotations" :key="annotation.annotationId"
            class="mb-2 border-2 border-gray-600 bg-gray-200 rounded-lg shadow-xl p-3">
       <div class="flex items-start gap-2">
           <!-- User Avatar with Rank -->
           <div class="flex flex-col items-center p-4">
             <template v-if="usersStore.users.find(user => user.userId === annotation.userId)?.email">
               <NuxtLink :to="`/users/${annotation.userId}`" class="flex items-center justify-center">
-                <img :src="generateAvatar(usersStore.users.find(user => user.userId === annotation.userId)?.email)" alt="User Avatar" class="w-12 h-12 rounded-full" />
+                <img :src="generateAvatar(usersStore.users.find(user => user.userId === annotation.userId)?.email)" alt="User Avatar" class="w-12 h-12 rounded-full" >
               </NuxtLink>
             </template>
             <template v-else>
-              <div class="w-12 h-12 rounded-full bg-gray-300"></div>
+              <div class="w-12 h-12 rounded-full bg-gray-300"/>
             </template>
           </div>
 
@@ -65,16 +66,16 @@
               <!-- Vote Buttons -->
               <div class="flex items-center gap-2 mt-2">
                 <!-- Negative Vote Button -->
-                <button @click="voteAnnotation(annotation.annotationId, VoteType.NEGATIVE)" class="flex items-center gap-1 text-gray-400 hover:text-gray-600" aria-label="Vote Negative">
+                <button class="flex items-center gap-1 text-gray-400 hover:text-gray-600" aria-label="Vote Negative" @click="voteAnnotation(annotation.annotationId, VoteType.NEGATIVE)">
                   <Icon name="mdi-thumb-down-outline" class="w-5 h-5" />
                   <span class="text-gray-400">{{ getAnnotationVotes(annotation.annotationId).negative }}</span>
                 </button>
 
                 <!-- Vote Plot -->
-                <BarVotePlot :width="350" :height="80" :votesData="getAnnotationVotes(annotation.annotationId)" />
+                <BarVotePlot :width="350" :height="80" :votes-data="getAnnotationVotes(annotation.annotationId)" />
 
                 <!-- Positive Vote Button -->
-                <button @click="voteAnnotation(annotation.annotationId, VoteType.POSITIVE)" class="flex items-center gap-1 text-gray-700 hover:text-gray-900" aria-label="Vote Positive">
+                <button class="flex items-center gap-1 text-gray-700 hover:text-gray-900" aria-label="Vote Positive" @click="voteAnnotation(annotation.annotationId, VoteType.POSITIVE)">
                   <Icon name="mdi-thumb-up-outline" class="w-5 h-5" />
                   <span class="text-gray-700">{{ getAnnotationVotes(annotation.annotationId).positive }}</span>
                 </button>

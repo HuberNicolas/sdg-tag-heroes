@@ -20,7 +20,6 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
 
   const level = gameStore.getLevel;
   //const sdg = gameStore.getSDG;
-  let scatterPlotInstance = null; // Store Plotly instance
   let selectedPoint = null; // Store clicked point coordinates
   let highlightMarker = null;
   let hoverHighlightMarker = null
@@ -174,7 +173,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
     };
 
     // Render the plot
-    scatterPlotInstance = Plotly.newPlot(container, userMarker ? [scatterData, userMarker] : [scatterData], layout);
+    Plotly.newPlot(container, userMarker ? [scatterData, userMarker] : [scatterData], layout);
 
 
     // Watch for changes in selected collections and update the plot

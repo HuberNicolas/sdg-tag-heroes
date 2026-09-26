@@ -5,7 +5,6 @@ import type {
 } from "./annotation";
 
 import type {
-  SDGUserLabelSchemaBase,
   SDGUserLabelSchemaFull
 } from "./sdgUserLabel"
 

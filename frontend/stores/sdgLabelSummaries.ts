@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import type {
-  SDGLabelSummarySchemaBase,
-  SDGLabelSummarySchemaFull,
+  SDGLabelSummarySchemaFull
 } from "~/types/sdgLabelSummary";
 import useSDGLabelSummaries from "~/composables/useSDGLabelSummaries";
 

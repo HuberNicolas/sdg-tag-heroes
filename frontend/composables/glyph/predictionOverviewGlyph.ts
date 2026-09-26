@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import {baseSdgColors, baseCoords, baseLabelsNumbers, baseSdgShortTitles} from "@/constants/constants";
+import { baseSdgColors, baseCoords, baseSdgShortTitles } from "@/constants/constants";
 
 
 
@@ -11,7 +11,6 @@ export default function createGlyph(values: number[]) {
 
   const sdgColors = baseSdgColors;
   const coords = baseCoords
-  const labels = baseLabelsNumbers
 
 
 
@@ -40,7 +39,7 @@ export default function createGlyph(values: number[]) {
 
     const contentGroup = svg.append('g');
 
-    const tooltip = d3.select('body')
+    d3.select('body')
       .append('div')
       .attr('class', 'glyph-tooltip')
       .style('position', 'absolute')

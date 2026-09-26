@@ -4,7 +4,7 @@
     <p class="text-sm text-gray-600">
       Labeling Effort: XP Distribution of Your Selection
     </p>
-    <div ref="chartContainer" class="w-full h-80 relative" ></div>
+    <div ref="chartContainer" class="w-full h-80 relative" />
   </div>
 </template>
 <script setup>
@@ -20,7 +20,6 @@ const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const sdgsStore = useSDGsStore();
 const gameStore = useGameStore();
-const sdg = gameStore.getSDG;
 const selectedSDGColor = computed(() => {
   const sdg = gameStore.getSDG;
   return sdg ? sdgsStore.getColorBySDG(sdg) : "#000000"; // Default color (black) if not initialized
@@ -96,7 +95,7 @@ const updateChart = () => {
   const xScale = d3.scaleLinear().domain([min, max]).range([0, width - margin.left - margin.right]);
 
   // Tooltip
-  const tooltip = d3.select(chartContainer.value)
+  d3.select(chartContainer.value)
     .append("div")
     .style("position", "absolute")
     .style("visibility", "hidden")
@@ -110,8 +109,7 @@ const updateChart = () => {
   // Density Curve
   const densityData = d3.histogram()
     .domain(xScale.domain()) // Match x-axis with the boxplot
-    .thresholds(xScale.ticks(30)) // Ensure the same binning resolution
-    (sortedData);
+    .thresholds(xScale.ticks(30))(sortedData); // Same binning resolution as the boxplot
 
 // Compute density
   const kde = densityData.map(bin => ({
@@ -307,7 +305,7 @@ const updateChart = () => {
       if (!prediction) return "grey";
 
       // Extract highest SDG score
-      let highestSDG = Object.keys(prediction)
+      const highestSDG = Object.keys(prediction)
         .filter(key => key.startsWith("sdg"))
         .map(key => ({ id: parseInt(key.replace("sdg", "")), value: prediction[key] }))
         .reduce((max, sdg) => (sdg.value > max.value ? sdg : max), { id: null, value: 0 });

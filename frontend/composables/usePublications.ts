@@ -8,12 +8,10 @@ import type {
   PublicationSchemaFull,
   PublicationsCollectiveSummarySchema,
   PublicationSDGAnalysisSchema,
-  PublicationSimilaritySchema,
-  PublicationSummarySchema
+  PublicationSimilaritySchema
 } from "~/types/publication";
 
 import type {
-  SummarySchemaBase,
   SummarySchemaFull
 } from "~/types/summary";
 

@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useSDGsStore } from "~/stores/sdgs";
-import { ref, watch } from "vue";
+import { watch } from "vue";
 
 export function createBarLabelPlot(container, fixedWidth, height, sortDescending) {
   const labelDecisionsStore = useLabelDecisionsStore();
@@ -11,7 +11,7 @@ export function createBarLabelPlot(container, fixedWidth, height, sortDescending
     // Without a fixed width, use the container's current width (it can change on resize)
     const width = fixedWidth || container.clientWidth || 500;
     if (labelDecisionsStore.selectedSDGLabelDecision && labelDecisionsStore.userLabels) {
-      let labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showFinalRound);
+      const labelDistribution = aggregateUserVotes(labelDecisionsStore.userLabels, labelDecisionsStore.showFinalRound);
 
       // Apply correct order:
       if (sortDescending) {
@@ -52,7 +52,7 @@ export function createBarLabelPlot(container, fixedWidth, height, sortDescending
  * Aggregates user votes, either showing all or only the latest vote per user.
  */
 export function aggregateUserVotes(userLabels, showFinalRound) {
-  let latestLabels = new Map();
+  const latestLabels = new Map();
 
   if (showFinalRound) {
     // Keep only the latest SDG label per user
@@ -67,18 +67,18 @@ export function aggregateUserVotes(userLabels, showFinalRound) {
   }
 
   // Use either all labels or the latest one per user
-  let filteredLabels = showFinalRound ? Array.from(latestLabels.values()) : userLabels;
+  const filteredLabels = showFinalRound ? Array.from(latestLabels.values()) : userLabels;
 
   // Count votes for each SDG label
-  let voteCounts = {};
+  const voteCounts = {};
   filteredLabels.forEach((label) => {
-    let votedLabel = label.votedLabel;
+    const votedLabel = label.votedLabel;
     if ((votedLabel >= 1 && votedLabel <= 17) || votedLabel === -1) {
       voteCounts[votedLabel] = (voteCounts[votedLabel] || 0) + 1;
     }
   });
 
-  let labelDistribution = Object.entries(voteCounts).map(([label, count]) => ({
+  const labelDistribution = Object.entries(voteCounts).map(([label, count]) => ({
     label: Number(label),
     count,
   }));

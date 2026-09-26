@@ -20,9 +20,9 @@
         <thead>
         <tr class="bg-gray-100">
           <th
-            @click="sortTable('title')"
             class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
             :class="{ 'font-bold text-gray-800': sortKey === 'title' }"
+            @click="sortTable('title')"
           >
             Title
             <span v-if="sortKey === 'title'">
@@ -34,9 +34,9 @@
           <th class="border border-gray-300 p-2">Machine Scores</th>
           <th class="border border-gray-300 p-2">Top SDGs</th>
           <th
-            @click="sortTable('topSDGNumber')"
             class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
             :class="{ 'font-bold text-gray-800': sortKey === 'topSDGNumber' }"
+            @click="sortTable('topSDGNumber')"
           >
             Top SDG
             <span v-if="sortKey === 'topSDGNumber'">
@@ -45,9 +45,10 @@
             <span v-else class="text-gray-400">↕</span>
           </th>
 
-          <th @click="sortTable('coins')"
-              class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'coins' }">
+          <th
+class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'coins' }"
+              @click="sortTable('coins')">
             Coins
             <span v-if="sortKey === 'coins'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
@@ -55,9 +56,10 @@
             <span v-else class="text-gray-400">↕</span>
           </th>
 
-          <th @click="sortTable('xp')"
-              class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'xp' }">
+          <th
+class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'xp' }"
+              @click="sortTable('xp')">
             XP
             <span v-if="sortKey === 'xp'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
@@ -65,18 +67,20 @@
             <span v-else class="text-gray-400">↕</span>
           </th>
 
-          <th @click="sortTable('year')"
-              class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'year' }">
+          <th
+class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'year' }"
+              @click="sortTable('year')">
             Year
             <span v-if="sortKey === 'year'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
             <span v-else class="text-gray-400">↕</span>
           </th>
-          <th @click="sortTable('collectionName')"
-              class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'collectionName' }">
+          <th
+class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'collectionName' }"
+              @click="sortTable('collectionName')">
             Topic
             <span v-if="sortKey === 'collectionName'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
@@ -84,9 +88,10 @@
             <span v-else class="text-gray-400">↕</span>
           </th>
 
-          <th @click="sortTable('scenarioType')"
-              class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'scenarioType' }">
+          <th
+class="border border-gray-300 p-2 sortable-header"
+              :class="{ 'active-sort': sortKey === 'scenarioType' }"
+              @click="sortTable('scenarioType')">
             Quest
             <span v-if="sortKey === 'scenarioType'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
@@ -105,20 +110,23 @@
           v-for="(item, index) in sortedTableData"
           :key="index"
           class="hover:bg-gray-50"
+          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSDG) : '' }"
           @mouseover="publicationsStore.setHoveredPublication(item)"
-          @mouseleave="publicationsStore.setHoveredPublication(null)"
-          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSDG) : '' }">
-          <td class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
+          @mouseleave="publicationsStore.setHoveredPublication(null)">
+          <td
+class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
               @click="handlePublicationClick(item)">
             {{ item.title }}
           </td>
           <td class="border border-gray-300 p-2">
-            <div class="relative flex items-center justify-center"
-                 v-html="generateHexagonSVG(Math.round(item.xp), getSDGColor(item.topSDG), getSDGColor(item.topSDG), item.scenarioType)">
-            </div>
+            <!-- eslint-disable vue/no-v-html -- the SVG is built from numbers, colours and the scenario enum -->
+            <div
+class="relative flex items-center justify-center"
+                 v-html="generateHexagonSVG(Math.round(item.xp), getSDGColor(item.topSDG), getSDGColor(item.topSDG), item.scenarioType)"/>
+            <!-- eslint-enable vue/no-v-html -->
           </td>
           <td class="border border-gray-300 p-2 flex items-center justify-center">
-            <HexGlyph :values="item.values" :height="80" :width="70" :key="item.publicationId + '-' + sortKey + '-' + sortOrder" />
+            <HexGlyph :key="item.publicationId + '-' + sortKey + '-' + sortOrder" :values="item.values" :height="80" :width="70" />
           </td>
           <td class="border border-gray-300 p-2">
             <BarPredictionPlot :values="item.values" :width="80" :height="60" />
@@ -129,7 +137,7 @@
                 <img
                   :src="getSDGIconSrc(item.topSDG)"
                   class="w-full h-full object-contain"
-                />
+                >
               </div>
               <span class="text-center">{{ item.topSDGNumber }}</span>
             </div>

@@ -1,5 +1,5 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
-import type { SDGUserLabelSchemaBase, SDGUserLabelSchemaFull, UserLabelRequest } from "~/types/sdgUserLabel";
+import type { SDGUserLabelSchemaFull, UserLabelRequest } from "~/types/sdgUserLabel";
 import { snakeToCamel } from "~/utils/snakeToCamel";
 
 export default function useUserLabels() {

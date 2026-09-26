@@ -27,7 +27,7 @@
                 :src="generateAvatar(user.email)"
                 alt="User Avatar"
                 class="w-12 h-12 rounded-full"
-              />
+              >
             </div>
 
             <!-- User Details -->

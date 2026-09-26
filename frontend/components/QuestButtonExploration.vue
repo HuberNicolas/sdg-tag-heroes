@@ -4,10 +4,10 @@
     <button
       class="w-8 h-8 flex items-center justify-center bg-primary-500 text-white rotate-45
              hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      @click="handleClick"
       :disabled="isLoading"
+      @click="handleClick"
     >
-      <div class="absolute inset-0 bg-primary-500 rounded-md"></div>
+      <div class="absolute inset-0 bg-primary-500 rounded-md"/>
       <div class="relative flex items-center justify-center w-6 h-6 bg-white rounded-full">
         <Icon
           v-if="!isLoading"
@@ -35,12 +35,11 @@ import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useGameStore } from "~/stores/game";
 import { ref, watch } from "vue";
-import { ScenarioType } from "~/types/enums";
 
 const props = defineProps({
   icon: { type: String, required: true },
   name: { type: String, required: true },
-  tooltip: { type: String, required: false }
+  tooltip: { type: String, required: false, default: undefined }
 });
 
 const isLoading = ref(false);

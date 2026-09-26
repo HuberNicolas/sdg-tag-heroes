@@ -15,7 +15,7 @@
         :src="`data:image/svg+xml;base64,${currentSDG.icon}`"
         :alt="`SDG ${currentSDG.id} Icon`"
         class="w-16 h-16 mb-4"
-      />
+      >
 
       <!-- Catchy Explanation -->
       <p class="text-center text-gray-700 mt-1 mb-2">
@@ -33,7 +33,7 @@
           {{ keyword.trim() }}
         </span>
       </div>
-      <LevelSelector></LevelSelector>
+      <LevelSelector/>
     </div>
     <div v-else>
       Please select an SDG

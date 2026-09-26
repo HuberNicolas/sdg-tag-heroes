@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 
-import type { AnnotationSchemaBase, AnnotationSchemaFull } from "~/types/annotation";
-import type { SDGLabelDecisionSchemaBase, SDGLabelDecisionSchemaFull, SDGLabelDecisionSchemaExtended  } from "~/types/sdgLabelDecision";
-import type { SDGUserLabelSchemaBase, SDGUserLabelSchemaFull, SDGUserLabelsCommentSummarySchema } from "~/types/sdgUserLabel";
-import type { VoteSchemaBase, VoteSchemaFull } from "~/types/vote";
+import type { AnnotationSchemaFull } from "~/types/annotation";
+import type { SDGLabelDecisionSchemaFull, SDGLabelDecisionSchemaExtended } from "~/types/sdgLabelDecision";
+import type { SDGUserLabelSchemaFull, SDGUserLabelsCommentSummarySchema } from "~/types/sdgUserLabel";
+import type { VoteSchemaFull } from "~/types/vote";
 
 import useAnnotations from "~/composables/useAnnotations";
 import useSDGLabelDecisions from "~/composables/useSDGLabelDecisions";
@@ -107,7 +107,7 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     },
 
     // Fetch Annotations for a User Label
-    async fetchAnnotationsByUserLabelId(labelId: number) {
+    async fetchAnnotationsByUserLabelId(_labelId: number) {
       this.isLoading = true;
       this.error = null;
 
@@ -123,7 +123,7 @@ export const useLabelDecisionsStore = defineStore("labelDecisions", {
     },
 
     // Fetch Votes for an Annotation
-    async fetchVotesByAnnotationId(annotationId: number) {
+    async fetchVotesByAnnotationId(_annotationId: number) {
       this.isLoading = true;
       this.error = null;
 

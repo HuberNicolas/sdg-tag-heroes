@@ -6,22 +6,22 @@
         <div class="mb-4">
           <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
           <input
+            id="email"
             v-model="email"
             type="email"
-            id="email"
             required
             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
+          >
         </div>
         <div class="mb-6">
           <label for="password" class="block text-sm font-medium text-gray-700">Password:</label>
           <input
+            id="password"
             v-model="password"
             type="password"
-            id="password"
             required
             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
+          >
         </div>
         <button
           type="submit"
@@ -37,11 +37,11 @@
 
 <script setup lang="ts">
 // No navigation bar before login: it would call the API without a token
+import { useAuthentication } from "#imports";
+
 definePageMeta({
   layout: 'none'
 })
-
-import { useAuthentication } from "#imports";
 
 const email = ref('');
 const password = ref('');
@@ -53,11 +53,11 @@ const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    const response = await auth.login({ email: email.value, password: password.value });
+    await auth.login({ email: email.value, password: password.value });
     const profile = await auth.getProfile();
     authStore.setUserProfile(profile);
     router.push('/profile');
-  } catch (err) {
+  } catch {
     error.value = 'Invalid email or password';
   }
 };

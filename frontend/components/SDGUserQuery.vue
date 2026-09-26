@@ -12,7 +12,7 @@
         type="text"
         class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500"
         :placeholder="selectedOption === 'interests' ? 'e.g., environment, education' : 'e.g., programming, problem-solving'"
-      />
+      >
     </div>
 
     <!-- Toggle Switch -->
@@ -21,34 +21,34 @@
         <!-- Skills Radio Button -->
         <label class="flex items-center gap-2 cursor-pointer">
           <input
-            type="radio"
             v-model="selectedOption"
+            type="radio"
             value="skills"
-            @change="updateMode('skills')"
             class="radio"
-          />
+            @change="updateMode('skills')"
+          >
           <span :class="{'text-gray-500': selectedOption !== 'skills'}">Skills</span>
         </label>
 
         <!-- Interests Radio Button -->
         <label class="flex items-center gap-2 cursor-pointer">
           <input
-            type="radio"
             v-model="selectedOption"
+            type="radio"
             value="interests"
-            @change="updateMode('interests')"
             class="radio"
-          />
+            @change="updateMode('interests')"
+          >
           <span :class="{'text-gray-500': selectedOption !== 'interests'}">Interests</span>
         </label>
       </div>
       <div class="flex justify-center">
         <UButton
-          @click="handleGenerateSuggestion"
           :color="'primary'"
           :variant="'solid'"
           :disabled="loading"
           :loading="loading"
+          @click="handleGenerateSuggestion"
         >
           <template v-if="loading">
             <div class="flex items-center justify-center">
@@ -74,7 +74,7 @@
             :src="`data:image/svg+xml;base64,${sdgIcon}`"
             :alt="`SDG ${proposedSdg.proposedSdgId} Icon`"
             class="w-12 h-12 object-contain mt-2"
-          />
+          >
         </div>
         <div>
           <p :style="{ backgroundColor: suggestedSdgColor }">

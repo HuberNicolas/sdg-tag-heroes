@@ -4,9 +4,8 @@ export interface TokenDataSchemaBase {
   roles: string[]; // List of roles
 }
 
-export interface TokenDataSchemaFull extends TokenDataSchemaBase {
-  // No additional fields in the derived schema
-}
+// No additional fields in the derived schema
+export type TokenDataSchemaFull = TokenDataSchemaBase;
 
 export interface UserDataSchemaBase {
   user_id: number;

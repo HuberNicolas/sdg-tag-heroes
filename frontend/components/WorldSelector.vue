@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col items-center justify-center">
     <ul class="steps w-full max-w-md">
-      <li data-content="1" class="step" :class="getStepClass(1)" @click="selectLevel(1)"></li>
-      <li data-content="2" class="step" :class="getStepClass(2)" @click="selectLevel(2)"></li>
-      <li data-content="3" class="step" :class="getStepClass(3)" @click="selectLevel(3)"></li>
+      <li data-content="1" class="step" :class="getStepClass(1)" @click="selectLevel(1)"/>
+      <li data-content="2" class="step" :class="getStepClass(2)" @click="selectLevel(2)"/>
+      <li data-content="3" class="step" :class="getStepClass(3)" @click="selectLevel(3)"/>
     </ul>
     <div class="grid grid-cols-3 gap-3 lg:gap-6 2xl:gap-10 mt-6 w-full max-w-3xl">
       <div
@@ -40,10 +40,10 @@
           <!-- Play Button -->
           <UButton
             v-if="isLevelUnlocked(selectedLevel)"
-            @click="playWorld"
             :color="'primary'"
             :variant="'solid'"
             class="mt-4"
+            @click="playWorld"
           >
             Play {{ selectedWorld.name }}
           </UButton>
@@ -60,7 +60,7 @@
           </UButton>
         </div>
         <figure>
-          <img :src="selectedWorld.image" alt="World Image" class="w-full max-h-[30vh] object-cover" />
+          <img :src="selectedWorld.image" alt="World Image" class="w-full max-h-[30vh] object-cover" >
         </figure>
       </div>
     </div>
@@ -91,7 +91,7 @@ const isLevelUnlocked = (level: number) => {
   return userXP.value >= requiredXP;
 };
 
-const shouldShowProgress = (level: number) => {
+const shouldShowProgress = (_level: number) => {
   //const nextLevel = levels.find(l => l.requiredXP > userXP.value);
   //return nextLevel?.level === level;
   return true

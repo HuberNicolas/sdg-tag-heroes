@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-4">
     <!-- Form Section -->
-    <form @submit.prevent="submitUserLabel" class="space-y-4">
+    <form class="space-y-4" @submit.prevent="submitUserLabel">
       <!-- Comment Input -->
       <div class="flex flex-col">
         <label for="comment" class="text-lg font-medium text-gray-700">Explain Your Label Choice (Optional): Share Your Reasoning with the Community</label>
@@ -11,7 +11,7 @@
           rows="1"
           class="mt-1 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
           placeholder="Provide context for your label decision (optional)"
-        ></textarea>
+        />
       </div>
 
 
@@ -19,12 +19,12 @@
         <div>
           <!-- Checkbox for Abstract Section -->
           <input
-            type="checkbox"
-            v-model="includeAbstractSection"
-            class="form-checkbox h-5 w-5 text-gray-600 mr-2"
             id="include_abstract_section"
+            v-model="includeAbstractSection"
+            type="checkbox"
+            class="form-checkbox h-5 w-5 text-gray-600 mr-2"
 
-          />
+          >
           <label for="include_abstract_section" class="text-lg font-medium text-gray-700">Include Abstract Section</label>
         </div>
 

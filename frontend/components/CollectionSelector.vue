@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <!-- <div class="frame-title"><b>Find a set of interesting publications: </b></div> <!-- Cheap solution, move to middle -->
+    <!-- <div class="frame-title"><b>Find a set of interesting publications: </b></div> Cheap solution, move to middle -->
     <div class="frame-title"><b>by selecting</b> Topics you are interested in from the <b>Topic List</b></div>
     <!-- Selected filter badges summary -->
     <div class="flex items-center gap-4">
@@ -10,9 +10,9 @@
           <!-- Reset Button -->
           <UButton
             icon="i-heroicons-arrow-path"
-            @click="resetSelection"
             :color="'primary'"
             :variant="'solid'"
+            @click="resetSelection"
           >
             Reset
           </UButton>
@@ -32,7 +32,6 @@
       <!-- Select menu for icons -->
       <USelectMenu
         v-model="selectedCollections"
-        @update:modelValue="updateSelectedCollections"
         by="name"
         name="collections"
         :options="collections"
@@ -41,6 +40,7 @@
         searchable
         creatable
         class="flex-1"
+        @update:model-value="updateSelectedCollections"
       >
         <template #label>
         <span v-if="selectedCollections.length">
@@ -71,7 +71,7 @@
               <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
               <span>{{ option.shortName }}</span>
             </div>
-            <span class="text-gray-500 text-sm"></span>
+            <span class="text-gray-500 text-sm"/>
           </div>
         </template>
 
@@ -91,7 +91,7 @@
         >
           <span class="truncate">{{ collection.shortName
             }} ({{ collectionsStore.collectionsCount[collection.collectionId] || 0 }}) </span>
-          <button @click.stop="removeCollection(collection)" class="ml-1">
+          <button class="ml-1" @click.stop="removeCollection(collection)">
             <UIcon name="i-heroicons-x-circle" class="w-2 h-4 text-white hover:text-gray-300" />
           </button>
         </UBadge>
@@ -198,6 +198,7 @@ const resetSelection = () => {
 };
 
 // Function to select all collections
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by the commented-out "Select all" button in the template
 const selectAllCollections = () => {
   selectedCollections.value = collections.value.filter(
     (collection) => collectionsStore.collectionsCount[collection.collectionId] > 0

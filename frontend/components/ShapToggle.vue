@@ -2,10 +2,10 @@
   <div>
     <label class="inline-flex items-center">
       <input
-        type="checkbox"
         v-model="showShap"
+        type="checkbox"
         class="form-checkbox h-5 w-5 text-gray-600"
-      />
+      >
       <span class="ml-2 text-gray-700">Show Machine Explanation</span>
     </label>
   </div>

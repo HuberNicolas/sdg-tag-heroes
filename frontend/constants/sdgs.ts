@@ -1,3 +1,23 @@
+import IconSDGXP from '~/assets/average_sdg_predction_glyph.svg';
+import IconSDG1XP from '~/assets/sdg_01_glyph.svg';
+import IconSDG2XP from '~/assets/sdg_02_glyph.svg';
+import IconSDG3XP from '~/assets/sdg_03_glyph.svg';
+import IconSDG4XP from '~/assets/sdg_04_glyph.svg';
+import IconSDG5XP from '~/assets/sdg_05_glyph.svg';
+import IconSDG6XP from '~/assets/sdg_06_glyph.svg';
+import IconSDG7XP from '~/assets/sdg_07_glyph.svg';
+import IconSDG8XP from '~/assets/sdg_08_glyph.svg';
+import IconSDG9XP from '~/assets/sdg_09_glyph.svg';
+import IconSDG10XP from '~/assets/sdg_10_glyph.svg';
+import IconSDG11XP from '~/assets/sdg_11_glyph.svg';
+import IconSDG12XP from '~/assets/sdg_12_glyph.svg';
+import IconSDG13XP from '~/assets/sdg_13_glyph.svg';
+import IconSDG14XP from '~/assets/sdg_14_glyph.svg';
+import IconSDG15XP from '~/assets/sdg_15_glyph.svg';
+import IconSDG16XP from '~/assets/sdg_16_glyph.svg';
+import IconSDG17XP from '~/assets/sdg_17_glyph.svg';
+
+
 export const baseSdgColors = [
   '#E5243B', '#DDA63A', '#4C9F38', '#C5192D',
   '#FF3A21', '#26BDE2', '#FCC30B', '#A21942',
@@ -44,26 +64,6 @@ export const baseLabelsNumbers = [
 export const sdgNullColor = '#D3D3D3'
 export const sdgNullCoord = [3, 2]
 export const sdgNullShortTitle = 'Not relevant'
-
-
-import IconSDGXP from '~/assets/average_sdg_predction_glyph.svg';
-import IconSDG1XP from '~/assets/sdg_01_glyph.svg';
-import IconSDG2XP from '~/assets/sdg_02_glyph.svg';
-import IconSDG3XP from '~/assets/sdg_03_glyph.svg';
-import IconSDG4XP from '~/assets/sdg_04_glyph.svg';
-import IconSDG5XP from '~/assets/sdg_05_glyph.svg';
-import IconSDG6XP from '~/assets/sdg_06_glyph.svg';
-import IconSDG7XP from '~/assets/sdg_07_glyph.svg';
-import IconSDG8XP from '~/assets/sdg_08_glyph.svg';
-import IconSDG9XP from '~/assets/sdg_09_glyph.svg';
-import IconSDG10XP from '~/assets/sdg_10_glyph.svg';
-import IconSDG11XP from '~/assets/sdg_11_glyph.svg';
-import IconSDG12XP from '~/assets/sdg_12_glyph.svg';
-import IconSDG13XP from '~/assets/sdg_13_glyph.svg';
-import IconSDG14XP from '~/assets/sdg_14_glyph.svg';
-import IconSDG15XP from '~/assets/sdg_15_glyph.svg';
-import IconSDG16XP from '~/assets/sdg_16_glyph.svg';
-import IconSDG17XP from '~/assets/sdg_17_glyph.svg';
 
 
 export const sdgGlyphs = {

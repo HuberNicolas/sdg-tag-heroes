@@ -7,13 +7,13 @@
         <div
           v-for="sdg in sdgs"
           :key="sdg.id"
-          @click="selectSDG(sdg.id)"
           :class="[
           'cursor-pointer flex flex-col items-center justify-center rounded-lg p-2 w-12 h-12 transition-all duration-200',
           selectedSDG === sdg.id
             ? 'bg-gray-300 border-2 border-black' // Selected state
             : 'bg-white hover:bg-gray-100 border-2 border-transparent hover:border-gray-200', // Default and hover states
         ]"
+          @click="selectSDG(sdg.id)"
         >
           <!-- SDG Icon -->
           <img
@@ -21,7 +21,7 @@
             :src="`data:image/svg+xml;base64,${sdg.icon}`"
             :alt="`SDG ${sdg.id} Icon`"
             class="w-10 h-10 object-contain"
-          />
+          >
           <!-- SDG Short Title -->
           <span class="text-xs text-center mt-1">
           {{ sdg.shortTitle }}
@@ -66,9 +66,5 @@ const selectSDG = (sdgId: number) => {
     // Select the SDG
     sdgsStore.setSelectedSDG(sdgId);
   }
-};
-
-const resetSelection = () => {
-  sdgsStore.setSelectedSDG(0); // Reset to no selection
 };
 </script>

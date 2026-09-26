@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { SDGPredictionSchemaFull } from "~/types/sdgPrediction";
+import type { PublicationMetrics, SDGPredictionSchemaFull } from "~/types/sdgPrediction";
 import useSDGPredictions from "~/composables/useSDGPredictions";
 
 export const useSDGPredictionsStore = defineStore("sdgPredictions", {
@@ -8,9 +8,9 @@ export const useSDGPredictionsStore = defineStore("sdgPredictions", {
     sdgPredictionDetails: null as SDGPredictionSchemaFull | null,
     isLoading: false,
     error: null as string | null,
-    distributionMetrics: [] as any[],
-    publicationMetrics: null as any | null,
-    topPublications: [] as any[],
+    distributionMetrics: [] as PublicationMetrics[],
+    publicationMetrics: null as PublicationMetrics | null,
+    topPublications: [] as PublicationMetrics[],
 
     partitionedSDGPredictions: [] as SDGPredictionSchemaFull[], // All SDGs
     sdgLevelSDGPredictions: [] as SDGPredictionSchemaFull[], // 1 SDG

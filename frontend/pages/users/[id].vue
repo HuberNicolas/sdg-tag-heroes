@@ -11,7 +11,7 @@
           :class="{ 'bg-blue-200': decision.decisionId === selectedDecisionId }"
           @click="selectedDecisionId = decision.decisionId"
         >
-          <strong>Decision ID:</strong> {{ decision.decisionId }}<br />
+          <strong>Decision ID:</strong> {{ decision.decisionId }}<br >
           <strong>Publication:</strong> {{ decision.publicationId }}
         </li>
       </ul>
@@ -40,7 +40,7 @@
                   :src="generateAvatar(user.email)"
                   class="w-10 h-10 rounded-full"
                   :alt="`Avatar of ${user.name}`"
-                />
+                >
               </div>
               <span
                 class="absolute left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1">
@@ -82,7 +82,7 @@
                     :src="`data:image/svg+xml;base64,${sdg.icon}`"
                     :alt="`SDG ${sdg.id} Icon`"
                     class="w-8 h-8 object-contain"
-                  />
+                  >
                   <!-- Placeholder for Not Defined -->
                   <div
                     v-else-if="sdg.label === 0"
@@ -122,7 +122,7 @@
               >
 
                 <!-- <strong>Label ID:</strong> {{ label.labelId }}<br /> -->
-                <strong>User</strong> {{ getUserName(label.userId) }}<br />
+                <strong>User</strong> {{ getUserName(label.userId) }}<br >
                 <div class="flex items-center space-x-2">
                   <strong>Voted Label:</strong>
                   <img
@@ -130,7 +130,7 @@
                     :src="getSDGIcon(label.votedLabel)"
                     :alt="`SDG ${label.votedLabel} Icon`"
                     class="w-6 h-6 object-contain"
-                  />
+                  >
                   <span>{{ label.votedLabel }}</span>
                 </div>
 
@@ -149,20 +149,21 @@
                     >
                       <!-- Avatar Inside the Frame -->
                       <div class="w-12 h-12 rounded-full overflow-hidden">
-                        <img :src="generateAvatar(getUserById(label.userId)?.email)" alt="User Avatar" class="w-full h-full" />
+                        <img :src="generateAvatar(getUserById(label.userId)?.email)" alt="User Avatar" class="w-full h-full" >
                       </div>
                     </div>
 
                     <!-- Direct Avatar (No Frame) if Tier is 0 -->
                     <div v-else class="w-12 h-12 rounded-full overflow-hidden">
-                      <img :src="generateAvatar(getUserById(label.userId)?.email)" alt="User Avatar" class="w-full h-full" />
+                      <img :src="generateAvatar(getUserById(label.userId)?.email)" alt="User Avatar" class="w-full h-full" >
                     </div>
                   </div>
 
                   <span class="text-gray-600 font-semibold">Rank:</span>
 
                   <!-- Rank Tier -->
-                  <span class="px-2 py-1 rounded-lg text-white text-sm font-semibold"
+                  <span
+class="px-2 py-1 rounded-lg text-white text-sm font-semibold"
                         :style="{ backgroundColor: getSDGColor(label.votedLabel) }">
     {{ getUserRankForSDG(label.userId, label.votedLabel)?.tier || "-" }}
   </span>
@@ -189,8 +190,9 @@
                   <Icon v-else name="line-md:minus" class="text-gray-400 w-6 h-6" />
 
                   <!-- Rank Title -->
-                  <span class="px-3 py-1 rounded-lg text-white text-sm font-semibold"
-                        v-if="getUserRankForSDG(label.userId, label.votedLabel)"
+                  <span
+v-if="getUserRankForSDG(label.userId, label.votedLabel)"
+                        class="px-3 py-1 rounded-lg text-white text-sm font-semibold"
                         :style="{ backgroundColor: getSDGColor(label.votedLabel) }">
     {{ getUserRankForSDG(label.userId, label.votedLabel).name }}
   </span>
@@ -220,7 +222,7 @@
                     :src="getUserAvatar(annotation.userId)"
                     class="w-8 h-8 rounded-full"
                     :alt="getUserName(annotation.userId)"
-                  />
+                  >
                 </div>
                 <span><strong>{{ getUserName(annotation.userId) }}</strong></span>
                 <span>Score: {{ annotation.labelerScore }}</span>
@@ -283,7 +285,7 @@ const sdgs = computed(() => {
   if (!sdgLabelSummary.value || !sdgsStore.sdgs.length) return [];
 
   // Map SDGs and determine their label state
-  return sdgsStore.sdgs.map((sdg, index) => {
+  return sdgsStore.sdgs.map((sdg) => {
     const sdgKey = `sdg${sdg.id}`; // Match SDG key (e.g., sdg1, sdg2)
     return {
       ...sdg,

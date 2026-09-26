@@ -8,15 +8,17 @@ on the frontend to keep the backend
 code clean and consistent with its conventions.
  */
 
-export function snakeToCamel(obj: any): any {
+// The result type is given by the caller, e.g. snakeToCamel<SDGGoalSchemaFull[]>(response)
+export function snakeToCamel<T = unknown>(obj: unknown): T {
   if (Array.isArray(obj)) {
-    return obj.map(snakeToCamel);
+    return obj.map((item) => snakeToCamel(item)) as T;
   } else if (obj !== null && typeof obj === 'object') {
-    return Object.keys(obj).reduce((acc, key) => {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
       const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-      acc[camelKey] = snakeToCamel(obj[key]);
-      return acc;
-    }, {} as any);
+      result[camelKey] = snakeToCamel(value);
+    }
+    return result as T;
   }
-  return obj;
+  return obj as T;
 }

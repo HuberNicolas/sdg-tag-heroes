@@ -103,8 +103,9 @@ npm run lint:fix
 npm run format
 ```
 
-`npm run lint` currently reports about 380 problems: mostly template style (self-closing tags, attribute order),
-unused variables and `any` types. `npm run lint:fix` fixes about 260 of them (see [TODO](../TODO.md)).
+`npm run lint` passes without findings. A few rules are switched off inline where the code is deliberate, each with
+a reason: `v-html` for the highlighted abstract (its text is escaped) and the hexagon SVGs, and helpers kept for
+buttons that are commented out in the templates.
 
 ### Editor
 

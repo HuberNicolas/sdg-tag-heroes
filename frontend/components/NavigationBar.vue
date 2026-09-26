@@ -25,7 +25,7 @@
                 :src="getSdgIconSrc(xpModalContent.sdg)"
                 :alt="`SDG ${xpModalContent.sdg} Icon`"
                 class="w-full h-full object-contain rounded-md"
-              />
+              >
             </div>
           </div>
 
@@ -82,9 +82,9 @@
           <!-- Progress Bar Chart -->
           <ProgressBarChart
             v-if="xpModalContent?.sdg && playerRankData"
-            :currentXp="Math.round(xpModalContent.xp)"
-            :nextLevelXp="getNextLevelXp(xpModalContent.sdg, playerRankData.tier)"
-            :sdgColor="sdgModalColor"
+            :current-xp="Math.round(xpModalContent.xp)"
+            :next-level-xp="getNextLevelXp(xpModalContent.sdg, playerRankData.tier)"
+            :sdg-color="sdgModalColor"
             class="relative z-10"
           />
 
@@ -125,7 +125,7 @@
                 :src="getSdgIconSrc(coinModalContent.sdg)"
                 :alt="`SDG ${coinModalContent.sdg} Icon`"
                 class="w-full h-full object-contain rounded-md"
-              />
+              >
             </div>
           </div>
 
@@ -178,7 +178,7 @@
           :to="link.to || '#'"
           class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-primary"
         >
-          <component :is="link.icon" class="w-5 h-5" v-if="typeof link.icon === 'string'" />
+          <component :is="link.icon" v-if="typeof link.icon === 'string'" class="w-5 h-5" />
           <component :is="link.icon" v-else class="w-5 h-5" />
           <span>{{ link.label }}</span>
         </NuxtLink>
@@ -192,7 +192,7 @@
             :src="sdgIconSrc"
             :alt="`SDG ${gameStore.getSDG} Icon`"
             class="w-full h-full object-contain"
-          />
+          >
         </div>
       </div>
 
@@ -261,7 +261,7 @@
               :src="`data:image/svg+xml;base64,${link.icon}`"
               :alt="`SDG ${index + 1} Icon`"
               class="w-full h-full object-contain"
-            />
+            >
           </div>
 
           <!-- Label -->
@@ -327,7 +327,7 @@
         <NuxtLink to="/about" class="text-sm font-medium text-gray-600 hover:text-gray-900">About</NuxtLink>
 
         <div class="drawer drawer-end z-10">
-          <input id="drawer-help" type="checkbox" class="drawer-toggle hidden" />
+          <input id="drawer-help" type="checkbox" class="drawer-toggle hidden" >
           <div class="drawer-content">
             <UButton size="sm" color="primary" variant="solid" onclick="document.getElementById('drawer-help').checked = true;">
               Help
@@ -335,11 +335,11 @@
           </div>
 
           <div class="drawer-side">
-            <label for="drawer-help" aria-label="close sidebar" class="drawer-overlay"></label>
+            <label for="drawer-help" aria-label="close sidebar" class="drawer-overlay"/>
 
             <div class="menu bg-base-200 text-base-content min-h-full w-[min(32rem,90vw)] p-4 flex flex-col items-center">
               <UDivider label="SDG Cheatsheet" size="xl" />
-              <SDGSelectorHelp></SDGSelectorHelp>
+              <SDGSelectorHelp/>
               <UDivider label="How to Label" size="xl" />
               <div class="flex flex-col gap-1.5 p-3 border rounded-lg bg-gray-50 text-sm w-full">
                 <h3 class="font-semibold text-gray-700 flex items-center gap-1.5">
@@ -472,7 +472,6 @@ import { useSDGsStore } from "~/stores/sdgs";
 import { useGameStore } from "~/stores/game";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
 import { generateAvatar } from "~/utils/avatar";
-import { Quadrant } from "~/types/enums";
 import { usePublicationsStore } from "~/stores/publications";
 
 const publicationsStore = usePublicationsStore();
@@ -497,7 +496,12 @@ const rankStore = useSDGRanksStore();
 
 // State
 const loading = ref(true);
-const links = ref<Array<any>>([]);
+interface NavigationLink {
+  label: string;
+  to?: string;
+  icon?: string | null;
+}
+const links = ref<NavigationLink[]>([]);
 
 
 //const isOpen = ref(false);
@@ -511,7 +515,7 @@ const coinModalContent = ref<{ title: string; description: string; increment?: n
 
 const playerRankData = ref<{ name: string; tier: number } | null>(null);
 
-const openXPModal = ({ title, description, sdg, publicationTitle, playerRank, increment, xp = 0 }) => {
+const openXPModal = ({ title, description, sdg, publicationTitle, increment, xp = 0 }) => {
   xpModalContent.value = {
     title,
     description,
@@ -524,7 +528,7 @@ const openXPModal = ({ title, description, sdg, publicationTitle, playerRank, in
   isXPModalOpen.value = true;
 };
 
-const openCoinModal = ({ title, description, sdg, publicationTitle, playerRank, increment }) => {
+const openCoinModal = ({ title, description, sdg, publicationTitle, increment }) => {
   coinModalContent.value = {
     title,
     description,
@@ -638,7 +642,6 @@ const fetchData = async () => {
       rankStore.fetchSDGRanks()
     ]);
 
-    const user = userStore.getCurrentUser;
     const userWallet = walletsStore.getUserSDGCoinWallet;
     const userBank = banksStore.getUserXPBank;
 
@@ -653,7 +656,7 @@ const fetchData = async () => {
 };
 
 // Update links with user data
-const updateLinks = (coins: number, xpData: any) => {
+const updateLinks = (coins: number, xpData: { totalXp: number; [key: string]: unknown }) => {
   const { totalXp, ...sdgXpFields } = xpData;
 
   const top3SDGs = Object.entries(sdgXpFields)
@@ -704,20 +707,7 @@ const sdgColor = computed(() => {
   return currentSDG.value ? sdgsStore.getColorBySDG(currentSDG.value.id) : "#A0A0A0"; // Default gray if no SDG
 });
 
-// Convert level to Roman numerals
-const getRomanLevel = (level: number | null) => {
-  if (level === null) return "N/A";
-  const romanNumerals = ["I", "II", "III"];
-  return level > 0 && level <= 10 ? romanNumerals[level - 1] : level;
-};
 
-// Assign tier color based on level
-const getLevelClass = (level: number | null) => {
-  if (level === 1) return "bg-orange-200 border-orange-400 text-orange-800"; // Bronze
-  if (level === 2) return "bg-gray-200 border-gray-400 text-gray-700"; // Silver
-  if (level === 3) return "bg-yellow-200 border-yellow-500 text-yellow-800"; // Gold
-  else return "bg-gray-200 border-gray-400 text-gray-700";
-};
 
 const sdgIconSrc = computed(() => {
   const sdg = sdgsStore.sdgs.find(sdg => sdg.id === gameStore.getSDG);

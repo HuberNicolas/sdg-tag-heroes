@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import {baseSdgTitles, baseSdgShortTitles, baseSdgColors, baseCoords, baseLabelsNumbers} from "@/constants/constants";
+import { baseSdgTitles, baseSdgShortTitles, baseSdgColors, baseCoords } from "@/constants/constants";
 import {trimValue} from "~/utils/trim";
 import {useSDGsStore} from "~/stores/sdgs";
 import {useSDGPredictionsStore} from "~/stores/sdgPredictions";
@@ -18,7 +18,6 @@ export default function createGlyph() {
 
 
   const coords = baseCoords
-  const labels = baseLabelsNumbers
   const sdgTitles = baseSdgTitles
   const sdgShortTitles = baseSdgShortTitles
   const sdgColors = baseSdgColors
@@ -26,7 +25,7 @@ export default function createGlyph() {
   // Fetch predictions based on publicationId
   const fetchPredictions = async (publicationId: number) => {
     try {
-      const predictions = await sdgPredictionsStore.fetchDefaultModelSDGPredictionsByPublicationId(publicationId);
+      await sdgPredictionsStore.fetchDefaultModelSDGPredictionsByPublicationId(publicationId);
       const prediction = sdgPredictionsStore.getLabelingSDGPrediction
       if (prediction) {
         const values =  [
@@ -62,14 +61,6 @@ export default function createGlyph() {
 
     const gridWidth = maxX - minX; // Actual content width
     const gridHeight = maxY - minY; // Actual content height
-
-    // Slight manual adjustments for centering
-    const xShift = hexRadius; // Move slightly to the right
-    const yShift = -hexRadius; // Move slightly up
-
-    // Centering offsets with manual adjustments
-    const xOffset = (width - gridWidth) / 2 + xShift;
-    const yOffset = (height - gridHeight) / 2 + yShift;
 
     const container = d3.select(selector);
     container.selectAll('*').remove();

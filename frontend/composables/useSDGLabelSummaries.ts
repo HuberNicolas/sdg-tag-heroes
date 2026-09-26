@@ -1,8 +1,7 @@
 import { useRuntimeConfig, useCookie } from "nuxt/app";
 import { snakeToCamel } from "../utils/snakeToCamel";
 import type {
-  SDGLabelSummarySchemaBase,
-  SDGLabelSummarySchemaFull,
+  SDGLabelSummarySchemaFull
 } from "~/types/sdgLabelSummaries";
 
 export default function useSDGLabelSummaries() {

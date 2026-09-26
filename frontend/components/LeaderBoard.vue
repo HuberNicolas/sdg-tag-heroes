@@ -59,13 +59,13 @@
                 >
                   <!-- Avatar Inside the Frame -->
                   <div class="w-12 h-12 rounded-full overflow-hidden">
-                    <img :src="generateAvatar(user.email)" alt="User Avatar" class="w-full h-full" />
+                    <img :src="generateAvatar(user.email)" alt="User Avatar" class="w-full h-full" >
                   </div>
                 </div>
 
                 <!-- Direct Avatar (No Frame) if Tier is 0 -->
                 <div v-else class="w-12 h-12 rounded-full overflow-hidden">
-                  <img :src="generateAvatar(user.email)" alt="User Avatar" class="w-full h-full" />
+                  <img :src="generateAvatar(user.email)" alt="User Avatar" class="w-full h-full" >
                 </div>
               </div>
 
@@ -126,10 +126,10 @@
       <!-- Load More Button -->
       <div v-if="visibleCount < leaderboard.length" class="text-center mt-4">
         <UButton
-          @click="loadMore"
           :color="'primary'"
           :variant="'solid'"
           class="px-5 py-2"
+          @click="loadMore"
         >
           Load More
         </UButton>

@@ -3,7 +3,7 @@
     ref="glyphContainer"
     class="hex-glyph"
     :style="{ height: `${height}px`, width: `${width}px` }"
-  ></div>
+  />
 </template>
 
 <script setup lang="ts">

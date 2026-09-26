@@ -77,8 +77,6 @@ export default function useConnect() {
       return acc;
     }, {});
 
-    const maxVotes = Math.max(...Object.values(labelCounts), 1);
-    const minVotes = 0;
     const maxVotesForScaling = 9; // 10 votes correspond to 100% filling
 
     coords.forEach(([x, y], i) => {

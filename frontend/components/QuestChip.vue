@@ -32,7 +32,8 @@ defineProps({
   },
   tooltip: {
     type: String,
-    required: false
+    required: false,
+    default: undefined
   }
 });
 </script>

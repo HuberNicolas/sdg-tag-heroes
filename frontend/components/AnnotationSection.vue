@@ -3,9 +3,9 @@
     <!-- Annotation is attached to SDG Label Decision (in general) -->
     <div class="flex-none frame-container">
       <div class="frame-title"><b>Record</b> Your Thoughts: Add Comments to Specific Sections</div>
-      <ShapSelector></ShapSelector>
-      <CommentInput></CommentInput>
-      <CreateAnnotationButton></CreateAnnotationButton>
+      <ShapSelector/>
+      <CommentInput/>
+      <CreateAnnotationButton/>
     </div>
 
     <!-- Divider: annotate above, label below -->
@@ -32,8 +32,8 @@
     <!-- SDG User Label is attached to SDG Label decision -->
     <div class="flex-1 min-h-0 overflow-y-auto frame-container">
       <div class="frame-title"><b>Identify</b> the Most Relevant SDG & Justify Your Selection to Help the Community</div>
-      <ConnectingDots></ConnectingDots>
-      <CreateSDGLabelButton></CreateSDGLabelButton>
+      <ConnectingDots/>
+      <CreateSDGLabelButton/>
     </div>
 
     <div class="flex-none frame-container">

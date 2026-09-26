@@ -1,6 +1,6 @@
 <template>
   <!-- The SVG uses a viewBox, so it scales with this square container -->
-  <div ref="glyphContainer" class="hex-glyph aspect-square"></div>
+  <div ref="glyphContainer" class="hex-glyph aspect-square"/>
 </template>
 
 <script setup lang="ts">

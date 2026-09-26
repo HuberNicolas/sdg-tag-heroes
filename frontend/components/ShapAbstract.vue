@@ -8,11 +8,13 @@
 
     <div class="container mx-auto p-1 flex-1 flex flex-col overflow-hidden">
       <!-- Abstract Display -->
-      <div class="bg-white p-4 rounded-lg shadow-md flex flex-col h-full overflow-hidden"
+      <div
+class="bg-white p-4 rounded-lg shadow-md flex flex-col h-full overflow-hidden"
            @mouseup="handleAbstractSelection">
         <h1 class="text-xl font-bold mb-1">{{ publication?.title }}</h1>
         <div class="flex-1 overflow-y-auto text-justify">
-          <span v-html="shapHighlightedAbstract"></span>
+          <!-- eslint-disable-next-line vue/no-v-html -- the text is escaped, only the <mark> tags are HTML -->
+          <span v-html="shapHighlightedAbstract"/>
         </div>
       </div>
     </div>
@@ -38,7 +40,6 @@ const publication = computed(() => publicationsStore.publicationDetails);
 const explanation = computed(() => explanationStore.explanation);
 const showShap = computed(() => explanationStore.showShap);
 
-const sdgs = Array.from({ length: 17 }, (_, i) => i + 1); // SDGs 1-17
 
 // Use the selected SDG from the store
 const selectedSDG = computed({
@@ -72,10 +73,10 @@ const shapHighlightedAbstract = computed(() => {
   // Ensure we always have a description
   const description = publication.value?.description || "No abstract available.";
 
-  if (!explanation.value || !showShap.value) return description;
+  if (!explanation.value || !showShap.value) return escapeHtml(description);
 
   const { inputTokens, tokenScores } = explanation.value;
-  if (!inputTokens || !tokenScores) return description;
+  if (!inputTokens || !tokenScores) return escapeHtml(description);
 
   const sdgIdx = selectedSDG.value - 1; // Convert to 0-based index
   const scoresForSelectedSDG = tokenScores.map((scores) => Math.max(0, scores[sdgIdx]));
@@ -103,14 +104,14 @@ const shapHighlightedAbstract = computed(() => {
     if (idx === -1) return;
 
     // Append un-highlighted text before the token
-    highlightedParts.push(remainingText.slice(0, idx));
+    highlightedParts.push(escapeHtml(remainingText.slice(0, idx)));
 
     // Determine the highlight color
     const highlightColor = rgbToHex(colorScale(score));
 
     // Append highlighted token
     highlightedParts.push(
-      `<mark style="background-color: ${highlightColor}; padding: 0;">${token}</mark>`
+      `<mark style="background-color: ${highlightColor}; padding: 0;">${escapeHtml(token)}</mark>`
     );
 
     // Remove the processed part from the text
@@ -118,11 +119,15 @@ const shapHighlightedAbstract = computed(() => {
   });
 
   // Append remaining text after last token
-  highlightedParts.push(remainingText);
+  highlightedParts.push(escapeHtml(remainingText));
 
   return highlightedParts.join("");
 });
 
+
+// The abstract is rendered with v-html (for the <mark> highlights), so its text must be escaped
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 // Helper function to convert an "rgb(…)" string to a hex color code.
 // This is essentially the same as your previous rgbToHex.

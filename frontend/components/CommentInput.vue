@@ -7,7 +7,7 @@
       class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500"
       rows="1"
       placeholder="Highlight key points or add your perspective..."
-    ></textarea>
+    />
   </div>
 </template>
 

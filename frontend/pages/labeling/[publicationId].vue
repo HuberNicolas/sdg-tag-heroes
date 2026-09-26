@@ -51,7 +51,7 @@
               <label for="content-toggle" class="text-sm font-medium text-gray-700">
                 {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}
               </label>
-              <UToggle id="content-toggle" color="primary" v-model="showContent" />
+              <UToggle id="content-toggle" v-model="showContent" color="primary" />
             </div>
           </div>
 
@@ -60,7 +60,7 @@
               <DonutPlot />
             </div>
             <div class="2xl:col-span-2 flex flex-col gap-2 min-w-0">
-              <BarLabelPlot :height="100" :sortDescending="sortDescending" />
+              <BarLabelPlot :height="100" :sort-descending="sortDescending" />
               <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-2">
                 <SDGUserLabelCheckbox class="shrink-0" />
                 <SortedOrderCheckbox v-model="sortDescending" class="shrink-0" />
@@ -79,7 +79,7 @@
             <label for="comment-toggle" class="text-sm font-medium text-gray-700">
               {{ showAnnotations ? 'Show Community Labels' : 'Show Community Comments' }}
             </label>
-            <UToggle v-model="showAnnotations" color="primary" id="comment-toggle" />
+            <UToggle id="comment-toggle" v-model="showAnnotations" color="primary" />
           </div>
           <div class="flex-1 min-h-0 overflow-y-auto">
             <CommentSection v-if="!showAnnotations" />
@@ -94,15 +94,12 @@
 <script setup lang="ts">
 
 import CommentSection from "~/components/CommentSection.vue";
-import CommentSummary from "~/components/CommentSummary.vue";
 import BarLabelPlot from "~/components/plots/BarLabelPlot.vue";
 import AnnotationSection from "~/components/AnnotationSection.vue";
 import { onMounted, ref } from "vue";
 import DonutPlot from "~/components/plots/DonutPlot.vue";
 import { Quadrant, Stage } from "~/types/enums";
 import { useGameStore } from "~/stores/game";
-import ContinueLabelingDialog from "~/components/ContinueLabelingDialog.vue";
-import ContinueExplorationDialog from "~/components/ContinueExplorationDialog.vue";
 import SDGExplorerLabeling from "~/components/SDGExplorerLabeling.vue";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";

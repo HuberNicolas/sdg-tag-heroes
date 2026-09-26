@@ -1,9 +1,10 @@
 <template>
   <div class="flex items-center justify-between w-full text-xs space-x-2">
     <!-- Icon (Right-Aligned, Properly Positioned) -->
-    <div class="w-6 h-6 flex items-center justify-center bg-primary-500 text-white
+    <div
+class="w-6 h-6 flex items-center justify-center bg-primary-500 text-white
                 transform rotate-45 relative shrink-0">
-      <div class="absolute inset-0 bg-primary-500"></div>
+      <div class="absolute inset-0 bg-primary-500"/>
       <div class="relative flex items-center justify-center w-4 h-4 bg-white rounded-full">
         <Icon
           :name="displayIcon"

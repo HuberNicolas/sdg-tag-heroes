@@ -29,3 +29,10 @@ export interface SDGPredictionSchemaFull extends SDGPredictionSchemaBase {
   createdAt: string;
   updatedAt: string;
 }
+
+// Uncertainty of a publication's prediction, from the /sdg-predictions/publications/.../metrics endpoints
+export interface PublicationMetrics {
+  publicationId: number;
+  entropy: number;
+  standardDeviation: number;
+}

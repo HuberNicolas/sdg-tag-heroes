@@ -3,9 +3,9 @@
     <NuxtParticles
       id="tsparticles"
       :options="options"
-      @load="onLoad"
       class="absolute inset-0, z-0"
-    ></NuxtParticles>
+      @load="onLoad"
+    />
 
     <!-- Title Section -->
     <div class="text-5xl font-extrabold text-center mb-8 press-start-font z-10">
@@ -22,8 +22,8 @@
           'Your Contribution Makes a Global Impact!',
           'Gamified Labeling: Fun and Effective!'
         ]"
-        :typeSpeed="70"
-        :eraseSpeed="50"
+        :type-speed="70"
+        :erase-speed="50"
         :delay="1000"
         class="text-xl md:text-2xl font-medium text-center z-10"
       />
@@ -36,22 +36,22 @@
         <div class="mb-4">
           <label for="email" class="block text-sm font-medium text-white">Email:</label>
           <input
+            id="email"
             v-model="email"
             type="email"
-            id="email"
             required
             class="mt-1 block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-          />
+          >
         </div>
         <div class="mb-6">
           <label for="password" class="block text-sm font-medium text-white">Password:</label>
           <input
+            id="password"
             v-model="password"
             type="password"
-            id="password"
             required
             class="mt-1 block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-          />
+          >
         </div>
         <button
           type="submit"
@@ -85,7 +85,7 @@ const handleLogin = async () => {
     const profile = await auth.getProfile();
     authStore.setUserProfile(profile);
     router.push('/scenarios');
-  } catch (err) {
+  } catch {
     error.value = 'Invalid email or password';
   }
 };

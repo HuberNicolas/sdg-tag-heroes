@@ -1,6 +1,6 @@
 import { useCookie, useRuntimeConfig } from "nuxt/app";
 import { snakeToCamel } from "~/utils/snakeToCamel";
-import type { SDGPredictionSchemaFull } from "~/types/sdgPrediction";
+import type { PublicationMetrics, SDGPredictionSchemaFull } from "~/types/sdgPrediction";
 
 export default function useSDGPredictions() {
   const config = useRuntimeConfig();
@@ -71,9 +71,9 @@ export default function useSDGPredictions() {
   }
 
   // Fetch distribution metrics for a list of publication IDs
-  async function getDistributionMetricsByPublicationIds(publicationIds: number[]): Promise<any[]> {
+  async function getDistributionMetricsByPublicationIds(publicationIds: number[]): Promise<PublicationMetrics[]> {
     try {
-      const response = await $fetch<any[]>(`${config.public.apiUrl}/sdg-predictions/publications/metrics`, {
+      const response = await $fetch<PublicationMetrics[]>(`${config.public.apiUrl}/sdg-predictions/publications/metrics`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
@@ -89,9 +89,9 @@ export default function useSDGPredictions() {
   }
 
   // Fetch metrics for a single publication ID
-  async function getPublicationMetricsById(publicationId: number): Promise<any> {
+  async function getPublicationMetricsById(publicationId: number): Promise<PublicationMetrics> {
     try {
-      const response = await $fetch<any>(`${config.public.apiUrl}/sdg-predictions/publications/${publicationId}/metrics`, {
+      const response = await $fetch<PublicationMetrics>(`${config.public.apiUrl}/sdg-predictions/publications/${publicationId}/metrics`, {
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
         },
@@ -103,9 +103,9 @@ export default function useSDGPredictions() {
   }
 
   // Fetch top or bottom N publications based on a metric
-  async function getPublicationsByMetric(metricType: string, order: string, topN: number): Promise<any[]> {
+  async function getPublicationsByMetric(metricType: string, order: string, topN: number): Promise<PublicationMetrics[]> {
     try {
-      const response = await $fetch<any[]>(`${config.public.apiUrl}/sdg-predictions/publications/metrics/${metricType}/${order}/${topN}`, {
+      const response = await $fetch<PublicationMetrics[]>(`${config.public.apiUrl}/sdg-predictions/publications/metrics/${metricType}/${order}/${topN}`, {
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
         },

@@ -2,7 +2,7 @@
   <div class="flex flex-col items-center">
     <p>Total Community Labels: {{ labelDecisionsStore.totalVotes }}</p>
 
-    <div v-if="labelDecisionsStore.totalVotes > 0" ref="chartContainer"></div>
+    <div v-if="labelDecisionsStore.totalVotes > 0" ref="chartContainer"/>
 
     <div v-else class="flex flex-col items-center justify-center h-full">
       <p>Be the first Labeler.</p>
@@ -79,7 +79,6 @@ function drawDonutChart() {
       const color = sdgId === -1 ? "#CCCCCC" : sdgsStore.getColorBySDG(sdgId) || "#CCCCCC";
 
       // Compute percentage
-      const percentage = ((d.value / labelDecisionsStore.totalVotes) * 100).toFixed(1);
 
       // Create tooltip content
       const text = `

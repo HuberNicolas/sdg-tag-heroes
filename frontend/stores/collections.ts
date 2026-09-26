@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import type {
-  CollectionSchemaBase,
-  CollectionSchemaFull,
+  CollectionSchemaFull
 } from "~/types/collection";
 import useCollections from "~/composables/useCollections";
 

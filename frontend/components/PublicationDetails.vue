@@ -10,7 +10,7 @@
       <!-- Keywords -->
       <div class="mt-4">
         <div v-if="keywordsLoading" class="text-center">
-          <span class="loading loading-bars loading-lg"></span> Loading Keywords...
+          <span class="loading loading-bars loading-lg"/> Loading Keywords...
         </div>
         <div v-else-if="keywords && keywords.keywords.length > 0">
           <strong class="text-gray-700">Keywords:</strong>
@@ -23,7 +23,7 @@
       <!-- Fact -->
       <div class="mt-4">
         <div v-if="factLoading" class="text-center">
-          <span class="loading loading-bars loading-lg"></span> Loading Fact...
+          <span class="loading loading-bars loading-lg"/> Loading Fact...
         </div>
         <div v-else-if="fact && fact.content" class="mt-4 p-3 rounded-lg" :style="{ backgroundColor: sdgColor }">
           <h3 class="text-lg font-semibold" :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">Did You Know?</h3>
@@ -34,7 +34,7 @@
       <!-- Summary -->
       <div class="mt-4">
         <div v-if="summaryLoading" class="text-center">
-          <span class="loading loading-bars loading-lg"></span> Loading Summary...
+          <span class="loading loading-bars loading-lg"/> Loading Summary...
         </div>
         <div v-else-if="summary && summary.summary" class="mt-4">
           <h3 class="text-lg font-semibold text-gray-700">Summary</h3>

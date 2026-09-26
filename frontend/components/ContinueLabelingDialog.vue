@@ -32,7 +32,7 @@
 
         <!-- Loading Indicator -->
         <div v-if="loading" class="text-center">
-          <span class="loading loading-bars loading-lg"></span>
+          <span class="loading loading-bars loading-lg"/>
           <p>Fetching publication details...</p>
         </div>
 
@@ -58,7 +58,7 @@
               <!-- Keywords -->
               <div class="mt-2">
                 <div v-if="keywordsLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"></span> Loading Keywords...
+                  <span class="loading loading-bars loading-sm"/> Loading Keywords...
                 </div>
                 <div v-else-if="keywords[pub.publicationId]?.keywords?.length">
                   <strong class="text-gray-700">Keywords:</strong>
@@ -75,7 +75,7 @@
               <!-- Fact -->
               <div class="mt-2">
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"></span> Loading Fact...
+                  <span class="loading loading-bars loading-sm"/> Loading Fact...
                 </div>
                 <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-gray-100 p-2 rounded-lg">
                   <h3 class="text-sm font-semibold text-gray-700">Did You Know?</h3>
@@ -86,7 +86,7 @@
               <!-- Summary -->
               <div class="mt-2">
                 <div v-if="summaryLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"></span> Loading Summary...
+                  <span class="loading loading-bars loading-sm"/> Loading Summary...
                 </div>
                 <div v-else-if="summary[pub.publicationId]?.summary" class="mt-2">
                   <h3 class="text-sm font-semibold text-gray-700">Summary</h3>
@@ -142,7 +142,7 @@
               <!-- Keywords -->
               <div class="mt-2">
                 <div v-if="keywordsLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"></span> Loading Keywords...
+                  <span class="loading loading-bars loading-sm"/> Loading Keywords...
                 </div>
                 <div v-else-if="keywords[pub.publicationId]?.keywords?.length">
                   <strong class="text-gray-700">Keywords:</strong>
@@ -159,7 +159,7 @@
               <!-- Fact -->
               <div class="mt-2">
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"></span> Loading Fact...
+                  <span class="loading loading-bars loading-sm"/> Loading Fact...
                 </div>
                 <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-gray-100 p-2 rounded-lg">
                   <h3 class="text-sm font-semibold text-gray-700">Did You Know?</h3>
@@ -170,7 +170,7 @@
               <!-- Summary -->
               <div class="mt-2">
                 <div v-if="summaryLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"></span> Loading Summary...
+                  <span class="loading loading-bars loading-sm"/> Loading Summary...
                 </div>
                 <div v-else-if="summary[pub.publicationId]?.summary" class="mt-2">
                   <h3 class="text-sm font-semibold text-gray-700">Summary</h3>
@@ -195,6 +195,9 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 import usePublications from "~/composables/usePublications";
 import { ScenarioType } from "~/types/enums";
+import type { PublicationKeywordsSchema } from "~/types/publication";
+import type { FactSchemaFull } from "~/types/fact";
+import type { SummarySchemaFull } from "~/types/summary";
 
 const route = useRoute();
 const { getPublicationById, getSimilarPublications, getPublicationKeywords, getPublicationFact, getPublicationSummary, getPublicationsByScenario } = usePublications();
@@ -205,9 +208,9 @@ const scenarioPublications = ref([]);
 const selectedPublication = ref(null);
 
 const loading = ref(false);
-const keywords = ref<Record<number, any>>({});
-const fact = ref<Record<number, any>>({});
-const summary = ref<Record<number, any>>({});
+const keywords = ref<Record<number, PublicationKeywordsSchema>>({});
+const fact = ref<Record<number, FactSchemaFull>>({});
+const summary = ref<Record<number, SummarySchemaFull>>({});
 const keywordsLoading = ref<Record<number, boolean>>({});
 const factLoading = ref<Record<number, boolean>>({});
 const summaryLoading = ref<Record<number, boolean>>({});
@@ -234,13 +237,6 @@ const closeModal = () => {
   document.getElementById("model_labeling").close();
 };
 
-// Function to switch tabs without closing the modal
-const setActiveTab = (tab: 'similar' | 'scenarios') => {
-  activeTab.value = tab;
-  if (tab === 'scenarios') {
-    fetchPublicationsByScenario(ScenarioType.EXPLORE);
-  }
-};
 
 // Function to fetch the publication and find similar ones
 const fetchPublicationAndSimilarResults = async () => {
