@@ -24,7 +24,6 @@ faker = "^33.0.0"
 # LLM
 torch = "2.1.1"
 sentence-transformers = "^3.0.1"
-peft = "^0.13.0"
 
 # Platform-specific dependencies
 #tensorflow-macos = {version = "2.11.0", markers = "platform_system == 'Darwin'"}
@@ -33,7 +32,6 @@ peft = "^0.13.0"
 
 # LLM Helpers
 nltk = "^3.9.1"
-h5py = "^3.11.0"
 
 # ML
 scikit-learn = "^1.6.0"
@@ -57,8 +55,6 @@ alembic = "^1.14.0"
 openai = "^1.57.0"
 instructor = "^1.6.4"
 
-# Orchestrator
-prefect = "<3.0"
 pydantic-to-typescript = "^2.0.0"
 
 [build-system]

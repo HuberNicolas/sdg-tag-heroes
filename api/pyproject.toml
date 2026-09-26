@@ -24,7 +24,6 @@ fastapi-pagination = "^0.12.31"
 pyjwt = "^2.9.0"
 bcrypt = "^4.2.0"
 passlib = "^1.7.4"
-python-multipart = "^0.0.12"
 
 # Database clients
 mysql-connector-python = "^9.0.0"
@@ -43,7 +42,6 @@ openai = "^1.54.4"
 torch = "2.1.1" # Needed for sentence transformers
 numpy = "<2.0"  # Needed for sentence transformers, Restrict to version 1.x
 sentence-transformers = "^3.0.1"
-keybert = "^0.8.5"
 umap-learn = "^0.5.7"
 pandas = "^2.2.3"
 loguru = "^0.7.3"

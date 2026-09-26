@@ -163,16 +163,6 @@ class ReducerSettings(BaseSettings):
     MAP_PARTITION_SIZE: ClassVar[int] = 9
 
 
-class PrefectSettings(BaseSettings):
-    PREFECT_LOG_NAME: ClassVar[str] = "prefect.log"
-
-    DB_TYPE: ClassVar[str] = "mariadb"
-    COLLECTOR_BATCH_SIZE: ClassVar[int] = 10
-    COLLECTOR_RESET: ClassVar[str] = "true"
-    PREDICTOR_BATCH_SIZE: ClassVar[int] = 64
-    LOADER_BATCH_SIZE: ClassVar[int] = 64
-
-
 ### Service Settings
 
 

@@ -13,9 +13,7 @@ export default defineNuxtConfig({
     "@nuxt/ui",
     "@nuxtjs/color-mode",
     "@nuxt/eslint",
-    "@nuxt/content",
     "nuxt-svgo",
-    "@nuxt/image",
     '@pinia/nuxt',
     'nuxt-particles'
   ],
@@ -41,10 +39,6 @@ export default defineNuxtConfig({
         ? { clientPort: Number(process.env.HMR_CLIENT_PORT) }
         : undefined
     }
-  },
-  content: {
-    // https://content.nuxt.com/get-started/configuration#watch
-    watch: false
   },
   runtimeConfig: {
     public: {

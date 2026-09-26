@@ -93,6 +93,14 @@ published.
 - [x] Remove the `backend` service from `docker-compose.yml` (the `backend/` folder no longer exists)
 - [x] Update the port table in `docs/docker.md`
 - [x] Remove CouchDB and Redis (containers, connectors, dependencies, docs); no feature used them
+- [x] Remove Prefect: the flow was never updated after the first commit and no longer matched the scripts
+  (`utils/dummy/load_dummy_dataset.py` runs the pipeline instead)
+- [x] Remove unused code and packages (checked 2026-09-26): 11 frontend components, 2 composables, 1 store, a
+  middleware that was never registered, an unlinked page (`/publications/labels/[id]`), unused images and CSS;
+  npm packages `@nuxt/content`, `@nuxt/image`, `@vueuse/nuxt`, `@formkit/auto-animate`, `d3fc`, `interactjs`,
+  `lodash-es`, `tsparticles-engine`; Python packages `peft`, `h5py`, `keybert`, `python-multipart`; `zen.py`,
+  `enums/messages.py`, `utils/randomizer.py`, the metrics request/response schemas, `deploy/entrypoint.frontend.sh`,
+  `alembic.ini.example`, `alembic/env.py.example`
 - [x] Add an example env file for `portainer.env`
 
 ## 6. Before publishing

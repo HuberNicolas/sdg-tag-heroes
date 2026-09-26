@@ -71,7 +71,6 @@ The build needs more memory than Node's default; if it fails with "JavaScript he
 | `/exploration/publications/[level]`    | Overview map of all publications, split into universes                        |
 | `/exploration/sdgs/[sdg]/[level]`      | Map of one SDG at one level, with quests and the publication table            |
 | `/labeling/[publicationId]`            | Label a publication: vote, annotate, see explanations and other players' votes |
-| `/publications/labels/[id]`            | The labels and decision of a publication                                      |
 | `/users`, `/users/[id]`                | Players and their label decisions                                             |
 | `/about`                               | How the game works                                                            |
 
@@ -89,7 +88,7 @@ frontend/
 ├── stores/           # Pinia stores: loaded data and the player's selection
 ├── types/            # TypeScript interfaces of the API schemas
 ├── constants/        # SDG colours, icons and other constants
-├── middleware/       # Route guards: authentication, level access
+├── middleware/       # Route guard: redirects to /login without a token
 ├── utils/            # Small helpers: snake_case → camelCase, entropy, dates, avatars
 ├── assets/           # SDG glyph SVGs and the Tailwind entry file
 └── public/           # Static files served as they are

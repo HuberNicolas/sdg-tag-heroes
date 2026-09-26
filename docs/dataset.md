@@ -27,7 +27,6 @@ in which order the scripts run. The [README](../README.md#building-the-dataset) 
 - [9. Ground-truth labels](#9-ground-truth-labels)
 - [10. Explanations](#10-explanations)
 - [11. Fixtures: simulated game activity](#11-fixtures-simulated-game-activity)
-- [Pipeline with Prefect](#pipeline-with-prefect)
 - [GPT evaluation datasets (optional)](#gpt-evaluation-datasets-optional)
 
 ## Overview
@@ -305,19 +304,6 @@ The ratios are in `FixturesSettings` and the vote thresholds in `DecisionService
 contains older random generators for user labels, votes, annotations and decisions; they are switched off with
 `if False:`.
 
-## Pipeline with Prefect
-
-Steps 4 to 7 can also run as one [Prefect](https://www.prefect.io/) flow,
-[`pipeline/prefect/flow.py`](../pipeline/prefect/flow.py): collector, Aurora predictor, loader, reducer. The batch
-sizes are in `PrefectSettings`.
-
-```bash
-PYTHONPATH=. python pipeline/prefect/flow.py
-```
-
-Without a Prefect server, Prefect runs the flow in a temporary local instance. To follow it in the Prefect UI, run
-`prefect server start` in a second terminal first. The flow uses the Aurora predictor, so it needs TensorFlow (see
-[step 5](#aurora-thesis-dataset)).
 
 ## GPT evaluation datasets (optional)
 

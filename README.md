@@ -80,7 +80,7 @@ expert.
 | **Backend**        | ![Python](https://img.shields.io/badge/Python_3.10-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white) ![Alembic](https://img.shields.io/badge/Alembic-6BA81E) ![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white) ![Poetry](https://img.shields.io/badge/Poetry-60A5FA?logo=poetry&logoColor=white) ![Ruff](https://img.shields.io/badge/Ruff-D7FF64?logo=ruff&logoColor=black) |
 | **Databases**      | ![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white) ![Qdrant](https://img.shields.io/badge/Qdrant-DC244C?logo=qdrant&logoColor=white) |
 | **ML and AI**      | ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white) ![Hugging Face](https://img.shields.io/badge/Sentence_Transformers-FFD21E?logo=huggingface&logoColor=black) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![UMAP](https://img.shields.io/badge/UMAP-5A5A5A) ![BERTopic](https://img.shields.io/badge/BERTopic-5A5A5A) ![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4o-412991?logo=openai&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?logo=jupyter&logoColor=white) |
-| **Data pipeline**  | ![Prefect](https://img.shields.io/badge/Prefect-070E10?logo=prefect&logoColor=white) ZORA (OAI-PMH) harvesting, Aurora and SciBERT SDG models |
+| **Data pipeline**  | ZORA (OAI-PMH) harvesting, Aurora and SciBERT SDG models |
 | **Infrastructure** | ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white) ![Portainer](https://img.shields.io/badge/Portainer-13BEF9?logo=portainer&logoColor=white) ![Postman](https://img.shields.io/badge/Postman-FF6C37?logo=postman&logoColor=white) |
 
 ## Architecture
@@ -125,7 +125,7 @@ The API, the databases and the frontend run in Docker. The dataset scripts run o
 | [`settings/`](settings)               | Central configuration ([`settings.py`](settings/settings.py)) and SDG texts    |
 | [`db/`](db)                           | Database connectors and scripts to create and check the MariaDB schema         |
 | [`alembic/`](alembic)                 | Database migrations                                                            |
-| [`pipeline/`](pipeline)               | Data pipeline: ZORA collector, SDG predictors, embeddings, UMAP, Prefect flow  |
+| [`pipeline/`](pipeline)               | Data pipeline: ZORA collector, SDG predictors, embeddings, UMAP              |
 | [`utils/`](utils)                     | Loader scripts for MariaDB, MongoDB and Qdrant, dummy dataset, backups, logger |
 | [`frontend/`](frontend)               | Nuxt 3 frontend ([README](frontend/README.md))                                 |
 | [`deploy/`](deploy)                   | Dockerfiles and container entrypoints                                          |
