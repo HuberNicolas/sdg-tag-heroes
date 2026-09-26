@@ -156,13 +156,21 @@ cd sdg-tag-heroes
 
 ### 2. Create the environment files
 
-Every service reads its configuration from `env/<service>.env`. Copy all templates:
+Every service reads its configuration from `env/<service>.env`, and the frontend from `frontend/.env`.
+[`create_env_files.py`](utils/docker/create_env_files.py) creates all of them from the templates, with random
+passwords. It keeps files that exist already and prints the initial accounts:
+
+```bash
+python3 utils/docker/create_env_files.py
+```
+
+To fill them in by hand instead, copy the templates:
 
 ```bash
 for f in env/*.env.example; do cp "$f" "${f%.example}"; done
 ```
 
-Then fill in the empty values:
+Then set the empty values:
 
 | File                | What to set                                                                                      |
 |---------------------|--------------------------------------------------------------------------------------------------|
@@ -176,6 +184,12 @@ Then fill in the empty values:
 `qdrantdb.env`, `phpmyadmin.env` and `portainer.env` work as they are.
 
 ### 3. Start the databases and the API
+
+The API image copies `data/api/` (the UMAP models), so the folder must exist before the first build:
+
+```bash
+mkdir -p data/api
+```
 
 ```bash
 docker compose up -d --build api mariadb phpmyadmin mongodb mongo-express qdrantdb
@@ -201,13 +215,7 @@ Choose one of three options:
 
 ### 5. Start the frontend
 
-The frontend reads the API address from `frontend/.env`:
-
-```bash
-cp frontend/.env.example frontend/.env
-```
-
-Then start it in Docker, with hot reload:
+The frontend reads the API address from `frontend/.env` (created in step 2). Start it in Docker, with hot reload:
 
 ```bash
 docker compose up -d --build frontend
@@ -308,6 +316,10 @@ removes `data/docker/`.
 
 ## Dummy dataset
 
+> [!TIP]
+> **[From an empty machine to a running game](docs/dummy-dataset.md)** walks through the whole setup with the dummy
+> dataset, with a TL;DR of all commands, checks and fixes.
+
 The companion repository
 [sdg-tag-heroes-dataset-generator](https://github.com/HuberNicolas/sdg-tag-heroes-dataset-generator) generates
 fictional publications, so the application can be built and run without the original data. The generator only
@@ -406,6 +418,7 @@ The API writes its logs to `data/docker/logs/`.
 | Guide                                      | Content                                                          |
 |--------------------------------------------|------------------------------------------------------------------|
 | [Architecture](docs/architecture.md)       | Code layers of the backend and the frontend, models vs. schemas  |
+| [Dummy dataset setup](docs/dummy-dataset.md) | From an empty machine to a running game with fictional data, step by step |
 | [Building the dataset](docs/dataset.md)    | Every dataset script, in order                                   |
 | [API](docs/api/README.md)                  | Authentication, endpoint groups, Postman collection              |
 | [Databases](docs/databases.md)             | Database UIs, backup and restore                                 |

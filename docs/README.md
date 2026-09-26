@@ -14,6 +14,7 @@ into detail.
 
 | Guide                               | Content                                                                    |
 |-------------------------------------|----------------------------------------------------------------------------|
+| [Dummy dataset setup](dummy-dataset.md) | **Start here:** from an empty machine to a running game with fictional data, with a TL;DR |
 | [Docker](docker.md)                 | Services, ports, volumes, common commands, freeing disk space              |
 | [Building the dataset](dataset.md)  | Every dataset script, in order: schema, publications, predictions, maps, topics, labels, explanations, fixtures |
 | [Databases](databases.md)           | Database UIs, backup and restore of MariaDB, MongoDB and Qdrant            |

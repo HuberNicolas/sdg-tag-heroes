@@ -17,6 +17,8 @@ published.
 - [x] Load it with the regular pipeline (`utils/dummy/load_dummy_dataset.py`, one command) and test end to end in an
   isolated Docker network: collector, Dvdblk predictions, Qdrant, UMAP, BERTopic, loaders, fixtures, API, frontend
 - [x] Document in the README how to load the dummy dataset
+- [x] Step-by-step guide for a fresh machine (`docs/dummy-dataset.md`) and `utils/docker/create_env_files.py`
+- [ ] Test `docs/dummy-dataset.md` on a fresh machine
 - [ ] Generate the dataset with `--mode ollama` (free, about 6 hours for 600 papers) or `--mode llm` (costs money);
   both give better topics than the template abstracts
 - [ ] Publish the generator repository on GitHub
