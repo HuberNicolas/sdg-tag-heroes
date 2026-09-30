@@ -419,6 +419,7 @@ The API writes its logs to `data/docker/logs/`.
 |--------------------------------------------|------------------------------------------------------------------|
 | [Architecture](docs/architecture.md)       | Code layers of the backend and the frontend, models vs. schemas  |
 | [Dummy dataset setup](docs/dummy-dataset.md) | From an empty machine to a running game with fictional data, step by step |
+| [Running it (for coding agents)](RUN.md)   | Fastest path, checks and pitfalls for coding agents               |
 | [Building the dataset](docs/dataset.md)    | Every dataset script, in order                                   |
 | [API](docs/api/README.md)                  | Authentication, endpoint groups, Postman collection              |
 | [Databases](docs/databases.md)             | Database UIs, backup and restore                                 |
