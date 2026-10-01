@@ -113,7 +113,7 @@ curl -X POST 'http://localhost:2003/collections/publications-mt/snapshots/upload
 Stop the containers and delete their data:
 
 ```bash
-docker compose down
+docker compose --profile prod down
 ```
 
 ```bash

@@ -227,7 +227,7 @@ instead, see the [frontend README](frontend/README.md).
 ### Stop everything
 
 ```bash
-docker compose down
+docker compose --profile prod down
 ```
 
 The database contents are stored in `data/docker/` and survive a restart.

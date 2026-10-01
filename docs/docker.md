@@ -72,7 +72,7 @@ docker compose up -d --build --force-recreate -V frontend
 Stop everything (the data in `data/docker/` stays):
 
 ```bash
-docker compose down
+docker compose --profile prod down
 ```
 
 ## Cleaning up

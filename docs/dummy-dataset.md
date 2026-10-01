@@ -108,7 +108,7 @@ RAM. The first run needs internet: Docker images, Python packages, and two model
 420 MB, and all-MiniLM-L6-v2, about 90 MB).
 
 **Ports:** 1002 (API), 2001–2003 (databases) and 3030 (frontend) must be free. If another SDG Tag Heroes stack runs on
-the machine, stop it first (`docker compose down` in its folder), because the container names are fixed.
+the machine, stop it first (`docker compose --profile prod down` in its folder), because the container names are fixed.
 
 ## Step by step
 
@@ -344,7 +344,7 @@ The answer contains an `access_token`.
 | "Refusing to load the dummy dataset: … already contains …" | The databases are not empty; [start over](#start-over)                               |
 | "Can't connect to MySQL server"                            | MariaDB is not ready yet or not running: `docker compose ps`, then the wait command from step 5 |
 | `docker compose up` fails with `"/data/api": not found`    | `mkdir -p data/api` (step 3) and build again                                          |
-| A container name or port is already in use                 | Another stack runs; stop it with `docker compose down` in its folder                  |
+| A container name or port is already in use                 | Another stack runs; stop it with `docker compose --profile prod down` in its folder                  |
 | "No space left on device" in a database container          | Docker's disk is full; see [Docker](docker.md#cleaning-up)                            |
 | `hdbscan` fails to build in step 6                         | Install a C compiler (see [Prerequisites](#prerequisites)) and repeat the install      |
 | Maps are empty in the frontend                             | Check that `.env` contains `PREDICTION_MODEL=Dvdblk`, then `docker compose up -d api` and `docker compose restart api` |
@@ -358,7 +358,7 @@ More errors and fixes are in [Troubleshooting](troubleshooting.md).
 Stop the containers, delete the database contents and the computed files, and run step 7 again:
 
 ```bash
-docker compose down
+docker compose --profile prod down
 ```
 
 ```bash

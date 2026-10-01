@@ -146,8 +146,11 @@ browser: log in, then `/profile`, `/scenarios`, and choose an SDG.
 `utils/docker/delete-docker-data.sh` uses `sudo`. Without `sudo`, delete it through a container:
 
 ```bash
-docker compose down
+docker compose --profile prod down
 ```
+
+`--profile prod` is required: without it, `down` leaves the containers running. Check with `docker ps` that no
+container of this stack runs any more, then delete:
 
 ```bash
 docker run --rm -v "$PWD/data:/d" alpine rm -rf /d/docker
@@ -164,6 +167,8 @@ Then copy the new data (step 3) and continue with `docker compose up -d …` (wi
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `mongodb-database` keeps restarting: "Linux kernel versions 6.19 and newer has a known incompatibility" | MongoDB 8.x (TCMalloc and rseq, SERVER-121912) | `deploy/db/mongodb.Dockerfile` pins `mongo:7.0`; do not change it to `latest`. MongoDB 7.0 cannot read data files written by 8.x, so start from an empty `data/docker/db/mongodb/` |
+| `docker compose down` leaves the containers running | Every service is in the `prod` profile; without it, `down` ignores them | `docker compose --profile prod down`. Check with `docker ps` before deleting `data/docker/` |
+| `Access denied for user …` right after MariaDB answers the ping on empty data | The entrypoint's temporary server answers the ping before it has created the user | Retry for a few seconds until a query as `$MARIADB_USER` works |
 | `poetry install`: "Hash for nvidia-… not found in known hashes" | A truncated wheel in the Poetry cache | Delete it (`find ~/.cache/pypoetry -name 'nvidia_…*'`) and install again |
 | `AttributeError: module 'bcrypt' has no attribute '__about__'` in the `users` steps | passlib with a newer bcrypt | A harmless, trapped warning; the users are created |
 | The frontend shows "Starting Nuxt…" or a white page, or the login form empties itself | Nuxt and Vite compile each route on its first visit and reload | Wait 10–30 seconds and try again |
