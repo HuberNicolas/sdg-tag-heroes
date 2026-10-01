@@ -7,9 +7,8 @@
 
     <div class="relative flex-1 min-h-0">
       <div ref="scatterPlotContainer" class="absolute inset-0" />
-      <Transition name="fade">
-        <LoadingState v-if="!ready" overlay label="loading publication map" />
-      </Transition>
+      <!-- Fades out with CSS only: a Vue transition waits for an animation frame, which a hidden tab never gets -->
+      <LoadingState overlay label="loading publication map" class="map-loader" :class="{ 'is-done': ready }" :aria-hidden="ready" />
     </div>
 
     <MapLegend class="flex-none" variant="sdg" :sdg-color="sdgColor" />
@@ -38,10 +37,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.fade-leave-active {
-  transition: opacity 0.35s;
+.map-loader {
+  transition: opacity 0.35s, visibility 0.35s;
 }
-.fade-leave-to {
+.map-loader.is-done {
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 </style>

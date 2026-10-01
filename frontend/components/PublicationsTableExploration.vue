@@ -281,7 +281,7 @@ const isOpen = ref(false)
 
 function handlePublicationClick(publication: PublicationSchemaBase) {
   publicationsStore.setSelectedPublication(publication);
-  this.isOpen = true;
+  isOpen.value = true;
 }
 
 const getSDGColor = (sdgName: string) => {

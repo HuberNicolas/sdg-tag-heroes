@@ -1,9 +1,8 @@
 <template>
   <!-- Thin bar under the navigation while API requests are running -->
   <div class="pointer-events-none relative h-0.5 w-full overflow-hidden" aria-hidden="true">
-    <Transition name="fade">
-      <div v-if="isBusy" class="activity-bar absolute inset-0" />
-    </Transition>
+    <!-- CSS fade only, so the bar cannot get stuck in a hidden tab (Vue transitions wait for an animation frame) -->
+    <div class="activity-bar absolute inset-0" :class="{ 'is-busy': isBusy }" />
   </div>
 </template>
 
@@ -32,12 +31,13 @@ const { isBusy } = useApiActivity();
     background-position: 150% 0;
   }
 }
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s;
-}
-.fade-enter-from,
-.fade-leave-to {
+.activity-bar {
   opacity: 0;
+  transition: opacity 0.3s;
+  animation-play-state: paused;
+}
+.activity-bar.is-busy {
+  opacity: 1;
+  animation-play-state: running;
 }
 </style>

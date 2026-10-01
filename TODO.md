@@ -136,8 +136,8 @@ game logic. These points came up on the way and are left for later:
 - [ ] Clicking a cell on the publication map calls `publicationsStore.selectedPartitionedPublications([...])` as a
   function (it is an array), which throws; the click marker therefore never shows (`scatterPlot.ts`,
   `scatterSDGPlot.ts`)
-- [ ] `handlePublicationClick` in the publication tables uses `this.isOpen` inside `<script setup>` (no `this`), so
-  the details modal does not open from the table
+- [x] `handlePublicationClick` in the publication tables used `this.isOpen` inside `<script setup>` (no `this`), so
+  the details modal did not open from the table; fixed, and its LLM parts (keywords, fact, summary) show one by one
 - [x] Label submit: `includeAbstractSection` was not defined, so the form never reset after a submit; fixed, the
   checkbox now decides whether the marked passage is sent, and the community views reload after a submit
 - [ ] An expired token does not lead back to the login; the pages stay empty with 401 errors

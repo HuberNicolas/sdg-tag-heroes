@@ -292,6 +292,11 @@ docker exec ollama ollama pull llama3.1
 Then set `OLLAMA_BASE_URL=http://ollama:11434/v1` in `env/api.env`. On a CPU an answer takes about a minute
 (`llama3.1`), several requests queue up; the API waits up to 15 minutes. Smaller models (`llama3.2`, `phi3`) are faster but follow the answer
 format less reliably. The client is built in [`services/gpt/llm_client.py`](services/gpt/llm_client.py).
+To check that every LLM feature answers, call each endpoint once:
+
+```bash
+python3 utils/llm/check_llm_endpoints.py
+```
 
 The tunable values of the application itself (prediction threshold, votes needed for a scenario, GPT model, UMAP
 parameters, …) are in [`settings/settings.py`](settings/settings.py).
