@@ -1,7 +1,20 @@
 <template>
   <div class="frame-container flex flex-col">
-    <div class="frame-title"><b>Browse & Compare:</b> Review Your Selected Publications in the <b>Publication Table</b></div>
-
+    <div class="flex-none flex items-center justify-between gap-2">
+      <div class="frame-title !mb-2"><b>Browse & Compare</b> the publications you selected on the map</div>
+      <span class="mb-2 flex items-center gap-2 font-mono text-[11px] text-fg-faint whitespace-nowrap">
+        <button
+          v-if="topSdgFilter"
+          type="button"
+          class="inline-flex items-center gap-1 rounded-full border border-accent/50 bg-accent/10 px-2 py-0.5 text-fg hover:bg-accent/20"
+          title="Show all SDGs"
+          @click="clearTopSdgFilter"
+        >
+          top SDG {{ topSdgFilter }} <span aria-hidden="true">✕</span>
+        </button>
+        rows=<b class="text-accent">{{ visibleTableData.length }}</b><template v-if="topSdgFilter">/{{ sortedTableData.length }}</template>
+      </span>
+    </div>
     <div>
       <UModal v-model="isOpen"  :overlay="false" :ui="{ width: 'w-full sm:max-w-4xl' }">
         <div
@@ -11,151 +24,92 @@
       </UModal>
     </div>
 
-    <div class="flex-1 min-h-0 max-h-[70vh] xl:max-h-none overflow-auto">
+    <div class="flex-1 min-h-0 max-h-[70vh] xl:max-h-none overflow-auto rounded-xl border border-line">
       <!-- Scrollable container -->
       <table
-        class="w-full border-collapse"
+        class="pub-table"
         @mouseleave="publicationsStore.setHoveredPublication(null)"
       >
         <thead>
-        <tr class="bg-gray-100">
+        <tr>
           <th
-            class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
-            :class="{ 'font-bold text-gray-800': sortKey === 'title' }"
-            @click="sortTable('title')"
+            v-for="column in tableColumns"
+            :key="column.label"
+            :class="[column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left', { 'is-sortable': column.key, 'is-sorted': column.key && sortKey === column.key }]"
+            :aria-sort="column.key && sortKey === column.key ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined"
+            @click="column.key && sortTable(column.key)"
           >
-            Title
-            <span v-if="sortKey === 'title'">
-                {{ sortOrder === 'asc' ? '▲' : '▼' }}
-              </span>
-            <span v-else class="text-gray-400">↕</span>
-          </th>
-          <th class="border border-gray-300 p-2">Symbol</th>
-          <th class="border border-gray-300 p-2">Machine Scores</th>
-          <th class="border border-gray-300 p-2">Top SDGs</th>
-          <th
-            class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
-            :class="{ 'font-bold text-gray-800': sortKey === 'topSDGNumber' }"
-            @click="sortTable('topSDGNumber')"
-          >
-            Top SDG
-            <span v-if="sortKey === 'topSDGNumber'">
-                {{ sortOrder === 'asc' ? '▲' : '▼' }}
-              </span>
-            <span v-else class="text-gray-400">↕</span>
-          </th>
-          <th
-class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'coins' }"
-              @click="sortTable('coins')">
-            Coins
-            <span v-if="sortKey === 'coins'">
-              {{ sortOrder === 'asc' ? '▲' : '▼' }}
+            <span class="inline-flex items-center gap-1">
+              {{ column.label }}
+              <template v-if="column.key">
+                <Icon v-if="sortKey === column.key" :name="sortOrder === 'asc' ? 'mdi-chevron-up' : 'mdi-chevron-down'" class="h-3.5 w-3.5 text-accent" />
+                <Icon v-else name="mdi-unfold-more-horizontal" class="h-3.5 w-3.5 opacity-40" />
+              </template>
             </span>
-            <span v-else class="text-gray-400">↕</span>
-          </th>
-
-          <th
-class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'xp' }"
-              @click="sortTable('xp')">
-            XP
-            <span v-if="sortKey === 'xp'">
-              {{ sortOrder === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">↕</span>
-          </th>
-
-          <th
-class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'year' }"
-              @click="sortTable('year')">
-            Year
-            <span v-if="sortKey === 'year'">
-              {{ sortOrder === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">↕</span>
-          </th>
-          <th
-class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'collectionName' }"
-              @click="sortTable('collectionName')">
-            Topic
-            <span v-if="sortKey === 'collectionName'">
-              {{ sortOrder === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">↕</span>
-          </th>
-
-          <th
-class="border border-gray-300 p-2 sortable-header"
-              :class="{ 'active-sort': sortKey === 'scenarioType' }"
-              @click="sortTable('scenarioType')">
-            Quest
-            <span v-if="sortKey === 'scenarioType'">
-              {{ sortOrder === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">↕</span>
           </th>
         </tr>
         </thead>
         <tbody>
-        <tr v-if="sortedTableData.length === 0">
-          <td colspan="8" class="border border-gray-300 p-4 text-center text-gray-500">
-            No publications selected. Please use the lasso selection tool in the scatter plot to select data points.
+        <tr v-if="visibleTableData.length === 0">
+          <td :colspan="tableColumns.length" class="!py-10">
+            <div class="flex flex-col items-center gap-2 text-center">
+              <Icon name="mdi-lasso" class="h-7 w-7 text-accent" />
+              <p class="font-mono text-xs text-fg-dim">No publications selected.</p>
+              <p class="text-xs text-fg-faint">Draw a lasso around cells on the publication map to list them here.</p>
+            </div>
           </td>
         </tr>
         <tr
-          v-for="(item, index) in sortedTableData"
+          v-for="(item, index) in visibleTableData"
           :key="index"
-          class="hover:bg-gray-50"
-          :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSDG) : '' }"
+          class="pub-table__row"
+          :class="{ 'is-hovered': publicationsStore.hoveredPublication?.publicationId === item.publicationId }"
+          :style="publicationsStore.hoveredPublication?.publicationId === item.publicationId ? { '--row-sdg': getSDGColor(item.topSDG) } : {}"
           @mouseover="publicationsStore.setHoveredPublication(item)"
           @mouseleave="publicationsStore.setHoveredPublication(null)">
-          <td
-class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
-              @click="handlePublicationClick(item)">
-            {{ item.title }}
+          <td class="min-w-[12rem] max-w-[22rem]">
+            <button type="button" class="pub-table__title" @click="handlePublicationClick(item)">
+              {{ item.title }}
+            </button>
           </td>
-          <td class="border border-gray-300 p-2">
+          <td>
             <!-- eslint-disable vue/no-v-html -- the SVG is built from numbers, colours and the scenario enum -->
             <div
-class="relative flex items-center justify-center"
-                 v-html="generateHexagonSVG(Math.round(item.xp), getSDGColor('SDG ' + gameStore.sdg), getSDGColor(item.topSDG), item.scenarioType)"/>
+              class="pub-table__symbol"
+              v-html="generateHexagonSVG(Math.round(item.xp), getSDGColor('SDG ' + gameStore.sdg), getSDGColor(item.topSDG), item.scenarioType)"/>
             <!-- eslint-enable vue/no-v-html -->
           </td>
-          <td class="border border-gray-300 p-2 flex items-center justify-center">
-            <HexGlyph :key="item.publicationId + '-' + sortKey + '-' + sortOrder" :values="item.values" :height="80" :width="70" />
-          </td>
-          <td class="border border-gray-300 p-2">
-            <BarPredictionPlot :values="item.values" :width="80" :height="60" />
-          </td>
-          <td class="border border-gray-300 p-2">
-            <div class="flex flex-col items-center justify-between h-full">
-              <div class="w-8 h-8 flex items-center justify-center">
-                <img
-                  :src="getSDGIconSrc(item.topSDG)"
-                  class="w-full h-full object-contain"
-                >
-              </div>
-              <span class="text-center">{{ item.topSDGNumber }}</span>
+          <td>
+            <div class="flex justify-center">
+              <HexGlyph :key="item.publicationId + '-' + sortKey + '-' + sortOrder" :values="item.values" :height="56" :width="50" />
             </div>
           </td>
-          <td class="border border-gray-300 p-2">{{ item.coins }}</td>
-          <td class="border border-gray-300 p-2">{{ item.xp }}</td>
-          <td class="border border-gray-300 p-2">{{ item.year }}</td>
-          <td class="border border-gray-300 p-2 flex flex-auto justify-evenly content-center">
+          <td>
+            <BarPredictionPlot :values="item.values" :width="84" :height="48" />
+          </td>
+          <td>
+            <div class="flex items-center justify-center">
+              <img
+                :src="getSDGIconSrc(item.topSDG)"
+                :alt="item.topSDG"
+                class="h-7 w-7 rounded-md object-contain"
+              >
+            </div>
+          </td>
+          <td class="text-right font-mono tabular-nums">{{ item.coins }}</td>
+          <td class="text-right font-mono tabular-nums">{{ item.xp }}</td>
+          <td class="text-right font-mono tabular-nums text-fg-dim">{{ item.year }}</td>
+          <td>
             <UTooltip :text="item.collectionName">
-              <Icon :name="item.collectionSymbol" class="w-8 h-8 text-gray-400" />
+              <Icon :name="item.collectionSymbol" class="h-5 w-5 text-fg-dim" />
             </UTooltip>
           </td>
-
-          <td class="border border-gray-300 p-2">
+          <td>
             <template v-if="item.scenarioType !== 'Not enough votes'">
               <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
             </template>
             <template v-else>
-              No Quest
+              <span class="font-mono text-[11px] text-fg-faint">no quest</span>
             </template>
           </td>
         </tr>
@@ -164,7 +118,6 @@ class="relative flex items-center justify-center"
     </div>
   </div>
 </template>
-
 
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue';
@@ -179,7 +132,22 @@ import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
 import {score}from "@/utils/xp_scorer";
 import PublicationDetails from "~/components/PublicationDetails.vue";
 
+// Columns of the table; `key` makes a column sortable
+const tableColumns: { label: string; key?: string; align?: "right" | "center" }[] = [
+  { label: "Title", key: "title" },
+  { label: "Symbol", align: "center" },
+  { label: "Machine Scores", align: "center" },
+  { label: "Top SDGs" },
+  { label: "Top SDG", key: "topSDGNumber", align: "center" },
+  { label: "Coins", key: "coins", align: "right" },
+  { label: "XP", key: "xp", align: "right" },
+  { label: "Year", key: "year", align: "right" },
+  { label: "Topic", key: "collectionName" },
+  { label: "Quest", key: "scenarioType" },
+];
+
 const publicationsStore = usePublicationsStore();
+const { topSdgFilter, clearTopSdgFilter } = useTopSdgFilter();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const labelDecisionsStore = useLabelDecisionsStore();
 const collectionsStore = useCollectionsStore();
@@ -190,6 +158,10 @@ const sortKey = ref('title');
 const sortOrder = ref('asc');
 const tableData = ref([]); // Store resolved data
 const sortedTableData = ref([]); // Store sorted data
+// Rows shown: optionally only one top SDG (bar chart of the selection summary)
+const visibleTableData = computed(() =>
+  topSdgFilter.value ? sortedTableData.value.filter((row) => row.topSDGNumber === topSdgFilter.value) : sortedTableData.value
+);
 
 
 watch(
@@ -336,7 +308,7 @@ const sortTable = (key) => {
 const isOpen = ref(false)
 function handlePublicationClick(publication: PublicationSchemaBase) {
   publicationsStore.setSelectedPublication(publication);
-  this.isOpen = true;
+  isOpen.value = true;
 }
 
 const getSDGColor = (sdgName: string) => {

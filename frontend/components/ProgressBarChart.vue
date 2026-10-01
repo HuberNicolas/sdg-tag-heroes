@@ -60,7 +60,7 @@ const renderChart = () => {
     .attr('y', 0)
     .attr('width', width)
     .attr('height', barHeight)
-    .attr('fill', '#e0e0e0')
+    .attr('fill', 'rgb(var(--c-muted-strong))')
     .attr('rx', 10)
     .attr('ry', 10);
 
@@ -81,7 +81,7 @@ const renderChart = () => {
   svg.append('text')
     .attr('x', 0)
     .attr('y', barHeight + labelOffset - 5)
-    .attr('fill', '#000')
+    .attr('fill', 'rgb(var(--c-fg))')
     .attr('text-anchor', 'start')
     .style('font-size', '12px')
     .text(`Current XP: ${props.currentXp}`);
@@ -90,7 +90,7 @@ const renderChart = () => {
   svg.append('text')
     .attr('x', width)
     .attr('y', barHeight + labelOffset - 5)
-    .attr('fill', '#000')
+    .attr('fill', 'rgb(var(--c-fg))')
     .attr('text-anchor', 'end')
     .style('font-size', '12px')
     .text(props.nextLevelXp > 0 ? `Next Level: ${props.nextLevelXp}` : "Max Level");

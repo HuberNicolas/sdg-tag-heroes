@@ -114,3 +114,34 @@ published.
   passwords or env files, only the placeholder values of the `*.env.example` files. The commits carry the UZH
   e-mail addresses `nicolas.huber2@uzh.ch` and `nhuber@ifi.uzh.ch` as author
 - [ ] Repeat the check right before publishing, after the notebooks are cleaned
+
+## 7. Frontend redesign: mechanics to look at later
+
+The visual redesign (2026-10, design tokens in `frontend/assets/css/tailwind.css`, light and dark theme) changed no
+game logic. These points came up on the way and are left for later:
+
+- [ ] `NavigationBar.vue` polls `checkUpdates()` every 10 s (the comment says every minute) and never clears its two
+  `setInterval`s, so they pile up when the component is mounted again
+- [ ] The XP and coin modals are chained with fixed 3 s timeouts; a small queue would be more reliable
+- [ ] `sdgIconSrc` in `NavigationBar.vue` throws when the SDG is not (yet) in the store (`sdg.icon` on `undefined`)
+- [ ] `currentRank` falls back to the first rank of the user (`userSDGRank[0]`), so the navigation can show the rank
+  of another SDG
+- [ ] The publication map is empty until a topic is selected, and stays empty for a dataset without BERTopic topics
+  (e.g. the 85-paper dummy dataset). Select all topics by default or show an empty state
+- [ ] The d3 glyphs append a new `.glyph-tooltip` to `<body>` on every render and never remove it
+- [ ] `scatterPlot.ts` / `scatterSDGPlot.ts` log whole data arrays with `console.log`
+- [ ] The help drawer opens with an inline `onclick` and `getElementById`; a Nuxt UI `USlideover` would fit better
+- [ ] The XP thresholds of the universes (0 / 6000 / 8000) are hardcoded in `WorldSelector.vue`
+- [ ] The SHAP highlights stay empty until an SDG is selected (no SDG → no colour); a hint in the abstract would help
+- [x] Clicking a cell on the publication map called `publicationsStore.selectedPartitionedPublications([...])` as a
+  function (it is an array), which threw; fixed: a click selects that publication like a lasso around it
+- [x] `handlePublicationClick` in the publication tables used `this.isOpen` inside `<script setup>` (no `this`), so
+  the details modal did not open from the table; fixed, and its LLM parts (keywords, fact, summary) show one by one
+- [x] Label submit: `includeAbstractSection` was not defined, so the form never reset after a submit; fixed, the
+  checkbox now decides whether the marked passage is sent, and the community views reload after a submit
+- [ ] An expired token does not lead back to the login; the pages stay empty with 401 errors
+- [ ] `plotly.js-dist` is no longer used (the maps are drawn with d3, `composables/plots/hexMap.ts`); remove it from
+  `package.json` together with a lockfile update
+- [ ] Topics: the 85-paper dummy dataset has no BERTopic topics (only the outlier cluster "Miscellaneous"), so the
+  topic list has a single entry. Generate a larger dataset (340–600 papers) or tune BERTopic for small datasets
+- [x] Topic list: starts with all topics selected and "Reset" goes back to all (the map used to start empty)

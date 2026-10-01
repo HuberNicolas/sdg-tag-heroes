@@ -1,6 +1,7 @@
 <template>
-  <div class="flex flex-col h-dvh overflow-hidden bg-white">
+  <div class="flex flex-col h-dvh overflow-hidden">
     <NavigationBar class="flex-none" />
+    <ApiActivityBar class="flex-none" />
     <!-- Pages fill the remaining height; on small screens they scroll instead of being cut off.
          On ultrawide screens the content is capped and centred so panels do not stretch apart. -->
     <main class="flex-1 min-h-0 overflow-y-auto">

@@ -1,8 +1,8 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>by selecting</b> a Quest to review Key Publications from the <b>Quest Box</b></div> <!--Smart Selection:  -->
+    <div class="frame-title"><b>by choosing</b> a <b>quest</b>: publications that need attention most</div> <!--Smart Selection:  -->
     <div class="row-span-2 col-span-3">
-      <div class="flex items-center justify-around">
+      <div class="flex flex-wrap gap-2">
         <QuestButtonExploration
           v-for="button in buttons"
           :key="button.name"
@@ -11,7 +11,7 @@
           :tooltip="button.tooltip"
         />
       </div>
-      <div class="flex gap-2 mt-4">
+      <div v-if="gameStore.selectedScenarioList.length" class="flex items-center gap-2 mt-2.5">
         <UBadge
           v-for="scenario in gameStore.selectedScenarioList"
           :key="scenario"
@@ -27,7 +27,7 @@
             <UButton size="xs" icon="i-heroicons-x-mark" @click="gameStore.removeScenario(scenario)" />
           </template>
         </UBadge>
-        <span class="text-gray-500 text-xs">{{ buttons.find(b => b.name === gameStore.selectedScenarioList[0])?.explanation }}</span>
+        <span class="text-fg-dim text-xs leading-snug">{{ buttons.find(b => b.name === gameStore.selectedScenarioList[0])?.explanation }}</span>
       </div>
     </div>
   </div>
@@ -43,14 +43,14 @@ const buttons = [
   {
     icon: "i-heroicons-light-bulb",
     name: "Hidden Gems",
-    tooltip: "Help review publications with the fewest labels",
-    explanation: "These publications have received little attention and need more reviews to ensure accurate labeling."
+    tooltip: "Publications with the fewest labels so far",
+    explanation: "These publications have few labels yet, so each new label carries more weight."
   },
   {
     icon: "i-heroicons-fire",
     name: "High Stakes",
-    tooltip: "Analyze publications where AI predictions are uncertain",
-    explanation: "These publications show mixed AI predictions and need human insight to confirm the correct label."
+    tooltip: "Publications where the model is most uncertain",
+    explanation: "The model's scores are spread over several SDGs (high entropy); a human reading helps most here."
   },
 ];
 

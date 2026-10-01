@@ -1,10 +1,11 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg shadow-md w-full">
+  <div class="summary-tile h-full">
+    <div class="summary-tile__head">
+      <span class="summary-tile__key">xp per publication · labeling effort</span>
+      <span class="summary-tile__meta">bigger = model less sure</span>
+    </div>
     <!-- D3 Raincloud Plot -->
-    <p class="text-sm text-gray-600">
-      XP-Distribution of selected Publications
-    </p>
-    <div ref="chartContainer" class="w-full h-80 relative" />
+    <div ref="chartContainer" class="w-full h-60 relative" />
   </div>
 </template>
 <script setup>
@@ -22,7 +23,7 @@ const sdgsStore = useSDGsStore();
 const gameStore = useGameStore();
 const selectedSDGColor = computed(() => {
   const sdg = gameStore.getSDG;
-  return sdg ? sdgsStore.getColorBySDG(sdg) : "#000000"; // Default color (black) if not initialized
+  return sdg ? sdgsStore.getColorBySDG(sdg) : "rgb(var(--c-accent))"; // Accent colour without an SDG world
 });
 
 
@@ -92,8 +93,8 @@ const updateChart = () => {
     .append("div")
     .style("position", "absolute")
     .style("visibility", "hidden")
-    .style("background", "white")
-    .style("border", "1px solid black")
+    .style("background", "rgb(var(--c-surface))")
+    .style("border", "1px solid rgb(var(--c-line-strong))")
     .style("padding", "5px")
     .style("border-radius", "5px")
     .style("opacity", 0)
@@ -123,7 +124,7 @@ const updateChart = () => {
   svg.append("path")
     .datum(kde)
     .attr("d", area)
-    .style("fill", "grey")
+    .style("fill", "rgb(var(--c-fg-faint))")
     .style("opacity", 0.6);
 
 
@@ -149,20 +150,20 @@ const updateChart = () => {
     .attr("x2", xScale(min))
     .attr("y1", yBoxplot - boxHeight)
     .attr("y2", yBoxplot + boxHeight)
-    .attr("stroke", "black");
+    .attr("stroke", "rgb(var(--c-fg))");
 
   svg.append("line")
     .attr("x1", xScale(max))
     .attr("x2", xScale(max))
     .attr("y1", yBoxplot - boxHeight)
     .attr("y2", yBoxplot + boxHeight)
-    .attr("stroke", "black");
+    .attr("stroke", "rgb(var(--c-fg))");
 
-  svg.append("line").attr("x1", xScale(min)).attr("x2", xScale(max)).attr("y1", yBoxplot).attr("y2", yBoxplot).attr("stroke", "black");
+  svg.append("line").attr("x1", xScale(min)).attr("x2", xScale(max)).attr("y1", yBoxplot).attr("y2", yBoxplot).attr("stroke", "rgb(var(--c-fg))");
   svg.append("rect").attr("x", xScale(q1)).attr("y", yBoxplot - boxHeight / 2)
     .attr("width", xScale(q3) - xScale(q1)).attr("height", boxHeight)
-    .attr("fill", "grey").attr("opacity", 0.6);
-  svg.append("line").attr("x1", xScale(median)).attr("x2", xScale(median)).attr("y1", yBoxplot - boxHeight / 2).attr("y2", yBoxplot + boxHeight / 2).attr("stroke", "black");
+    .attr("fill", "rgb(var(--c-fg-faint))").attr("opacity", 0.6);
+  svg.append("line").attr("x1", xScale(median)).attr("x2", xScale(median)).attr("y1", yBoxplot - boxHeight / 2).attr("y2", yBoxplot + boxHeight / 2).attr("stroke", "rgb(var(--c-fg))");
 
 
   // Create a function to generate hexagon points
@@ -180,14 +181,14 @@ const updateChart = () => {
 
 // Replace the two polygon sections with this code
 // Left whisker marker (at minimum value)
-  const leftHexPoints = hexagonPoints(xScale(min)-50, yBoxplot, 10);
+  const leftHexPoints = hexagonPoints(xScale(min)-36, yBoxplot, 7);
   const leftPathData = `M ${leftHexPoints.map(p => p.join(',')).join(' L ')} Z`;
   svg.append("path")
     .attr("d", leftPathData)
     .attr("fill", selectedSDGColor.value);
 
 // Right whisker marker (at maximum value)
-  const rightHexPoints = hexagonPoints(xScale(max)+50, yBoxplot, 25);
+  const rightHexPoints = hexagonPoints(xScale(max)+36, yBoxplot, 16);
   const rightPathData = `M ${rightHexPoints.map(p => p.join(',')).join(' L ')} Z`;
   svg.append("path")
     .attr("d", rightPathData)
@@ -196,21 +197,21 @@ const updateChart = () => {
 
   // Left whisker marker label
   svg.append("text")
-    .attr("x", xScale(min)-50)
+    .attr("x", xScale(min)-36)
     .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
-    .style("font-size", "12px")
-    .text("Low XP");
+    .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("low xp");
 
 // Right whisker marker label
   svg.append("text")
-    .attr("x", xScale(max)+50)
+    .attr("x", xScale(max)+36)
     .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
-    .style("font-size", "12px")
-    .text("High XP");
+    .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("high xp");
 
 
   // Position the labels **above** the whiskers
@@ -222,46 +223,49 @@ const updateChart = () => {
     .attr("x", xScale(min))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
-    .style("font-weight", "bold")
-    .text("Min");
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("min");
 
   svg.append("text")
     .attr("x", xScale(median))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
-    .style("font-weight", "bold")
-    .text("Median");
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("median");
 
   svg.append("text")
     .attr("x", xScale(max))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
-    .style("font-weight", "bold")
-    .text("Max");
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("max");
 
 // Numerical values **below** whiskers
   svg.append("text")
     .attr("x", xScale(min))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "600 12px var(--font-mono)")
     .text(min.toFixed(0));
 
   svg.append("text")
     .attr("x", xScale(median))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "600 12px var(--font-mono)")
     .text(median.toFixed(0));
 
   svg.append("text")
     .attr("x", xScale(max))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "600 12px var(--font-mono)")
     .text(max.toFixed(0));
 
 
@@ -279,7 +283,9 @@ const updateChart = () => {
   const jitterHeight = 30;
   sortedData.forEach(d => {
     if (!jitterMap.has(d)) {
-      jitterMap.set(d, (Math.random() - 0.5) * jitterHeight);
+      // Stable jitter derived from the value (random jitter moved the dots on every redraw)
+      const hash = Math.abs(Math.sin(d * 12.9898) * 43758.5453) % 1;
+      jitterMap.set(d, (hash - 0.5) * jitterHeight);
     }
   });
 
@@ -291,13 +297,13 @@ const updateChart = () => {
     .attr("r", 5)
     .attr("cx", d => xScale(d))
     .attr("cy", d => height * 0.8 + jitterMap.get(d)) // Use stored jitter value
-    .style("fill", d => d === hoveredEntropy.value ? selectedSDGColor.value : "grey")
+    .style("fill", d => d === hoveredEntropy.value ? selectedSDGColor.value : "rgb(var(--c-fg-faint))")
     .style("opacity", d => d === hoveredEntropy.value ? 1 : 0.6)
   /* Deactivate hover
  .on("mouseover", function(event, d) {
    tooltip.style("visibility", "visible").html(`Value: ${d.toFixed(2)}`)
      .style("left", `${event.pageX + 10}px`).style("top", `${event.pageY}px`);
-   d3.select(this).attr("stroke", "black").attr("stroke-width", 1);
+   d3.select(this).attr("stroke", "rgb(var(--c-fg))").attr("stroke-width", 1);
  })
  .on("mouseout", function() {
    tooltip.style("visibility", "hidden");
@@ -305,15 +311,18 @@ const updateChart = () => {
  });
  */
 
-  // X-Axis with rotated labels
-  svg.append("g")
+  // X axis: a few straight ticks and a title that says what XP stands for
+  const xAxis = svg.append("g")
     .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(xScale).tickSize(0))
-    .selectAll("text")
-    .style("text-anchor", "end")
-    .attr("dx", "-0.8em")
-    .attr("dy", "0.15em")
-    .attr("transform", "rotate(-45)");
+    .call(d3.axisBottom(xScale).ticks(5).tickSize(3).tickFormat(d3.format("d")));
+  xAxis.select(".domain").attr("stroke", "rgb(var(--c-line-strong))");
+  svg.append("text")
+    .attr("x", (width - margin.left - margin.right) / 2)
+    .attr("y", height - margin.bottom + 30)
+    .attr("text-anchor", "middle")
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("xp of a publication = how unsure the model is (entropy × 100)");
 };
 
 // Watch for updates in data

@@ -1,239 +1,199 @@
 <template>
-  <div class="flex h-screen">
-    <!-- Sidebar: List of Label Decisions -->
-    <div class="w-1/4 bg-gray-100 p-4 overflow-y-auto">
-      <h2 class="text-lg font-semibold mb-3">Label Decisions</h2>
-      <ul>
-        <li
-          v-for="decision in userSDGLabelDecisions"
-          :key="decision.decisionId"
-          class="p-2 mb-2 cursor-pointer border rounded bg-white hover:bg-gray-200"
-          :class="{ 'bg-blue-200': decision.decisionId === selectedDecisionId }"
-          @click="selectedDecisionId = decision.decisionId"
+  <!-- From lg on, the page fills the window: list of decisions on the left, details on the right; both scroll inside -->
+  <div class="min-h-full lg:h-full flex flex-col">
+    <header class="flex-none border-b border-line px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <img
+          v-if="profileUser?.email"
+          :src="generateAvatar(profileUser.email)"
+          :alt="`Avatar of ${profileUser.nickname}`"
+          class="h-11 w-11 rounded-full ring-2 ring-accent/40 ring-offset-2 ring-offset-bg"
         >
-          <strong>Decision ID:</strong> {{ decision.decisionId }}<br >
-          <strong>Publication:</strong> {{ decision.publicationId }}
-        </li>
-      </ul>
-    </div>
+        <div>
+          <p class="kicker">// profile · label decisions</p>
+          <h1 class="mt-0.5 text-lg 2xl:text-xl font-bold tracking-tight">{{ profileUser?.nickname || `User ${userId}` }}</h1>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <span class="stat-pill"><Icon name="mdi-scale-balance" class="text-accent" />decisions <b>{{ userSDGLabelDecisions.length }}</b></span>
+        <span class="stat-pill"><Icon name="mdi-tag-outline" class="text-accent" />own labels <b>{{ ownLabelCount }}</b></span>
+      </div>
+    </header>
 
-    <!-- Main Content: Label Decision Details -->
-    <div class="w-3/4 p-4 overflow-y-auto">
-      <div v-if="selectedDecision">
-        <h2 class="text-xl font-semibold">Label Decision: {{ selectedDecision.decisionId }}</h2>
-
-        <!-- Contributors Section -->
-        <div class="flex items-center mb-4">
-          <h3 class="text-md font-semibold mr-2">Tag Heroes:</h3>
-          <div class="flex -space-x-2">
-            <NuxtLink
-              v-for="user in getContributors(selectedDecision)"
-              :key="user.userId"
-              :to="`/users/${user.userId}`"
-              class="relative group"
+    <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(17rem,24rem)_minmax(0,1fr)] gap-3 p-3">
+      <!-- Sidebar: List of Label Decisions -->
+      <aside class="frame-container flex flex-col min-h-[20rem] lg:min-h-0">
+        <div class="frame-title"><b>Label decisions</b> on publications this person labeled or discussed</div>
+        <LoadingState v-if="loading || (labelDecisionsStore.isLoading && !userSDGLabelDecisions.length)" label="loading decisions" />
+        <p v-else-if="!userSDGLabelDecisions.length" class="py-8 text-center font-mono text-xs text-fg-dim">no label decisions yet</p>
+        <ul v-else class="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+          <li v-for="decision in userSDGLabelDecisions" :key="decision.decisionId">
+            <button
+              type="button"
+              class="decision-item"
+              :class="{ 'is-active': decision.decisionId === selectedDecisionId }"
+              :style="{ '--sdg': decisionColor(decision) }"
+              @click="selectedDecisionId = decision.decisionId"
             >
-              <div
-                :style="{ borderColor: getSDGColor(getUserVotedSDG(user.userId)) }"
-                :class="['w-12 h-12 rounded-full border-4 flex items-center justify-center', getBorderStyle(getUserRank(user.userId)?.tier)]"
-              >
-                <img
-                  :src="generateAvatar(user.email)"
-                  class="w-10 h-10 rounded-full"
-                  :alt="`Avatar of ${user.name}`"
-                >
-              </div>
-              <span
-                class="absolute left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1">
-                {{ getSDGTitle(getUserVotedSDG(user.userId)) }} | Rank: {{ getUserRank(user.userId)?.name || "Unranked"
-                }}
+              <span class="decision-item__hex hex-clip" :title="decisionLabelText(decision)">{{ decisionBadge(decision) }}</span>
+              <span class="min-w-0 flex-1">
+                <span class="decision-item__title">{{ publicationTitles[decision.publicationId] || `Publication ${decision.publicationId}` }}</span>
+                <span class="mt-0.5 block font-mono text-[11px] text-fg-faint">
+                  #{{ decision.decisionId }} · {{ decision.userLabels?.length || 0 }} labels<template v-if="decision.scenarioType"> · {{ decision.scenarioType }}</template>
+                </span>
               </span>
-            </NuxtLink>
-          </div>
+            </button>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Main Content: Label Decision Details -->
+      <section class="flex flex-col gap-3 min-h-0 lg:overflow-y-auto lg:pr-1">
+        <div v-if="!selectedDecision" class="frame-container flex flex-1 flex-col items-center justify-center gap-2 py-16 text-center">
+          <Icon name="mdi-hexagon-multiple-outline" class="h-9 w-9 text-accent" />
+          <p class="font-mono text-sm text-fg-dim">Select a label decision to view details.</p>
         </div>
 
-        <!-- Expandable Sections -->
-        <div class="space-y-4">
-
-          <details class="border p-3 rounded">
-            <summary class="cursor-pointer text-md font-semibold">Labels</summary>
-            <div>
-              Publication ID: {{ selectedDecision?.publicationId }}
+        <template v-else>
+          <!-- Decision header -->
+          <div class="frame-container" :style="{ boxShadow: `inset 3px 0 0 ${decisionColor(selectedDecision)}, var(--shadow)` }">
+            <p class="kicker">// decision #{{ selectedDecision.decisionId }} · publication #{{ selectedDecision.publicationId }}</p>
+            <h2 class="mt-1.5 text-xl font-bold leading-snug tracking-tight">
+              {{ publicationTitles[selectedDecision.publicationId] || `Publication ${selectedDecision.publicationId}` }}
+            </h2>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <span class="decision-chip" :style="{ '--sdg': decisionColor(selectedDecision) }">
+                <img v-if="getSDGIcon(selectedDecision.decidedLabel)" :src="getSDGIcon(selectedDecision.decidedLabel)" alt="" class="h-5 w-5 rounded">
+                {{ decisionLabelText(selectedDecision) }}
+              </span>
+              <span v-if="selectedDecision.scenarioType" class="stat-pill">
+                <span class="quest-gem !h-5 !w-5"><Icon name="i-heroicons-flag" /></span>{{ selectedDecision.scenarioType }}
+              </span>
+              <span v-if="selectedDecision.decisionType" class="stat-pill">{{ selectedDecision.decisionType.toLowerCase().replaceAll('_', ' ') }}</span>
+              <span v-if="selectedDecision.createdAt" class="stat-pill">{{ new Date(selectedDecision.createdAt).toLocaleDateString() }}</span>
             </div>
 
-            <div v-if="sdgLabelSummary" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+            <!-- Contributors Section -->
+            <div v-if="getContributors(selectedDecision).length" class="mt-4 flex items-center gap-3">
+              <span class="font-mono text-[11px] uppercase tracking-wider text-fg-faint">contributors</span>
+              <div class="flex -space-x-2">
+                <NuxtLink
+                  v-for="user in getContributors(selectedDecision)"
+                  :key="user.userId"
+                  :to="`/users/${user.userId}`"
+                  class="relative group"
+                  :title="`${user.nickname} · ${getSDGTitle(getUserVotedSDG(user.userId))} · rank ${getUserRank(user.userId)?.name || 'unranked'}`"
+                >
+                  <div
+                    :style="{ borderColor: getSDGColor(getUserVotedSDG(user.userId)) }"
+                    :class="['w-10 h-10 rounded-full border-[3px] bg-surface flex items-center justify-center transition-transform group-hover:-translate-y-0.5', getBorderStyle(getUserRank(user.userId)?.tier)]"
+                  >
+                    <img :src="generateAvatar(user.email)" class="w-8 h-8 rounded-full" :alt="`Avatar of ${user.name}`">
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+          </div>
 
-              <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">SDG Labels:</h2>
-              <!-- SDG Goals Grid -->
-              <div v-if="!isLoading && sdgs.length" class="grid grid-cols-4 gap-4">
+          <!-- SDG labels of the publication -->
+          <div class="frame-container">
+            <div class="frame-title"><b>Summarize</b> the SDG labels of this publication</div>
+            <LoadingState v-if="isLoading" size="sm" label="loading labels" />
+            <template v-else-if="sdgLabelSummary && sdgs.length">
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(3.6rem,1fr))] gap-2">
                 <div
                   v-for="sdg in sdgs"
                   :key="sdg.id"
-                  class="flex flex-col items-center justify-center border rounded-lg p-4 shadow-md transition-opacity"
-                  :class="{
-            'opacity-100': sdg.label === 1,
-            'bg-gray-200': sdg.label === 0,
-            'bg-red-200 opacity-80': sdg.label === -1,
-          }"
-                  :style="sdg.label === 1 ? { backgroundColor: sdg.color } : {}"
+                  class="sdg-state"
+                  :class="sdg.label === 1 ? 'is-yes' : sdg.label === -1 ? 'is-no' : 'is-open'"
+                  :style="{ '--sdg': sdg.color }"
+                  :title="`SDG ${sdg.id}: ${sdg.label === 1 ? 'relevant' : sdg.label === -1 ? 'not relevant' : 'not rated'}`"
                 >
-                  <!-- SDG Icon -->
-                  <img
-                    v-if="sdg.icon && sdg.label === 1"
-                    :src="`data:image/svg+xml;base64,${sdg.icon}`"
-                    :alt="`SDG ${sdg.id} Icon`"
-                    class="w-8 h-8 object-contain"
-                  >
-                  <!-- Placeholder for Not Defined -->
-                  <div
-                    v-else-if="sdg.label === 0"
-                    class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center"
-                  >
-                    <span class="text-sm text-gray-800">?</span>
-                  </div>
-                  <!-- Placeholder for Definitely Not Related -->
-                  <div
-                    v-else-if="sdg.label === -1"
-                    class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center"
-                  >
-                    <span class="text-sm text-white">X</span>
-                  </div>
-
-                  <!-- SDG Title -->
-                  <p
-                    class="mt-2 text-center font-semibold"
-                    :class="sdg.label === 1 ? 'text-white' : 'text-gray-600'"
-                  >
-                    SDG {{ sdg.id }}
-                  </p>
+                  <span class="sdg-state__hex hex-clip">{{ sdg.label === -1 ? '✕' : sdg.label === 1 ? sdg.id : '?' }}</span>
+                  <span class="font-mono text-[11px] text-fg-dim">SDG {{ sdg.id }}</span>
                 </div>
               </div>
-            </div>
-          </details>
-
+              <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-fg-faint">
+                <span>coloured: relevant</span><span>✕: not relevant</span><span>?: not rated</span>
+              </p>
+            </template>
+            <p v-else class="font-mono text-xs text-fg-dim">no label summary for this publication</p>
+          </div>
 
           <!-- User Labels -->
-          <details class="border p-3 rounded">
-            <summary class="cursor-pointer text-md font-semibold">User Labels</summary>
-            <ul class="mt-2">
-              <li
-                v-for="label in selectedDecision.userLabels"
-                :key="label.labelId"
-                class="p-2 border-b"
-              >
-
-                <!-- <strong>Label ID:</strong> {{ label.labelId }}<br /> -->
-                <strong>User</strong> {{ getUserName(label.userId) }}<br >
-                <div class="flex items-center space-x-2">
-                  <strong>Voted Label:</strong>
-                  <img
-                    v-if="getSDGIcon(label.votedLabel)"
-                    :src="getSDGIcon(label.votedLabel)"
-                    :alt="`SDG ${label.votedLabel} Icon`"
-                    class="w-6 h-6 object-contain"
-                  >
-                  <span>{{ label.votedLabel }}</span>
+          <div class="frame-container">
+            <div class="frame-title"><b>Explore</b> the labels: who voted for which SDG and why</div>
+            <p v-if="!selectedDecision.userLabels?.length" class="font-mono text-xs text-fg-dim">no labels yet</p>
+            <ul v-else class="space-y-2">
+              <li v-for="label in selectedDecision.userLabels" :key="label.labelId" class="entry" :style="{ '--sdg': getSDGColor(label.votedLabel) }">
+                <div
+                  :style="{ borderColor: getSDGColor(label.votedLabel) }"
+                  :class="['h-11 w-11 flex-none rounded-full border-[3px] flex items-center justify-center', getBorderStyle(getUserRankForSDG(label.userId, label.votedLabel)?.tier)]"
+                >
+                  <img :src="generateAvatar(getUserById(label.userId)?.email)" alt="" class="h-9 w-9 rounded-full">
                 </div>
-
-                <!-- Rank Information -->
-                <div class="flex items-center space-x-4 mt-2">
-                  <!-- Avatar with Frame -->
-                  <div class="relative flex items-center justify-center p-2">
-                    <!-- Inner Frame with SDG Color Border -->
-                    <div
-                      v-if="getUserRankForSDG(label.userId, label.votedLabel)?.tier !== 0"
-                      :style="{ borderColor: getSDGColor(label.votedLabel) }"
-                      :class="[
-        'w-16 h-16 rounded-full flex items-center justify-center border-4',
-        getBorderStyle(getUserRankForSDG(label.userId, label.votedLabel)?.tier)
-      ]"
-                    >
-                      <!-- Avatar Inside the Frame -->
-                      <div class="w-12 h-12 rounded-full overflow-hidden">
-                        <img :src="generateAvatar(getUserById(label.userId)?.email)" alt="User Avatar" class="w-full h-full" >
-                      </div>
-                    </div>
-
-                    <!-- Direct Avatar (No Frame) if Tier is 0 -->
-                    <div v-else class="w-12 h-12 rounded-full overflow-hidden">
-                      <img :src="generateAvatar(getUserById(label.userId)?.email)" alt="User Avatar" class="w-full h-full" >
-                    </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <NuxtLink :to="`/users/${label.userId}`" class="font-semibold text-fg hover:text-accent">{{ getUserName(label.userId) }}</NuxtLink>
+                    <span class="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-xs">
+                      <img v-if="getSDGIcon(label.votedLabel)" :src="getSDGIcon(label.votedLabel)" :alt="`SDG ${label.votedLabel}`" class="h-4 w-4 rounded-sm">
+                      {{ label.votedLabel === -1 ? 'not relevant' : `SDG ${label.votedLabel}` }}
+                    </span>
+                    <span class="inline-flex items-center gap-1 font-mono text-[11px] text-fg-dim">
+                      <!-- Rank Symbol -->
+                      <Icon
+                        v-if="getUserRankForSDG(label.userId, label.votedLabel)?.tier === 1"
+                        name="line-md:chevron-up"
+                        class="w-4 h-4"
+                        :style="{ color: getSDGColor(label.votedLabel) }"
+                      />
+                      <Icon
+                        v-else-if="getUserRankForSDG(label.userId, label.votedLabel)?.tier === 2"
+                        name="line-md:chevron-double-up"
+                        class="w-4 h-4"
+                        :style="{ color: getSDGColor(label.votedLabel) }"
+                      />
+                      <Icon
+                        v-else-if="getUserRankForSDG(label.userId, label.votedLabel)?.tier === 3"
+                        name="line-md:chevron-triple-up"
+                        class="w-4 h-4"
+                        :style="{ color: getSDGColor(label.votedLabel) }"
+                      />
+                      {{ getUserRankForSDG(label.userId, label.votedLabel)?.name || 'unranked' }}
+                    </span>
+                    <span v-if="label.votes?.length" class="font-mono text-[11px] text-fg-faint">{{ label.votes.length }} votes</span>
                   </div>
-
-                  <span class="text-gray-600 font-semibold">Rank:</span>
-
-                  <!-- Rank Tier -->
-                  <span
-class="px-2 py-1 rounded-lg text-white text-sm font-semibold"
-                        :style="{ backgroundColor: getSDGColor(label.votedLabel) }">
-    {{ getUserRankForSDG(label.userId, label.votedLabel)?.tier || "-" }}
-  </span>
-
-                  <!-- Rank Symbol -->
-                  <Icon
-                    v-if="getUserRankForSDG(label.userId, label.votedLabel)?.tier === 1"
-                    name="line-md:chevron-up"
-                    class="w-6 h-6"
-                    :style="{ color: getSDGColor(label.votedLabel) }"
-                  />
-                  <Icon
-                    v-else-if="getUserRankForSDG(label.userId, label.votedLabel)?.tier === 2"
-                    name="line-md:chevron-double-up"
-                    class="w-6 h-6"
-                    :style="{ color: getSDGColor(label.votedLabel) }"
-                  />
-                  <Icon
-                    v-else-if="getUserRankForSDG(label.userId, label.votedLabel)?.tier === 3"
-                    name="line-md:chevron-triple-up"
-                    class="w-6 h-6"
-                    :style="{ color: getSDGColor(label.votedLabel) }"
-                  />
-                  <Icon v-else name="line-md:minus" class="text-gray-400 w-6 h-6" />
-
-                  <!-- Rank Title -->
-                  <span
-v-if="getUserRankForSDG(label.userId, label.votedLabel)"
-                        class="px-3 py-1 rounded-lg text-white text-sm font-semibold"
-                        :style="{ backgroundColor: getSDGColor(label.votedLabel) }">
-    {{ getUserRankForSDG(label.userId, label.votedLabel).name }}
-  </span>
-                  <span v-else class="text-gray-400">No Rank</span>
+                  <p v-if="label.comment" class="mt-1 text-sm text-fg">{{ label.comment }}</p>
+                  <p v-if="label.abstractSection" class="mt-1 border-l-2 border-line-strong pl-2 text-xs italic text-fg-dim">“{{ label.abstractSection }}”</p>
                 </div>
-
-
-                <p class="text-gray-600">{{ label.comment }}</p>
               </li>
             </ul>
-          </details>
+          </div>
 
           <!-- Annotations -->
-          <details class="border p-3 rounded">
-            <summary class="cursor-pointer text-md font-semibold">Annotations</summary>
-            <ul class="mt-2">
-              <li
-                v-for="annotation in selectedDecision.annotations"
-                :key="annotation.annotationId"
-                class="p-2 border-b flex items-center space-x-3"
-              >
+          <div class="frame-container">
+            <div class="frame-title"><b>Browse</b> the annotations on the abstract</div>
+            <p v-if="!selectedDecision.annotations?.length" class="font-mono text-xs text-fg-dim">no annotations yet</p>
+            <ul v-else class="space-y-2">
+              <li v-for="annotation in selectedDecision.annotations" :key="annotation.annotationId" class="entry" :style="{ '--sdg': getSDGColor(getUserVotedSDG(annotation.userId)) }">
                 <div
                   :style="{ borderColor: getSDGColor(getUserVotedSDG(annotation.userId)) }"
-                  :class="['w-10 h-10 rounded-full border-4 flex items-center justify-center', getBorderStyle(getUserRank(annotation.userId)?.tier)]"
+                  :class="['h-10 w-10 flex-none rounded-full border-[3px] flex items-center justify-center', getBorderStyle(getUserRank(annotation.userId)?.tier)]"
                 >
-                  <img
-                    :src="getUserAvatar(annotation.userId)"
-                    class="w-8 h-8 rounded-full"
-                    :alt="getUserName(annotation.userId)"
-                  >
+                  <img :src="getUserAvatar(annotation.userId)" class="h-8 w-8 rounded-full" :alt="getUserName(annotation.userId)">
                 </div>
-                <span><strong>{{ getUserName(annotation.userId) }}</strong></span>
-                <span>Score: {{ annotation.labelerScore }}</span>
-                <p class="text-gray-600">{{ annotation.comment }}</p>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <NuxtLink :to="`/users/${annotation.userId}`" class="font-semibold text-fg hover:text-accent">{{ getUserName(annotation.userId) }}</NuxtLink>
+                    <span class="font-mono text-[11px] text-fg-faint">score {{ annotation.labelerScore }}</span>
+                  </div>
+                  <p class="mt-1 text-sm text-fg">{{ annotation.comment }}</p>
+                </div>
               </li>
             </ul>
-          </details>
-        </div>
-      </div>
-
-      <p v-else class="text-center text-gray-500">Select a label decision to view details.</p>
+          </div>
+        </template>
+      </section>
     </div>
   </div>
 </template>
@@ -247,6 +207,7 @@ import { useSDGsStore } from "~/stores/sdgs";
 import { generateAvatar } from "~/utils/avatar";
 import { useSDGRanksStore } from "~/stores/sdgRanks";
 import { useSDGLabelSummariesStore } from "~/stores/sdgLabelSummaries";
+import usePublications from "~/composables/usePublications";
 
 
 // Router
@@ -269,6 +230,40 @@ const sdgLabelSummary = computed(() => sdgLabelSummariesStore.sdgLabelSummaryFor
 // Store data
 const userSDGLabelDecisions = computed(() => labelDecisionsStore.userSDGLabelDecisions);
 const selectedDecisionId = ref<number | null>(null);
+
+// Display helpers
+const profileUser = computed(() => usersStore.users.find((user) => user.userId === userId.value) || null);
+const ownLabelCount = computed(() =>
+  userSDGLabelDecisions.value.flatMap((decision) => decision.userLabels || []).filter((label) => label.userId === userId.value).length
+);
+const decisionColor = (decision) =>
+  decision?.decidedLabel >= 1 ? getSDGColor(decision.decidedLabel) : "rgb(var(--c-fg-faint))";
+const decisionBadge = (decision) => (decision.decidedLabel >= 1 ? decision.decidedLabel : decision.decidedLabel === -1 ? "✕" : "?");
+const decisionLabelText = (decision) =>
+  decision.decidedLabel >= 1
+    ? `SDG ${decision.decidedLabel} · ${getSDGTitle(decision.decidedLabel)}`
+    : decision.decidedLabel === -1
+      ? "Not relevant"
+      : "Open, no decision yet";
+
+// Publication titles for the list (one request for all decisions)
+const { getPublicationsByIds } = usePublications();
+const publicationTitles = ref<Record<number, string>>({});
+watch(userSDGLabelDecisions, async (decisions) => {
+  const ids = [...new Set(decisions.map((decision) => decision.publicationId))].filter((id) => !(id in publicationTitles.value));
+  if (ids.length) {
+    try {
+      const publications = await getPublicationsByIds(ids);
+      publicationTitles.value = { ...publicationTitles.value, ...Object.fromEntries(publications.map((p) => [p.publicationId, p.title])) };
+    } catch (err) {
+      console.error("Failed to load publication titles", err);
+    }
+  }
+  // Open the first decision, so the page is not empty
+  if (!selectedDecisionId.value && decisions.length) {
+    selectedDecisionId.value = decisions[0].decisionId;
+  }
+});
 
 // Get selected decision
 const selectedDecision = computed(() =>
@@ -410,3 +405,49 @@ async function fetchData() {
 }
 
 </script>
+
+<style scoped>
+.decision-item {
+  @apply flex w-full items-start gap-2.5 rounded-xl border border-transparent px-2 py-2 text-left transition-colors hover:border-line hover:bg-muted/60;
+}
+.decision-item.is-active {
+  border-color: var(--sdg);
+  background: color-mix(in srgb, var(--sdg) 12%, transparent);
+}
+.decision-item__hex {
+  @apply grid h-8 w-9 flex-none place-items-center font-mono text-xs font-bold text-white;
+  background: var(--sdg);
+}
+.decision-item__title {
+  @apply text-sm font-medium leading-snug text-fg;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.decision-chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-fg;
+  border-color: var(--sdg);
+  background: color-mix(in srgb, var(--sdg) 14%, transparent);
+}
+.sdg-state {
+  @apply flex flex-col items-center gap-1;
+}
+.sdg-state__hex {
+  @apply grid h-9 w-10 place-items-center font-mono text-xs font-bold;
+}
+.sdg-state.is-yes .sdg-state__hex {
+  background: var(--sdg);
+  color: #fff;
+}
+.sdg-state.is-open .sdg-state__hex {
+  @apply bg-muted text-fg-faint;
+}
+.sdg-state.is-no .sdg-state__hex {
+  @apply bg-hero-red/15 text-hero-red;
+}
+.entry {
+  @apply flex items-start gap-3 rounded-xl border border-line bg-surface-2/70 p-3;
+  box-shadow: inset 3px 0 0 var(--sdg);
+}
+</style>

@@ -14,31 +14,19 @@ from utils.logger import logger
 logging = logger("confidence_score_chatGPT_dataset_generator.log")
 
 
-import instructor
-from openai import OpenAI
 from pydantic import BaseModel, Field
 
-from utils.env_loader import get_env_variable, load_env
-
-# Apply the patch to the OpenAI client
-# enables response_model keyword
-
+from services.gpt.llm_client import create_llm_client, llm_model
+from utils.env_loader import load_env
 
 # Load the API environment variables
 load_env("api.env")
 
-client = OpenAI(api_key=get_env_variable("OPENAI_API_KEY"))
-
-MODEL = "gpt-4o-2024-08-06"
-MODEL = "gpt-4o-mini-2024-07-18"
-print(client)
-logging.info("Initialized ChatGPT with model... ")
-
-# Apply the patch to the OpenAI client
-# enables response_model keyword
-client = instructor.from_openai(OpenAI())
-print(client)
-logging.info("Patched ChatGPT with model... ")
+# OpenAI (gpt-4o-mini for the thesis), or a local model with LLM_PROVIDER=ollama (services/gpt/llm_client.py).
+# The client is patched by Instructor, which enables structured answers.
+MODEL = llm_model(openai_default="gpt-4o-mini-2024-07-18")
+client = create_llm_client()
+logging.info(f"Initialized the LLM client with model {MODEL}")
 
 
 # Define the initial classification prompt

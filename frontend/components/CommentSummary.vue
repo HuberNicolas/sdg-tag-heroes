@@ -1,18 +1,18 @@
 <template>
   <div class="max-w-4xl mx-auto p-2">
-    <h2 class="text-xl font-semibold text-center text-gray-700 mb-1">
+    <h2 class="text-xl font-semibold text-center text-fg mb-1">
       Community Label Summary
     </h2>
 
-    <div v-if="isLoading" class="text-gray-500 text-center">
+    <div v-if="isLoading" class="text-fg-dim text-center">
       Summarizing Community Label Reasons
     </div>
 
-    <div v-if="error" class="max-h-[100px] bg-gray-100 p-2 rounded-md overflow-y-auto text-center">
+    <div v-if="error" class="max-h-[100px] bg-muted p-2 rounded-md overflow-y-auto text-center">
       No Comments Available
     </div>
 
-    <div v-if="commentSummary" class="max-h-[100px] bg-gray-100 p-2 rounded-md overflow-y-auto">
+    <div v-if="commentSummary" class="max-h-[100px] bg-muted p-2 rounded-md overflow-y-auto">
       <p>{{ commentSummary.summary }}</p>
     </div>
   </div>

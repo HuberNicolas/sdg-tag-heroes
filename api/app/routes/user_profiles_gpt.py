@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.routes.authentication import verify_token
@@ -64,7 +65,7 @@ async def propose_sdg_based_on_skills(
 
     try:
         # Propose the SDG based on skills
-        proposed_sdg = assistant_service.propose_sdg_from_skills(request.skills)
+        proposed_sdg = await run_in_threadpool(assistant_service.propose_sdg_from_skills, request.skills)
 
         return SDGPredictionSchema(
             input=request.skills, proposed_sdg_id=proposed_sdg.proposed_sdg_id, reasoning=proposed_sdg.reasoning
@@ -90,7 +91,7 @@ async def propose_sdg_based_on_interests(
 
     try:
         # Propose the SDG based on interests
-        proposed_sdg = assistant_service.propose_sdg_from_interests(request.interests)
+        proposed_sdg = await run_in_threadpool(assistant_service.propose_sdg_from_interests, request.interests)
 
         return SDGPredictionSchema(
             input=request.interests, proposed_sdg_id=proposed_sdg.proposed_sdg_id, reasoning=proposed_sdg.reasoning
@@ -116,7 +117,7 @@ async def generate_skills_query(
 
     try:
         # Generate the skills-based description
-        enriched_skills = assistant_service.generate_skills_description(request.skills)
+        enriched_skills = await run_in_threadpool(assistant_service.generate_skills_description, request.skills)
 
         # Map GPT response to the API schema
         return UserEnrichedSkillsDescriptionSchema(
@@ -143,7 +144,9 @@ async def generate_interests_query(
 
     try:
         # Generate the interests-based description
-        enriched_interests = assistant_service.generate_interests_description(request.interests)
+        enriched_interests = await run_in_threadpool(
+            assistant_service.generate_interests_description, request.interests
+        )
 
         # Map GPT response to the API schema
         return UserEnrichedInterestsDescriptionSchema(

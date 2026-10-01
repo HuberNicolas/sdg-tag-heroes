@@ -271,12 +271,13 @@ PYTHONPATH=. python utils/mariadb/load_mariadb_fixtures.py --no-gpt
 
 | Option                   | Meaning                                                                                       |
 |--------------------------|-----------------------------------------------------------------------------------------------|
-| `--no-gpt`               | Write comments and annotations with Faker instead of the OpenAI API (free and offline)       |
+| `--no-gpt`               | Write comments and annotations with Faker instead of the LLM (free and offline)              |
 | `--max-publications <n>` | Publications with a ground-truth label that get a scenario (default: 500)                    |
 
 > [!WARNING]
-> Without `--no-gpt`, GPT writes every comment and annotation. That needs `OPENAI_API_KEY` in `env/api.env`, costs
-> money and takes a while. In both modes, the script first **truncates** the tables for user labels, votes,
+> Without `--no-gpt`, the LLM writes every comment and annotation: OpenAI (needs `OPENAI_API_KEY` in `env/api.env`,
+> costs money) or a local model with `LLM_PROVIDER=ollama` (free, slow on a CPU; see
+> [Local LLM with Ollama](../README.md#local-llm-with-ollama)). Either way it takes a while. In both modes, the script first **truncates** the tables for user labels, votes,
 > annotations, label decisions, wallets and XP banks.
 
 The script works in four stages:

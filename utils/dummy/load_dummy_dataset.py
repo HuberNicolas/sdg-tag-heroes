@@ -89,7 +89,7 @@ def database_problems(resume: bool) -> list[str]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--from-step", help="resume at this step")
-    parser.add_argument("--gpt", action="store_true", help="let GPT write the simulated comments (costs money)")
+    parser.add_argument("--gpt", action="store_true", help="let the LLM write the simulated comments (OpenAI costs money; free with LLM_PROVIDER=ollama)")
     args = parser.parse_args()
 
     os.chdir(REPO_ROOT)

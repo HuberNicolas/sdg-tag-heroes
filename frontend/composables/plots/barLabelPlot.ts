@@ -99,7 +99,7 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("width", width)
     .attr("height", height);
 
-  const margin = { top: 30, right: 30, bottom: 20, left: 30 };
+  const margin = { top: 18, right: 8, bottom: 20, left: 8 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -117,26 +117,39 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .nice()
     .range([chartHeight, 0]);
 
-  // Draw X-Axis
+  // Faint horizontal grid instead of a y axis (the counts are written on the bars)
   g.append("g")
-    .attr("transform", `translate(0,${chartHeight})`)
-    .call(d3.axisBottom(x))
-    .selectAll("text")
-    .style("text-anchor", "middle");
+    .attr("class", "bar-label__grid")
+    .selectAll("line")
+    .data(y.ticks(3))
+    .enter()
+    .append("line")
+    .attr("x1", 0)
+    .attr("x2", chartWidth)
+    .attr("y1", d => y(d))
+    .attr("y2", d => y(d))
+    .attr("stroke", "rgb(var(--c-line))");
 
-  // Draw Y-Axis
-  g.append("g")
-    .call(d3.axisLeft(y).ticks(d3.max(labelDistribution, d => d.count) || 1).tickFormat(d3.format("d")));
+  // X axis: SDG names without a domain line
+  const xAxis = g.append("g")
+    .attr("transform", `translate(0,${chartHeight})`)
+    .call(d3.axisBottom(x).tickSize(0).tickPadding(6));
+  xAxis.select(".domain").remove();
+  xAxis.selectAll("text")
+    .style("text-anchor", "middle")
+    .style("font-size", "10px");
 
   // Create tooltip div
+  // One tooltip per chart (it used to be appended again on every update)
+  d3.selectAll(".bar-label-tooltip").remove();
   const tooltip = d3.select("body")
     .append("div")
-    .attr("class", "tooltip")
+    .attr("class", "glyph-tooltip bar-label-tooltip")
     .style("opacity", 0)
     .style("pointer-events", "none")
     .style("position", "absolute")
     .style("padding", "8px")
-    .style("background-color", "rgba(255, 255, 255, 0.95)")
+    .style("background-color", "rgb(var(--c-surface))")
     .style("border-radius", "4px")
     .style("font-size", "14px")
     .style("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
@@ -150,8 +163,10 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("y", d => y(d.count))
     .attr("width", x.bandwidth())
     .attr("height", d => chartHeight - y(d.count))
-    .attr("fill", d => d.label === -1 ? '#CCCCCC' : sdgsStore.getColorBySDG(d.label) || '#CCCCCC')
-    .attr("fill-opacity", 0.8)
+    .attr("rx", 3)
+    .attr("fill", d => d.label === -1 ? 'rgb(var(--c-fg-faint))' : sdgsStore.getColorBySDG(d.label) || 'rgb(var(--c-fg-faint))')
+    .attr("fill-opacity", 0.85)
+    .style("cursor", "pointer")
     .on("mouseover", function (event, d) {
       // Show tooltip
       const labelText = d.label === -1 ? "Not relevant" : `SDG ${d.label}`;
@@ -196,7 +211,7 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
       d3.select(this)
         .transition()
         .duration(200)
-        .attr("fill-opacity", 0.7);
+        .attr("fill-opacity", 0.85);
     });
 
 
@@ -208,9 +223,10 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("x", d => x(d.label === -1 ? 'Not relevant' : `SDG ${d.label}`) + x.bandwidth() / 2)
     .attr("y", d => y(d.count) - 5) // Position above the bar
     .attr("text-anchor", "middle")
-    .attr("fill", "#000") // Keep text black for visibility
-    .attr("font-size", "12px")
-    .attr("font-weight", "bold")
+    .attr("fill", "rgb(var(--c-fg))")
+    .attr("font-size", "11px")
+    .attr("font-weight", "600")
+    .style("font-family", "var(--font-mono)")
     .text(d => d.count);
 }
 
@@ -230,6 +246,6 @@ function displayNoLabelsMessage(container, width, height) {
     .attr("y", height / 2)
     .attr("text-anchor", "middle")
     .attr("font-size", "18px")
-    .attr("fill", "#333")
+    .attr("fill", "rgb(var(--c-fg-dim))")
     .text("No Labels available");
 }
