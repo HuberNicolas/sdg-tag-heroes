@@ -42,6 +42,9 @@ services:
       - ./data/docker/logs:/logs
     ports:
       - "1002:8001"
+    # Reach an Ollama on the host (LLM_PROVIDER=ollama, see services/gpt/llm_client.py)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     profiles: [ prod ]
     networks:
       sdg-tag-heroes-net:
@@ -152,6 +155,20 @@ services:
     networks:
       sdg-tag-heroes-net:
         ipv4_address: 10.5.0.14
+
+  # Optional local LLM for the GPT assistant, if Ollama does not run on the host:
+  #   docker compose --profile ollama up -d ollama
+  #   docker exec ollama ollama pull llama3.1
+  # and set OLLAMA_BASE_URL=http://ollama:11434/v1 in env/api.env
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - ./data/docker/ollama:/root/.ollama
+    profiles: [ ollama ]
+    networks:
+      sdg-tag-heroes-net:
+        ipv4_address: 10.5.0.16
 
   utils:
     build:

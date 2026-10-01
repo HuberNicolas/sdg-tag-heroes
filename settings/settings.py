@@ -171,6 +171,11 @@ class GPTAssistantServiceSettings(BaseSettings):
     GPT_MODEL: ClassVar[str] = "gpt-4o-2024-08-06"  # o4 required for Instructor library
     # smaller model (cheapest as of 06.2024) to keep the cost down: "gpt-3.5-turbo-0125"
     GPT_TEMPERATURE: ClassVar[float] = 0.2
+    # Local models through Ollama (LLM_PROVIDER=ollama, see services/gpt/llm_client.py)
+    OLLAMA_DEFAULT_MODEL: ClassVar[str] = "llama3.1"
+    OLLAMA_LOCAL_BASE_URL: ClassVar[str] = "http://localhost:11434/v1"
+    OLLAMA_DOCKER_BASE_URL: ClassVar[str] = "http://host.docker.internal:11434/v1"
+    OLLAMA_TIMEOUT_SECONDS: ClassVar[float] = 300.0
 
 
 class UserAnnotationEvaluatorServiceSettings(BaseSettings):
