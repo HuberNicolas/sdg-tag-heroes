@@ -184,6 +184,8 @@ export default {
     useRedrawOnResize(chartContainer, updateChart);
 
     onMounted(() => {
+      // A filter from another page does not apply here
+      clearTopSdgFilter();
       updateChart();
     });
 

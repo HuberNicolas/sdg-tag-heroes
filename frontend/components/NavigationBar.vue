@@ -303,7 +303,7 @@
 
         <NuxtLink
           :to="{ path: `/users/${userStore.getCurrentUser?.userId}`}"
-          class="rounded-full ring-1 ring-line transition hover:ring-2 hover:ring-accent"
+          class="grid h-8 w-8 place-items-center overflow-hidden rounded-full ring-1 ring-line transition hover:ring-2 hover:ring-accent"
           title="Your profile"
         >
           <UAvatar

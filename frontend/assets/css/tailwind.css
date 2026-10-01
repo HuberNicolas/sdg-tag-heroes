@@ -182,6 +182,10 @@
     @apply relative rounded-[var(--radius)] border border-line bg-surface/80 p-3 backdrop-blur-sm;
     box-shadow: var(--shadow);
   }
+  /* Each panel is its own layer (backdrop blur); an open dropdown or menu inside must lie above the panels after it */
+  .frame-container:focus-within {
+    z-index: 30;
+  }
 
   /* Panel heading, rendered like a code comment: `// Explore Publications …` */
   .frame-title {
@@ -280,6 +284,16 @@
   .hex-clip {
     clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
   }
+}
+
+/* Tooltips that d3 appends to <body>: anchored at the top left until they are shown (they set top/left inline
+   on mouse move). Without this, the hidden ones sat below the window and made the page scroll a little. */
+body > .glyph-tooltip,
+body > .bar-tooltip,
+body > .bar-label-tooltip,
+body > .tooltip {
+  top: 0;
+  left: 0;
 }
 
 /* Tooltips that d3 appends to <body> (they set inline styles, hence !important for the theme colours) */
