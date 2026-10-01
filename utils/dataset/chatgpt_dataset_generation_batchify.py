@@ -7,10 +7,17 @@ from sqlalchemy.orm import joinedload, sessionmaker
 
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGLabelSummary
+from services.gpt.llm_client import llm_provider
 from utils.env_loader import load_env
 
 # Initialize OpenAI client
 load_env("api.env")
+# The Batch API exists only at OpenAI; with a local model use chatgpt_dataset_generation.py instead
+if llm_provider() != "openai":
+    raise SystemExit(
+        "chatgpt_dataset_generation_batchify.py needs LLM_PROVIDER=openai (Batch API). "
+        "For a local model run utils/dataset/chatgpt_dataset_generation.py."
+    )
 client = OpenAI()
 
 

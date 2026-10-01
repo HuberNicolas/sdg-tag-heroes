@@ -275,7 +275,9 @@ model, free and offline. With [Ollama](https://ollama.com/) on the host:
 ollama pull llama3.1
 ```
 
-Set `LLM_PROVIDER=ollama` in `env/api.env` and restart the API (`docker restart api`). Ollama has to listen on all
+Set `LLM_PROVIDER=ollama` in `env/api.env` and restart the API (`docker restart api`; `env/` is mounted into the
+container, so no rebuild is needed). This covers every GPT feature: the API, the simulated comments of the fixtures
+(`--gpt`) and the evaluation scripts in `utils/dataset/` (except the OpenAI-only batch script). Ollama has to listen on all
 interfaces so the API container reaches it (`OLLAMA_HOST=0.0.0.0`). Without Ollama on the host, start the optional
 container and point the API to it:
 
@@ -288,7 +290,7 @@ docker exec ollama ollama pull llama3.1
 ```
 
 Then set `OLLAMA_BASE_URL=http://ollama:11434/v1` in `env/api.env`. On a CPU an answer takes about a minute
-(`llama3.1`); the API waits up to five minutes. Smaller models (`llama3.2`, `phi3`) are faster but follow the answer
+(`llama3.1`), several requests queue up; the API waits up to 15 minutes. Smaller models (`llama3.2`, `phi3`) are faster but follow the answer
 format less reliably. The client is built in [`services/gpt/llm_client.py`](services/gpt/llm_client.py).
 
 The tunable values of the application itself (prediction threshold, votes needed for a scenario, GPT model, UMAP

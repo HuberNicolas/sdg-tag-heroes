@@ -38,6 +38,7 @@ services:
       - ./settings:/settings
       - ./services:/services
       - ./utils:/utils
+      - ./env:/env:ro # env files; a restart applies changes (LLM_PROVIDER, token lifetime, …) without a rebuild
       - ./data/api:/data/api # UMAP models; mounted so new models do not need an image rebuild
       - ./data/docker/logs:/logs
     ports:

@@ -175,7 +175,7 @@ class GPTAssistantServiceSettings(BaseSettings):
     OLLAMA_DEFAULT_MODEL: ClassVar[str] = "llama3.1"
     OLLAMA_LOCAL_BASE_URL: ClassVar[str] = "http://localhost:11434/v1"
     OLLAMA_DOCKER_BASE_URL: ClassVar[str] = "http://host.docker.internal:11434/v1"
-    OLLAMA_TIMEOUT_SECONDS: ClassVar[float] = 300.0
+    OLLAMA_TIMEOUT_SECONDS: ClassVar[float] = 900.0  # Ollama answers one request after the other
 
 
 class UserAnnotationEvaluatorServiceSettings(BaseSettings):

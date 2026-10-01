@@ -33,12 +33,12 @@ def llm_provider() -> str:
     return provider
 
 
-def llm_model() -> str:
-    """Model name: LLM_MODEL, otherwise the default of the provider."""
+def llm_model(openai_default: str = settings.GPT_MODEL) -> str:
+    """Model name: LLM_MODEL, otherwise the default of the provider (scripts may pass their own OpenAI default)."""
     model = (get_env_variable("LLM_MODEL") or "").strip()
     if model:
         return model
-    return settings.OLLAMA_DEFAULT_MODEL if llm_provider() == "ollama" else settings.GPT_MODEL
+    return settings.OLLAMA_DEFAULT_MODEL if llm_provider() == "ollama" else openai_default
 
 
 def ollama_base_url() -> str:
@@ -46,14 +46,17 @@ def ollama_base_url() -> str:
     return (get_env_variable("OLLAMA_BASE_URL") or default).rstrip("/")
 
 
-def create_llm_client():
-    """OpenAI client for the configured provider, wrapped by Instructor."""
+def create_openai_client() -> OpenAI:
+    """Plain OpenAI SDK client for the configured provider."""
     if llm_provider() == "ollama":
         base_url = ollama_base_url()
-        logging.info(f"LLM: Ollama at {base_url}, model {llm_model()}")
+        logging.info(f"LLM: Ollama at {base_url}")
         # Ollama ignores the key, but the SDK requires one. Local models are slower: allow long answers.
-        raw = OpenAI(base_url=base_url, api_key="ollama", timeout=settings.OLLAMA_TIMEOUT_SECONDS)
-    else:
-        logging.info(f"LLM: OpenAI, model {llm_model()}")
-        raw = OpenAI(api_key=get_env_variable("OPENAI_API_KEY"))
-    return instructor.from_openai(raw)
+        return OpenAI(base_url=base_url, api_key="ollama", timeout=settings.OLLAMA_TIMEOUT_SECONDS)
+    logging.info("LLM: OpenAI")
+    return OpenAI(api_key=get_env_variable("OPENAI_API_KEY"))
+
+
+def create_llm_client():
+    """Client for the configured provider, wrapped by Instructor (structured answers)."""
+    return instructor.from_openai(create_openai_client())
