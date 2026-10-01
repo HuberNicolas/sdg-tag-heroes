@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container flex flex-col">
-    <div class="frame-title"><b>by selecting</b> Topics you are interested in from the <b>Topic List</b></div>
+    <div class="frame-title"><b>by choosing</b> research <b>topics</b> from the list</div>
 
     <div class="flex items-center gap-2">
       <!-- Select menu for icons -->

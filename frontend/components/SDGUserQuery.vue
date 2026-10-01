@@ -2,7 +2,7 @@
   <div class="mt-2 w-full max-w-4xl rounded-xl border border-line bg-surface-2/70 p-4">
     <!-- Explanation Section -->
     <div class="mb-2 text-sm text-fg-dim">
-      <p>Not sure which Sustainable Development Goal (SDG) aligns with your skills or interests? Enter your input below and get a suggestion! <span class="text-fg-dim">(Your personalized SDG will be recommended by our intelligent agent, making it an exciting and relevant match!)</span></p>
+      <p>Not sure which goal to start with? Describe what you know or care about in a few words. A language model suggests an SDG and explains why <span class="text-fg-faint">(a starting point, not a verdict)</span>.</p>
     </div>
 
     <!-- Input Section -->
@@ -56,7 +56,7 @@
             </div>
           </template>
           <template v-else>
-            <Icon name="mdi-creation-outline" class="w-4 h-4" /> Reveal Your SDG
+            <Icon name="mdi-creation-outline" class="w-4 h-4" /> Suggest an SDG
           </template>
         </UButton>
       </div>

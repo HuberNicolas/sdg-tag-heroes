@@ -23,7 +23,7 @@
         <div class="flex-none grid grid-cols-1 2xl:grid-cols-[3fr_2fr] gap-3">
           <SDGSelector />
           <div class="frame-container">
-            <div class="frame-title"><b>Investigate</b> Machine Scores for each SDG</div>
+            <div class="frame-title"><b>Investigate</b> the machine scores for each SDG</div>
             <div ref="glyphContainer" class="flex justify-center">
               <HexGlyph />
             </div>
@@ -48,7 +48,7 @@
 
         <div class="flex-none frame-container">
           <div class="flex flex-wrap items-center gap-2">
-            <div class="frame-title"><b>Summarize</b> Community Labeling: Explore SDG Voting Trends</div>
+            <div class="frame-title"><b>Summarize</b> the community's votes</div>
             <div class="flex items-center gap-2 ml-auto">
               <label for="content-toggle" class="font-mono text-xs text-fg-dim">
                 {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}

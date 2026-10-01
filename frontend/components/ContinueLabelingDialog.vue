@@ -36,7 +36,7 @@
         <!-- Display Similar Publications Once Loaded -->
         <div v-if="activeTab === 'similar'" class="relative mx-auto p-4 bg-surface shadow-panel rounded-lg max-h-[80vh] overflow-y-auto">
           <!-- Similar Publications Content -->
-          <h2 class="text-xl font-bold text-fg mb-4">Choose a similar Publications</h2>
+          <h2 class="text-xl font-bold text-fg mb-4">Choose a similar publication</h2>
           <div class="max-h-64 overflow-y-auto space-y-4">
             <div
               v-for="pub in similarPublications"
@@ -95,7 +95,7 @@
 
           <!-- No Similar Publications Found -->
           <div v-if="similarPublications.length === 0" class="text-center text-fg-dim mt-6">
-            <p>Please select a Quest Type to load publication suggestions.</p>
+            <p>Choose a quest type to see suggested publications.</p>
           </div>
 
           <!-- Continue to Labeling Button -->
@@ -109,7 +109,7 @@
         <!-- Display Publications by Scenario Once Loaded -->
         <div v-if="activeTab === 'scenarios'" class="relative mx-auto p-4 bg-surface shadow-panel rounded-lg max-h-[80vh] overflow-y-auto">
           <!-- Scenarios Content -->
-          <h2 class="text-xl font-bold text-fg mb-4">Choose a Quest Type</h2>
+          <h2 class="text-xl font-bold text-fg mb-4">Choose a quest type</h2>
           <div class="flex gap-2 mb-4">
             <button
               v-for="scenario in scenarioButtons"
@@ -179,7 +179,7 @@
 
           <!-- No Publications Found for Scenario -->
           <div v-if="scenarioPublications.length === 0" class="text-center text-fg-dim mt-6">
-            <p>Please select a Quest Type to load publication suggestions.</p>
+            <p>Choose a quest type to see suggested publications.</p>
           </div>
         </div>
       </div>

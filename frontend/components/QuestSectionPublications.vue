@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>by selecting</b> a Quest to review Key Publications from the <b>Quest Box</b></div> <!--Smart Selection:  -->
+    <div class="frame-title"><b>by choosing</b> a <b>quest</b>: publications that need attention most</div> <!--Smart Selection:  -->
     <div class="row-span-2 col-span-3">
       <div class="flex flex-wrap gap-2">
         <QuestButtonExploration
@@ -43,14 +43,14 @@ const buttons = [
   {
     icon: "i-heroicons-light-bulb",
     name: "Hidden Gems",
-    tooltip: "Help review publications with the fewest labels",
-    explanation: "These publications have received little attention and need more reviews to ensure accurate labeling."
+    tooltip: "Publications with the fewest labels so far",
+    explanation: "These publications have few labels yet, so each new label carries more weight."
   },
   {
     icon: "i-heroicons-fire",
     name: "High Stakes",
-    tooltip: "Analyze publications where AI predictions are uncertain",
-    explanation: "These publications show mixed AI predictions and need human insight to confirm the correct label."
+    tooltip: "Publications where the model is most uncertain",
+    explanation: "The model's scores are spread over several SDGs (high entropy); a human reading helps most here."
   },
 ];
 

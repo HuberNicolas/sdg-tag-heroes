@@ -6,7 +6,7 @@
       color="primary"
     />
     <label for="showFinalRound" class="text-sm font-medium">
-      Final Round Vote: Only Last Vote Counts
+      Count only each person's latest vote
     </label>
   </div>
 </template>

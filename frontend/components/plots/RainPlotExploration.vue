@@ -1,10 +1,11 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-surface-2/70 border border-line p-4 rounded-xl w-full">
+  <div class="summary-tile h-full">
+    <div class="summary-tile__head">
+      <span class="summary-tile__key">xp per publication · labeling effort</span>
+      <span class="summary-tile__meta">bigger = model less sure</span>
+    </div>
     <!-- D3 Raincloud Plot -->
-    <p class="text-sm text-fg-dim">
-      Labeling Effort: XP Distribution of Your Selection
-    </p>
-    <div ref="chartContainer" class="w-full h-80 relative" />
+    <div ref="chartContainer" class="w-full h-60 relative" />
   </div>
 </template>
 <script setup>
@@ -22,7 +23,7 @@ const sdgsStore = useSDGsStore();
 const gameStore = useGameStore();
 const selectedSDGColor = computed(() => {
   const sdg = gameStore.getSDG;
-  return sdg ? sdgsStore.getColorBySDG(sdg) : "#000000"; // Default color (black) if not initialized
+  return sdg ? sdgsStore.getColorBySDG(sdg) : "rgb(var(--c-accent))"; // Accent colour without an SDG world
 });
 
 
@@ -58,7 +59,7 @@ const updateChart = () => {
   const data = entropyData.value;
   const width = chartContainer.value.clientWidth;
   const height = 240;
-  const margin = { top: 5, right: 80, bottom: 50, left: 80 };
+  const margin = { top: 5, right: 56, bottom: 50, left: 56 };
 
   if (!data || data.length === 0) {
     d3.select(chartContainer.value).select("svg").remove();
@@ -187,14 +188,14 @@ const updateChart = () => {
 
 // Replace the two polygon sections with this code
 // Left whisker marker (at minimum value)
-  const leftHexPoints = hexagonPoints(xScale(min)-50, yBoxplot, 10);
+  const leftHexPoints = hexagonPoints(xScale(min)-36, yBoxplot, 7);
   const leftPathData = `M ${leftHexPoints.map(p => p.join(',')).join(' L ')} Z`;
   svg.append("path")
     .attr("d", leftPathData)
     .attr("fill", selectedSDGColor.value);
 
 // Right whisker marker (at maximum value)
-  const rightHexPoints = hexagonPoints(xScale(max)+50, yBoxplot, 25);
+  const rightHexPoints = hexagonPoints(xScale(max)+36, yBoxplot, 16);
   const rightPathData = `M ${rightHexPoints.map(p => p.join(',')).join(' L ')} Z`;
   svg.append("path")
     .attr("d", rightPathData)
@@ -203,21 +204,21 @@ const updateChart = () => {
 
   // Left whisker marker label
   svg.append("text")
-    .attr("x", xScale(min)-50)
+    .attr("x", xScale(min)-36)
     .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
     .attr("text-anchor", "middle")
     .attr("fill", "rgb(var(--c-fg))")
-    .style("font-size", "12px")
-    .text("Low XP");
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("low xp");
 
 // Right whisker marker label
   svg.append("text")
-    .attr("x", xScale(max)+50)
+    .attr("x", xScale(max)+36)
     .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
     .attr("text-anchor", "middle")
     .attr("fill", "rgb(var(--c-fg))")
-    .style("font-size", "12px")
-    .text("High XP");
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("high xp");
 
 
   // Position the labels **above** the whiskers
@@ -229,25 +230,25 @@ const updateChart = () => {
     .attr("x", xScale(min))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "rgb(var(--c-fg))")
-    .style("font-weight", "bold")
-    .text("Min");
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("min");
 
   svg.append("text")
     .attr("x", xScale(median))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "rgb(var(--c-fg))")
-    .style("font-weight", "bold")
-    .text("Median");
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("median");
 
   svg.append("text")
     .attr("x", xScale(max))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "rgb(var(--c-fg))")
-    .style("font-weight", "bold")
-    .text("Max");
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("max");
 
 // Numerical values **below** whiskers
   svg.append("text")
@@ -255,6 +256,7 @@ const updateChart = () => {
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
     .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "600 12px var(--font-mono)")
     .text(min.toFixed(0));
 
   svg.append("text")
@@ -262,6 +264,7 @@ const updateChart = () => {
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
     .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "600 12px var(--font-mono)")
     .text(median.toFixed(0));
 
   svg.append("text")
@@ -269,6 +272,7 @@ const updateChart = () => {
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
     .attr("fill", "rgb(var(--c-fg))")
+    .style("font", "600 12px var(--font-mono)")
     .text(max.toFixed(0));
 
 

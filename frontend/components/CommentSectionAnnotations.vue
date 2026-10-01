@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="frame-title"><b>Browse</b> Community Annotations: Read & Engage with Shared Insights</div>
+    <div class="frame-title"><b>Browse</b> community annotations: notes others added to passages of this abstract</div>
     <LoadingState v-if="isLoading" label="loading labels" />
 
-    <div v-if="error">Be the first user to make an annotation.</div>
+    <div v-if="error">No annotations yet. Mark a passage in the abstract to add the first one.</div>
 
     <!-- Sorting Controls -->
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border rounded-md ">

@@ -44,11 +44,11 @@
           <ClientOnly>
             <VueWriter
               :array="[
-                'Exploring Gamification to Enhance SDG Labeling',
-                'Join the Global Effort to Achieve SDGs!',
-                'A New Approach to Labeling with Citizen Science',
-                'Your Contribution Makes a Global Impact!',
-                'Gamified Labeling: Fun and Effective!'
+                'Which SDGs does this research serve?',
+                'Machine predictions, checked by people',
+                'Labeling research publications as citizen science',
+                'Read, compare, decide',
+                'Every label is a data point'
               ]"
               :type-speed="70"
               :erase-speed="50"
@@ -59,8 +59,9 @@
         </div>
 
         <p class="mt-6 max-w-xl text-fg-dim">
-          Machine-learning models guess which of the 17 Sustainable Development Goals a research paper serves.
-          You explore, vote and explain, earn XP and coins, and help turn those guesses into labels people can trust.
+          Machine-learning models estimate which of the 17 Sustainable Development Goals a research publication relates
+          to, and they are often unsure. Here you read the abstracts, look at what the model based its estimate on, compare
+          it with the votes of others and decide. Your labels show where the models are right and where they are not.
         </p>
 
         <div class="mt-8 flex flex-wrap gap-2">
@@ -77,8 +78,8 @@
 
           <div class="login-card relative">
             <p class="kicker">// login</p>
-            <h2 class="mt-1 text-2xl font-bold tracking-tight">Welcome back, hero.</h2>
-            <p class="mt-1 text-sm text-fg-dim">Sign in to continue your quest.</p>
+            <h2 class="mt-1 text-2xl font-bold tracking-tight">Log in</h2>
+            <p class="mt-1 text-sm text-fg-dim">Continue where you left off.</p>
 
             <form class="mt-6 space-y-4" @submit.prevent="handleLogin">
               <div>

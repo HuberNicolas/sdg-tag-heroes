@@ -1,7 +1,7 @@
 <template>
   <div class="frame-container flex flex-col">
     <div class="flex-none flex items-center justify-between gap-2">
-      <div class="frame-title !mb-2"><b>Browse & Compare:</b> Review Your Selected Publications in the <b>Publication Table</b></div>
+      <div class="frame-title !mb-2"><b>Browse & Compare</b> the publications you selected on the map</div>
       <span class="mb-2 font-mono text-[11px] text-fg-faint whitespace-nowrap">rows=<b class="text-accent">{{ sortedTableData.length }}</b></span>
     </div>
     <div>

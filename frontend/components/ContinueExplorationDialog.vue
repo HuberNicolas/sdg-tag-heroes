@@ -17,7 +17,7 @@
             <div class="card bg-base-100 w-96 shadow-panel">
               <div class="card-body">
                 <h2 class="card-title">User Profile</h2>
-                <p>Explore your profile history</p>
+                <p>Your labels and votes so far</p>
                 <div class="card-actions justify-end">
                   <UButton color="primary" variant="solid" :to="{ name: 'users-id', params: { id: user?.userId || 1 } }">
                     View Profile
@@ -30,7 +30,7 @@
             <div class="card bg-base-100 w-96 shadow-panel">
               <div class="card-body">
                 <h2 class="card-title">Game Mode</h2>
-                <p>Decide between specialization and sandboxing</p>
+                <p>One SDG world or open exploration</p>
                 <div class="card-actions justify-end">
                   <UButton color="primary" variant="solid" :to="{ name: 'scenarios' }">
                     Choose Game Mode

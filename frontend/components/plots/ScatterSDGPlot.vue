@@ -1,7 +1,7 @@
 <template>
   <div class="frame-container flex flex-col gap-2">
     <div class="flex-none flex flex-wrap items-center justify-between gap-2">
-      <div class="frame-title !mb-0"><b>Explore</b> Publications on the <b>Publication Map</b>: lasso, hover and click to discover patterns</div>
+      <div class="frame-title !mb-0"><b>Explore</b> the <b>publication map</b>: publications with similar content lie close together</div>
       <MapHudBadge :label="`sdg_${String(gameStore.getSDG ?? '?').padStart(2, '0')} · level_${gameStore.getLevel ?? '?'}`" :color="sdgColor" :busy="ready && isBusy" />
     </div>
 

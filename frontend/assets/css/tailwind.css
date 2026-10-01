@@ -262,6 +262,20 @@
     @apply text-surface;
   }
 
+  /* Tiles of the selection summary (FilterState, BarPlot, RainPlot): same head, same type */
+  .summary-tile {
+    @apply flex w-full flex-col gap-1.5 rounded-xl border border-line bg-surface-2/70 px-3 py-2;
+  }
+  .summary-tile__head {
+    @apply flex items-baseline justify-between gap-2;
+  }
+  .summary-tile__key {
+    @apply font-mono text-[11px] uppercase tracking-wider text-fg-faint;
+  }
+  .summary-tile__meta {
+    @apply font-mono text-[11px] text-fg-dim;
+  }
+
   /* Hexagon clip path: the honeycomb is the visual signature of the game */
   .hex-clip {
     clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);

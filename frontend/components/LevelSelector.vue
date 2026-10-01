@@ -2,7 +2,7 @@
   <div class="flex flex-col items-center">
     <!-- Title Section -->
     <p class="kicker mt-5">// difficulty</p>
-    <p class="text-lg font-semibold tracking-tight text-fg mt-1 mb-3">Choose Your Challenge</p>
+    <p class="text-lg font-semibold tracking-tight text-fg mt-1 mb-3">Choose a difficulty</p>
 
     <!-- Conditionally Render Description Above the Play Button -->
     <div  class="text-center">
@@ -88,9 +88,9 @@ const selectedLevel = ref(null);
 
 // Levels data with descriptions and corresponding cellular icons
 const levels = [
-  { id: 1, tier: 'bronze', description: 'A beginner-friendly challenge to get you started.', icon: 'mdi-signal-cellular-1' },
-  { id: 2, tier: 'silver', description: 'For those who seek moderate difficulty.', icon: 'mdi-signal-cellular-2' },
-  { id: 3, tier: 'gold', description: 'The ultimate test of your abilities. Only for the brave!', icon: 'mdi-signal-cellular-3' }
+  { id: 1, tier: 'bronze', description: 'Publications the model is very confident about. A good place to start.', icon: 'mdi-signal-cellular-1' },
+  { id: 2, tier: 'silver', description: 'The model is fairly sure, but not always right.', icon: 'mdi-signal-cellular-2' },
+  { id: 3, tier: 'gold', description: 'The model is unsure. These publications need careful reading.', icon: 'mdi-signal-cellular-3' }
 ];
 
 // Method to select a level

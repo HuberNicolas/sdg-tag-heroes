@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="frame-title"><b>Explore</b> Community Labels: See How Others Categorized This Publication</div>
+    <div class="frame-title"><b>Explore</b> community labels: how others classified this publication</div>
     <CommentSummary/>
     <LoadingState v-if="isLoading" label="loading comments" />
 

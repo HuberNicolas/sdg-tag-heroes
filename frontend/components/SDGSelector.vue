@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Identify & Explore</b> AI Reasoning: Select an SDG to Reveal its Justification</div>
+    <div class="frame-title"><b>Identify & Explore</b> the model's reasoning: pick an SDG to highlight the words behind its score</div>
     <!-- One hexagon chip per SDG; the bar below shows the machine score of this publication -->
     <div class="sdg-chips" :class="{ 'has-selection': !!selectedSDG }" role="radiogroup" aria-label="SDG">
       <button

@@ -40,10 +40,10 @@
           <div class="mt-2 text-[10px] xl:text-xs 2xl:text-sm text-fg press-start-font leading-relaxed">{{ level.name }}</div>
           <div class="mt-2 flex items-center gap-1.5 font-mono text-[11px]">
             <template v-if="!isLevelUnlocked(level.level)">
-              <Icon name="mdi-lock-outline" class="text-fg-faint" /><span class="text-fg-dim">Almost There!</span>
+              <Icon name="mdi-lock-outline" class="text-fg-faint" /><span class="text-fg-dim">locked</span>
             </template>
             <template v-else>
-              <span class="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_8px_rgb(var(--c-accent))]" /><span class="text-accent">Ready to play</span>
+              <span class="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_8px_rgb(var(--c-accent))]" /><span class="text-accent">unlocked</span>
             </template>
           </div>
           <div v-if="shouldShowProgress(level.level)" class="mt-4 w-full">
@@ -98,7 +98,7 @@
             :disabled="true"
             class="mt-4"
           >
-            Almost There!
+            Unlocks at {{ selectedWorld.requiredXP }} XP
           </UButton>
         </div>
       </div>
@@ -120,9 +120,9 @@ const userXP = computed(() => banksStore.getUserXPBank?.totalXp || 0);
 const selectedLevel = ref<number>(1);
 
 const levels = [
-  { level: 1, name: "Researchia", bgColor: "bg-gray-400", borderClass: "border-line-strong", requiredXP: 0, description: "Find discovery and innovation.", image: "/img/world-1.png" },
-  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-line-strong", requiredXP: 6000, description: "Filled with academic publications.", image: "/img/world-2.png" },
-  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-line-strong", requiredXP: 8000, description: "Open knowledge and revelations.", image: "/img/world-3.png" },
+  { level: 1, name: "Researchia", bgColor: "bg-gray-400", borderClass: "border-line-strong", requiredXP: 0, description: "The first part of the publication map. Open from the start.", image: "/img/world-1.png" },
+  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-line-strong", requiredXP: 6000, description: "A further part of the map, open from 6000 XP.", image: "/img/world-2.png" },
+  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-line-strong", requiredXP: 8000, description: "The last part of the map, open from 8000 XP.", image: "/img/world-3.png" },
 ];
 
 const isLevelUnlocked = (level: number) => {

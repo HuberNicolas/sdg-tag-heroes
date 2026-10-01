@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>by creating</b> a Personalized Point of Interest (POI 📍) by sharing your Interests or Skills to select Publications with the <b>Query Box</b></div>
+    <div class="frame-title"><b>by describing</b> your skills or interests: a language model places a <b>point of interest</b> on the map</div>
 
     <form class="" @submit.prevent="handleUserPointGenerator">
       <!-- Radio group and button in the same row -->

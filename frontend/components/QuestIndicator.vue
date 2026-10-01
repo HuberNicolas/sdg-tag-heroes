@@ -21,32 +21,32 @@ const selectedSDGLabelDecision = computed(() => labelDecisionsStore.selectedSDGL
 const allButtons = [
   {
     icon: "i-heroicons-check-badge",
-    name: "Confirm the King",
-    tooltip: "Crown the most prominent instance: The majority of labels strongly favor one SDG, making it the clear winner.",
+    name: "Crown the Champion",
+    tooltip: "One SDG has a clear majority of the votes. Check whether the majority is right.",
     condition: "Confirm"
   },
   {
     icon: "i-heroicons-map",
-    name: "Explore",
-    tooltip: "Look at a variety of predictions to explore uncertainty: Labels are spread across multiple SDGs, requiring a broader investigation of possibilities.",
+    name: "Mark the Map",
+    tooltip: "The votes are spread over several SDGs. Read closely to find the best fit.",
     condition: "Explore"
   },
   {
     icon: "i-heroicons-magnifying-glass",
-    name: "Investigate",
-    tooltip: "Analyze and investigate data: The labels distribution is complex, with no clear consensus, requiring deeper analysis.",
+    name: "Solve the SDG Secret",
+    tooltip: "Several SDGs are close and none leads. A careful look decides.",
     condition: "Investigate"
   },
   {
     icon: "i-heroicons-scale",
-    name: "Tiebreaker",
-    tooltip: "Resolve conflicts with a balanced approach: Two SDGs have received an equal number of labels, needing a decisive choice.",
+    name: "Decisive Duel",
+    tooltip: "Two SDGs have the same number of votes. Your vote can break the tie.",
     condition: "Tiebreaker"
   },
   {
     icon: "i-heroicons-user-group",
     name: "Decided",
-    tooltip: "Community consensus achieved: The SDG has been successfully labeled through community voting process.",
+    tooltip: "The community has reached a decision on this publication.",
     condition: "Decided"
   }
 ];
@@ -54,8 +54,8 @@ const allButtons = [
 // Default quest message when no specific label distribution is present
 const defaultQuest = {
   icon: "i-heroicons-question-mark-circle",
-  name: "No Quest",
-  tooltip: "No active scenario: There is currently no label distribution to evaluate."
+  name: "No quest yet",
+  tooltip: "There are not enough votes for a quest yet."
 };
 
 // Get the active button details, or use default if none exists

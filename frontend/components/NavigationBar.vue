@@ -36,7 +36,7 @@
 
           <!-- Contribution Message -->
           <h3 class="text-2xl font-semibold text-fg relative z-10">
-            Your Labeling Helps Build a Smarter & More Sustainable Future!
+            Thank you for your label
           </h3>
 
           <!-- XP Earned Description -->
@@ -46,7 +46,7 @@
 
           <!-- Additional Awareness / Community Message -->
           <p class="text-md text-fg-dim italic relative z-10">
-            Through your participation, you're increasing <b>SDG awareness</b>, improving <b>AI training</b>, and empowering a <b>global community</b> of citizen scientists.
+            Each label is a data point. Together, the community's labels show where the model is right and where it is not.
           </p>
 
           <!-- Player Rank Section -->
@@ -90,12 +90,12 @@
 
           <!-- Closing Note -->
           <p class="text-sm text-fg-dim italic relative z-10">
-            Your contributions fuel AI-driven sustainability efforts while rewarding you with knowledge & recognition!
+            XP count your experience per SDG; they raise your rank and open new universes.
           </p>
 
           <!-- Close Button -->
           <UButton
-            label="Keep Going!"
+            label="Continue"
             class="px-8 py-3 text-white text-lg font-semibold rounded-lg hover:bg-opacity-80 transition-all relative z-10"
             :style="{ backgroundColor: sdgModalColor }"
             @click="closeXPModal"
@@ -133,7 +133,7 @@
 
           <!-- Contribution Message -->
           <h3 v-if="coinModalContent?.title" class="text-2xl font-semibold text-fg relative z-10">
-            Your Contribution Makes a Difference!
+            Coins for your contribution
           </h3>
 
           <!-- Coin Earned Description -->
@@ -143,7 +143,7 @@
 
           <!-- Additional Value Proposition -->
           <p class="text-md text-fg-dim italic relative z-10">
-            By participating in labeling, you helped train machine models and advance scientific research while earning rewards!
+            Coins are the second currency of the game, collected per SDG.
           </p>
 
           <!-- Coins Earned Display -->
@@ -156,12 +156,12 @@
 
           <!-- Closing Note -->
           <p class="text-sm text-fg-dim italic relative z-10">
-            Keep labeling and earning—your contributions fuel AI training & SDG research!
+            Your balance is shown in the navigation bar.
           </p>
 
           <!-- Close Button -->
           <UButton
-            label="Awesome!"
+            label="Continue"
             class="px-8 py-3 text-white text-lg font-semibold rounded-lg hover:bg-opacity-80 transition-all relative z-10"
             :style="{ backgroundColor: sdgModalColor }"
             @click="closeCoinModal"
@@ -358,12 +358,12 @@
 
                 <div class="flex items-center gap-1.5">
                   <Icon name="mdi-earth" class="w-4 h-4 text-fg-dim" />
-                  <span>Does the research have positive impact on people or nature?</span>
+                  <span>Does the research contribute to people or the planet?</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
                   <Icon name="mdi-lightbulb-on-outline" class="w-4 h-4 text-fg-dim" />
-                  <span>AI suggests SDGs</span>
+                  <span>The model suggests SDGs (see its highlights)</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
@@ -447,7 +447,7 @@
                   <!-- One Publication, All SDGs -->
                   <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
                     <Icon name="mdi-bookshelf" class="w-6 h-6 text-fg mb-2" />
-                    <h3 class="font-semibold text-fg">Multi-SDG Impact</h3>
+                    <h3 class="font-semibold text-fg">Several SDGs</h3>
                     <p class="text-fg-dim">Examine a single publication and determine if it contributes to any of the SDGs.</p>
                   </div>
 
@@ -592,7 +592,7 @@ const checkUpdates = async () => {
       const xpForSdg = banksStore.userXPBank ? banksStore.userXPBank[`${latestXP.sdg}Xp`] : 0;
 
       openXPModal({
-        title: `XP Earned!`,
+        title: `XP earned`,
         description: `You earned ${latestXP.increment} XP for labeling the publication: "${publicationTitle}".`,
         publicationTitle,
         sdg: latestXP.sdg,
@@ -622,7 +622,7 @@ const checkUpdates = async () => {
       // Open the coins-earned modal after the XP modal if both exist
       setTimeout(() => {
         openCoinModal({
-          title: `Coins Earned!`,
+          title: `Coins earned`,
           description: `You earned ${latestWallet.increment} SDG Coins for the publication: "${publicationTitle}".`,
           publicationTitle,
           sdg,

@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>by selecting</b> a Quest to explore Publications with Unique Label Patterns from the <b>Quest Box</b></div> <!--Guided Exploration: :  -->
+    <div class="frame-title"><b>by choosing</b> a <b>quest</b>: publications whose votes need a particular kind of help</div> <!--Guided Exploration: :  -->
     <div class="row-span-2 col-span-3">
       <div class="flex flex-wrap gap-2">
         <QuestButton
@@ -44,25 +44,25 @@ const buttons = [
     icon: "i-heroicons-check-badge",
     name: "Crown the Champion",
     tooltip: "Validate the strongest SDG label",
-    explanation: "This publication has a dominant SDG label, widely agreed upon. Confirm if the majority label is correct."
+    explanation: "One SDG has a clear majority of the votes. Check whether the majority is right."
   },
   {
     icon: "i-heroicons-map",
     name: "Mark the Map",
     tooltip: "Review diverse SDG label predictions",
-    explanation: "This publication has a mix of SDG labels, meaning the AI and users are uncertain. Broaden your investigation to find the best fit."
+    explanation: "The votes are spread over several SDGs: the model and the community are unsure. Read closely to find the best fit."
   },
   {
     icon: "i-heroicons-magnifying-glass",
     name: "Solve the SDG Secret",
     tooltip: "Analyze publications with conflicting labels",
-    explanation: "This publication has multiple SDGs with no clear leader. Investigate deeper to determine the most fitting SDG."
+    explanation: "Several SDGs are close and none leads. A careful look decides."
   },
   {
     icon: "i-heroicons-scale",
     name: "Decisive Duel",
     tooltip: "Decide between two equally labeled SDGs",
-    explanation: "This publication has an equal number of votes for two SDGs. Help break the tie by analyzing the content and selecting the best fit."
+    explanation: "Two SDGs have the same number of votes. Your vote can break the tie."
   }
 ];
 

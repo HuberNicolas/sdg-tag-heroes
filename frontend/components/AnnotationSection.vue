@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-3 min-h-0">
     <!-- Annotation is attached to SDG Label Decision (in general) -->
     <div class="flex-none frame-container">
-      <div class="frame-title"><b>Record</b> Your Thoughts: Add Comments to Specific Sections</div>
+      <div class="frame-title"><b>Record</b> your thoughts on a passage of the abstract</div>
       <ShapSelector/>
       <CommentInput/>
       <CreateAnnotationButton/>
@@ -19,13 +19,13 @@
 
     <!-- SDG User Label is attached to SDG Label decision -->
     <div class="flex-1 min-h-0 overflow-y-auto frame-container">
-      <div class="frame-title"><b>Identify</b> the Most Relevant SDG & Justify Your Selection to Help the Community</div>
+      <div class="frame-title"><b>Identify</b> the most relevant SDG and explain your choice</div>
       <ConnectingDots/>
       <CreateSDGLabelButton/>
     </div>
 
     <div class="flex-none frame-container">
-      <div class="frame-title"><b>Continue</b> Labeling process</div>
+      <div class="frame-title"><b>Continue</b> with another publication or go back to the map</div>
       <div class="flex justify-between items-center gap-2">
         <ContinueLabelingDialog />
         <ContinueExplorationDialog />

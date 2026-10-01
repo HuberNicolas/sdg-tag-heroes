@@ -4,12 +4,12 @@
     <header class="flex-none border-b border-line px-4 py-5 text-center">
       <p class="kicker">// choose your game mode</p>
       <h1 class="mt-2 text-xl lg:text-2xl 2xl:text-3xl font-bold tracking-tight">
-        Wanna be an SDG-Tag Hero? Then help us labeling Publications with SDGs either
+        Help label research publications with the SDGs
       </h1>
       <div class="mt-3 grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-x-4 gap-y-1 text-base 2xl:text-lg text-fg-dim">
-        <p>by <b class="text-fg">Selecting</b> an SDG World</p>
+        <p>by choosing an <b class="text-fg">SDG world</b>: one goal, all its publications</p>
         <p class="rounded-full border border-line px-3 py-0.5 font-mono text-xs text-fg-faint justify-self-center">OR</p>
-        <p>by <b class="text-fg">Exploring</b> Publications from different Universes</p>
+        <p>by exploring a <b class="text-fg">universe</b>: publications of all goals on one map</p>
       </div>
     </header>
 
@@ -27,7 +27,7 @@
 
         <div class="flex-none flex justify-center">
           <div v-if="!gameStore.showLeaderboard" class="frame-container w-full max-w-4xl">
-            <div class="frame-title"><b>Share</b> either your Skills or Interests with the intelligent agent to receive a customized SDG suggestion in the <b>SDG Suggestion Box</b></div>
+            <div class="frame-title"><b>Ask</b> for a suggestion: describe your skills or interests and a language model proposes a fitting SDG</div>
             <SDGUserQuery />
           </div>
           <LeaderBoardExplanation v-else />

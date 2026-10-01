@@ -1,6 +1,6 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Decide</b> to label an interesting publication</div>
+    <div class="frame-title"><b>Decide</b> whether to label this publication</div>
     <div v-if="selectedPublication" class="relative mx-auto p-5 bg-surface-2/70 border border-line rounded-xl max-h-[80vh] overflow-y-auto">
 
       <h2 class="text-xl font-bold tracking-tight text-fg mb-4">

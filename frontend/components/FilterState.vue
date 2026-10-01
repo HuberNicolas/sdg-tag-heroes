@@ -1,12 +1,12 @@
 <template>
   <!-- KPI: how many of the publications on the map are selected, with the top SDGs of the selection as a stacked bar -->
-  <div class="flex flex-col justify-center gap-1.5 rounded-xl border border-line bg-surface-2/70 px-3 pt-2 w-full">
-    <div class="flex items-baseline justify-between gap-2">
-      <span class="font-mono text-[10px] uppercase tracking-wider text-fg-faint">selected</span>
-      <span class="font-mono text-[11px] text-fg-dim">{{ totalCount ? Math.round((selectedCount / totalCount) * 100) : 0 }}%</span>
+  <div class="summary-tile">
+    <div class="summary-tile__head">
+      <span class="summary-tile__key">selected</span>
+      <span class="summary-tile__meta">{{ totalCount ? Math.round((selectedCount / totalCount) * 100) : 0 }}%</span>
     </div>
     <p class="font-mono leading-none">
-      <span class="text-2xl font-semibold" :style="{ color: selectedCount ? sdgColor : undefined }">{{ selectedCount }}</span>
+      <span class="text-2xl font-semibold" :class="selectedCount ? 'text-accent' : 'text-fg-faint'" :style="selectedCount && gameStore.getSDG ? { color: sdgColor } : {}">{{ selectedCount }}</span>
       <span class="text-sm text-fg-faint"> / {{ totalCount }}</span>
       <span class="ml-1 text-xs text-fg-dim">publications</span>
     </p>
