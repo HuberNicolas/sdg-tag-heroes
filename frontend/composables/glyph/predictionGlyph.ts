@@ -30,14 +30,6 @@ export default function createGlyph(values: number[]) {
     const gridWidth = maxX - minX; // Actual content width
     const gridHeight = maxY - minY; // Actual content height
 
-    // Slight manual adjustments for centering
-    const xShift = hexRadius; // Move slightly to the right
-    const yShift = -hexRadius; // Move slightly up
-
-    // Centering offsets with manual adjustments
-    const xOffset = (width - gridWidth) / 2 + xShift;
-    const yOffset = (height - gridHeight) / 2 + yShift;
-
     const container = d3.select(selector);
     container.selectAll('*').remove();
 
@@ -49,9 +41,8 @@ export default function createGlyph(values: number[]) {
       .attr('height', height)
       .style('background', 'transparent');
 
-    // Create a group to shift content
-    const contentGroup = svg.append('g')
-      .attr('transform', `translate(${xOffset - minX}, ${yOffset - minY})`); // Apply explicit horizontal adjustment
+    // The viewBox already frames and centres the honeycomb (an extra pixel offset here pushed it off centre)
+    const contentGroup = svg.append('g');
 
     const tooltip = d3.select('body')
       .append('div')
