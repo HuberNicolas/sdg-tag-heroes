@@ -114,3 +114,22 @@ published.
   passwords or env files, only the placeholder values of the `*.env.example` files. The commits carry the UZH
   e-mail addresses `nicolas.huber2@uzh.ch` and `nhuber@ifi.uzh.ch` as author
 - [ ] Repeat the check right before publishing, after the notebooks are cleaned
+
+## 7. Frontend redesign: mechanics to look at later
+
+The visual redesign (2026-10, design tokens in `frontend/assets/css/tailwind.css`, light and dark theme) changed no
+game logic. These points came up on the way and are left for later:
+
+- [ ] `NavigationBar.vue` polls `checkUpdates()` every 10 s (the comment says every minute) and never clears its two
+  `setInterval`s, so they pile up when the component is mounted again
+- [ ] The XP and coin modals are chained with fixed 3 s timeouts; a small queue would be more reliable
+- [ ] `sdgIconSrc` in `NavigationBar.vue` throws when the SDG is not (yet) in the store (`sdg.icon` on `undefined`)
+- [ ] `currentRank` falls back to the first rank of the user (`userSDGRank[0]`), so the navigation can show the rank
+  of another SDG
+- [ ] The publication map is empty until a topic is selected, and stays empty for a dataset without BERTopic topics
+  (e.g. the 85-paper dummy dataset). Select all topics by default or show an empty state
+- [ ] The d3 glyphs append a new `.glyph-tooltip` to `<body>` on every render and never remove it
+- [ ] `scatterPlot.ts` / `scatterSDGPlot.ts` log whole data arrays with `console.log`
+- [ ] The help drawer opens with an inline `onclick` and `getElementById`; a Nuxt UI `USlideover` would fit better
+- [ ] The XP thresholds of the universes (0 / 6000 / 8000) are hardcoded in `WorldSelector.vue`
+- [ ] The SHAP highlights stay empty until an SDG is selected (no SDG → no colour); a hint in the abstract would help
