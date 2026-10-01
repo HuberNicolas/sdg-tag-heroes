@@ -667,15 +667,19 @@
 .pub-table__title:hover {
   color: rgb(var(--c-accent));
 }
-/* The symbol keeps its three XP sizes, drawn at half size */
+/* The symbol keeps its three XP sizes (20/40/60 px), drawn at half size and centred in its column */
 .pub-table__symbol {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 34px;
   height: 34px;
+  margin: 0 auto;
 }
 .pub-table__symbol svg {
+  flex: none;
   transform: scale(0.55);
+  transform-origin: center;
 }
 
 /* =========================================================================

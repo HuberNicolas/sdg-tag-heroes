@@ -2,7 +2,18 @@
   <div class="frame-container flex flex-col">
     <div class="flex-none flex items-center justify-between gap-2">
       <div class="frame-title !mb-2"><b>Browse & Compare</b> the publications you selected on the map</div>
-      <span class="mb-2 font-mono text-[11px] text-fg-faint whitespace-nowrap">rows=<b class="text-accent">{{ sortedTableData.length }}</b></span>
+      <span class="mb-2 flex items-center gap-2 font-mono text-[11px] text-fg-faint whitespace-nowrap">
+        <button
+          v-if="topSdgFilter"
+          type="button"
+          class="inline-flex items-center gap-1 rounded-full border border-accent/50 bg-accent/10 px-2 py-0.5 text-fg hover:bg-accent/20"
+          title="Show all SDGs"
+          @click="clearTopSdgFilter"
+        >
+          top SDG {{ topSdgFilter }} <span aria-hidden="true">✕</span>
+        </button>
+        rows=<b class="text-accent">{{ visibleTableData.length }}</b><template v-if="topSdgFilter">/{{ sortedTableData.length }}</template>
+      </span>
     </div>
     <div>
       <UModal v-model="isOpen"  :overlay="false" :ui="{ width: 'w-full sm:max-w-4xl' }">
@@ -24,7 +35,7 @@
           <th
             v-for="column in tableColumns"
             :key="column.label"
-            :class="[column.align === 'right' ? 'text-right' : 'text-left', { 'is-sortable': column.key, 'is-sorted': column.key && sortKey === column.key }]"
+            :class="[column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left', { 'is-sortable': column.key, 'is-sorted': column.key && sortKey === column.key }]"
             :aria-sort="column.key && sortKey === column.key ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined"
             @click="column.key && sortTable(column.key)"
           >
@@ -39,7 +50,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-if="sortedTableData.length === 0">
+        <tr v-if="visibleTableData.length === 0">
           <td :colspan="tableColumns.length" class="!py-10">
             <div class="flex flex-col items-center gap-2 text-center">
               <Icon name="mdi-lasso" class="h-7 w-7 text-accent" />
@@ -49,7 +60,7 @@
           </td>
         </tr>
         <tr
-          v-for="(item, index) in sortedTableData"
+          v-for="(item, index) in visibleTableData"
           :key="index"
           class="pub-table__row"
           :class="{ 'is-hovered': publicationsStore.hoveredPublication?.publicationId === item.publicationId }"
@@ -77,7 +88,7 @@
             <BarPredictionPlot :values="item.values" :width="84" :height="48" />
           </td>
           <td>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center justify-center">
               <img
                 :src="getSDGIconSrc(item.topSDG)"
                 :alt="item.topSDG"
@@ -122,12 +133,12 @@ import {score}from "@/utils/xp_scorer";
 import PublicationDetails from "~/components/PublicationDetails.vue";
 
 // Columns of the table; `key` makes a column sortable
-const tableColumns: { label: string; key?: string; align?: "right" }[] = [
+const tableColumns: { label: string; key?: string; align?: "right" | "center" }[] = [
   { label: "Title", key: "title" },
-  { label: "Symbol" },
-  { label: "Machine Scores" },
+  { label: "Symbol", align: "center" },
+  { label: "Machine Scores", align: "center" },
   { label: "Top SDGs" },
-  { label: "Top SDG", key: "topSDGNumber" },
+  { label: "Top SDG", key: "topSDGNumber", align: "center" },
   { label: "Coins", key: "coins", align: "right" },
   { label: "XP", key: "xp", align: "right" },
   { label: "Year", key: "year", align: "right" },
@@ -136,6 +147,7 @@ const tableColumns: { label: string; key?: string; align?: "right" }[] = [
 ];
 
 const publicationsStore = usePublicationsStore();
+const { topSdgFilter, clearTopSdgFilter } = useTopSdgFilter();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const labelDecisionsStore = useLabelDecisionsStore();
 const collectionsStore = useCollectionsStore();
@@ -146,6 +158,10 @@ const sortKey = ref('title');
 const sortOrder = ref('asc');
 const tableData = ref([]); // Store resolved data
 const sortedTableData = ref([]); // Store sorted data
+// Rows shown: optionally only one top SDG (bar chart of the selection summary)
+const visibleTableData = computed(() =>
+  topSdgFilter.value ? sortedTableData.value.filter((row) => row.topSDGNumber === topSdgFilter.value) : sortedTableData.value
+);
 
 
 watch(

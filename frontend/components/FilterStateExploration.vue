@@ -3,7 +3,7 @@
   <div class="summary-tile">
     <div class="summary-tile__head">
       <span class="summary-tile__key">selected</span>
-      <span class="summary-tile__meta">{{ totalCount ? Math.round((selectedCount / totalCount) * 100) : 0 }}%</span>
+      <span class="summary-tile__meta">{{ totalCount ? Math.min(100, Math.round((selectedCount / totalCount) * 100)) : 0 }}%</span>
     </div>
     <p class="font-mono leading-none">
       <span class="text-2xl font-semibold" :class="selectedCount ? 'text-accent' : 'text-fg-faint'" :style="selectedCount && gameStore.getSDG ? { color: sdgColor } : {}">{{ selectedCount }}</span>
@@ -11,7 +11,7 @@
       <span class="ml-1 text-xs text-fg-dim">publications</span>
     </p>
     <!-- D3 Stacked Bar Chart -->
-    <div ref="chartContainer" class="w-full h-6"/>
+    <div ref="chartContainer" class="w-full pb-2"/>
   </div>
 </template>
 
@@ -93,117 +93,63 @@ const updateChart = () => {
   const selected = selectedCount.value;
   const filteredOut = Math.max(totalCount.value - selected, 0);
   const selectedDistribution = selectedSDGDistribution.value;
+  // Share of the map that is selected; clamped, because the selection can hold more publications than the
+  // count of the map (quest publications), which made the bar run out of its tile
   const widthScale = d3.scaleLinear()
-    .domain([0, totalCount.value || 1])
-    .range([0, 100]);
+    .domain([0, Math.max(totalCount.value, selected, 1)])
+    .range([0, 100])
+    .clamp(true);
 
   // Clear existing SVG and tooltip
-  d3.select(chartContainer.value)
-    .selectAll('svg')
-    .remove();
-  d3.select(chartContainer.value)
-    .selectAll('.tooltip')
-    .remove();
+  d3.select(chartContainer.value).selectAll('svg').remove();
+  d3.select(chartContainer.value).selectAll('.glyph-tooltip').remove();
 
-  // Create tooltip
+  // Tooltip (one per chart)
   const tooltip = d3.select(chartContainer.value)
     .append('div')
-    .attr('class', 'tooltip')
+    .attr('class', 'glyph-tooltip')
+    .style('position', 'fixed')
+    .style('z-index', '50')
+    .style('pointer-events', 'none')
+    .style('padding', '4px 8px')
+    .style('font-size', '12px')
+    .style('color', '#fff')
     .style('opacity', 0);
+  const showTip = (html, color) => (event) =>
+    tooltip.style('opacity', 1).html(html).style('background-color', color)
+      .style('top', `${event.clientY - 34}px`).style('left', `${event.clientX + 10}px`);
+  const hideTip = () => tooltip.style('opacity', 0);
 
-  // Create SVG
+  // One track: the grey part is the rest of the map, the coloured part the selection split by top SDG
   const svg = d3.select(chartContainer.value)
     .append('svg')
     .attr('width', '100%')
-    .attr('height', '100%');
+    .attr('height', 10)
+    .style('display', 'block')
+    .style('overflow', 'hidden')
+    .style('border-radius', '999px');
 
-  // Selected publications bar
-  const selectedBar = svg.append('rect')
-    .attr('x', 0)
-    .attr('y', 0)
-    .attr('height', '20%')
-    .attr('fill', sdgColor.value)
-    .attr('width', 0);
-
-  selectedBar
-    .on('mouseover', function() {
-      tooltip
-        .style('opacity', 1)
-        .html(`Selected publications: ${selectedCount.value}`)
-        .style('background-color', sdgColor.value);
-    })
-    .on('mousemove', function(event) {
-      tooltip
-        .style('top', (event.pageY - 30) + 'px')
-        .style('left', (event.pageX + 10) + 'px');
-    })
-    .on('mouseout', function() {
-      tooltip.style('opacity', 0);
-    })
-    .transition()
-    .duration(2000)
-    .attr('width', widthScale(selected) + '%');
-
-  // Filtered out publications bar
-  const filteredBar = svg.append('rect')
-    .attr('x', widthScale(selected) + '%')
-    .attr('y', 0)
-    .attr('height', '20%')
+  svg.append('rect')
+    .attr('x', 0).attr('y', 0).attr('width', '100%').attr('height', 10)
     .attr('fill', 'rgb(var(--c-muted-strong))')
-    .attr('width', 0);
+    .on('mousemove', showTip(`Not selected: ${filteredOut}`, 'rgb(var(--c-tooltip))'))
+    .on('mouseout', hideTip);
 
-  filteredBar
-    .on('mouseover', function() {
-      tooltip
-        .style('opacity', 1)
-        .html(`Filtered out publications: ${filteredOut}`)
-        .style('background-color', 'rgb(var(--c-muted-strong))');
-    })
-    .on('mousemove', function(event) {
-      tooltip
-        .style('top', (event.pageY - 30) + 'px')
-        .style('left', (event.pageX + 10) + 'px');
-    })
-    .on('mouseout', function() {
-      tooltip.style('opacity', 0);
-    })
-    .transition()
-    .duration(2000)
-    .attr('width', widthScale(filteredOut) + '%');
-
-  // SDG distribution bars
   let xOffset = 0;
-
-
-  // Stack the SDG colors inside the same bar
   selectedDistribution.forEach(({ proportion, color, sdgId }) => {
-    const sdgBar = svg.append('rect')
-      .attr('x', xOffset + '%') // Position horizontally
-      .attr('y', '40%') // Same Y position as grey bar
-      .attr('height', '40%') // Maintain same bar height
-      .attr('fill', color) // Use each SDG's color
-      .attr('width', 0); // Start at 0 for animation
-
-    sdgBar
-      .on('mouseover', function () {
-        tooltip
-          .style('opacity', 1)
-          .html(`SDG ${sdgId}: ${(proportion * 100).toFixed(1)}%`)
-          .style('background-color', color);
-      })
-      .on('mousemove', function (event) {
-        tooltip
-          .style('top', (event.pageY - 30) + 'px')
-          .style('left', (event.pageX + 10) + 'px');
-      })
-      .on('mouseout', function () {
-        tooltip.style('opacity', 0);
-      })
+    const share = proportion * widthScale(selected);
+    svg.append('rect')
+      .attr('x', xOffset + '%')
+      .attr('y', 0)
+      .attr('height', 10)
+      .attr('fill', color)
+      .attr('width', 0)
+      .on('mousemove', showTip(`SDG ${sdgId}: ${(proportion * 100).toFixed(1)}% of the selection`, color))
+      .on('mouseout', hideTip)
       .transition()
-      .duration(2000)
-      .attr('width', proportion * widthScale(selected) + '%'); // Set width based on proportion
-
-    xOffset += proportion * widthScale(selected); // Move the starting position for the next color
+      .duration(600)
+      .attr('width', share + '%');
+    xOffset += share;
   });
 
 };

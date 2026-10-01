@@ -2,6 +2,16 @@
   <div class="summary-tile">
     <div class="summary-tile__head">
       <span class="summary-tile__key">top SDG per publication</span>
+      <button
+        v-if="topSdgFilter"
+        type="button"
+        class="inline-flex items-center gap-1 rounded-full border border-accent/50 bg-accent/10 px-2 py-0.5 font-mono text-[11px] text-fg hover:bg-accent/20"
+        title="Show all SDGs in the table"
+        @click="clearTopSdgFilter"
+      >
+        table: SDG {{ topSdgFilter }} <span aria-hidden="true">✕</span>
+      </button>
+      <span v-else class="summary-tile__meta">click a bar to filter the table</span>
     </div>
     <!-- D3 Bar Chart -->
     <div ref="chartContainer" class="relative w-full"/>
@@ -23,6 +33,7 @@ export default {
     const sdgPredictionsStore = useSDGPredictionsStore();
     const sdgsStore = useSDGsStore();
     const chartContainer = ref(null);
+    const { topSdgFilter, toggleTopSdgFilter, clearTopSdgFilter } = useTopSdgFilter();
 
     // Reactive values for total publications
     const totalCount = ref(publicationsStore.sdgLevelPublications.length);
@@ -110,6 +121,10 @@ export default {
         .attr("height", d => height - margin.top - margin.bottom - yScale(d.count))
         .attr("fill", d => d.color)
         .attr("rx", 3)
+        .style("cursor", "pointer")
+        // With a filter, the other bars step back
+        .attr("opacity", d => (topSdgFilter.value && topSdgFilter.value !== d.sdgId ? 0.3 : 1))
+        .on("click", (event, d) => toggleTopSdgFilter(d.sdgId))
         .on("mouseover", (event, d) => {
           tooltip.style("visibility", "visible")
             .html(`SDG ${d.sdgId} <br><strong>${sdgTitles[d.sdgId-1]}</strong>: ${d.count} Publications`)
@@ -155,10 +170,14 @@ export default {
     watch(
       () => sdgPredictionsStore.selectedPartitionedSDGPredictions,
       () => {
+        // A new selection starts without a table filter
+        clearTopSdgFilter();
         updateChart();
       },
       { deep: true }
     );
+
+    watch(topSdgFilter, updateChart);
 
     // Initialize chart on mount
     // Redraw when the container changes size (window resize, layout changes)
@@ -171,6 +190,8 @@ export default {
     return {
       totalCount,
       chartContainer,
+      topSdgFilter,
+      clearTopSdgFilter,
     };
   },
 };
