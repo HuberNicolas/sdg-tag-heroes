@@ -50,20 +50,21 @@ uv sync
 Fast (seconds; template abstracts, BERTopic finds only one or two topics):
 
 ```bash
-uv run sdg-dummy-data --count 340 --out output
+uv run sdg-dummy-data --count 85 --out output
 ```
 
-Realistic (a local model; on a CPU about one minute per paper with `llama3.1`, so several hours):
+Realistic (a local model; on a CPU about one minute per paper with `llama3.1`):
 
 ```bash
-uv run sdg-dummy-data --count 340 --out output --mode ollama --model llama3.1
+uv run sdg-dummy-data --count 85 --out output --mode ollama --model llama3.1
 ```
 
-- The guide recommends about 600 papers; with far fewer, many SDGs have too few papers for a map. 340 (20 per SDG)
-  was tested and works.
+- How many papers: 85 (5 per SDG) is the tested minimum to try the whole workflow: about 13 of 17 SDGs get a map
+  (with 34, only 2 do), but BERTopic finds no topics. The guide recommends about 600 for a realistic game. With
+  Ollama on a CPU, 85 papers take about 1.5 hours.
 - Finished papers are cached in `output/cache/papers-<mode>.jsonl`, so a stopped run resumes. Rerun with the **same
-  `--count` and `--seed`**: authors, faculties, years and topics depend on `--count`, so a cache written for another
-  count does not match.
+  `--count` and `--seed`**: authors, faculties, years and topics depend on `--count`. The cache is keyed only by
+  publication id, so after changing `--count`, the seed or the prompt, use a new `--out` folder (or delete the cache).
 - Run long generations in the background and in a retry loop; each rerun continues from the cache.
 - Prefer `llama3.1` or `llama3.2`. `gemma3` repeats itself inside the JSON answer and is very slow.
 
@@ -137,8 +138,8 @@ docker compose exec -T mariadb sh -c 'mariadb -u"$MARIADB_USER" -p"$MARIADB_PASS
 curl -s -X POST http://localhost:2003/collections/publications-mt/points/count -H 'Content-Type: application/json' -d '{}'
 ```
 
-With 340 papers: 340 publications, 340 Qdrant points, about 1100 map points, 300 decisions and about 40 users. In the
-browser: log in, then `/profile`, `/scenarios`, and choose an SDG.
+With 85 papers: 85 publications, 85 Qdrant points, about 250 map points, 85 decisions and about 40 users (with 340:
+about 1100 map points and 300 decisions). In the browser: log in, then `/profile`, `/scenarios`, and choose an SDG.
 
 ## 5. Load another dataset
 
