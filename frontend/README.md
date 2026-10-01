@@ -7,7 +7,7 @@ The game's web interface: a single-page application built with [Nuxt 3](https://
 |---|---|
 | **Framework** | Nuxt 3 (client-side rendering, `ssr: false`), Vue 3, TypeScript |
 | **UI** | [Nuxt UI 2](https://ui.nuxt.com/) with Tailwind CSS 3, [daisyUI 4](https://daisyui.com/), [Material Design Icons](https://icones.js.org/collection/mdi) |
-| **Visualisations** | [D3](https://d3js.org/), [Plotly](https://plotly.com/javascript/), [leader-line](https://github.com/anseki/leader-line) |
+| **Visualisations** | [D3](https://d3js.org/) (charts, honeycomb glyphs and the HUD publication maps in `composables/plots/hexMap.ts`) |
 | **State** | Pinia stores, [VueUse](https://vueuse.org/) |
 | **Screens** | Laptop to ultrawide (1280–3440 px) |
 

@@ -1,301 +1,186 @@
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import * as d3 from 'd3';
-import LeaderLine from 'leader-line-new';
 import { baseCoords, baseSdgColors, baseSdgShortTitles, sdgNullColor, sdgNullCoord, sdgNullShortTitle } from '@/constants/constants';
 import { useSDGsStore } from "@/stores/sdgs";
-import {useLabelDecisionsStore} from "~/stores/sdgLabelDecisions";
+import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 
-export default function useConnect() {
-  const sdgsStore = useSDGsStore();  // Initialize the store
+/*
+ * "Identify" panel of the labeling page: a honeycomb of the 17 SDGs plus "Not relevant" and the
+ * publication as a target hexagon. Each cell fills up with the community votes for that SDG.
+ * Clicking a cell picks it as your label (sdgsStore.selectedSDGLabel: 1–17, -1 for not relevant,
+ * 0 for none) and draws a connector from the cell to the publication.
+ *
+ * Everything is one SVG (the connector used to be a leader-line overlay fixed to the page, which
+ * floated over other panels while scrolling). The drawing follows the store, so it also resets after
+ * a label was submitted.
+ */
+export default function useConnect(containerSelector = '#glyph-container') {
+  const sdgsStore = useSDGsStore();
   const labelDecisionsStore = useLabelDecisionsStore();
-
-  const fixedConnections = ref([]);
-  const currentHex = ref(null);
-  const hexRadius = 30;
-  const arrowLines = ref([]); // Array to store all pre-created arrows
 
   const coords = [...baseCoords, sdgNullCoord];
   const sdgColors = [...baseSdgColors, sdgNullColor];
   const sdgShortTitles = [...baseSdgShortTitles, sdgNullShortTitle];
 
-  watch(
-    () => labelDecisionsStore.userLabels,
-    async (newLabels) => {
-      if (newLabels.length > 0) {
-        console.log("User labels are ready, redrawing hex grid...");
+  const hexRadius = 30;
+  const xSpacing = hexRadius * 2 * 0.9;
+  const ySpacing = Math.sqrt(3) * hexRadius * 0.9;
+  const maxVotesForScaling = 9; // 9 votes fill a cell completely
 
-        await nextTick(); // Ensures DOM updates before rendering
+  // Store value of a cell: 1–17 for the SDGs, -1 for the last cell ("Not relevant")
+  const labelOfIndex = (i: number) => (i >= 0 && i < 17 ? i + 1 : -1);
+  const indexOfLabel = (label: number) => (label === -1 ? 17 : label >= 1 && label <= 17 ? label - 1 : null);
 
-        renderHexGrid("#glyph-container", 260, 260);
+  // Pointy-top hexagons (like the other SDG glyphs), so the rows of the honeycomb interlock
+  const hexPoints = (cx: number, cy: number, r: number) =>
+    d3.range(6)
+      .map((k) => {
+        const angle = (Math.PI / 3) * k + Math.PI / 6;
+        return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)].join(',');
+      })
+      .join(' ');
 
-        await nextTick(); // Ensure hexagons are present before binding events
-        initHoverAndClick();
-      }
-    },
-    { deep: true, immediate: true } // Immediate ensures it runs if `userLabels` is already set
-  );
+  const render = () => {
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
 
+    const root = d3.select(container);
+    root.selectAll('*').remove();
 
+    // Layout in SVG units: honeycomb on the left, target hexagon on the right
+    const cells = coords.map(([x, y], i) => ({ i, x: x * xSpacing, y: y * ySpacing }));
+    const minX = d3.min(cells, (c) => c.x)! - hexRadius - 6;
+    const maxX = d3.max(cells, (c) => c.x)! + hexRadius;
+    const minY = d3.min(cells, (c) => c.y)! - hexRadius - 6;
+    const maxY = d3.max(cells, (c) => c.y)! + hexRadius + 6;
+    const target = { x: maxX + 150, y: (minY + maxY) / 2, r: 40 };
+    const width = target.x + target.r + 20 - minX;
+    const height = maxY - minY;
 
-  // Move cleanup functions to the top
-  const cleanupLeaderLines = () => {
-    arrowLines.value.forEach(line => {
-      safeRemoveLine(line);
-    });
-    arrowLines.value = [];
-  };
-
-  const safeRemoveLine = (line) => {
-    try {
-      line.remove();
-    } catch (error) {
-      console.warn('Failed to remove LeaderLine:', error);
-    }
-  };
-
-  const renderHexGrid = (selector, width, height) => {
-    const xSpacing = hexRadius * 2 * 0.9;
-    const ySpacing = Math.sqrt(3) * hexRadius * 0.9;
-
-    const container = d3.select(selector);
-    container.selectAll('*').remove();
-
-    const svg = container
+    const svg = root
       .append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .style('background', 'transparent');
+      .attr('class', 'identify')
+      .attr('viewBox', `${minX} ${minY} ${width} ${height}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .attr('width', '100%')
+      .attr('height', '100%')
+      .attr('role', 'radiogroup')
+      .attr('aria-label', 'Pick the SDG of this publication');
 
-    const contentGroup = svg.append('g')
-      .attr('transform', `translate(${width / 4}, ${height / 2})`);  // Adjusted to position on the left
+    const selectedIndex = indexOfLabel(sdgsStore.getSelectedSDGLabel);
 
-    // Count occurrences of each votedLabel once instead of inside the loop
+    // Votes per SDG
     const labelCounts = labelDecisionsStore.userLabels.reduce((acc, label) => {
-      if (label.votedLabel >= 1 && label.votedLabel <= 17) {
+      if ((label.votedLabel >= 1 && label.votedLabel <= 17) || label.votedLabel === -1) {
         acc[label.votedLabel] = (acc[label.votedLabel] || 0) + 1;
       }
       return acc;
-    }, {});
+    }, {} as Record<number, number>);
 
-    const maxVotesForScaling = 9; // 10 votes correspond to 100% filling
+    // Connector (below the cells)
+    const gLink = svg.append('g').attr('class', 'identify__link');
 
-    coords.forEach(([x, y], i) => {
-      const sdgId = i + 1; // SDG IDs are 1-based
-      const votes = labelCounts[sdgId] || 0;
-      const voteRatio = votes / maxVotesForScaling; // Calculate ratio of votes
+    const gCells = svg.append('g');
+    cells.forEach(({ i, x, y }) => {
+      const label = labelOfIndex(i);
+      const votes = labelCounts[label] || 0;
+      const fillingLevel = Math.min(0.1 + 0.9 * (votes / maxVotesForScaling), 1);
+      const color = sdgColors[i];
+      const isSelected = selectedIndex === i;
 
-      // Filling level scaling
-      const minFilling = 0.1; // 10% filling for 0 votes
-      const maxFilling = 1.0; // 100% filling for 10 votes
-      const fillingLevel = Math.min(minFilling + (maxFilling - minFilling) * voteRatio, maxFilling);
+      const g = gCells
+        .append('g')
+        .attr('class', 'identify__cell')
+        .classed('is-selected', isSelected)
+        .classed('is-dim', selectedIndex !== null && !isSelected)
+        .attr('role', 'radio')
+        .attr('aria-checked', String(isSelected))
+        .attr('tabindex', 0)
+        .attr('aria-label', `${sdgShortTitles[i]}: ${votes} community votes`)
+        .style('--cell', color)
+        .on('click', () => toggle(i))
+        .on('keydown', (event: KeyboardEvent) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggle(i);
+          }
+        });
 
-      //console.log(`SDG ${sdgId}: ${votes} votes, filling level: ${fillingLevel.toFixed(2)}`);
-
-      const color = d3.color(sdgColors[i % sdgColors.length]); // Keep the same color
-      const fillColor = color.toString(); // Use the full color for the outer hexagon
-
-      const hexagonGroup = contentGroup.append('g');
-      const rotation = 30;
-
-      // Outer hexagon (full color)
-      hexagonGroup
-        .append('polygon')
-        .attr(
-          'points',
-          d3.range(6)
-            .map((k) => {
-              const angle = Math.PI / 3 * k;
-              return [
-                x * xSpacing + hexRadius * Math.cos(angle),
-                y * ySpacing + hexRadius * Math.sin(angle),
-              ].join(',');
-            })
-            .join(' ')
-        )
-        .attr('fill', fillColor)
-        .attr('stroke', 'var(--hex-stroke)')
-        .attr('stroke-width', 1)
-        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
-
-      // Inner hexagon (white with adjusted radius based on filling level)
-      const innerRadius = hexRadius * (1-fillingLevel);
-
-      hexagonGroup
-        .append('polygon')
-        .attr(
-          'points',
-          d3.range(6)
-            .map((k) => {
-              const angle = Math.PI / 3 * k;
-              return [
-                x * xSpacing + innerRadius * Math.cos(angle),
-                y * ySpacing + innerRadius * Math.sin(angle),
-              ].join(',');
-            })
-            .join(' ')
-        )
-        .attr('fill', 'var(--hex-empty)')
-        //.attr('stroke', 'var(--hex-stroke)')
-        //.attr('stroke-width', 1)
-        .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
-
-      // Text label
-      contentGroup
-        .append('text')
-        .attr('x', x * xSpacing)
-        .attr('y', y * ySpacing)
-        .attr('text-anchor', 'middle')
+      g.append('title').text(`${label === -1 ? 'Not relevant' : `SDG ${label}`} · ${sdgShortTitles[i]} · ${votes} vote${votes === 1 ? '' : 's'}`);
+      // Outline cell, then the community fill growing from the centre
+      g.append('polygon').attr('class', 'identify__shell').attr('points', hexPoints(x, y, hexRadius - 1.5));
+      g.append('polygon').attr('class', 'identify__fill').attr('points', hexPoints(x, y, (hexRadius - 3) * fillingLevel));
+      g.append('text')
+        .attr('class', 'identify__label')
+        .attr('x', x)
+        .attr('y', y)
         .attr('dy', '0.35em')
-        .attr('class', 'hexagon')
-        .attr('data-color', color?.toString())
-        .attr('data-id', sdgShortTitles[i])
-        .text(sdgShortTitles[i])
-        .style('font-size', '8px')
-        .style('fill', 'var(--hex-label)');
+        .text(sdgShortTitles[i]);
+      if (votes > 0) {
+        g.append('text')
+          .attr('class', 'identify__votes')
+          .attr('x', x)
+          .attr('y', y + hexRadius * 0.55)
+          .text(votes);
+      }
     });
-  };
 
-  const renderDecisionHex = (selector, width, height, color, label) => {
-    const container = d3.select(selector);
-    container.selectAll('*').remove();
-
-    const svg = container
-      .append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .style('background', 'transparent');
-
-    // Keep the decision hexagon **centered properly**
-    const hexagonGroup = svg.append('g')
-      .attr('transform', `translate(${width / 2}, ${height / 2})`);
-
-    const rotation = 30;
-
-    hexagonGroup
+    // Target: the publication, coloured with your pick
+    const pickedColor = selectedIndex !== null ? sdgColors[selectedIndex] : null;
+    const gTarget = svg.append('g').attr('class', 'identify__target').classed('is-set', pickedColor !== null);
+    gTarget.append('polygon').attr('class', 'identify__target-halo').attr('points', hexPoints(target.x, target.y, target.r + 10));
+    gTarget
       .append('polygon')
-      .attr(
-        'points',
-        d3.range(6).map((k) => {
-          const angle = Math.PI / 3 * k;
-          return [
-            hexRadius * Math.cos(angle),
-            hexRadius * Math.sin(angle),
-          ].join(',');
-        }).join(' ')
-      )
-      .attr('fill', color)
-      .attr('stroke', 'var(--hex-stroke)')
-      .attr('stroke-width', 1)
-      .attr('transform', `rotate(${rotation} 0 0)`);
-
-    hexagonGroup
+      .attr('class', 'identify__target-hex')
+      .attr('points', hexPoints(target.x, target.y, target.r))
+      .style('fill', pickedColor ?? null);
+    gTarget
       .append('text')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('text-anchor', 'middle')
+      .attr('class', 'identify__target-kicker')
+      .attr('x', target.x)
+      .attr('y', target.y - target.r - 18)
+      .text(pickedColor ? '// your label' : '// your time to shine');
+    gTarget
+      .append('text')
+      .attr('class', 'identify__target-label')
+      .attr('x', target.x)
+      .attr('y', target.y)
       .attr('dy', '0.35em')
-      .text(label)
-      .style('font-size', '8px')
-      .style('fill', 'var(--hex-label)');
-  };
+      .text(selectedIndex !== null ? sdgShortTitles[selectedIndex] : 'Publication');
 
-  const initArrows = () => {
-    arrowLines.value = []; // Clear existing arrows
-
-    const hexagons = document.querySelectorAll('.hexagon');
-    // Anchor to the stable container: its SVG is replaced on every click (renderDecisionHex),
-    // which left the arrows pointing at a removed element
-    const targetHex = document.querySelector('#target-box');
-
-    hexagons.forEach((hex) => {
-      const hexIndex = sdgShortTitles.indexOf(hex.getAttribute('data-id')); // Get SDG index
-      if (hexIndex === -1) return; // Skip if not found
-
-      const hexColor = hex.getAttribute('data-color');
-
-      const line = new LeaderLine(
-        LeaderLine.pointAnchor(hex, { x: '50%', y: '200%' }), // Start at hexagon center
-        LeaderLine.pointAnchor(targetHex, { x: '50%', y: '50%' }), // End at decision hexagon center
-        {
-          color: hexColor || 'blue',
-          startPlug: 'behind',
-          endPlug: 'arrow1',
-          dash: { animation: true },
-          //path: 'straight',  // Ensures a clean and structured arrow path
-          size: 2,  // Small and cleaner arrows
-          startSocket: 'right', // Align arrows from right side of hex
-          endSocket: 'left', // Align arrows to left side of decision hex
-          hide: 'true',
-        }
-      );
-      arrowLines.value[hexIndex] = line; // Store the arrow in the correct index
-    });
-  };
-
-
-
-  const toggleArrow = (hex) => {
-    const hexIndex = sdgShortTitles.indexOf(hex.getAttribute('data-id'));
-    const line = arrowLines.value[hexIndex];
-
-    if (!line) return;
-
-    const sdgId = (hexIndex >= 0 && hexIndex < 17) ? hexIndex + 1 : -1;
-
-    if (line.visible) {
-      line.hide();
-      line.visible = false;
-      sdgsStore.setSelectedSDGLabel(0);
-      currentHex.value = null;
-      renderDecisionHex('#target-box', 60, 60, 'whitesmoke', 'Publication');
-    } else {
-      arrowLines.value.forEach((arrow) => arrow.hide());
-      line.show();
-      line.visible = true;
-      sdgsStore.setSelectedSDGLabel(sdgId);
-      currentHex.value = hex;
-      const hexColor = hex.getAttribute('data-color');
-      renderDecisionHex('#target-box', 60, 60, hexColor, hex.getAttribute('data-id'));
+    if (selectedIndex !== null) {
+      const from = cells[selectedIndex];
+      const start: [number, number] = [from.x + hexRadius * 0.6, from.y];
+      const end: [number, number] = [target.x - target.r - 4, target.y];
+      const midX = (start[0] + end[0]) / 2;
+      const d = `M${start[0]},${start[1]} C${midX},${start[1]} ${midX},${end[1]} ${end[0]},${end[1]}`;
+      gLink.append('path').attr('class', 'identify__wire-glow').attr('d', d).style('stroke', pickedColor);
+      gLink.append('path').attr('class', 'identify__wire').attr('d', d).style('stroke', pickedColor);
+      gLink.append('circle').attr('class', 'identify__wire-end').attr('cx', end[0]).attr('cy', end[1]).attr('r', 3.5).style('fill', pickedColor);
     }
   };
 
-  const initHoverAndClick = () => {
-    const hexagons = document.querySelectorAll('.hexagon');
-    hexagons.forEach((hex) => {
-      hex.addEventListener('click', () => toggleArrow(hex));
-    });
+  const toggle = (i: number) => {
+    const label = labelOfIndex(i);
+    sdgsStore.setSelectedSDGLabel(sdgsStore.getSelectedSDGLabel === label ? 0 : label);
   };
 
-  // Arrows are positioned relative to the page; move them along when a panel scrolls or the window resizes
-  const repositionLeaderLines = () => {
-    arrowLines.value.forEach(line => {
-      try {
-        line?.position();
-      } catch {
-        // line already removed
-      }
-    });
-  };
-  window.addEventListener('scroll', repositionLeaderLines, true);
-  window.addEventListener('resize', repositionLeaderLines);
+  // Redraw when the votes or the pick change
+  const stopVotes = watch(
+    () => labelDecisionsStore.userLabels,
+    async () => {
+      await nextTick();
+      render();
+    },
+    { deep: true },
+  );
+  const stopPick = watch(() => sdgsStore.getSelectedSDGLabel, render);
 
-  // Clean up while the elements are still in the page; after unmount the lines point
-  // at removed elements and leader-line logs errors
+  onMounted(render);
   onBeforeUnmount(() => {
-    window.removeEventListener('scroll', repositionLeaderLines, true);
-    window.removeEventListener('resize', repositionLeaderLines);
-    cleanupLeaderLines();
+    stopVotes();
+    stopPick();
   });
 
-  window.addEventListener('beforeunload', cleanupLeaderLines);
-
-  onMounted(async () => {
-    renderHexGrid('#glyph-container', 260, 260);
-    renderDecisionHex('#target-box', 60, 60, 'whitesmoke', 'Publication');
-    initArrows();
-    await nextTick();
-    initHoverAndClick();
-  });
-
-  return { fixedConnections };
+  return {};
 }

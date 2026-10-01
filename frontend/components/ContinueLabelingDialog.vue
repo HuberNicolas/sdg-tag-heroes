@@ -31,10 +31,7 @@
         </div>
 
         <!-- Loading Indicator -->
-        <div v-if="loading" class="text-center">
-          <span class="loading loading-bars loading-lg"/>
-          <p>Fetching publication details...</p>
-        </div>
+        <LoadingState v-if="loading" label="fetching publication details" />
 
         <!-- Display Similar Publications Once Loaded -->
         <div v-if="activeTab === 'similar'" class="relative mx-auto p-4 bg-surface shadow-panel rounded-lg max-h-[80vh] overflow-y-auto">
@@ -58,7 +55,7 @@
               <!-- Keywords -->
               <div class="mt-2">
                 <div v-if="keywordsLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"/> Loading Keywords...
+                  <LoadingState size="sm" label="loading keywords" />
                 </div>
                 <div v-else-if="keywords[pub.publicationId]?.keywords?.length">
                   <strong class="text-fg">Keywords:</strong>
@@ -75,7 +72,7 @@
               <!-- Fact -->
               <div class="mt-2">
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"/> Loading Fact...
+                  <LoadingState size="sm" label="loading fact" />
                 </div>
                 <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-muted p-2 rounded-lg">
                   <h3 class="text-sm font-semibold text-fg">Did You Know?</h3>
@@ -86,7 +83,7 @@
               <!-- Summary -->
               <div class="mt-2">
                 <div v-if="summaryLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"/> Loading Summary...
+                  <LoadingState size="sm" label="loading summary" />
                 </div>
                 <div v-else-if="summary[pub.publicationId]?.summary" class="mt-2">
                   <h3 class="text-sm font-semibold text-fg">Summary</h3>
@@ -142,7 +139,7 @@
               <!-- Keywords -->
               <div class="mt-2">
                 <div v-if="keywordsLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"/> Loading Keywords...
+                  <LoadingState size="sm" label="loading keywords" />
                 </div>
                 <div v-else-if="keywords[pub.publicationId]?.keywords?.length">
                   <strong class="text-fg">Keywords:</strong>
@@ -159,7 +156,7 @@
               <!-- Fact -->
               <div class="mt-2">
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"/> Loading Fact...
+                  <LoadingState size="sm" label="loading fact" />
                 </div>
                 <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-muted p-2 rounded-lg">
                   <h3 class="text-sm font-semibold text-fg">Did You Know?</h3>
@@ -170,7 +167,7 @@
               <!-- Summary -->
               <div class="mt-2">
                 <div v-if="summaryLoading[pub.publicationId]" class="text-center">
-                  <span class="loading loading-bars loading-sm"/> Loading Summary...
+                  <LoadingState size="sm" label="loading summary" />
                 </div>
                 <div v-else-if="summary[pub.publicationId]?.summary" class="mt-2">
                   <h3 class="text-sm font-semibold text-fg">Summary</h3>

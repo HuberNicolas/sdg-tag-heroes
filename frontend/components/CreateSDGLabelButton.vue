@@ -1,31 +1,31 @@
 <template>
-  <div class="container mx-auto p-4">
+  <div class="mt-2">
     <!-- Form Section -->
     <form class="space-y-4" @submit.prevent="submitUserLabel">
       <!-- Comment Input -->
       <div class="flex flex-col">
-        <label for="comment" class="text-lg font-medium text-fg">Explain Your Label Choice (Optional): Share Your Reasoning with the Community</label>
+        <label for="comment" class="text-sm font-medium text-fg">Explain Your Label Choice <span class="font-mono text-xs text-fg-faint">(optional)</span></label>
         <textarea
           id="comment"
           v-model="comment"
           rows="1"
-          class="mt-1 p-2 border border-line rounded-lg  focus:outline-none focus:ring-2 focus:ring-accent"
+          class="mt-1.5 px-3 py-2 border border-line rounded-[10px] bg-surface-2 text-sm transition focus:outline-none focus:border-accent/60 focus:ring-4 focus:ring-accent/15"
           placeholder="Provide context for your label decision (optional)"
         />
       </div>
 
 
-      <div class="flex items-center justify-between mt-4">
-        <div>
+      <div class="flex flex-wrap items-center justify-between gap-3 mt-3">
+        <div class="flex items-center">
           <!-- Checkbox for Abstract Section -->
           <input
             id="include_abstract_section"
             v-model="includeAbstractSection"
             type="checkbox"
-            class="form-checkbox h-5 w-5 text-fg-dim mr-2"
+            class="checkbox checkbox-sm checkbox-primary mr-2"
 
           >
-          <label for="include_abstract_section" class="text-lg font-medium text-fg">Include Abstract Section</label>
+          <label for="include_abstract_section" class="text-sm text-fg-dim">Include Abstract Section</label>
         </div>
 
         <!-- Submit Button -->

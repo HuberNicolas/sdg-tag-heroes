@@ -1,22 +1,12 @@
 <template>
-  <div class="flex items-center justify-between w-full text-xs space-x-2">
-    <!-- Icon (Right-Aligned, Properly Positioned) -->
-    <div
-class="w-6 h-6 flex items-center justify-center bg-primary-500 text-white
-                transform rotate-45 relative shrink-0">
-      <div class="absolute inset-0 bg-primary-500"/>
-      <div class="relative flex items-center justify-center w-4 h-4 bg-surface rounded-full">
-        <Icon
-          :name="displayIcon"
-          class="w-3 h-3 text-fg transform -rotate-45"
-        />
+  <div class="flex items-start gap-2.5 w-full rounded-xl border border-line bg-surface-2/70 px-3 py-2 text-xs">
+    <span class="quest-gem mt-0.5"><Icon :name="displayIcon" /></span>
+    <div class="flex-1 min-w-0 leading-snug">
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-[10px] uppercase tracking-wider text-fg-faint">quest</span>
+        <span class="font-semibold text-fg">{{ name }}</span>
       </div>
-    </div>
-
-    <!-- Title & Text (Now Properly Left-Aligned) -->
-    <div class="flex-1 text-left  leading-tight">
-      <h3 class="font-semibold text-fg">Quest Indicator</h3>
-      <span class="text-fg">{{name}}: {{ displayText }}</span>
+      <p class="mt-0.5 text-fg-dim">{{ displayText }}</p>
     </div>
   </div>
 </template>

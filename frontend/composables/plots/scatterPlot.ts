@@ -1,4 +1,4 @@
-import Plotly from 'plotly.js-dist';
+import { createHexMap } from '@/composables/plots/hexMap';
 import { watch } from 'vue';
 import { useDimensionalityReductionsStore } from "~/stores/dimensionalityReductions";
 import { usePublicationsStore } from "~/stores/publications";
@@ -19,6 +19,8 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
   const collectionsStore = useCollectionsStore();
 
   const level = gameStore.getLevel;
+  // HUD map drawn with d3; it fires the same events as Plotly did (see hexMap.ts)
+  const map = createHexMap(container);
   //const sdg = gameStore.getSDG;
   let selectedPoint = null; // Store clicked point coordinates
   let highlightMarker = null;
@@ -173,7 +175,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
     };
 
     // Render the plot
-    Plotly.newPlot(container, userMarker ? [scatterData, userMarker] : [scatterData], layout);
+    map.react(userMarker ? [scatterData, userMarker] : [scatterData], layout);
 
 
     // Watch for changes in selected collections and update the plot
@@ -236,7 +238,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
 
 
     // Selection events
-    container.on('plotly_selected', function (eventData) {
+    map.on('plotly_selected', function (eventData) {
       if (eventData && eventData.points) {
         // Filter out any points that are user markers (star symbol)
         const selectedIndices = eventData.points
@@ -253,11 +255,11 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
       }
     });
 
-    container.on('plotly_doubleclick', function () {
-      Plotly.relayout(container, { 'xaxis.range': [0, 100], 'yaxis.range': [0, 100] });
+    map.on('plotly_doubleclick', function () {
+      map.resetZoom();
     });
 
-    container.on('plotly_click', function (eventData) {
+    map.on('plotly_click', function (eventData) {
       if (eventData && eventData.points.length > 0) {
         const clickedPoint = eventData.points[0];
         const clickedIndex = clickedPoint.pointNumber;
@@ -283,7 +285,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
       }
     });
 
-    container.on('plotly_hover', function (eventData) {
+    map.on('plotly_hover', function (eventData) {
       if (eventData && eventData.points.length > 0) {
         const hoveredIndex = eventData.points[0].pointNumber;
         const hoveredPub = combinedData[hoveredIndex]?.publication;
@@ -293,7 +295,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
       }
     });
 
-    container.on('plotly_unhover', function () {
+    map.on('plotly_unhover', function () {
       publicationsStore.setHoveredPublication(null);
     });
 
@@ -304,6 +306,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
       if (!userCoordinates) return null;
 
       return {
+        role: 'user',
         mode: 'text',
         x: [userCoordinates.x_coord],
         y: [userCoordinates.y_coord],
@@ -320,6 +323,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
       if (!selectedPoint) return;
 
       highlightMarker = {
+        role: 'selected',
         x: [selectedPoint.x],
         y: [selectedPoint.y],
         mode: "markers",
@@ -338,7 +342,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
         hoverinfo: "text",
       };
 
-      Plotly.react(container, [scatterData, highlightMarker, userMarker].filter(Boolean), layout);
+      map.react([scatterData, highlightMarker, userMarker].filter(Boolean), layout);
     }
     function updateScatterPlot() {
       const dimensionalityReductionsData = dimensionalityReductionsStore.partitionedReductions;
@@ -481,12 +485,13 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
 
 
       // Update the plot with both default and scenario points
-      Plotly.react(container, [scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
+      map.react([scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
     }
 
     function updateHighlightedPointFromHover(coordinates) {
       // Create a highlight marker for hover (you can style it differently from the selected marker)
       hoverHighlightMarker = {
+        role: 'hover',
         x: [coordinates.x],
         y: [coordinates.y],
         mode: "markers",
@@ -504,12 +509,12 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
 
       // Re-render the plot with the hover marker included.
       // Make sure to merge it with your existing data (e.g., scatterData and any other markers)
-      Plotly.react(container, [scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
+      map.react([scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
     }
 
     function removeHoverHighlightMarker() {
       // Remove the hover highlight by re-rendering without the marker.
-      Plotly.react(container, [scatterData, userMarker].filter(Boolean), layout);
+      map.react([scatterData, userMarker].filter(Boolean), layout);
     }
 
 
@@ -518,7 +523,7 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
       userMarker = createUserMarker();
       if (!userMarker) return;
 
-      Plotly.react(container, [scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
+      map.react([scatterData, hoverHighlightMarker, userMarker].filter(Boolean), layout);
     }
   });
 }

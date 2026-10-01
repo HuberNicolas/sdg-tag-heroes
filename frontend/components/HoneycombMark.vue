@@ -42,7 +42,7 @@ const hexes = baseCoords.map(([cx, cy], index) => {
   const x = cx * xSpacing;
   const y = cy * ySpacing;
   const points = Array.from({ length: 6 }, (_, k) => {
-    const angle = (Math.PI / 3) * k;
+    const angle = (Math.PI / 3) * k + Math.PI / 6; // pointy-top, like the game's glyph
     return `${(x + r * Math.cos(angle)).toFixed(2)},${(y + r * Math.sin(angle)).toFixed(2)}`;
   }).join(" ");
   return { index, x, y, points, color: baseSdgColors[index] };

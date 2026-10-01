@@ -2,7 +2,7 @@
   <div>
     <div class="frame-title"><b>Explore</b> Community Labels: See How Others Categorized This Publication</div>
     <CommentSummary/>
-    <div v-if="isLoading" class="text-fg-dim">Loading...</div>
+    <LoadingState v-if="isLoading" label="loading comments" />
 
     <div v-if="error">
       Be the first user to submit a Label.

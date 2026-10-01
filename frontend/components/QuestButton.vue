@@ -1,30 +1,20 @@
 <template>
-  <div class="relative group flex flex-col items-center w-full">
-    <div class="mb-2 text-sm font-medium text-center">{{ name }}</div>
-    <button
-      class="w-8 h-8 flex items-center justify-center bg-primary-500 text-white rotate-45
-             hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      :disabled="isLoading"
-      @click="handleClick"
-    >
-      <div class="absolute inset-0 bg-primary-500 rounded-md"/>
-      <div class="relative flex items-center justify-center w-6 h-6 bg-surface rounded-full">
-        <Icon
-          v-if="!isLoading"
-          :name="icon"
-          class="w-4 h-4 text-fg -rotate-45"
-        />
-        <span v-else class="text-xs text-fg -rotate-45">Loading...</span>
-      </div>
-    </button>
-
-    <span
-      v-if="tooltip"
-      class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-tooltip rounded opacity-0 group-hover:opacity-100 transition-opacity"
-    >
-      {{ tooltip }}
+  <!-- Quest: a compact pill with a small diamond (quest publications are diamonds on the map) -->
+  <button
+    type="button"
+    class="quest-pill"
+    :class="{ 'is-active': isActive }"
+    :disabled="isLoading"
+    :title="tooltip"
+    :aria-pressed="isActive"
+    @click="handleClick"
+  >
+    <span class="quest-pill__gem">
+      <Icon v-if="!isLoading" :name="icon" class="quest-pill__icon" />
+      <LoadingState v-else size="sm" label="" class="!p-0 scale-75" />
     </span>
-  </div>
+    <span class="truncate">{{ name }}</span>
+  </button>
 </template>
 
 
@@ -34,7 +24,7 @@ import { usePublicationsStore } from "~/stores/publications";
 import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import {useLabelDecisionsStore} from "~/stores/sdgLabelDecisions";
 import {useGameStore} from "~/stores/game";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ScenarioType } from "~/types/enums";
 
 const props = defineProps({
@@ -61,6 +51,7 @@ const publicationsStore = usePublicationsStore();
 const sdgPredictionsStore = useSDGPredictionsStore();
 const labelDecisionsStore = useLabelDecisionsStore();
 const gameStore = useGameStore();
+const isActive = computed(() => gameStore.selectedScenarioList.includes(props.name));
 const selectedSDG = gameStore.getSDG;
 
 const scenarioMapping: Record<string, ScenarioType> = {

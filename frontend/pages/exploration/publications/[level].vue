@@ -1,42 +1,39 @@
 <template>
-  <!-- From xl on, the page fills the window: map and table take the remaining height.
-       Below xl, the panels stack and the page scrolls. -->
-  <div class="min-h-full xl:h-full grid grid-cols-1 xl:grid-cols-2 gap-3 p-3">
-    <!-- Left: find publications and explore the map -->
-    <div class="flex flex-col gap-3 min-h-0">
-      <div class="flex-none">
-        <div class="frame-title"><b>Find a set of interesting publications: </b></div>
+  <!-- From xl on, the page fills the window: a strip of filters on top, below it the big publication map
+       (left) and the summary with the table (right). Below xl, the panels stack and the page scrolls. -->
+  <div class="min-h-full xl:h-full flex flex-col gap-3 p-3">
+    <section class="flex-none">
+      <p class="kicker mb-2">// find a set of interesting publications</p>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <CollectionSelector />
-        <div class="mt-3 grid grid-cols-1 2xl:grid-cols-5 gap-3">
-          <QuestSectionPublications class="2xl:col-span-3" />
-          <ExplorationUserQuery class="2xl:col-span-2" />
-        </div>
+        <QuestSectionPublications />
+        <ExplorationUserQuery />
       </div>
+    </section>
 
+    <div class="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-12 gap-3">
       <ScatterPlot
         v-if="selectedLevel !== null"
-        class="flex-1 min-h-[18rem]"
+        class="xl:col-span-7 min-h-[34rem] xl:min-h-0"
       />
 
-      <ScatterPlotExplorationLegend class="flex-none" />
-    </div>
-
-    <!-- Right: summary of the selection and the publication table -->
-    <div class="flex flex-col gap-3 min-h-0">
-      <div class="flex-none">
-        <div class="frame-title"><b>Summarize</b> Your Selection: Explore Machine Label Predictions & XP Distribution in the <b>Summary Panel</b></div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div class="flex flex-col gap-3">
-            <FilterStateExploration />
-            <BarPlot />
-          </div>
-          <div class="lg:col-span-2">
-            <RainPlotExploration />
+      <!-- Summary of the selection and the publication table -->
+      <div class="xl:col-span-5 flex flex-col gap-3 min-h-0">
+        <div class="flex-none">
+          <p class="kicker mb-2">// summarize your selection</p>
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-3">
+            <div class="lg:col-span-2 flex flex-col gap-3">
+              <FilterStateExploration />
+              <BarPlot />
+            </div>
+            <div class="lg:col-span-3">
+              <RainPlotExploration />
+            </div>
           </div>
         </div>
-      </div>
 
-      <PublicationsTableExploration class="flex-1 min-h-[20rem]" />
+        <PublicationsTableExploration class="flex-1 min-h-[20rem]" />
+      </div>
     </div>
   </div>
 </template>
@@ -50,7 +47,6 @@ import { Quadrant, Stage } from "~/types/enums";
 import ScatterPlot from "~/components/plots/ScatterPlot.vue";
 import PublicationsTableExploration from "~/components/PublicationsTableExploration.vue";
 import RainPlotExploration from "~/components/plots/RainPlotExploration.vue";
-import ScatterPlotExplorationLegend from "~/components/ScatterPlotExplorationLegend.vue";
 
 
 const route = useRoute()

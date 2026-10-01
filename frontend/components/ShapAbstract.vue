@@ -11,7 +11,8 @@
       <div
 class="bg-surface-2/70 border border-line p-4 rounded-xl flex flex-col h-full overflow-hidden"
            @mouseup="handleAbstractSelection">
-        <h1 class="text-xl font-bold tracking-tight mb-2">{{ publication?.title }}</h1>
+        <LoadingState v-if="!publication" label="loading abstract" class="flex-1" />
+        <h1 v-else class="text-xl font-bold tracking-tight mb-2">{{ publication.title }}</h1>
         <div class="flex-1 overflow-y-auto text-justify leading-relaxed text-fg/90">
           <!-- eslint-disable-next-line vue/no-v-html -- the text is escaped, only the <mark> tags are HTML -->
           <span v-html="shapHighlightedAbstract"/>

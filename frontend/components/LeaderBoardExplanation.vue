@@ -6,7 +6,7 @@
     </h2>
     -->
 
-    <div v-if="loading" class="text-accent text-lg text-center">Loading tiers...</div>
+    <LoadingState v-if="loading" label="loading tiers" />
     <div v-if="error" class="text-red-500 text-lg text-center">
       <p>An error occurred: {{ error }}</p>
     </div>

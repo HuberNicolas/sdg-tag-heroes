@@ -5,7 +5,7 @@
     </h1>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-lg text-center">Loading leaderboard...</div>
+    <LoadingState v-if="loading" label="loading leaderboard" />
 
     <!-- Error State -->
     <div v-if="error" class="text-red-500 text-lg text-center">

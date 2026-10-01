@@ -9,24 +9,12 @@
     </div>
 
     <!-- Divider: annotate above, label below -->
-    <div class="flex-none flex items-center gap-3 border-y-4 border-line-strong px-3 py-2">
-      <div class="flex flex-col items-start gap-1">
-        <div class="flex items-center gap-2">
-          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:arrow-up" />
-          <span class="text-fg-dim text-sm font-semibold"><b>Annotate</b> Publication</span>
-          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:pencil-alt" />
-        </div>
-        <p class="text-xs text-fg-dim">Provide insights on the machine explanation.</p>
-      </div>
-      <span class="flex-1 text-center text-fg font-bold text-sm">and</span>
-      <div class="flex flex-col items-end gap-1">
-        <p class="text-xs text-fg-dim">Label the publication with an SDG.</p>
-        <div class="flex items-center gap-2">
-          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:tag" />
-          <span class="text-fg-dim text-sm font-semibold"><b>Label</b> Publication</span>
-          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:arrow-down" />
-        </div>
-      </div>
+    <div class="flex-none flex items-center gap-3 px-1 font-mono text-[11px] text-fg-faint">
+      <span class="flex items-center gap-1.5"><Icon name="heroicons-outline:arrow-up" class="h-3.5 w-3.5 text-accent" />annotate the explanation</span>
+      <span class="h-px flex-1 bg-line" />
+      <span class="text-fg-dim">and</span>
+      <span class="h-px flex-1 bg-line" />
+      <span class="flex items-center gap-1.5">label the publication<Icon name="heroicons-outline:arrow-down" class="h-3.5 w-3.5 text-accent" /></span>
     </div>
 
     <!-- SDG User Label is attached to SDG Label decision -->

@@ -2,7 +2,7 @@
   <div class="frame-container">
     <div class="frame-title"><b>by selecting</b> a Quest to review Key Publications from the <b>Quest Box</b></div> <!--Smart Selection:  -->
     <div class="row-span-2 col-span-3">
-      <div class="flex items-center justify-around">
+      <div class="flex flex-wrap gap-2">
         <QuestButtonExploration
           v-for="button in buttons"
           :key="button.name"
@@ -11,7 +11,7 @@
           :tooltip="button.tooltip"
         />
       </div>
-      <div class="flex gap-2 mt-4">
+      <div v-if="gameStore.selectedScenarioList.length" class="flex items-center gap-2 mt-2.5">
         <UBadge
           v-for="scenario in gameStore.selectedScenarioList"
           :key="scenario"
@@ -27,7 +27,7 @@
             <UButton size="xs" icon="i-heroicons-x-mark" @click="gameStore.removeScenario(scenario)" />
           </template>
         </UBadge>
-        <span class="text-fg-dim text-xs">{{ buttons.find(b => b.name === gameStore.selectedScenarioList[0])?.explanation }}</span>
+        <span class="text-fg-dim text-xs leading-snug">{{ buttons.find(b => b.name === gameStore.selectedScenarioList[0])?.explanation }}</span>
       </div>
     </div>
   </div>

@@ -1,35 +1,41 @@
 <template>
-  <div class="flex items-center justify-start bg-surface border rounded-lg shadow-panel px-4 py-2 space-x-3">
+  <div
+    class="flex items-center gap-3 rounded-[var(--radius)] border border-line bg-surface/80 px-3 py-2 shadow-panel backdrop-blur-sm"
+    :style="currentSDG ? { boxShadow: `inset 3px 0 0 ${currentSDG.color}` } : {}"
+  >
     <template v-if="currentSDG">
       <!-- SDG Icon -->
       <img
         :src="`data:image/svg+xml;base64,${currentSDG.icon}`"
         :alt="`SDG ${currentSDG.id} Icon`"
-        class="w-8 h-8 flex-shrink-0"
+        class="w-9 h-9 flex-shrink-0 rounded-md"
       >
 
       <!-- SDG Details (Compact) -->
-      <div class="flex items-center space-x-2">
-        <p class="text-sm font-semibold text-fg">SDG {{ currentSDG.index }}</p>
-        <p class="text-sm text-fg-dim truncate">{{ currentSDG.name }}</p>
+      <div class="min-w-0 flex-1">
+        <p class="font-mono text-[10px] uppercase tracking-wider text-fg-faint">explaining · sdg_{{ String(currentSDG.index).padStart(2, '0') }}</p>
+        <p class="truncate text-sm font-semibold text-fg">{{ currentSDG.name }}</p>
+      </div>
 
-        <p v-if="machineScore !== null" class="text-sm text-fg-dim">
-          (Machine Score: <span class="font-semibold">{{ machineScore.toFixed(2) }}</span>)
-        </p>
+      <div v-if="machineScore !== null" class="flex-none w-32">
+        <div class="flex items-baseline justify-between font-mono text-[10px] text-fg-faint">
+          <span>machine score</span><b class="text-xs text-fg">{{ machineScore.toFixed(2) }}</b>
+        </div>
+        <div class="mt-1 h-1.5 rounded-full bg-muted-strong overflow-hidden">
+          <div class="h-full rounded-full transition-[width] duration-500" :style="{ width: `${Math.round(machineScore * 100)}%`, background: currentSDG.color }" />
+        </div>
       </div>
     </template>
 
     <template v-else>
       <!-- Placeholder (Compact) -->
-      <div class="flex items-center space-x-2 text-fg-dim">
-        <Icon name="ph-hexagon-light" class="w-8 h-8" />
-        <p class="text-sm truncate">Select an SDG to see machine explanation in the text below</p>
+      <div class="flex items-center gap-2.5 text-fg-dim">
+        <Icon name="mdi-gesture-tap" class="w-5 h-5 text-accent" />
+        <p class="text-sm truncate">Select an SDG above to highlight the machine's reasoning in the abstract</p>
       </div>
     </template>
   </div>
 </template>
-
-
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";

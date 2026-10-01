@@ -3,9 +3,7 @@
     <h1 class="text-2xl font-bold mb-6">User List</h1>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-accent text-lg">
-      Loading users...
-    </div>
+    <LoadingState v-if="loading" label="loading heroes" />
 
     <!-- Error State -->
     <div v-if="error" class="text-red-500 text-lg">

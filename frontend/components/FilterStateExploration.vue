@@ -1,12 +1,17 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-surface-2/70 border border-line pt-0 pb-0 pr-4 pl-4 rounded-xl w-full">
-    <!-- Text Information -->
-    <p class="text-sm text-fg-dim">
-      Selected <span class="font-bold" :style="{ color: sdgColor }">{{ selectedCount }}</span> of
-      <span class="font-bold text-fg">{{ totalCount }}</span> publications
+  <!-- KPI: how many of the publications on the map are selected, with the top SDGs of the selection as a stacked bar -->
+  <div class="flex flex-col justify-center gap-1.5 rounded-xl border border-line bg-surface-2/70 px-3 pt-2 w-full">
+    <div class="flex items-baseline justify-between gap-2">
+      <span class="font-mono text-[10px] uppercase tracking-wider text-fg-faint">selected</span>
+      <span class="font-mono text-[11px] text-fg-dim">{{ totalCount ? Math.round((selectedCount / totalCount) * 100) : 0 }}%</span>
+    </div>
+    <p class="font-mono leading-none">
+      <span class="text-2xl font-semibold" :style="{ color: selectedCount ? sdgColor : undefined }">{{ selectedCount }}</span>
+      <span class="text-sm text-fg-faint"> / {{ totalCount }}</span>
+      <span class="ml-1 text-xs text-fg-dim">publications</span>
     </p>
     <!-- D3 Stacked Bar Chart -->
-    <div ref="chartContainer" class="w-full h-1/2"/>
+    <div ref="chartContainer" class="w-full h-6"/>
   </div>
 </template>
 
@@ -144,7 +149,7 @@ const updateChart = () => {
     .attr('x', widthScale(selected) + '%')
     .attr('y', 0)
     .attr('height', '20%')
-    .attr('fill', '#D1D5DB')
+    .attr('fill', 'rgb(var(--c-muted-strong))')
     .attr('width', 0);
 
   filteredBar
@@ -152,7 +157,7 @@ const updateChart = () => {
       tooltip
         .style('opacity', 1)
         .html(`Filtered out publications: ${filteredOut}`)
-        .style('background-color', '#D1D5DB');
+        .style('background-color', 'rgb(var(--c-muted-strong))');
     })
     .on('mousemove', function(event) {
       tooltip

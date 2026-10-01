@@ -133,3 +133,13 @@ game logic. These points came up on the way and are left for later:
 - [ ] The help drawer opens with an inline `onclick` and `getElementById`; a Nuxt UI `USlideover` would fit better
 - [ ] The XP thresholds of the universes (0 / 6000 / 8000) are hardcoded in `WorldSelector.vue`
 - [ ] The SHAP highlights stay empty until an SDG is selected (no SDG → no colour); a hint in the abstract would help
+- [ ] Clicking a cell on the publication map calls `publicationsStore.selectedPartitionedPublications([...])` as a
+  function (it is an array), which throws; the click marker therefore never shows (`scatterPlot.ts`,
+  `scatterSDGPlot.ts`)
+- [ ] `handlePublicationClick` in the publication tables uses `this.isOpen` inside `<script setup>` (no `this`), so
+  the details modal does not open from the table
+- [ ] `CreateSDGLabelButton.vue` resets `includeAbstractSection`, which is not defined
+- [ ] An expired token does not lead back to the login; the pages stay empty with 401 errors
+- [ ] `plotly.js-dist` is no longer used (the maps are drawn with d3, `composables/plots/hexMap.ts`); remove it from
+  `package.json` together with a lockfile update
+- [x] Topic list: starts with all topics selected and "Reset" goes back to all (the map used to start empty)

@@ -1,34 +1,8 @@
 <template>
-  <div class="frame-container">
-    <!-- <div class="frame-title"><b>Find a set of interesting publications: </b></div> Cheap solution, move to middle -->
+  <div class="frame-container flex flex-col">
     <div class="frame-title"><b>by selecting</b> Topics you are interested in from the <b>Topic List</b></div>
-    <!-- Selected filter badges summary -->
-    <div class="flex items-center gap-4">
 
-      <div class="flex items-center gap-4">
-        <div class="flex gap-2 p-2">
-          <!-- Reset Button -->
-          <UButton
-            icon="i-heroicons-arrow-path"
-            :color="'primary'"
-            :variant="'solid'"
-            @click="resetSelection"
-          >
-            Reset
-          </UButton>
-
-          <!-- Select All Button -->
-          <!-- <UButton
-            icon="i-heroicons-check-circle"
-            @click="selectAllCollections"
-            :color="'primary'"
-            :variant="'solid'"
-          >
-            Select All
-          </UButton> -->
-        </div>
-      </div>
-
+    <div class="flex items-center gap-2">
       <!-- Select menu for icons -->
       <USelectMenu
         v-model="selectedCollections"
@@ -39,63 +13,63 @@
         multiple
         searchable
         creatable
-        class="flex-1"
+        class="flex-1 min-w-0"
         @update:model-value="updateSelectedCollections"
       >
         <template #label>
-        <span v-if="selectedCollections.length">
-          Explore Publications Across {{ selectedCollections.length }} Topic{{ selectedCollections.length > 1 ? "s" : "" }}
-          ({{ selectedCollections.reduce((sum, col) => sum + (collectionsStore.collectionsCount[col.collectionId] || 0), 0)
-          }} Publications)
-        </span>
-          <span v-else class="text-fg-dim">
-          Select Topics to Discover Relevant Publications from the List
-        </span>
+          <span v-if="selectedCollections.length" class="truncate font-mono text-xs">
+            <b class="text-accent">{{ selectedCollections.length }}</b> topic{{ selectedCollections.length > 1 ? "s" : "" }}
+            · <b class="text-accent">{{ selectedCollections.reduce((sum, col) => sum + (collectionsStore.collectionsCount[col.collectionId] || 0), 0) }}</b> publications
+          </span>
+          <span v-else class="truncate text-fg-dim">
+            Select Topics to Discover Relevant Publications from the List
+          </span>
         </template>
 
         <template #option="{ option }">
-          <div class="flex items-center justify-between w-full">
-            <div class="flex items-center">
-              <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
-              <span>{{ option.shortName }}</span>
-            </div>
-            <!-- <span class="text-fg-dim text-sm"> ({{ collectionsStore.collectionsCount[option.collectionId] || 0 }} Publications) </span> -->
+          <div class="flex items-center justify-between gap-3 w-full">
+            <span class="flex items-center gap-2 min-w-0">
+              <Icon :name="getIconComponent(option.shortName)" class="h-4 w-4 flex-none text-fg-dim" />
+              <span class="truncate">{{ option.shortName }}</span>
+            </span>
+            <span class="font-mono text-[11px] text-fg-faint">{{ collectionsStore.collectionsCount[option.collectionId] || 0 }}</span>
           </div>
         </template>
-
 
         <template #option-create="{ option }">
-          <div class="flex items-center justify-between w-full">
-            <div class="flex items-center">
-              <span>New Topic:</span>
-              <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
-              <span>{{ option.shortName }}</span>
-            </div>
-            <span class="text-fg-dim text-sm"/>
+          <div class="flex items-center gap-2 w-full">
+            <span class="font-mono text-[11px] text-fg-faint">new topic:</span>
+            <span>{{ option.shortName }}</span>
           </div>
         </template>
-
       </USelectMenu>
+
+      <!-- Reset Button -->
+      <UButton
+        icon="i-heroicons-arrow-path"
+        color="gray"
+        variant="soft"
+        square
+        title="Reset to all topics"
+        aria-label="Reset to all topics"
+        @click="resetSelection"
+      />
     </div>
 
-    <div class="">
-      <div class="flex flex-wrap gap-1">
-        <UBadge
-          v-for="(collection, index) in selectedCollections"
-          :key="index"
-          :icon="getIconComponent(collection.shortName)"
-          size="sm"
-          color="primary"
-          variant="solid"
-          class="flex items-center gap-1 px-1 py-1"
-        >
-          <span class="truncate">{{ collection.shortName
-            }} ({{ collectionsStore.collectionsCount[collection.collectionId] || 0 }}) </span>
-          <button class="ml-1" @click.stop="removeCollection(collection)">
-            <UIcon name="i-heroicons-x-circle" class="w-2 h-4 text-white hover:text-fg-faint" />
-          </button>
-        </UBadge>
-      </div>
+    <!-- Selected topics -->
+    <div v-if="selectedCollections.length" class="mt-2 flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+      <span
+        v-for="(collection, index) in selectedCollections"
+        :key="index"
+        class="topic-chip"
+      >
+        <Icon :name="getIconComponent(collection.shortName)" class="h-3.5 w-3.5 flex-none text-accent" />
+        <span class="truncate">{{ collection.shortName }}</span>
+        <span class="font-mono text-[10px] text-fg-faint">{{ collectionsStore.collectionsCount[collection.collectionId] || 0 }}</span>
+        <button type="button" class="topic-chip__remove" :aria-label="`Remove ${collection.shortName}`" @click.stop="removeCollection(collection)">
+          <UIcon name="i-heroicons-x-mark" class="h-3 w-3" />
+        </button>
+      </span>
     </div>
   </div>
 </template>
@@ -142,8 +116,8 @@ onMounted(async () => {
     (collection) => (collectionsStore.collectionsCount[collection.collectionId] || 0) > 0
   );
 
-  selectedCollections.value = [];
-  collectionsStore.setSelectedCollections([]);
+  // Start with all topics, so the map is not empty before the first filter is chosen
+  selectAllCollections();
 });
 
 
@@ -191,20 +165,27 @@ const updateSelectedCollections = (newSelection) => {
   selectedCollections.value = [...collectionsStore.selectedCollections];
 };
 
-// Function to reset selected collections
+// Reset: back to all topics (the start state)
 const resetSelection = () => {
-  selectedCollections.value = [];
-  collectionsStore.setSelectedCollections([]);
+  selectAllCollections();
 };
 
 // Function to select all collections
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by the commented-out "Select all" button in the template
-const selectAllCollections = () => {
+function selectAllCollections() {
   selectedCollections.value = collections.value.filter(
     (collection) => collectionsStore.collectionsCount[collection.collectionId] > 0
   );
   collectionsStore.setSelectedCollections(selectedCollections.value);
-};
+}
 
 
 </script>
+
+<style scoped>
+.topic-chip {
+  @apply inline-flex max-w-full items-center gap-1.5 rounded-full border border-line bg-surface-2/80 py-0.5 pl-2 pr-1 text-xs text-fg;
+}
+.topic-chip__remove {
+  @apply grid h-4 w-4 place-items-center rounded-full text-fg-faint transition-colors hover:bg-hero-red/15 hover:text-hero-red;
+}
+</style>

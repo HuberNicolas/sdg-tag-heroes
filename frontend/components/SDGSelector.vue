@@ -1,46 +1,44 @@
 <template>
   <div class="frame-container">
     <div class="frame-title"><b>Identify & Explore</b> AI Reasoning: Select an SDG to Reveal its Justification</div>
-    <div>
-      <!-- SDG Cards -->
-      <div class="flex flex-wrap gap-1 p-1">
-        <div
-          v-for="sdg in sdgs"
-          :key="sdg.id"
-          :class="[
-          'cursor-pointer flex flex-col items-center justify-center rounded-lg p-2 w-12 h-12 transition-all duration-200',
-          selectedSDG === sdg.id
-            ? 'bg-muted-strong border-2 border-fg' // Selected state
-            : 'bg-surface hover:bg-muted border-2 border-transparent hover:border-line', // Default and hover states
-        ]"
-          @click="selectSDG(sdg.id)"
-        >
-          <!-- SDG Icon -->
-          <img
-            v-if="sdg.icon"
-            :src="`data:image/svg+xml;base64,${sdg.icon}`"
-            :alt="`SDG ${sdg.id} Icon`"
-            class="w-10 h-10 object-contain"
-          >
-          <!-- SDG Short Title -->
-          <span class="text-xs text-center mt-1">
-          {{ sdg.shortTitle }}
-        </span>
-        </div>
-      </div>
+    <!-- One hexagon chip per SDG; the bar below shows the machine score of this publication -->
+    <div class="sdg-chips" :class="{ 'has-selection': !!selectedSDG }" role="radiogroup" aria-label="SDG">
+      <button
+        v-for="sdg in sdgs"
+        :key="sdg.id"
+        type="button"
+        role="radio"
+        :aria-checked="selectedSDG === sdg.id"
+        class="sdg-chip"
+        :class="{ 'is-selected': selectedSDG === sdg.id }"
+        :style="{ '--sdg': sdg.color }"
+        :title="`SDG ${sdg.id} · ${sdg.shortTitle}${machineScore(sdg.id) !== null ? ` · machine score ${machineScore(sdg.id)!.toFixed(2)}` : ''}`"
+        @click="selectSDG(sdg.id)"
+      >
+        <span class="sdg-chip__hex hex-clip">{{ sdg.id }}</span>
+        <span class="sdg-chip__name">{{ sdg.shortTitle }}</span>
+        <span class="sdg-chip__bar"><span :style="{ width: `${Math.round((machineScore(sdg.id) ?? 0) * 100)}%` }" /></span>
+      </button>
     </div>
   </div>
 </template>
 
-
-
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useSDGsStore } from "~/stores/sdgs";
+import { useSDGPredictionsStore } from "~/stores/sdgPredictions";
 import { baseSdgShortTitles } from "~/constants/sdgs";
 
 const sdgsStore = useSDGsStore();
 const selectedSDG = computed(() => sdgsStore.getSelectedSDG);
+const sdgPredictionsStore = useSDGPredictionsStore();
+
+// Machine score of this publication for an SDG (0–1), shown as a small bar under the chip
+const machineScore = (sdgId: number): number | null => {
+  const prediction = sdgPredictionsStore.labelingSDGPrediction as Record<string, number> | null;
+  const value = prediction?.[`sdg${sdgId}`];
+  return typeof value === "number" ? value : null;
+};
 
 // Fetch SDGs on mount
 onMounted(async () => {
@@ -68,3 +66,40 @@ const selectSDG = (sdgId: number) => {
   }
 };
 </script>
+
+<style scoped>
+.sdg-chips {
+  @apply grid grid-cols-[repeat(auto-fill,minmax(3.4rem,1fr))] gap-1.5;
+}
+.sdg-chip {
+  @apply flex flex-col items-center gap-1 rounded-lg border border-transparent px-1 pb-1.5 pt-1 transition-all duration-200;
+}
+.sdg-chip:hover {
+  @apply border-line bg-muted/60;
+}
+.has-selection .sdg-chip:not(.is-selected) {
+  @apply opacity-45 hover:opacity-100;
+}
+.sdg-chip.is-selected {
+  border-color: var(--sdg);
+  background: color-mix(in srgb, var(--sdg) 14%, transparent);
+  box-shadow: 0 6px 18px -10px var(--sdg);
+}
+.sdg-chip__hex {
+  @apply grid h-7 w-8 place-items-center font-mono text-[11px] font-bold text-white;
+  background: var(--sdg);
+}
+.sdg-chip__name {
+  @apply w-full truncate text-center text-[10px] leading-none text-fg-dim;
+}
+.sdg-chip.is-selected .sdg-chip__name {
+  @apply font-semibold text-fg;
+}
+.sdg-chip__bar {
+  @apply block h-1 w-full overflow-hidden rounded-full bg-muted-strong;
+}
+.sdg-chip__bar span {
+  @apply block h-full rounded-full transition-[width] duration-500;
+  background: var(--sdg);
+}
+</style>

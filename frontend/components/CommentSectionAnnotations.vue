@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="frame-title"><b>Browse</b> Community Annotations: Read & Engage with Shared Insights</div>
-    <div v-if="isLoading" class="text-fg-dim">Loading...</div>
+    <LoadingState v-if="isLoading" label="loading labels" />
 
     <div v-if="error">Be the first user to make an annotation.</div>
 
