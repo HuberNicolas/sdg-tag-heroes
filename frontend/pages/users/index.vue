@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-bold mb-6">User List</h1>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-blue-500 text-lg">
+    <div v-if="loading" class="text-accent text-lg">
       Loading users...
     </div>
 
@@ -18,7 +18,7 @@
         <li
           v-for="user in users"
           :key="user.user_id"
-          class="flex items-center p-4 border border-gray-300 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+          class="flex items-center p-4 border border-line rounded-lg  hover:shadow-panel transition-shadow"
         >
           <router-link :to="`/users/${user.user_id}`" class="flex items-center w-full">
             <!-- Avatar -->
@@ -34,7 +34,7 @@
             <div class="flex-grow">
               <p class="font-semibold text-lg">
                 {{ user.email }}
-                <span v-if="user.roles.length > 0" class="text-sm text-gray-600 ml-1">
+                <span v-if="user.roles.length > 0" class="text-sm text-fg-dim ml-1">
                   - Roles: {{ user.roles.join(", ") }}
                 </span>
               </p>
@@ -55,7 +55,7 @@
       </ul>
 
       <!-- No Users Found -->
-      <p v-else class="text-gray-600 text-center text-lg">No users found.</p>
+      <p v-else class="text-fg-dim text-center text-lg">No users found.</p>
     </div>
   </div>
 </template>

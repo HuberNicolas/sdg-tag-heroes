@@ -9,22 +9,22 @@
     </div>
 
     <!-- Divider: annotate above, label below -->
-    <div class="flex-none flex items-center gap-3 border-y-4 border-gray-400 px-3 py-2">
+    <div class="flex-none flex items-center gap-3 border-y-4 border-line-strong px-3 py-2">
       <div class="flex flex-col items-start gap-1">
         <div class="flex items-center gap-2">
-          <Icon class="w-6 h-6 text-gray-400" name="heroicons-outline:arrow-up" />
-          <span class="text-gray-600 text-sm font-semibold"><b>Annotate</b> Publication</span>
-          <Icon class="w-6 h-6 text-gray-400" name="heroicons-outline:pencil-alt" />
+          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:arrow-up" />
+          <span class="text-fg-dim text-sm font-semibold"><b>Annotate</b> Publication</span>
+          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:pencil-alt" />
         </div>
-        <p class="text-xs text-gray-500">Provide insights on the machine explanation.</p>
+        <p class="text-xs text-fg-dim">Provide insights on the machine explanation.</p>
       </div>
-      <span class="flex-1 text-center text-gray-700 font-bold text-sm">and</span>
+      <span class="flex-1 text-center text-fg font-bold text-sm">and</span>
       <div class="flex flex-col items-end gap-1">
-        <p class="text-xs text-gray-500">Label the publication with an SDG.</p>
+        <p class="text-xs text-fg-dim">Label the publication with an SDG.</p>
         <div class="flex items-center gap-2">
-          <Icon class="w-6 h-6 text-gray-400" name="heroicons-outline:tag" />
-          <span class="text-gray-600 text-sm font-semibold"><b>Label</b> Publication</span>
-          <Icon class="w-6 h-6 text-gray-400" name="heroicons-outline:arrow-down" />
+          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:tag" />
+          <span class="text-fg-dim text-sm font-semibold"><b>Label</b> Publication</span>
+          <Icon class="w-6 h-6 text-fg-faint" name="heroicons-outline:arrow-down" />
         </div>
       </div>
     </div>

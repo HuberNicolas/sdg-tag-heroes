@@ -136,7 +136,7 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .style("pointer-events", "none")
     .style("position", "absolute")
     .style("padding", "8px")
-    .style("background-color", "rgba(255, 255, 255, 0.95)")
+    .style("background-color", "rgb(var(--c-surface))")
     .style("border-radius", "4px")
     .style("font-size", "14px")
     .style("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
@@ -208,7 +208,7 @@ export function updateLabelDistributionBarPlot(container, labelDistribution, wid
     .attr("x", d => x(d.label === -1 ? 'Not relevant' : `SDG ${d.label}`) + x.bandwidth() / 2)
     .attr("y", d => y(d.count) - 5) // Position above the bar
     .attr("text-anchor", "middle")
-    .attr("fill", "#000") // Keep text black for visibility
+    .attr("fill", "rgb(var(--c-fg))")
     .attr("font-size", "12px")
     .attr("font-weight", "bold")
     .text(d => d.count);
@@ -230,6 +230,6 @@ function displayNoLabelsMessage(container, width, height) {
     .attr("y", height / 2)
     .attr("text-anchor", "middle")
     .attr("font-size", "18px")
-    .attr("fill", "#333")
+    .attr("fill", "rgb(var(--c-fg-dim))")
     .text("No Labels available");
 }

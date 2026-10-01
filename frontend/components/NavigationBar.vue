@@ -1,26 +1,26 @@
 <template>
-  <nav class="w-full min-h-16 bg-white border-b border-gray-200 shadow-sm flex items-center">
-    <div v-if="loading" class="flex justify-center items-center w-full h-16">
+  <nav class="relative z-20 w-full min-h-[var(--nav-h)] flex items-center border-b border-line bg-surface/70 backdrop-blur-xl">
+    <div v-if="loading" class="flex justify-center items-center gap-3 w-full h-[var(--nav-h)] font-mono text-sm text-fg-dim">
       <Icon
         :name="loadingHexagon"
-        class="w-10 h-10 text-gray-500 transition-all animate-pulse"
+        class="w-7 h-7 text-accent transition-all"
       />
-      <span class="ml-2 text-gray-500">Loading...</span>
+      <span>loading<span class="animate-blink">_</span></span>
     </div>
 
-    <div v-else class="w-full max-w-[2560px] mx-auto flex flex-wrap justify-between items-center gap-x-6 gap-y-2 px-4 py-2 text-sm">
+    <div v-else class="w-full max-w-[2560px] mx-auto flex flex-wrap justify-between items-center gap-x-4 gap-y-2 px-4 py-2 text-sm">
       <UModal v-model="isXPModalOpen">
-        <div class="p-8 bg-white rounded-xl shadow-2xl flex flex-col items-center text-center space-y-6 max-w-2xl w-full animate-fade-in scale-105 relative">
+        <div class="p-8 bg-surface rounded-xl shadow-panel flex flex-col items-center text-center space-y-6 max-w-2xl w-full animate-fade-in scale-105 relative">
 
           <!-- Large Community / Awareness Icon -->
           <div class="relative flex items-center justify-center">
             <Icon
               name="line-md:group"
-              class="w-[160px] h-[160px] text-gray-600 opacity-10 absolute"
+              class="w-[160px] h-[160px] text-fg-dim opacity-10 absolute"
             />
 
             <!-- SDG Icon (Smaller) -->
-            <div v-if="xpModalContent?.sdg" class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-4 z-10" :style="{ borderColor: sdgModalColor }">
+            <div v-if="xpModalContent?.sdg" class="w-20 h-20 bg-muted rounded-lg flex items-center justify-center border-4 z-10" :style="{ borderColor: sdgModalColor }">
               <img
                 :src="getSdgIconSrc(xpModalContent.sdg)"
                 :alt="`SDG ${xpModalContent.sdg} Icon`"
@@ -30,42 +30,42 @@
           </div>
 
           <!-- Title -->
-          <h2 v-if="xpModalContent?.title" class="text-3xl font-bold text-gray-900 relative z-10">
+          <h2 v-if="xpModalContent?.title" class="text-3xl font-bold text-fg relative z-10">
             {{ xpModalContent.title }}
           </h2>
 
           <!-- Contribution Message -->
-          <h3 class="text-2xl font-semibold text-gray-800 relative z-10">
+          <h3 class="text-2xl font-semibold text-fg relative z-10">
             Your Labeling Helps Build a Smarter & More Sustainable Future!
           </h3>
 
           <!-- XP Earned Description -->
-          <p v-if="xpModalContent?.description" class="text-lg text-gray-700 leading-relaxed relative z-10">
+          <p v-if="xpModalContent?.description" class="text-lg text-fg leading-relaxed relative z-10">
             {{ xpModalContent.description }}
           </p>
 
           <!-- Additional Awareness / Community Message -->
-          <p class="text-md text-gray-600 italic relative z-10">
+          <p class="text-md text-fg-dim italic relative z-10">
             Through your participation, you're increasing <b>SDG awareness</b>, improving <b>AI training</b>, and empowering a <b>global community</b> of citizen scientists.
           </p>
 
           <!-- Player Rank Section -->
           <div v-if="playerRankData" class="flex flex-col items-center mt-4 relative z-10">
-            <p class="text-lg font-semibold text-gray-800">
+            <p class="text-lg font-semibold text-fg">
               Your Rank in SDG {{ xpModalContent?.sdg.replace('sdg', '') }}
             </p>
 
-            <div class="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg shadow-md">
+            <div class="flex items-center space-x-3 p-3 bg-muted rounded-lg shadow-panel">
               <Icon v-if="playerRankData.tier === 1" name="line-md:chevron-up" class="w-6 h-6" :style="{ color: sdgModalColor }" />
               <Icon v-else-if="playerRankData.tier === 2" name="line-md:chevron-double-up" class="w-6 h-6" :style="{ color: sdgModalColor }" />
               <Icon v-else-if="playerRankData.tier === 3" name="line-md:chevron-triple-up" class="w-6 h-6" :style="{ color: sdgModalColor }" />
-              <Icon v-else name="line-md:minus" class="w-6 h-6 text-gray-400" />
+              <Icon v-else name="line-md:minus" class="w-6 h-6 text-fg-faint" />
 
               <span class="px-3 py-1 rounded-lg text-white text-sm font-semibold" :style="{ backgroundColor: sdgModalColor }">
           {{ playerRankData.name }}
         </span>
 
-              <span class="text-lg font-semibold text-gray-800">
+              <span class="text-lg font-semibold text-fg">
           Tier {{ playerRankData.tier }}
         </span>
             </div>
@@ -73,7 +73,7 @@
 
           <!-- XP Earned Display -->
           <div v-if="xpModalContent?.increment" class="flex flex-col items-center mt-4 relative z-10">
-            <p class="text-lg font-semibold text-gray-800">Experience Points Earned</p>
+            <p class="text-lg font-semibold text-fg">Experience Points Earned</p>
             <span class="text-2xl font-bold" :style="{ color: sdgModalColor }">
         {{ Math.round(xpModalContent.increment) }} XP
       </span>
@@ -89,7 +89,7 @@
           />
 
           <!-- Closing Note -->
-          <p class="text-sm text-gray-500 italic relative z-10">
+          <p class="text-sm text-fg-dim italic relative z-10">
             Your contributions fuel AI-driven sustainability efforts while rewarding you with knowledge & recognition!
           </p>
 
@@ -105,10 +105,10 @@
 
 
       <UModal v-model="isCoinModalOpen">
-        <div class="p-8 bg-white rounded-xl shadow-2xl flex flex-col items-center text-center space-y-6 max-w-2xl w-full animate-fade-in scale-105 relative">
+        <div class="p-8 bg-surface rounded-xl shadow-panel flex flex-col items-center text-center space-y-6 max-w-2xl w-full animate-fade-in scale-105 relative">
 
           <!-- Title -->
-          <h2 v-if="coinModalContent?.title" class="text-3xl font-bold text-gray-900 relative z-10 mb-4">
+          <h2 v-if="coinModalContent?.title" class="text-3xl font-bold text-fg relative z-10 mb-4">
             {{ coinModalContent.title }}
           </h2>
 
@@ -116,11 +116,11 @@
           <div class="relative flex items-center justify-center p-4">
             <Icon
               name="line-md:document"
-              class="w-[200px] h-[200px] text-gray-600 opacity-10 absolute"
+              class="w-[200px] h-[200px] text-fg-dim opacity-10 absolute"
             />
 
             <!-- SDG Icon (Smaller) -->
-            <div v-if="coinModalContent?.sdg" class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-4 z-10">
+            <div v-if="coinModalContent?.sdg" class="w-20 h-20 bg-muted rounded-lg flex items-center justify-center border-4 z-10">
               <img
                 :src="getSdgIconSrc(coinModalContent.sdg)"
                 :alt="`SDG ${coinModalContent.sdg} Icon`"
@@ -132,17 +132,17 @@
 
 
           <!-- Contribution Message -->
-          <h3 v-if="coinModalContent?.title" class="text-2xl font-semibold text-gray-800 relative z-10">
+          <h3 v-if="coinModalContent?.title" class="text-2xl font-semibold text-fg relative z-10">
             Your Contribution Makes a Difference!
           </h3>
 
           <!-- Coin Earned Description -->
-          <p v-if="coinModalContent?.description" class="text-lg text-gray-700 leading-relaxed relative z-10">
+          <p v-if="coinModalContent?.description" class="text-lg text-fg leading-relaxed relative z-10">
             {{ coinModalContent.description }}
           </p>
 
           <!-- Additional Value Proposition -->
-          <p class="text-md text-gray-600 italic relative z-10">
+          <p class="text-md text-fg-dim italic relative z-10">
             By participating in labeling, you helped train machine models and advance scientific research while earning rewards!
           </p>
 
@@ -155,7 +155,7 @@
           </div>
 
           <!-- Closing Note -->
-          <p class="text-sm text-gray-500 italic relative z-10">
+          <p class="text-sm text-fg-dim italic relative z-10">
             Keep labeling and earning—your contributions fuel AI training & SDG research!
           </p>
 
@@ -171,165 +171,170 @@
 
 
 
-      <div class="flex items-center space-x-6">
-        <NuxtLink
-          v-for="(link, index) in links.slice(0, 1)"
-          :key="index"
-          :to="link.to || '#'"
-          class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-primary"
-        >
-          <component :is="link.icon" v-if="typeof link.icon === 'string'" class="w-5 h-5" />
-          <component :is="link.icon" v-else class="w-5 h-5" />
-          <span>{{ link.label }}</span>
-        </NuxtLink>
-    </div>
+      <!-- Brand: leads back to the game modes -->
+      <NuxtLink
+        v-for="(link, index) in links.slice(0, 1)"
+        :key="index"
+        :to="link.to || '#'"
+        class="group flex items-center gap-2.5"
+        :title="link.label"
+      >
+        <span class="nav-logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path d="M16 3.5 26.8 9.75v12.5L16 28.5 5.2 22.25V9.75Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <path d="M16 10.5 20.8 13.25v5.5L16 21.5l-4.8-2.75v-5.5Z" fill="currentColor" />
+          </svg>
+        </span>
+        <span class="flex flex-col leading-none">
+          <span class="font-pixel text-[10px] text-fg">SDG Tag Heroes</span>
+          <span class="mt-1.5 hidden xl:block font-mono text-[11px] text-fg-dim transition-colors group-hover:text-accent">
+            ← {{ link.label.toLowerCase() }}
+          </span>
+        </span>
+      </NuxtLink>
 
-      <!-- World Display -->
-      <div v-if="gameStore.getSDG" class="flex items-center space-x-4">
-        <span>World:</span>
-        <div class="w-8 h-8 flex items-center justify-center">
+      <!-- Where the player is: world, level and stage -->
+      <div class="flex items-center gap-1 rounded-full border border-line bg-surface/70 p-1 font-mono text-xs">
+        <div v-if="gameStore.getSDG" class="nav-ctx" title="SDG world">
+          <span class="nav-ctx__key">world</span>
           <img
             :src="sdgIconSrc"
             :alt="`SDG ${gameStore.getSDG} Icon`"
-            class="w-full h-full object-contain"
+            class="w-6 h-6 rounded-md object-contain"
           >
         </div>
-      </div>
 
-      <!-- Level Display -->
-      <div v-if="gameStore.getLevel" class="flex items-center space-x-4">
-        <span>Level:</span>
-        <div class="flex items-end space-x-1">
-          <!-- Render podium steps based on the level -->
+        <div v-if="gameStore.getLevel" class="nav-ctx" title="Level">
+          <span class="nav-ctx__key">level</span>
           <template v-if="gameStore.getLevel === 1">
-            <UIcon name="mdi-signal-cellular-1" class="w-10 h-10" :style="{ color: sdgColor }" />
+            <UIcon name="mdi-signal-cellular-1" class="w-5 h-5" :style="{ color: sdgColor }" />
           </template>
           <template v-else-if="gameStore.getLevel === 2">
-            <UIcon name="mdi-signal-cellular-2" class="w-10 h-10" :style="{ color: sdgColor }" />
+            <UIcon name="mdi-signal-cellular-2" class="w-5 h-5" :style="{ color: sdgColor }" />
           </template>
           <template v-else-if="gameStore.getLevel === 3">
-            <UIcon name="mdi-signal-cellular-3" class="w-10 h-10" :style="{ color: sdgColor }" />
+            <UIcon name="mdi-signal-cellular-3" class="w-5 h-5" :style="{ color: sdgColor }" />
           </template>
         </div>
-        <!--        <span
-          class="px-3 py-1 rounded-md border font-semibold"
-          :class="getLevelClass(gameStore.getLevel)"
-        >
-    {{ getRomanLevel(gameStore.getLevel) }}
-        </span> -->
+
+        <div class="nav-ctx" title="Stage">
+          <span class="nav-ctx__key">stage</span>
+          <span class="flex items-center gap-1 font-medium text-fg">
+            <template v-if="gameStore.getStage === 'Exploring'">
+              <Icon name="mdi-person-search" class="text-accent" /> {{ gameStore.getStage }}
+            </template>
+            <template v-else-if="gameStore.getStage === 'Labeling'">
+              <Icon name="mdi-tag-outline" class="text-accent" /> {{ gameStore.getStage }}
+            </template>
+            <template v-else-if="gameStore.getStage === 'Voting'">
+              <Icon name="mdi-vote" class="text-accent" /> {{ gameStore.getStage }}
+            </template>
+            <template v-else>
+              {{ gameStore.getStage || '—' }}
+            </template>
+          </span>
+        </div>
       </div>
 
-      <div class="flex items-center space-x-4">
-        <span>Stage:</span>
-        <span class="font-semibold">
-          <template v-if="gameStore.getStage === 'Exploring'">
-            <Icon name="mdi-person-search" /> {{ gameStore.getStage }}
-          </template>
-          <template v-else-if="gameStore.getStage === 'Labeling'">
-            <Icon name="mdi-tag-outline" /> {{ gameStore.getStage }}
-          </template>
-          <template v-else-if="gameStore.getStage === 'Voting'">
-            <Icon name="mdi-vote" /> {{ gameStore.getStage }}
-          </template>
-          <template v-else>
-            {{ gameStore.getStage }}
-          </template>
+      <!-- Wallet: XP and coins -->
+      <div class="flex items-center gap-2">
+        <span
+          v-for="(link, index) in links.slice(1, 3)"
+          :key="index"
+          class="stat-pill"
+        >
+          <Icon :name="index === 0 ? 'mdi-star-four-points-outline' : 'mdi-hexagon-multiple-outline'" class="w-3.5 h-3.5 text-accent" />
+          <span class="hidden 2xl:inline">{{ link.label.split(': ')[0] }}</span>
+          <span class="2xl:hidden">{{ index === 0 ? 'xp' : 'coins' }}</span>
+          <b>{{ link.label.split(': ')[1] }}</b>
         </span>
       </div>
 
-      <div
-        v-for="(link, index) in links.slice(1, 3)"
-        :key="index"
-        class="flex items-center space-x-2 text-sm font-medium text-gray-700"
-      >
-        <span>{{ link.label }}</span>
-      </div>
-
-      <div class="flex items-center gap-4">
-      <div>Your Top SDGs:</div>
-      <div
-        v-for="(link, index) in links.slice(3)"
-        :key="index"
-        class="flex flex-col items-center space-y-1"
-      >
-        <NuxtLink :to="{ path: `/exploration/sdgs/${link.to}/1` }">
-          <!-- Dynamic SDG Icon -->
-          <!-- Title -->
-          <div class="w-8 h-8 flex items-center justify-center">
-            <img
-              v-if="link.icon"
-              :src="`data:image/svg+xml;base64,${link.icon}`"
-              :alt="`SDG ${index + 1} Icon`"
-              class="w-full h-full object-contain"
-            >
-          </div>
-
-          <!-- Label -->
-          <span class="text-xs font-medium text-gray-600">
-              {{ link.label }}
-            </span>
+      <!-- Top SDGs by XP -->
+      <div class="flex items-center gap-2">
+        <span class="hidden xl:inline font-mono text-[11px] text-fg-faint">top_sdgs</span>
+        <NuxtLink
+          v-for="(link, index) in links.slice(3)"
+          :key="index"
+          :to="{ path: `/exploration/sdgs/${link.to}/1` }"
+          class="group flex items-center gap-1.5 rounded-lg border border-line bg-surface/70 py-0.5 pl-0.5 pr-2 transition-all hover:-translate-y-0.5 hover:border-line-strong"
+          :title="`SDG ${link.to}`"
+        >
+          <img
+            v-if="link.icon"
+            :src="`data:image/svg+xml;base64,${link.icon}`"
+            :alt="`SDG ${index + 1} Icon`"
+            class="w-6 h-6 rounded-md object-contain"
+          >
+          <span class="font-mono text-[11px] text-fg-dim group-hover:text-fg">{{ link.label }}</span>
         </NuxtLink>
       </div>
-      </div>
 
-      <!-- Right Section: Avatar -->
-      <div class="flex items-center space-x-6">
-
-        <div v-if="gameStore.getSDG" class="flex flex-col items-start ml-4">
-          <span v-if="currentRank" class="font-semibold text-gray-700 whitespace-nowrap">
-            {{ currentRank.name }}
-          </span>
-        </div>
-
-        <div v-if="gameStore.getSDG" class="flex flex-col items-start ml-4">
-          <span v-if="currentRank" class="text-sm text-gray-500 whitespace-nowrap">
-            Tier {{ currentRank.tier }}
-          </span>
-        </div>
-
-        <div v-if="gameStore.getSDG" class="flex flex-col items-start ml-4">
+      <!-- Right: rank, avatar, about, theme and help -->
+      <div class="flex items-center gap-2">
+        <div
+          v-if="gameStore.getSDG && currentRank"
+          class="flex items-center gap-1.5 rounded-full border border-line bg-surface/70 py-1 pl-2 pr-3"
+          :title="`Your rank in this SDG world: ${currentRank.name}`"
+        >
           <!-- Rank Symbol (Chevron Icons) -->
           <Icon
             v-if="currentRank?.tier === 1"
             name="line-md:chevron-up"
             :style="{ color: sdgColor }"
-            class="w-6 h-6"
+            class="w-5 h-5"
           />
           <Icon
             v-else-if="currentRank?.tier === 2"
             name="line-md:chevron-double-up"
             :style="{ color: sdgColor }"
-            class="w-6 h-6"
+            class="w-5 h-5"
           />
           <Icon
             v-else-if="currentRank?.tier === 3"
             name="line-md:chevron-triple-up"
             :style="{ color: sdgColor }"
-            class="w-6 h-6"
+            class="w-5 h-5"
           />
-          <Icon v-else name="line-md:minus" class="text-gray-400 w-6 h-6" />
+          <Icon v-else name="line-md:minus" class="text-fg-faint w-5 h-5" />
+          <span class="hidden 2xl:inline font-semibold text-fg whitespace-nowrap">{{ currentRank.name }}</span>
+          <span class="font-mono text-[11px] text-fg-dim whitespace-nowrap">tier {{ currentRank.tier }}</span>
         </div>
 
-        <NuxtLink :to="{ path: `/users/${userStore.getCurrentUser?.userId}`}"  class="flex items-center space-x-2">
-          <div class="user-avatar">
-            <UAvatar
-              v-if="userStore.getCurrentUser?.email"
-              size="sm"
-              :src="generateAvatar(userStore.getCurrentUser.email)"
-              alt="Avatar"
-            />
-            <div v-else class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-              <span class="text-gray-500">No Avatar</span>
-            </div>
+        <NuxtLink
+          :to="{ path: `/users/${userStore.getCurrentUser?.userId}`}"
+          class="rounded-full ring-1 ring-line transition hover:ring-2 hover:ring-accent"
+          title="Your profile"
+        >
+          <UAvatar
+            v-if="userStore.getCurrentUser?.email"
+            size="sm"
+            :src="generateAvatar(userStore.getCurrentUser.email)"
+            alt="Avatar"
+          />
+          <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+            <Icon name="mdi-account" class="text-fg-dim" />
           </div>
         </NuxtLink>
 
-        <NuxtLink to="/about" class="text-sm font-medium text-gray-600 hover:text-gray-900">About</NuxtLink>
+        <NuxtLink to="/about" class="nav-icon-btn" title="About">
+          <Icon name="mdi-information-outline" class="w-[18px] h-[18px]" />
+        </NuxtLink>
 
-        <div class="drawer drawer-end z-10">
+        <button
+          type="button"
+          class="nav-icon-btn"
+          :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+          :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+          @click="toggleColorMode"
+        >
+          <Icon :name="isDark ? 'line-md:sunny-outline' : 'line-md:moon'" class="w-[18px] h-[18px]" />
+        </button>
+
+        <div class="drawer drawer-end z-30 !w-auto">
           <input id="drawer-help" type="checkbox" class="drawer-toggle hidden" >
           <div class="drawer-content">
-            <UButton size="sm" color="primary" variant="solid" onclick="document.getElementById('drawer-help').checked = true;">
+            <UButton size="sm" color="primary" variant="solid" icon="i-mdi-help-hexagon-outline" onclick="document.getElementById('drawer-help').checked = true;">
               Help
             </UButton>
           </div>
@@ -341,50 +346,50 @@
               <UDivider label="SDG Cheatsheet" size="xl" />
               <SDGSelectorHelp/>
               <UDivider label="How to Label" size="xl" />
-              <div class="flex flex-col gap-1.5 p-3 border rounded-lg bg-gray-50 text-sm w-full">
-                <h3 class="font-semibold text-gray-700 flex items-center gap-1.5">
-                  <Icon name="mdi-scale-balance" class="w-4 h-4 text-gray-500" /> How to Decide
+              <div class="flex flex-col gap-1.5 p-3 border rounded-lg bg-surface-2 text-sm w-full">
+                <h3 class="font-semibold text-fg flex items-center gap-1.5">
+                  <Icon name="mdi-scale-balance" class="w-4 h-4 text-fg-dim" /> How to Decide
                 </h3>
 
                 <div class="flex items-center gap-1.5">
-                  <Icon name="mdi-book-open-variant" class="w-4 h-4 text-gray-500" />
+                  <Icon name="mdi-book-open-variant" class="w-4 h-4 text-fg-dim" />
                   <span>Check title & abstract</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                  <Icon name="mdi-earth" class="w-4 h-4 text-gray-500" />
+                  <Icon name="mdi-earth" class="w-4 h-4 text-fg-dim" />
                   <span>Does the research have positive impact on people or nature?</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                  <Icon name="mdi-lightbulb-on-outline" class="w-4 h-4 text-gray-500" />
+                  <Icon name="mdi-lightbulb-on-outline" class="w-4 h-4 text-fg-dim" />
                   <span>AI suggests SDGs</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                  <Icon name="mdi-account-group" class="w-4 h-4 text-gray-500" />
+                  <Icon name="mdi-account-group" class="w-4 h-4 text-fg-dim" />
                   <span>See community labels</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                  <Icon name="mdi-check-circle-outline" class="w-4 h-4 text-gray-500" />
+                  <Icon name="mdi-check-circle-outline" class="w-4 h-4 text-fg-dim" />
                   <span><b>Yes</b> → Clear SDG link</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                  <Icon name="mdi-close-circle-outline" class="w-4 h-4 text-gray-500" />
+                  <Icon name="mdi-close-circle-outline" class="w-4 h-4 text-fg-dim" />
                   <span><b>No</b> → Unclear or unrelated</span>
                 </div>
               </div>
               <!-- <h1 class="text-lg font-bold mb-4 text-center w-full">Situations</h1> -->
               <UDivider label="Situations" size="xl" />
-              <div class="flex flex-col gap-4 p-4 bg-gray-50 border rounded-md text-sm">
+              <div class="flex flex-col gap-4 p-4 bg-surface-2 border rounded-md text-sm">
 
                 <!-- Context Overview -->
-                <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                  <Icon name="mdi-map-search-outline" class="w-6 h-6 text-gray-700 mb-2" />
-                  <h3 class="font-semibold text-gray-700">How It Works</h3>
-                  <p class="text-gray-600">
+                <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                  <Icon name="mdi-map-search-outline" class="w-6 h-6 text-fg mb-2" />
+                  <h3 class="font-semibold text-fg">How It Works</h3>
+                  <p class="text-fg-dim">
                     Start in an exploration space with many publications and SDGs.
                     Your goal is to <b>drill down step-by-step</b> until you reach a single publication that can be labeled.
                     There are <b>multiple paths</b> possible.
@@ -392,10 +397,10 @@
                 </div>
 
                 <!-- Decide the Game Mode -->
-                <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                  <Icon name="mdi-map-search-outline" class="w-6 h-6 text-gray-700 mb-2" />
-                  <h3 class="font-semibold text-gray-700">Different Game Modes</h3>
-                  <p class="text-gray-600">
+                <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                  <Icon name="mdi-map-search-outline" class="w-6 h-6 text-fg mb-2" />
+                  <h3 class="font-semibold text-fg">Different Game Modes</h3>
+                  <p class="text-fg-dim">
                     You can decide between two game modes: Game Mode <b>SDG Specialization</b> and Game Mode <b>Open World Exploration</b>
                   </p>
                 </div>
@@ -404,46 +409,46 @@
                 <div class="grid grid-cols-2 gap-4">
 
                   <!-- Scenario 1: SDG Specialization -->
-                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="mdi-target" class="w-6 h-6 text-gray-700 mb-2" />
-                    <h3 class="font-semibold text-gray-700"><b>SDG Specialization</b></h3>
-                    <p class="text-gray-600">Choose <b>one specific SDG</b> and focus only on publications relevant to that goal.</p>
+                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                    <Icon name="mdi-target" class="w-6 h-6 text-fg mb-2" />
+                    <h3 class="font-semibold text-fg"><b>SDG Specialization</b></h3>
+                    <p class="text-fg-dim">Choose <b>one specific SDG</b> and focus only on publications relevant to that goal.</p>
                   </div>
 
                   <!-- Scenario 2: Open World Exploration -->
-                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="mdi-earth" class="w-6 h-6 text-gray-700 mb-2" />
-                    <h3 class="font-semibold text-gray-700"><b>Open World Exploration</b></h3>
-                    <p class="text-gray-600">Browse freely across <b>all SDGs</b>, discovering broader research connections.</p>
+                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                    <Icon name="mdi-earth" class="w-6 h-6 text-fg mb-2" />
+                    <h3 class="font-semibold text-fg"><b>Open World Exploration</b></h3>
+                    <p class="text-fg-dim">Browse freely across <b>all SDGs</b>, discovering broader research connections.</p>
                   </div>
 
                   <!-- Many Publications, One SDG -->
-                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="mdi-format-list-bulleted" class="w-6 h-6 text-gray-700 mb-2" />
-                    <h3 class="font-semibold text-gray-700">Focused Search</h3>
-                    <p class="text-gray-600">Drill down into a single SDG, filtering out publications that are unrelated.</p>
+                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                    <Icon name="mdi-format-list-bulleted" class="w-6 h-6 text-fg mb-2" />
+                    <h3 class="font-semibold text-fg">Focused Search</h3>
+                    <p class="text-fg-dim">Drill down into a single SDG, filtering out publications that are unrelated.</p>
                   </div>
 
                   <!-- Many Publications, All SDGs -->
-                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="mdi-layers-outline" class="w-6 h-6 text-gray-700 mb-2" />
-                    <h3 class="font-semibold text-gray-700">Broad Overview</h3>
-                    <p class="text-gray-600">Analyze a wide set of publications across all SDGs to identify patterns and trends.</p>
+                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                    <Icon name="mdi-layers-outline" class="w-6 h-6 text-fg mb-2" />
+                    <h3 class="font-semibold text-fg">Broad Overview</h3>
+                    <p class="text-fg-dim">Analyze a wide set of publications across all SDGs to identify patterns and trends.</p>
                   </div>
 
                   <!-- One Publication, One SDG -->
-                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="mdi-check-circle-outline" class="w-6 h-6 text-gray-700 mb-2" />
-                    <h3 class="font-semibold text-gray-700">Final Labeling</h3>
-                    <p class="text-gray-600">You’ve reached a single publication. Now it’s time to make the final SDG decision.</p>
+                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                    <Icon name="mdi-check-circle-outline" class="w-6 h-6 text-fg mb-2" />
+                    <h3 class="font-semibold text-fg">Final Labeling</h3>
+                    <p class="text-fg-dim">You’ve reached a single publication. Now it’s time to make the final SDG decision.</p>
                   </div>
 
 
                   <!-- One Publication, All SDGs -->
-                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-white shadow">
-                    <Icon name="mdi-bookshelf" class="w-6 h-6 text-gray-700 mb-2" />
-                    <h3 class="font-semibold text-gray-700">Multi-SDG Impact</h3>
-                    <p class="text-gray-600">Examine a single publication and determine if it contributes to any of the SDGs.</p>
+                  <div class="flex flex-col items-center text-center p-3 border rounded-md bg-surface shadow-panel">
+                    <Icon name="mdi-bookshelf" class="w-6 h-6 text-fg mb-2" />
+                    <h3 class="font-semibold text-fg">Multi-SDG Impact</h3>
+                    <p class="text-fg-dim">Examine a single publication and determine if it contributes to any of the SDGs.</p>
                   </div>
 
                 </div>
@@ -475,6 +480,13 @@ import { generateAvatar } from "~/utils/avatar";
 import { usePublicationsStore } from "~/stores/publications";
 
 const publicationsStore = usePublicationsStore();
+
+// Light / dark theme switch
+const colorMode = useColorMode();
+const isDark = computed(() => colorMode.value === "dark");
+const toggleColorMode = () => {
+  colorMode.preference = isDark.value ? "light" : "dark";
+};
 
 const getPublicationTitle = async (publicationId: number): Promise<string> => {
   try {
@@ -801,3 +813,29 @@ onMounted(() => {
   }, 10000); // Check every minute
 });
 </script>
+
+<style scoped>
+.nav-logo {
+  @apply grid h-9 w-9 place-items-center rounded-[10px] border border-line bg-surface text-accent transition-all duration-200;
+}
+.group:hover .nav-logo {
+  @apply -translate-y-0.5 shadow-glow;
+}
+.nav-logo svg {
+  @apply h-6 w-6;
+}
+
+.nav-ctx {
+  @apply flex items-center gap-1.5 rounded-full px-2.5 py-1;
+}
+.nav-ctx + .nav-ctx {
+  @apply border-l border-line;
+}
+.nav-ctx__key {
+  @apply text-[11px] text-fg-faint;
+}
+
+.nav-icon-btn {
+  @apply grid h-8 w-8 place-items-center rounded-full border border-line bg-surface/70 text-fg-dim transition-colors hover:border-line-strong hover:text-fg;
+}
+</style>

@@ -3,11 +3,11 @@
        From 2xl on they sit side by side and fill the window. On xl, community support
        moves below the other two; smaller screens stack everything. -->
   <div class="min-h-full 2xl:h-full flex flex-col">
-    <header class="flex-none bg-gray-50 border-b border-gray-200 px-3 py-2 text-center">
+    <header class="flex-none bg-surface-2 border-b border-line px-3 py-2 text-center">
       <h1 class="text-lg 2xl:text-xl font-bold flex items-center justify-center gap-2">
-        <Icon name="mdi:robot-outline" class="text-gray-700 w-6 h-6" />
+        <Icon name="mdi:robot-outline" class="text-fg w-6 h-6" />
         <span>Labeling with machine and community support</span>
-        <Icon name="mdi:account-group-outline" class="text-gray-700 w-6 h-6" />
+        <Icon name="mdi:account-group-outline" class="text-fg w-6 h-6" />
       </h1>
     </header>
 
@@ -15,7 +15,7 @@
       <!-- Machine support -->
       <section class="flex flex-col gap-3 min-h-0 min-w-0">
         <h2 class="flex-none flex items-center justify-center gap-2 text-lg font-bold">
-          <Icon name="mdi:robot-outline" class="text-gray-700 w-5 h-5" />
+          <Icon name="mdi:robot-outline" class="text-fg w-5 h-5" />
           Machine Support
         </h2>
         <div class="flex-none grid grid-cols-1 2xl:grid-cols-[3fr_2fr] gap-3">
@@ -40,7 +40,7 @@
       <!-- Community support -->
       <section class="flex flex-col gap-3 min-h-0 min-w-0 xl:col-span-2 2xl:col-span-1">
         <h2 class="flex-none flex items-center justify-center gap-2 text-lg font-bold">
-          <Icon name="mdi:account-group-outline" class="text-gray-700 w-5 h-5" />
+          <Icon name="mdi:account-group-outline" class="text-fg w-5 h-5" />
           Community Support
         </h2>
 
@@ -48,7 +48,7 @@
           <div class="flex flex-wrap items-center gap-2">
             <div class="frame-title"><b>Summarize</b> Community Labeling: Explore SDG Voting Trends</div>
             <div class="flex items-center gap-2 ml-auto">
-              <label for="content-toggle" class="text-sm font-medium text-gray-700">
+              <label for="content-toggle" class="text-sm font-medium text-fg">
                 {{ showContent ? 'Hide Community Help' : 'Show Community Help' }}
               </label>
               <UToggle id="content-toggle" v-model="showContent" color="primary" />
@@ -74,9 +74,9 @@
           <div class="flex-none flex items-center justify-end gap-2">
             <Icon
               :name="showAnnotations ? 'mdi-tag' : 'mdi-comment-outline'"
-              class="w-5 h-5 text-gray-700"
+              class="w-5 h-5 text-fg"
             />
-            <label for="comment-toggle" class="text-sm font-medium text-gray-700">
+            <label for="comment-toggle" class="text-sm font-medium text-fg">
               {{ showAnnotations ? 'Show Community Labels' : 'Show Community Comments' }}
             </label>
             <UToggle id="comment-toggle" v-model="showAnnotations" color="primary" />

@@ -10,8 +10,8 @@
           :class="[
           'cursor-pointer flex flex-col items-center justify-center rounded-lg p-2 w-12 h-12 transition-all duration-200',
           selectedSDG === sdg.id
-            ? 'bg-gray-300 border-2 border-black' // Selected state
-            : 'bg-white hover:bg-gray-100 border-2 border-transparent hover:border-gray-200', // Default and hover states
+            ? 'bg-muted-strong border-2 border-fg' // Selected state
+            : 'bg-surface hover:bg-muted border-2 border-transparent hover:border-line', // Default and hover states
         ]"
           @click="selectSDG(sdg.id)"
         >

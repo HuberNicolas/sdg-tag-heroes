@@ -58,7 +58,7 @@ export default function createGlyph(values: number[]) {
       .attr('class', 'glyph-tooltip')
       .style('position', 'absolute')
       .style('visibility', 'hidden')
-      .style('background', '#fff')
+      .style('background', 'rgb(var(--c-surface))')
       .style('border', '1px solid #ccc')
       .style('padding', '8px')
       .style('border-radius', '4px')
@@ -90,7 +90,7 @@ export default function createGlyph(values: number[]) {
             .join(' ')
         )
         .attr('fill', color?.toString() || 'gray')
-        .attr('stroke', 'black')
+        .attr('stroke', 'var(--hex-stroke)')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -108,8 +108,8 @@ export default function createGlyph(values: number[]) {
             })
             .join(' ')
         )
-        .attr('fill', 'white')
-        .attr('stroke', 'black')
+        .attr('fill', 'var(--hex-empty)')
+        .attr('stroke', 'var(--hex-stroke)')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -121,7 +121,7 @@ export default function createGlyph(values: number[]) {
         .attr('dy', '0.35em')
         .text(labels[i])
         .style('font-size', '12px')
-        .style('fill', 'black');
+        .style('fill', 'var(--hex-label)');
 
       hexagonGroup
         .on('mouseover', () => {

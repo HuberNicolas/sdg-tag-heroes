@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-start bg-white border rounded-lg shadow px-4 py-2 space-x-3">
+  <div class="flex items-center justify-start bg-surface border rounded-lg shadow-panel px-4 py-2 space-x-3">
     <template v-if="currentSDG">
       <!-- SDG Icon -->
       <img
@@ -10,10 +10,10 @@
 
       <!-- SDG Details (Compact) -->
       <div class="flex items-center space-x-2">
-        <p class="text-sm font-semibold text-gray-800">SDG {{ currentSDG.index }}</p>
-        <p class="text-sm text-gray-600 truncate">{{ currentSDG.name }}</p>
+        <p class="text-sm font-semibold text-fg">SDG {{ currentSDG.index }}</p>
+        <p class="text-sm text-fg-dim truncate">{{ currentSDG.name }}</p>
 
-        <p v-if="machineScore !== null" class="text-sm text-gray-600">
+        <p v-if="machineScore !== null" class="text-sm text-fg-dim">
           (Machine Score: <span class="font-semibold">{{ machineScore.toFixed(2) }}</span>)
         </p>
       </div>
@@ -21,7 +21,7 @@
 
     <template v-else>
       <!-- Placeholder (Compact) -->
-      <div class="flex items-center space-x-2 text-gray-500">
+      <div class="flex items-center space-x-2 text-fg-dim">
         <Icon name="ph-hexagon-light" class="w-8 h-8" />
         <p class="text-sm truncate">Select an SDG to see machine explanation in the text below</p>
       </div>

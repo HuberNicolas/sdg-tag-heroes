@@ -57,7 +57,7 @@ function drawDonutChart() {
     .style("pointer-events", "none")
     .style("position", "absolute")
     .style("padding", "8px")
-    .style("background-color", "rgba(255, 255, 255, 0.95)")
+    .style("background-color", "rgb(var(--c-surface))")
     .style("border-radius", "4px")
     .style("font-size", "14px")
     .style("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
@@ -68,7 +68,7 @@ function drawDonutChart() {
     .append("path")
     .attr("d", arc)
     .attr("fill", d => getSDGColor(d.data.key))
-    .attr("stroke", "white")
+    .attr("stroke", "rgb(var(--c-bg))")
     .style("stroke-width", "2px")
     .style("opacity", 0.8)
     // Replace the existing mouseover/mouseout handlers with:
@@ -128,7 +128,7 @@ function drawDonutChart() {
     .data(data_ready)
     .enter()
     .append("polyline")
-    .attr("stroke", "black")
+    .attr("stroke", "rgb(var(--c-fg-dim))")
     .style("fill", "none")
     .attr("stroke-width", 1)
     .attr("points", d => {

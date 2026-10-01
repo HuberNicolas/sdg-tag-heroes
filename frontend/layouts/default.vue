@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-dvh overflow-hidden bg-white">
+  <div class="flex flex-col h-dvh overflow-hidden">
     <NavigationBar class="flex-none" />
     <!-- Pages fill the remaining height; on small screens they scroll instead of being cut off.
          On ultrawide screens the content is capped and centred so panels do not stretch apart. -->

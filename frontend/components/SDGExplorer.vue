@@ -3,10 +3,12 @@
     <!-- SDG Card -->
     <div
       v-if="currentSDG"
-      class="flex flex-col items-center p-4 border rounded-lg shadow-lg bg-white"
+      class="sdg-card flex flex-col items-center p-5 rounded-[var(--radius)] border border-line bg-surface/80 backdrop-blur-sm"
+      :style="{ '--sdg': sdgColor }"
     >
       <!-- SDG Index and SDG Short Title  -->
-      <h2 class="text-lg font-bold text-gray-900 mb-1">
+      <p class="font-mono text-xs" :style="{ color: sdgColor }">// sdg_{{ String(currentSDG.index).padStart(2, '0') }}</p>
+      <h2 class="text-xl font-bold tracking-tight text-fg mb-3">
         SDG {{currentSDG.index}} - {{ currentSDG.shortTitle }}
       </h2>
 
@@ -14,11 +16,11 @@
       <img
         :src="`data:image/svg+xml;base64,${currentSDG.icon}`"
         :alt="`SDG ${currentSDG.id} Icon`"
-        class="w-16 h-16 mb-4"
+        class="w-20 h-20 mb-4 rounded-xl shadow-panel"
       >
 
       <!-- Catchy Explanation -->
-      <p class="text-center text-gray-700 mt-1 mb-2">
+      <p class="text-center text-fg-dim mt-1 mb-3">
         {{ currentSDG.explanation }}
       </p>
 
@@ -27,16 +29,20 @@
         <span
           v-for="(keyword, index) in currentSDG.keywords.split(',')"
           :key="index"
-          class="px-2 py-1 text-sm text-white rounded-full"
-          :style="{ backgroundColor: sdgColor }"
+          class="px-2.5 py-0.5 font-mono text-xs rounded-full border"
+          :style="{ color: sdgColor, borderColor: sdgColor, backgroundColor: `${sdgColor}1a` }"
         >
           {{ keyword.trim() }}
         </span>
       </div>
       <LevelSelector/>
     </div>
-    <div v-else>
-      Please select an SDG
+    <div v-else class="flex flex-col items-center gap-3 rounded-[var(--radius)] border border-dashed border-line-strong p-8 text-center">
+      <Icon name="mdi-hexagon-multiple-outline" class="h-10 w-10 text-accent" />
+      <p class="font-mono text-sm text-fg-dim">
+        <span class="text-accent">&gt;</span> Please select an SDG<span class="animate-blink">_</span>
+      </p>
+      <p class="text-xs text-fg-faint">Click a honeycomb cell to enter its world.</p>
     </div>
   </div>
 
@@ -62,3 +68,9 @@ const sdgColor = computed(() => {
 });
 
 </script>
+
+<style scoped>
+.sdg-card {
+  box-shadow: var(--shadow), inset 0 1px 0 0 color-mix(in srgb, var(--sdg) 60%, transparent);
+}
+</style>

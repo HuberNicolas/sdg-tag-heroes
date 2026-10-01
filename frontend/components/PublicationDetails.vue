@@ -1,9 +1,9 @@
 <template>
   <div class="frame-container">
     <div class="frame-title"><b>Decide</b> to label an interesting publication</div>
-    <div v-if="selectedPublication" class="relative mx-auto p-6 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
+    <div v-if="selectedPublication" class="relative mx-auto p-6 bg-surface shadow-panel rounded-lg max-h-[80vh] overflow-y-auto">
 
-      <h2 class="text-xl font-bold text-gray-800 mb-4">
+      <h2 class="text-xl font-bold text-fg mb-4">
         {{ selectedPublication.title || "Untitled Publication" }} ({{selectedPublication.year}})
       </h2>
 
@@ -13,8 +13,8 @@
           <span class="loading loading-bars loading-lg"/> Loading Keywords...
         </div>
         <div v-else-if="keywords && keywords.keywords.length > 0">
-          <strong class="text-gray-700">Keywords:</strong>
-          <span v-for="(keyword, index) in keywords.keywords" :key="index" class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2">
+          <strong class="text-fg">Keywords:</strong>
+          <span v-for="(keyword, index) in keywords.keywords" :key="index" class="bg-muted-strong text-fg px-2 py-1 rounded-lg text-sm mr-2">
           {{ keyword }}
         </span>
         </div>
@@ -37,8 +37,8 @@
           <span class="loading loading-bars loading-lg"/> Loading Summary...
         </div>
         <div v-else-if="summary && summary.summary" class="mt-4">
-          <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
-          <p class="text-gray-700">{{ summary.summary }}</p>
+          <h3 class="text-lg font-semibold text-fg">Summary</h3>
+          <p class="text-fg">{{ summary.summary }}</p>
         </div>
       </div>
 

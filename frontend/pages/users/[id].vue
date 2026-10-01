@@ -1,14 +1,14 @@
 <template>
   <div class="flex h-screen">
     <!-- Sidebar: List of Label Decisions -->
-    <div class="w-1/4 bg-gray-100 p-4 overflow-y-auto">
+    <div class="w-1/4 bg-muted p-4 overflow-y-auto">
       <h2 class="text-lg font-semibold mb-3">Label Decisions</h2>
       <ul>
         <li
           v-for="decision in userSDGLabelDecisions"
           :key="decision.decisionId"
-          class="p-2 mb-2 cursor-pointer border rounded bg-white hover:bg-gray-200"
-          :class="{ 'bg-blue-200': decision.decisionId === selectedDecisionId }"
+          class="p-2 mb-2 cursor-pointer border rounded bg-surface hover:bg-muted-strong"
+          :class="{ 'bg-accent/15': decision.decisionId === selectedDecisionId }"
           @click="selectedDecisionId = decision.decisionId"
         >
           <strong>Decision ID:</strong> {{ decision.decisionId }}<br >
@@ -43,7 +43,7 @@
                 >
               </div>
               <span
-                class="absolute left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1">
+                class="absolute left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block bg-tooltip text-white text-xs rounded px-2 py-1">
                 {{ getSDGTitle(getUserVotedSDG(user.userId)) }} | Rank: {{ getUserRank(user.userId)?.name || "Unranked"
                 }}
               </span>
@@ -60,18 +60,18 @@
               Publication ID: {{ selectedDecision?.publicationId }}
             </div>
 
-            <div v-if="sdgLabelSummary" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+            <div v-if="sdgLabelSummary" class="max-w-4xl mx-auto bg-surface p-6 rounded-lg shadow-panel">
 
-              <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">SDG Labels:</h2>
+              <h2 class="text-xl font-semibold text-fg mt-8 mb-4">SDG Labels:</h2>
               <!-- SDG Goals Grid -->
               <div v-if="!isLoading && sdgs.length" class="grid grid-cols-4 gap-4">
                 <div
                   v-for="sdg in sdgs"
                   :key="sdg.id"
-                  class="flex flex-col items-center justify-center border rounded-lg p-4 shadow-md transition-opacity"
+                  class="flex flex-col items-center justify-center border rounded-lg p-4 shadow-panel transition-opacity"
                   :class="{
             'opacity-100': sdg.label === 1,
-            'bg-gray-200': sdg.label === 0,
+            'bg-muted-strong': sdg.label === 0,
             'bg-red-200 opacity-80': sdg.label === -1,
           }"
                   :style="sdg.label === 1 ? { backgroundColor: sdg.color } : {}"
@@ -86,9 +86,9 @@
                   <!-- Placeholder for Not Defined -->
                   <div
                     v-else-if="sdg.label === 0"
-                    class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center"
+                    class="w-8 h-8 rounded-full bg-muted-strong flex items-center justify-center"
                   >
-                    <span class="text-sm text-gray-800">?</span>
+                    <span class="text-sm text-fg">?</span>
                   </div>
                   <!-- Placeholder for Definitely Not Related -->
                   <div
@@ -101,7 +101,7 @@
                   <!-- SDG Title -->
                   <p
                     class="mt-2 text-center font-semibold"
-                    :class="sdg.label === 1 ? 'text-white' : 'text-gray-600'"
+                    :class="sdg.label === 1 ? 'text-white' : 'text-fg-dim'"
                   >
                     SDG {{ sdg.id }}
                   </p>
@@ -159,7 +159,7 @@
                     </div>
                   </div>
 
-                  <span class="text-gray-600 font-semibold">Rank:</span>
+                  <span class="text-fg-dim font-semibold">Rank:</span>
 
                   <!-- Rank Tier -->
                   <span
@@ -187,7 +187,7 @@ class="px-2 py-1 rounded-lg text-white text-sm font-semibold"
                     class="w-6 h-6"
                     :style="{ color: getSDGColor(label.votedLabel) }"
                   />
-                  <Icon v-else name="line-md:minus" class="text-gray-400 w-6 h-6" />
+                  <Icon v-else name="line-md:minus" class="text-fg-faint w-6 h-6" />
 
                   <!-- Rank Title -->
                   <span
@@ -196,11 +196,11 @@ v-if="getUserRankForSDG(label.userId, label.votedLabel)"
                         :style="{ backgroundColor: getSDGColor(label.votedLabel) }">
     {{ getUserRankForSDG(label.userId, label.votedLabel).name }}
   </span>
-                  <span v-else class="text-gray-400">No Rank</span>
+                  <span v-else class="text-fg-faint">No Rank</span>
                 </div>
 
 
-                <p class="text-gray-600">{{ label.comment }}</p>
+                <p class="text-fg-dim">{{ label.comment }}</p>
               </li>
             </ul>
           </details>
@@ -226,14 +226,14 @@ v-if="getUserRankForSDG(label.userId, label.votedLabel)"
                 </div>
                 <span><strong>{{ getUserName(annotation.userId) }}</strong></span>
                 <span>Score: {{ annotation.labelerScore }}</span>
-                <p class="text-gray-600">{{ annotation.comment }}</p>
+                <p class="text-fg-dim">{{ annotation.comment }}</p>
               </li>
             </ul>
           </details>
         </div>
       </div>
 
-      <p v-else class="text-center text-gray-500">Select a label decision to view details.</p>
+      <p v-else class="text-center text-fg-dim">Select a label decision to view details.</p>
     </div>
   </div>
 </template>

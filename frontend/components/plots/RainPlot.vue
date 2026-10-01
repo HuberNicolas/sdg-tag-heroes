@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg shadow-md w-full">
+  <div class="flex flex-col items-center justify-center bg-surface-2/70 border border-line p-4 rounded-xl w-full">
     <!-- D3 Raincloud Plot -->
-    <p class="text-sm text-gray-600">
+    <p class="text-sm text-fg-dim">
       XP-Distribution of selected Publications
     </p>
     <div ref="chartContainer" class="w-full h-80 relative" />
@@ -92,8 +92,8 @@ const updateChart = () => {
     .append("div")
     .style("position", "absolute")
     .style("visibility", "hidden")
-    .style("background", "white")
-    .style("border", "1px solid black")
+    .style("background", "rgb(var(--c-surface))")
+    .style("border", "1px solid rgb(var(--c-line-strong))")
     .style("padding", "5px")
     .style("border-radius", "5px")
     .style("opacity", 0)
@@ -123,7 +123,7 @@ const updateChart = () => {
   svg.append("path")
     .datum(kde)
     .attr("d", area)
-    .style("fill", "grey")
+    .style("fill", "rgb(var(--c-fg-faint))")
     .style("opacity", 0.6);
 
 
@@ -149,20 +149,20 @@ const updateChart = () => {
     .attr("x2", xScale(min))
     .attr("y1", yBoxplot - boxHeight)
     .attr("y2", yBoxplot + boxHeight)
-    .attr("stroke", "black");
+    .attr("stroke", "rgb(var(--c-fg))");
 
   svg.append("line")
     .attr("x1", xScale(max))
     .attr("x2", xScale(max))
     .attr("y1", yBoxplot - boxHeight)
     .attr("y2", yBoxplot + boxHeight)
-    .attr("stroke", "black");
+    .attr("stroke", "rgb(var(--c-fg))");
 
-  svg.append("line").attr("x1", xScale(min)).attr("x2", xScale(max)).attr("y1", yBoxplot).attr("y2", yBoxplot).attr("stroke", "black");
+  svg.append("line").attr("x1", xScale(min)).attr("x2", xScale(max)).attr("y1", yBoxplot).attr("y2", yBoxplot).attr("stroke", "rgb(var(--c-fg))");
   svg.append("rect").attr("x", xScale(q1)).attr("y", yBoxplot - boxHeight / 2)
     .attr("width", xScale(q3) - xScale(q1)).attr("height", boxHeight)
-    .attr("fill", "grey").attr("opacity", 0.6);
-  svg.append("line").attr("x1", xScale(median)).attr("x2", xScale(median)).attr("y1", yBoxplot - boxHeight / 2).attr("y2", yBoxplot + boxHeight / 2).attr("stroke", "black");
+    .attr("fill", "rgb(var(--c-fg-faint))").attr("opacity", 0.6);
+  svg.append("line").attr("x1", xScale(median)).attr("x2", xScale(median)).attr("y1", yBoxplot - boxHeight / 2).attr("y2", yBoxplot + boxHeight / 2).attr("stroke", "rgb(var(--c-fg))");
 
 
   // Create a function to generate hexagon points
@@ -199,7 +199,7 @@ const updateChart = () => {
     .attr("x", xScale(min)-50)
     .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .style("font-size", "12px")
     .text("Low XP");
 
@@ -208,7 +208,7 @@ const updateChart = () => {
     .attr("x", xScale(max)+50)
     .attr("y", yBoxplot + 20 + 20) // 15px below the hexagon
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .style("font-size", "12px")
     .text("High XP");
 
@@ -222,7 +222,7 @@ const updateChart = () => {
     .attr("x", xScale(min))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .style("font-weight", "bold")
     .text("Min");
 
@@ -230,7 +230,7 @@ const updateChart = () => {
     .attr("x", xScale(median))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .style("font-weight", "bold")
     .text("Median");
 
@@ -238,7 +238,7 @@ const updateChart = () => {
     .attr("x", xScale(max))
     .attr("y", yBoxplot + labelYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .style("font-weight", "bold")
     .text("Max");
 
@@ -247,21 +247,21 @@ const updateChart = () => {
     .attr("x", xScale(min))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .text(min.toFixed(0));
 
   svg.append("text")
     .attr("x", xScale(median))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .text(median.toFixed(0));
 
   svg.append("text")
     .attr("x", xScale(max))
     .attr("y", yBoxplot + valueYOffset)
     .attr("text-anchor", "middle")
-    .attr("fill", "black")
+    .attr("fill", "rgb(var(--c-fg))")
     .text(max.toFixed(0));
 
 
@@ -291,13 +291,13 @@ const updateChart = () => {
     .attr("r", 5)
     .attr("cx", d => xScale(d))
     .attr("cy", d => height * 0.8 + jitterMap.get(d)) // Use stored jitter value
-    .style("fill", d => d === hoveredEntropy.value ? selectedSDGColor.value : "grey")
+    .style("fill", d => d === hoveredEntropy.value ? selectedSDGColor.value : "rgb(var(--c-fg-faint))")
     .style("opacity", d => d === hoveredEntropy.value ? 1 : 0.6)
   /* Deactivate hover
  .on("mouseover", function(event, d) {
    tooltip.style("visibility", "visible").html(`Value: ${d.toFixed(2)}`)
      .style("left", `${event.pageX + 10}px`).style("top", `${event.pageY}px`);
-   d3.select(this).attr("stroke", "black").attr("stroke-width", 1);
+   d3.select(this).attr("stroke", "rgb(var(--c-fg))").attr("stroke-width", 1);
  })
  .on("mouseout", function() {
    tooltip.style("visibility", "hidden");

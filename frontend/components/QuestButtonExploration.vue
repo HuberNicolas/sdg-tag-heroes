@@ -8,19 +8,19 @@
       @click="handleClick"
     >
       <div class="absolute inset-0 bg-primary-500 rounded-md"/>
-      <div class="relative flex items-center justify-center w-6 h-6 bg-white rounded-full">
+      <div class="relative flex items-center justify-center w-6 h-6 bg-surface rounded-full">
         <Icon
           v-if="!isLoading"
           :name="icon"
-          class="w-4 h-4 text-gray-700 -rotate-45"
+          class="w-4 h-4 text-fg -rotate-45"
         />
-        <span v-else class="text-xs text-gray-700 -rotate-45">Loading...</span>
+        <span v-else class="text-xs text-fg -rotate-45">Loading...</span>
       </div>
     </button>
 
     <span
       v-if="tooltip"
-      class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+      class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-tooltip rounded opacity-0 group-hover:opacity-100 transition-opacity"
     >
       {{ tooltip }}
     </span>

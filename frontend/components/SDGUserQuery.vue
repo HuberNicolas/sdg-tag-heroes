@@ -1,8 +1,8 @@
 <template>
-  <div class="mt-6 w-full max-w-4xl h-full rounded-lg bg-white p-4 shadow-md">
+  <div class="mt-2 w-full max-w-4xl rounded-xl border border-line bg-surface-2/70 p-4">
     <!-- Explanation Section -->
-    <div class="mb-2 text-sm text-gray-600">
-      <p>Not sure which Sustainable Development Goal (SDG) aligns with your skills or interests? Enter your input below and get a suggestion! <span class="text-gray-500">(Your personalized SDG will be recommended by our intelligent agent, making it an exciting and relevant match!)</span></p>
+    <div class="mb-2 text-sm text-fg-dim">
+      <p>Not sure which Sustainable Development Goal (SDG) aligns with your skills or interests? Enter your input below and get a suggestion! <span class="text-fg-dim">(Your personalized SDG will be recommended by our intelligent agent, making it an exciting and relevant match!)</span></p>
     </div>
 
     <!-- Input Section -->
@@ -10,7 +10,7 @@
       <input
         v-model="userInput"
         type="text"
-        class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500"
+        class="mb-3 w-full rounded-[10px] border border-line bg-surface px-3 py-2 text-fg placeholder:text-fg-faint transition focus:outline-none focus:border-accent/60 focus:ring-4 focus:ring-accent/15"
         :placeholder="selectedOption === 'interests' ? 'e.g., environment, education' : 'e.g., programming, problem-solving'"
       >
     </div>
@@ -24,10 +24,10 @@
             v-model="selectedOption"
             type="radio"
             value="skills"
-            class="radio"
+            class="radio radio-sm radio-primary"
             @change="updateMode('skills')"
           >
-          <span :class="{'text-gray-500': selectedOption !== 'skills'}">Skills</span>
+          <span :class="{'text-fg-dim': selectedOption !== 'skills'}">Skills</span>
         </label>
 
         <!-- Interests Radio Button -->
@@ -36,10 +36,10 @@
             v-model="selectedOption"
             type="radio"
             value="interests"
-            class="radio"
+            class="radio radio-sm radio-primary"
             @change="updateMode('interests')"
           >
-          <span :class="{'text-gray-500': selectedOption !== 'interests'}">Interests</span>
+          <span :class="{'text-fg-dim': selectedOption !== 'interests'}">Interests</span>
         </label>
       </div>
       <div class="flex justify-center">
@@ -56,14 +56,14 @@
             </div>
           </template>
           <template v-else>
-            Reveal Your SDG
+            <Icon name="mdi-creation-outline" class="w-4 h-4" /> Reveal Your SDG
           </template>
         </UButton>
       </div>
     </div>
 
     <!-- SDG Suggestion Output -->
-    <div v-if="proposedSdg" class="rounded-md p-1 text-gray-800">
+    <div v-if="proposedSdg" class="rounded-md p-1 text-fg">
       <div v-if="proposedSdg.proposedSdgId" class="rounded-md p-1 flex items-start space-x-4">
         <div class="flex flex-col items-center">
           <p :style="{ backgroundColor: suggestedSdgColor }" class="whitespace-nowrap">

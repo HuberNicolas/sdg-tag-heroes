@@ -48,7 +48,7 @@
           ({{ selectedCollections.reduce((sum, col) => sum + (collectionsStore.collectionsCount[col.collectionId] || 0), 0)
           }} Publications)
         </span>
-          <span v-else class="text-gray-500">
+          <span v-else class="text-fg-dim">
           Select Topics to Discover Relevant Publications from the List
         </span>
         </template>
@@ -59,7 +59,7 @@
               <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
               <span>{{ option.shortName }}</span>
             </div>
-            <!-- <span class="text-gray-500 text-sm"> ({{ collectionsStore.collectionsCount[option.collectionId] || 0 }} Publications) </span> -->
+            <!-- <span class="text-fg-dim text-sm"> ({{ collectionsStore.collectionsCount[option.collectionId] || 0 }} Publications) </span> -->
           </div>
         </template>
 
@@ -71,7 +71,7 @@
               <component :is="getIconComponent(option.shortName)" class="mr-2 text-xl" />
               <span>{{ option.shortName }}</span>
             </div>
-            <span class="text-gray-500 text-sm"/>
+            <span class="text-fg-dim text-sm"/>
           </div>
         </template>
 
@@ -92,7 +92,7 @@
           <span class="truncate">{{ collection.shortName
             }} ({{ collectionsStore.collectionsCount[collection.collectionId] || 0 }}) </span>
           <button class="ml-1" @click.stop="removeCollection(collection)">
-            <UIcon name="i-heroicons-x-circle" class="w-2 h-4 text-white hover:text-gray-300" />
+            <UIcon name="i-heroicons-x-circle" class="w-2 h-4 text-white hover:text-fg-faint" />
           </button>
         </UBadge>
       </div>

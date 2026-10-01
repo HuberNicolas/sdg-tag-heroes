@@ -27,7 +27,7 @@
             <UButton size="xs" icon="i-heroicons-x-mark" @click="gameStore.removeScenario(scenario)" />
           </template>
         </UBadge>
-        <span class="text-gray-500 text-xs">{{ buttons.find(b => b.name === gameStore.selectedScenarioList[0])?.explanation }}</span>
+        <span class="text-fg-dim text-xs">{{ buttons.find(b => b.name === gameStore.selectedScenarioList[0])?.explanation }}</span>
       </div>
     </div>
   </div>

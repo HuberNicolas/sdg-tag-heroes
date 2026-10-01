@@ -4,12 +4,12 @@
     <form class="space-y-4" @submit.prevent="submitUserLabel">
       <!-- Comment Input -->
       <div class="flex flex-col">
-        <label for="comment" class="text-lg font-medium text-gray-700">Explain Your Label Choice (Optional): Share Your Reasoning with the Community</label>
+        <label for="comment" class="text-lg font-medium text-fg">Explain Your Label Choice (Optional): Share Your Reasoning with the Community</label>
         <textarea
           id="comment"
           v-model="comment"
           rows="1"
-          class="mt-1 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
+          class="mt-1 p-2 border border-line rounded-lg  focus:outline-none focus:ring-2 focus:ring-accent"
           placeholder="Provide context for your label decision (optional)"
         />
       </div>
@@ -22,10 +22,10 @@
             id="include_abstract_section"
             v-model="includeAbstractSection"
             type="checkbox"
-            class="form-checkbox h-5 w-5 text-gray-600 mr-2"
+            class="form-checkbox h-5 w-5 text-fg-dim mr-2"
 
           >
-          <label for="include_abstract_section" class="text-lg font-medium text-gray-700">Include Abstract Section</label>
+          <label for="include_abstract_section" class="text-lg font-medium text-fg">Include Abstract Section</label>
         </div>
 
         <!-- Submit Button -->

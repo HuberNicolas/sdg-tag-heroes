@@ -1,27 +1,29 @@
 <template>
   <div class="flex flex-col items-center">
     <!-- Title Section -->
-    <p class="text-xl font-semibold text-gray-700 mt-4 mb-6">Choose Your Challenge</p>
+    <p class="kicker mt-5">// difficulty</p>
+    <p class="text-lg font-semibold tracking-tight text-fg mt-1 mb-3">Choose Your Challenge</p>
 
     <!-- Conditionally Render Description Above the Play Button -->
     <div  class="text-center">
-      <p v-if="selectedLevel" class="text-sm text-gray-500">
+      <p v-if="selectedLevel" class="text-sm text-fg-dim">
         {{ getDescriptionForLevel(selectedLevel) }}
       </p>
-      <p v-else class="text-sm text-gray-500">
+      <p v-else class="text-sm text-fg-dim">
         Select a level from below to get more information.
       </p>
     </div>
 
     <!-- Levels Container -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
+    <div class="grid grid-cols-3 gap-3 p-4">
       <div
         v-for="level in levels"
         :key="level.id"
         :class="[
-          'p-6 rounded-lg text-center cursor-pointer transition-all hover:scale-105',
-          level.id === selectedLevel ? 'ring-4 ring-black' : 'border'
+          'level-tile p-4 rounded-xl text-center cursor-pointer transition-all duration-200 hover:-translate-y-0.5 border',
+          level.id === selectedLevel ? 'level-tile--active' : 'border-line bg-surface-2'
         ]"
+        :style="level.id === selectedLevel ? { borderColor: sdgColor, boxShadow: `0 0 0 1px ${sdgColor}, 0 10px 30px -12px ${sdgColor}` } : {}"
         @click="selectLevel(level.id)"
       >
         <UIcon
@@ -43,10 +45,10 @@
             class="sr-only peer"
           >
           <div
-            class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
-            :style="{ backgroundColor: gameStore.showLeaderboard ? sdgColor : '#E5E7EB' }"
+            class="relative w-11 h-6 bg-muted-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-line-strong rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-surface after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
+            :style="{ backgroundColor: gameStore.showLeaderboard ? sdgColor : 'rgb(var(--c-muted-strong))' }"
           />
-          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+          <span class="ms-3 font-mono text-xs text-fg-dim">
             Show Leaderboard
           </span>
         </label>
@@ -58,6 +60,7 @@
         :variant="'solid'"
         :block="false"
         :disabled="!selectedLevel"
+        trailing-icon="i-mdi-arrow-right"
         @click="play"
       >
         Play

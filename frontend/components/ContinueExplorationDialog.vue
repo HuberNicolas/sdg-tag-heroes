@@ -14,7 +14,7 @@
           <div class="card-container flex space-x-4">
 
             <!-- User Profile -->
-            <div class="card bg-base-100 w-96 shadow-xl">
+            <div class="card bg-base-100 w-96 shadow-panel">
               <div class="card-body">
                 <h2 class="card-title">User Profile</h2>
                 <p>Explore your profile history</p>
@@ -27,7 +27,7 @@
             </div>
 
             <!-- Go back to Worlds -->
-            <div class="card bg-base-100 w-96 shadow-xl">
+            <div class="card bg-base-100 w-96 shadow-panel">
               <div class="card-body">
                 <h2 class="card-title">Game Mode</h2>
                 <p>Decide between specialization and sandboxing</p>

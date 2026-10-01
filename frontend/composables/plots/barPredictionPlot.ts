@@ -68,7 +68,7 @@ export function createBarPlot(container: HTMLElement, values: number[], width: n
     .attr("class", "bar-tooltip")
     .style("position", "absolute")
     .style("visibility", "hidden")
-    .style("background", "#fff")
+    .style("background", "rgb(var(--c-surface))")
     .style("border", "1px solid #ccc")
     .style("padding", "6px")
     .style("border-radius", "4px")
@@ -113,7 +113,7 @@ export function createBarPlot(container: HTMLElement, values: number[], width: n
     .attr('x', (d) => x(d.value) + 5)
     .attr('y', (d) => (y(d.key) || 0) + y.bandwidth() / 2)
     .attr('dy', '.35em')
-    .style('fill', '#000')
+    .style('fill', 'rgb(var(--c-fg))')
     .style('font-size', '12px')
     .text((d) => Math.floor(d.value * 100) / 100); // This will round down to two decimal places
 }

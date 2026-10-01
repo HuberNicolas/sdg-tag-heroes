@@ -5,18 +5,18 @@
 class="w-6 h-6 flex items-center justify-center bg-primary-500 text-white
                 transform rotate-45 relative shrink-0">
       <div class="absolute inset-0 bg-primary-500"/>
-      <div class="relative flex items-center justify-center w-4 h-4 bg-white rounded-full">
+      <div class="relative flex items-center justify-center w-4 h-4 bg-surface rounded-full">
         <Icon
           :name="displayIcon"
-          class="w-3 h-3 text-gray-700 transform -rotate-45"
+          class="w-3 h-3 text-fg transform -rotate-45"
         />
       </div>
     </div>
 
     <!-- Title & Text (Now Properly Left-Aligned) -->
     <div class="flex-1 text-left  leading-tight">
-      <h3 class="font-semibold text-gray-800">Quest Indicator</h3>
-      <span class="text-gray-700">{{name}}: {{ displayText }}</span>
+      <h3 class="font-semibold text-fg">Quest Indicator</h3>
+      <span class="text-fg">{{name}}: {{ displayText }}</span>
     </div>
   </div>
 </template>

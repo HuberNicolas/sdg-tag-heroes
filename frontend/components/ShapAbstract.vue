@@ -9,10 +9,10 @@
     <div class="container mx-auto p-1 flex-1 flex flex-col overflow-hidden">
       <!-- Abstract Display -->
       <div
-class="bg-white p-4 rounded-lg shadow-md flex flex-col h-full overflow-hidden"
+class="bg-surface-2/70 border border-line p-4 rounded-xl flex flex-col h-full overflow-hidden"
            @mouseup="handleAbstractSelection">
-        <h1 class="text-xl font-bold mb-1">{{ publication?.title }}</h1>
-        <div class="flex-1 overflow-y-auto text-justify">
+        <h1 class="text-xl font-bold tracking-tight mb-2">{{ publication?.title }}</h1>
+        <div class="flex-1 overflow-y-auto text-justify leading-relaxed text-fg/90">
           <!-- eslint-disable-next-line vue/no-v-html -- the text is escaped, only the <mark> tags are HTML -->
           <span v-html="shapHighlightedAbstract"/>
         </div>
@@ -39,6 +39,10 @@ const publicationId = computed(() => Number(route.params.publicationId));
 const publication = computed(() => publicationsStore.publicationDetails);
 const explanation = computed(() => explanationStore.explanation);
 const showShap = computed(() => explanationStore.showShap);
+
+// Highlights fade from the page background into the SDG colour, so they also work in dark mode
+const colorMode = useColorMode();
+const highlightBase = computed(() => (colorMode.value === "dark" ? "#0e0e15" : "#ffffff"));
 
 
 // Use the selected SDG from the store
@@ -90,7 +94,7 @@ const shapHighlightedAbstract = computed(() => {
   // Create a d3 color scale
   const colorScale = d3.scaleLinear<string>()
     .domain([0, maxScore])
-    .range(["#ffffff", selectedSDGColor]);
+    .range([highlightBase.value, selectedSDGColor]);
 
   let remainingText = description;
   const highlightedParts: string[] = [];
@@ -111,7 +115,7 @@ const shapHighlightedAbstract = computed(() => {
 
     // Append highlighted token
     highlightedParts.push(
-      `<mark style="background-color: ${highlightColor}; padding: 0;">${escapeHtml(token)}</mark>`
+      `<mark style="background-color: ${highlightColor}; color: inherit; padding: 0 1px; border-radius: 3px;">${escapeHtml(token)}</mark>`
     );
 
     // Remove the processed part from the text
@@ -132,9 +136,10 @@ const escapeHtml = (text: string) =>
 // Helper function to convert an "rgb(…)" string to a hex color code.
 // This is essentially the same as your previous rgbToHex.
 const rgbToHex = (rgb: string) => {
-  if (!rgb) return "#ffffff";
+  // No colour (e.g. no SDG selected yet): no highlight instead of a white box
+  if (!rgb) return "transparent";
   const rgbValues = rgb.match(/\d+/g);
-  if (!rgbValues) return "#ffffff";
+  if (!rgbValues) return "transparent";
   return (
     "#" +
     rgbValues

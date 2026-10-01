@@ -1,6 +1,6 @@
 <template>
   <div class="p-5">
-    <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">
+    <h1 class="text-3xl font-bold mb-6 text-center text-fg">
       Leaderboard - {{ currentSDG ? `SDG${currentSDG.id} - ${currentSDG.shortTitle}` : "Please select an SDG" }}
     </h1>
 
@@ -13,39 +13,39 @@
     </div>
 
     <!-- No SDG Selected Placeholder -->
-    <div v-if="!currentSDG && !loading" class="text-center text-gray-600 text-lg">
+    <div v-if="!currentSDG && !loading" class="text-center text-fg-dim text-lg">
       Please select an SDG to view the leaderboard.
     </div>
 
     <!-- Scrollable Leaderboard Table -->
     <div v-if="currentSDG && leaderboard.length > 0" class="overflow-x-auto">
-      <div class="max-h-[800px] overflow-y-auto border border-gray-300 rounded-lg shadow-lg">
+      <div class="max-h-[800px] overflow-y-auto border border-line rounded-lg shadow-panel">
         <table class="w-full border-collapse">
-          <thead class="bg-gray-100 sticky top-0">
-          <tr class="text-left text-gray-700">
-            <th class="p-4 border border-gray-300 text-center w-16">#</th>
-            <th class="p-4 border border-gray-300">User</th>
-            <th class="p-4 border border-gray-300 text-center">Rank Tier</th>
-            <th class="p-4 border border-gray-300 text-center">Rank Symbol</th>
-            <th class="p-4 border border-gray-300">Rank Title</th>
-            <th class="p-4 border border-gray-300 text-center w-24">XP</th>
+          <thead class="bg-muted sticky top-0">
+          <tr class="text-left text-fg">
+            <th class="p-4 border border-line text-center w-16">#</th>
+            <th class="p-4 border border-line">User</th>
+            <th class="p-4 border border-line text-center">Rank Tier</th>
+            <th class="p-4 border border-line text-center">Rank Symbol</th>
+            <th class="p-4 border border-line">Rank Title</th>
+            <th class="p-4 border border-line text-center w-24">XP</th>
           </tr>
           </thead>
-          <tbody class="bg-white">
+          <tbody class="bg-surface">
           <tr
             v-for="(user, index) in visibleLeaderboard"
             :key="user.userId"
-            class="hover:bg-gray-50 transition duration-200"
+            class="hover:bg-surface-2 transition duration-200"
             :class="{ 'border-4 border-solid': currentUser?.userId === user.userId }"
             :style="{ borderColor: currentUser?.userId === user.userId ? sdgColor : 'transparent' }"
           >
             <!-- Rank Number -->
-            <td class="p-4 border border-gray-300 text-center font-semibold text-gray-700">
+            <td class="p-4 border border-line text-center font-semibold text-fg">
               {{ index + 1 }}
             </td>
 
             <!-- Avatar & Nickname -->
-            <td class="p-4 border border-gray-300 flex items-center space-x-4">
+            <td class="p-4 border border-line flex items-center space-x-4">
               <!-- Outer Container for Free Space -->
               <div class="relative flex items-center justify-center p-2">
                 <!-- Inner Frame with SDG Color Border -->
@@ -69,17 +69,17 @@
                 </div>
               </div>
 
-              <span class="text-lg font-semibold text-gray-800">{{ user.nickname }}</span>
+              <span class="text-lg font-semibold text-fg">{{ user.nickname }}</span>
             </td>
 
 
             <!-- Rank Tier (Number) -->
-            <td class="p-4 border border-gray-300 text-center font-semibold text-gray-700">
+            <td class="p-4 border border-line text-center font-semibold text-fg">
               {{ user.rank?.tier !== undefined ? user.rank.tier : "-" }}
             </td>
 
             <!-- Rank Symbol (Chevron Icons) -->
-            <td class="p-4 border border-gray-300 text-center">
+            <td class="p-4 border border-line text-center">
               <Icon
                 v-if="user.rank?.tier === 1"
                 name="line-md:chevron-up"
@@ -98,12 +98,12 @@
                 :style="{ color: sdgColor }"
                 class="w-6 h-6"
               />
-              <Icon v-else name="line-md:minus" class="text-gray-400 w-6 h-6" />
+              <Icon v-else name="line-md:minus" class="text-fg-faint w-6 h-6" />
             </td>
 
 
             <!-- Rank Title -->
-            <td class="p-4 border border-gray-300 text-center whitespace-nowrap">
+            <td class="p-4 border border-line text-center whitespace-nowrap">
               <span
                 v-if="user.rank"
                 :style="{ backgroundColor: sdgColor }"
@@ -111,11 +111,11 @@
               >
                 {{ user.rank.name }}
               </span>
-              <span v-else class="text-gray-400">No Rank</span>
+              <span v-else class="text-fg-faint">No Rank</span>
             </td>
 
             <!-- XP Display -->
-            <td class="p-4 border border-gray-300 text-center text-lg font-semibold text-gray-800">
+            <td class="p-4 border border-line text-center text-lg font-semibold text-fg">
               {{ Math.round(user.sdgXp) }}
             </td>
           </tr>

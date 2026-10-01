@@ -1,11 +1,31 @@
 <template>
   <div class="flex flex-col items-center justify-center">
-    <ul class="steps w-full max-w-md">
-      <li data-content="1" class="step" :class="getStepClass(1)" @click="selectLevel(1)"/>
-      <li data-content="2" class="step" :class="getStepClass(2)" @click="selectLevel(2)"/>
-      <li data-content="3" class="step" :class="getStepClass(3)" @click="selectLevel(3)"/>
-    </ul>
-    <div class="grid grid-cols-3 gap-3 lg:gap-6 2xl:gap-10 mt-6 w-full max-w-3xl">
+    <p class="kicker mb-4 self-start xl:self-center">// choose a universe</p>
+
+    <!-- Stepper: one hexagon per universe -->
+    <ol class="flex w-full max-w-md items-center">
+      <template v-for="level in levels" :key="level.level">
+        <li class="flex-none">
+          <button
+            type="button"
+            class="hex-step"
+            :class="[getStepClass(level.level), { 'hex-step--active': selectedLevel === level.level }]"
+            :aria-label="`Universe ${level.level}`"
+            @click="selectLevel(level.level)"
+          >
+            <span class="hex-clip hex-step__shape">{{ level.level }}</span>
+          </button>
+        </li>
+        <li
+          v-if="level.level < levels.length"
+          class="mx-2 h-px flex-1"
+          :class="isLevelUnlocked(level.level + 1) ? 'bg-accent/60' : 'bg-line-strong'"
+          aria-hidden="true"
+        />
+      </template>
+    </ol>
+
+    <div class="grid grid-cols-3 gap-3 lg:gap-4 2xl:gap-6 mt-6 w-full max-w-3xl">
       <div
         v-for="(level, index) in levels"
         :key="index"
@@ -13,14 +33,24 @@
         @click="selectLevel(level.level)"
       >
         <div
-          :class="`relative flex flex-col items-center justify-center rounded-lg border-4 p-4 shadow-lg ${level.borderClass} bg-white`"
+          class="universe-card"
+          :class="{ 'universe-card--active': selectedLevel === level.level, 'universe-card--locked': !isLevelUnlocked(level.level) }"
         >
-          <div class="text-lg font-bold text-gray-800">Universe {{ level.level }}</div>
-          <div class="text-xs xl:text-sm 2xl:text-lg font-bold text-gray-800 press-start-font">{{ level.name }}</div>
-          <div v-if="!isLevelUnlocked(level.level)" class="font-semibold">Almost There!</div>
-          <div v-else class="font-semibold">Ready to play</div>
-          <div v-if="shouldShowProgress(level.level)" class="w-full bg-gray-300 rounded-md mt-4">
-            <div class="bg-gray-500 text-xs text-white text-center rounded-md p-2" :style="{ width: getProgress(level.level) + '%' }">
+          <div class="font-mono text-[11px] text-fg-faint">universe_0{{ level.level }}</div>
+          <div class="mt-2 text-[10px] xl:text-xs 2xl:text-sm text-fg press-start-font leading-relaxed">{{ level.name }}</div>
+          <div class="mt-2 flex items-center gap-1.5 font-mono text-[11px]">
+            <template v-if="!isLevelUnlocked(level.level)">
+              <Icon name="mdi-lock-outline" class="text-fg-faint" /><span class="text-fg-dim">Almost There!</span>
+            </template>
+            <template v-else>
+              <span class="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_8px_rgb(var(--c-accent))]" /><span class="text-accent">Ready to play</span>
+            </template>
+          </div>
+          <div v-if="shouldShowProgress(level.level)" class="mt-4 w-full">
+            <div class="h-1.5 w-full overflow-hidden rounded-full bg-muted-strong">
+              <div class="h-full rounded-full bg-gradient-to-r from-accent to-hero-blue transition-[width] duration-700" :style="{ width: getProgress(level.level) + '%' }" />
+            </div>
+            <div class="mt-1.5 font-mono text-[10px] text-fg-dim text-right">
               <span v-if="isLevelUnlocked(level.level)">
                 {{ Math.round(userXP) }} XP
               </span>
@@ -32,16 +62,25 @@
         </div>
       </div>
     </div>
+
     <div v-if="selectedLevel" class="mt-6 w-full max-w-md 2xl:max-w-lg">
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h2 class="card-title press-start-font">{{ selectedWorld.name }}</h2>
-          <p>{{ selectedWorld.description }}</p>
+      <div class="world-card">
+        <figure class="relative">
+          <img :src="selectedWorld.image" alt="World Image" class="w-full max-h-[30vh] object-cover" >
+          <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/20 to-transparent" />
+        </figure>
+        <div class="relative -mt-12 p-5 pt-0">
+          <p class="kicker">// universe_0{{ selectedWorld.level }}</p>
+          <h2 class="mt-2 text-lg text-fg press-start-font">{{ selectedWorld.name }}</h2>
+          <p class="mt-2 text-sm text-fg-dim">{{ selectedWorld.description }}</p>
           <!-- Play Button -->
           <UButton
             v-if="isLevelUnlocked(selectedLevel)"
             :color="'primary'"
             :variant="'solid'"
+            size="lg"
+            block
+            trailing-icon="i-mdi-arrow-right"
             class="mt-4"
             @click="playWorld"
           >
@@ -53,15 +92,15 @@
             v-else
             :color="'primary'"
             :variant="'solid'"
+            size="lg"
+            block
+            icon="i-mdi-lock-outline"
             :disabled="true"
             class="mt-4"
           >
             Almost There!
           </UButton>
         </div>
-        <figure>
-          <img :src="selectedWorld.image" alt="World Image" class="w-full max-h-[30vh] object-cover" >
-        </figure>
       </div>
     </div>
   </div>
@@ -81,9 +120,9 @@ const userXP = computed(() => banksStore.getUserXPBank?.totalXp || 0);
 const selectedLevel = ref<number>(1);
 
 const levels = [
-  { level: 1, name: "Researchia", bgColor: "bg-gray-400", borderClass: "border-gray-600", requiredXP: 0, description: "Find discovery and innovation.", image: "/img/world-1.png" },
-  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-gray-600", requiredXP: 6000, description: "Filled with academic publications.", image: "/img/world-2.png" },
-  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-gray-600", requiredXP: 8000, description: "Open knowledge and revelations.", image: "/img/world-3.png" },
+  { level: 1, name: "Researchia", bgColor: "bg-gray-400", borderClass: "border-line-strong", requiredXP: 0, description: "Find discovery and innovation.", image: "/img/world-1.png" },
+  { level: 2, name: "PubliVerse", bgColor: "bg-gray-500", borderClass: "border-line-strong", requiredXP: 6000, description: "Filled with academic publications.", image: "/img/world-2.png" },
+  { level: 3, name: "Revealo", bgColor: "bg-gray-600", borderClass: "border-line-strong", requiredXP: 8000, description: "Open knowledge and revelations.", image: "/img/world-3.png" },
 ];
 
 const isLevelUnlocked = (level: number) => {
@@ -115,7 +154,7 @@ const playWorld = () => {
 };
 
 const getStepClass = (level: number) => {
-  return isLevelUnlocked(level) ? "step-neutral" : "step-disabled text-gray-400";
+  return isLevelUnlocked(level) ? "hex-step--unlocked" : "hex-step--locked";
 };
 
 const selectedWorld = computed(() => {
@@ -127,6 +166,42 @@ const selectedWorld = computed(() => {
 
 <style scoped>
 .press-start-font {
-  font-family: "Press Start 2P", monospace;
+  font-family: var(--font-pixel);
+}
+
+.hex-step__shape {
+  @apply grid h-10 w-11 place-items-center font-mono text-sm font-semibold transition-all duration-200;
+}
+.hex-step--unlocked .hex-step__shape {
+  @apply bg-accent/15 text-accent;
+}
+.hex-step--locked .hex-step__shape {
+  @apply bg-muted text-fg-dim;
+}
+.hex-step--active .hex-step__shape {
+  @apply bg-accent text-surface;
+}
+.hex-step:hover .hex-step__shape {
+  @apply scale-110;
+}
+
+.universe-card {
+  @apply relative flex h-full flex-col rounded-[var(--radius)] border border-line bg-surface/80 p-4 backdrop-blur-sm transition-all duration-200;
+  box-shadow: var(--shadow);
+}
+.universe-card:hover {
+  @apply -translate-y-0.5 border-line-strong;
+}
+.universe-card--active {
+  @apply border-accent/60;
+  box-shadow: 0 0 0 1px rgb(var(--c-accent) / 0.4), 0 12px 32px -12px rgb(var(--c-accent) / 0.35);
+}
+.universe-card--locked {
+  @apply opacity-80;
+}
+
+.world-card {
+  @apply overflow-hidden rounded-[18px] border border-line bg-surface;
+  box-shadow: var(--shadow);
 }
 </style>

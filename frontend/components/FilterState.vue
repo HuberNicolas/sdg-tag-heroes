@@ -1,9 +1,9 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-gray-100 pt-0 pb-0 pr-4 pl-4 rounded-sm shadow-md w-full">
+  <div class="flex flex-col items-center justify-center bg-surface-2/70 border border-line pt-0 pb-0 pr-4 pl-4 rounded-xl w-full">
     <!-- Text Information -->
-    <p class="text-sm text-gray-600">
+    <p class="text-sm text-fg-dim">
       Selected <span class="font-bold" :style="{ color: sdgColor }">{{ selectedCount }}</span> of
-      <span class="font-bold text-black-600">{{ totalCount }}</span> publications
+      <span class="font-bold text-fg">{{ totalCount }}</span> publications
     </p>
     <!-- D3 Stacked Bar Chart -->
     <div ref="chartContainer" class="w-full h-1/2"/>

@@ -18,120 +18,120 @@
         @mouseleave="publicationsStore.setHoveredPublication(null)"
       >
         <thead>
-        <tr class="bg-gray-100">
+        <tr class="bg-muted">
           <th
-            class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
-            :class="{ 'font-bold text-gray-800': sortKey === 'title' }"
+            class="border border-line p-2 cursor-pointer hover:bg-muted-strong transition text-fg-dim"
+            :class="{ 'font-bold text-fg': sortKey === 'title' }"
             @click="sortTable('title')"
           >
             Title
             <span v-if="sortKey === 'title'">
               {{ sortOrder === 'asc' ? '▲' : '▼' }}
             </span>
-            <span v-else class="text-gray-400">↕</span>
+            <span v-else class="text-fg-faint">↕</span>
           </th>
-          <th class="border border-gray-300 p-2">Symbol</th>
-          <th class="border border-gray-300 p-2">Machine Scores</th>
-          <th class="border border-gray-300 p-2">Top SDGs</th>
+          <th class="border border-line p-2">Symbol</th>
+          <th class="border border-line p-2">Machine Scores</th>
+          <th class="border border-line p-2">Top SDGs</th>
           <th
-            class="border border-gray-300 p-2 cursor-pointer hover:bg-gray-200 transition text-gray-600"
-            :class="{ 'font-bold text-gray-800': sortKey === 'topSDGNumber' }"
+            class="border border-line p-2 cursor-pointer hover:bg-muted-strong transition text-fg-dim"
+            :class="{ 'font-bold text-fg': sortKey === 'topSDGNumber' }"
             @click="sortTable('topSDGNumber')"
           >
             Top SDG
             <span v-if="sortKey === 'topSDGNumber'">
               {{ sortOrder === 'asc' ? '▲' : '▼' }}
             </span>
-            <span v-else class="text-gray-400">↕</span>
+            <span v-else class="text-fg-faint">↕</span>
           </th>
 
           <th
-class="border border-gray-300 p-2 sortable-header"
+class="border border-line p-2 sortable-header"
               :class="{ 'active-sort': sortKey === 'coins' }"
               @click="sortTable('coins')">
             Coins
             <span v-if="sortKey === 'coins'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-            <span v-else class="text-gray-400">↕</span>
+            <span v-else class="text-fg-faint">↕</span>
           </th>
 
           <th
-class="border border-gray-300 p-2 sortable-header"
+class="border border-line p-2 sortable-header"
               :class="{ 'active-sort': sortKey === 'xp' }"
               @click="sortTable('xp')">
             XP
             <span v-if="sortKey === 'xp'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-            <span v-else class="text-gray-400">↕</span>
+            <span v-else class="text-fg-faint">↕</span>
           </th>
 
           <th
-class="border border-gray-300 p-2 sortable-header"
+class="border border-line p-2 sortable-header"
               :class="{ 'active-sort': sortKey === 'year' }"
               @click="sortTable('year')">
             Year
             <span v-if="sortKey === 'year'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-            <span v-else class="text-gray-400">↕</span>
+            <span v-else class="text-fg-faint">↕</span>
           </th>
           <th
-class="border border-gray-300 p-2 sortable-header"
+class="border border-line p-2 sortable-header"
               :class="{ 'active-sort': sortKey === 'collectionName' }"
               @click="sortTable('collectionName')">
             Topic
             <span v-if="sortKey === 'collectionName'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-            <span v-else class="text-gray-400">↕</span>
+            <span v-else class="text-fg-faint">↕</span>
           </th>
 
           <th
-class="border border-gray-300 p-2 sortable-header"
+class="border border-line p-2 sortable-header"
               :class="{ 'active-sort': sortKey === 'scenarioType' }"
               @click="sortTable('scenarioType')">
             Quest
             <span v-if="sortKey === 'scenarioType'">
             {{ sortOrder === 'asc' ? '▲' : '▼' }}
           </span>
-            <span v-else class="text-gray-400">↕</span>
+            <span v-else class="text-fg-faint">↕</span>
           </th>
         </tr>
         </thead>
         <tbody>
         <tr v-if="sortedTableData.length === 0">
-          <td colspan="10" class="border border-gray-300 p-4 text-center text-gray-500">
+          <td colspan="10" class="border border-line p-4 text-center text-fg-dim">
             No publications selected. Please use the lasso selection tool in the scatter plot to select data points.
           </td>
         </tr>
         <tr
           v-for="(item, index) in sortedTableData"
           :key="index"
-          class="hover:bg-gray-50"
+          class="hover:bg-surface-2"
           :style="{ backgroundColor: publicationsStore.hoveredPublication?.publicationId === item.publicationId ? getSDGColor(item.topSDG) : '' }"
           @mouseover="publicationsStore.setHoveredPublication(item)"
           @mouseleave="publicationsStore.setHoveredPublication(null)">
           <td
-class="border border-gray-300 p-2 text-xs cursor-pointer hover:bg-gray-50"
+class="border border-line p-2 text-xs cursor-pointer hover:bg-surface-2"
               @click="handlePublicationClick(item)">
             {{ item.title }}
           </td>
-          <td class="border border-gray-300 p-2">
+          <td class="border border-line p-2">
             <!-- eslint-disable vue/no-v-html -- the SVG is built from numbers, colours and the scenario enum -->
             <div
 class="relative flex items-center justify-center"
                  v-html="generateHexagonSVG(Math.round(item.xp), getSDGColor(item.topSDG), getSDGColor(item.topSDG), item.scenarioType)"/>
             <!-- eslint-enable vue/no-v-html -->
           </td>
-          <td class="border border-gray-300 p-2 flex items-center justify-center">
+          <td class="border border-line p-2 flex items-center justify-center">
             <HexGlyph :key="item.publicationId + '-' + sortKey + '-' + sortOrder" :values="item.values" :height="80" :width="70" />
           </td>
-          <td class="border border-gray-300 p-2">
+          <td class="border border-line p-2">
             <BarPredictionPlot :values="item.values" :width="80" :height="60" />
           </td>
-          <td class="border border-gray-300 p-2">
+          <td class="border border-line p-2">
             <div class="flex flex-col items-center justify-between h-full">
               <div class="w-8 h-8 flex items-center justify-center">
                 <img
@@ -142,24 +142,24 @@ class="relative flex items-center justify-center"
               <span class="text-center">{{ item.topSDGNumber }}</span>
             </div>
           </td>
-          <td class="border border-gray-300 p-2">{{ item.coins }}</td>
-          <td class="border border-gray-300 p-2">{{ item.xp }}</td>
-          <td class="border border-gray-300 p-2">{{ item.year }}</td>
-          <td class="border border-gray-300 p-2">
+          <td class="border border-line p-2">{{ item.coins }}</td>
+          <td class="border border-line p-2">{{ item.xp }}</td>
+          <td class="border border-line p-2">{{ item.year }}</td>
+          <td class="border border-line p-2">
             <div class="flex items-center justify-center relative w-full h-full">
               <div class="relative group flex items-center">
-                <Icon :name="item.collectionSymbol" class="w-8 h-8 text-gray-400" />
+                <Icon :name="item.collectionSymbol" class="w-8 h-8 text-fg-faint" />
 
                 <span
                   v-if="item.collectionName"
-                  class="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                  class="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 px-2 py-1 text-xs text-white bg-tooltip rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
                 >
         {{ item.collectionName }}
       </span>
               </div>
             </div>
           </td>
-          <td class="border border-gray-300 p-2">
+          <td class="border border-line p-2">
             <template v-if="item.scenarioType !== 'Not enough votes'">
               <QuestChip v-bind="getScenarioProps(item.scenarioType)" />
             </template>

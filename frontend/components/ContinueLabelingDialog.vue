@@ -15,14 +15,14 @@
         <!-- Tabs -->
         <div class="tabs">
           <button
-            class="tab tab-bordered bg-gray-200 rounded-lg"
+            class="tab tab-bordered bg-muted-strong rounded-lg"
             :class="{ 'tab-active': activeTab === 'similar' }"
             @click="activeTab = 'similar'"
           >
             Similar Publications
           </button>
           <button
-            class="tab tab-bordered bg-gray-200 rounded-lg"
+            class="tab tab-bordered bg-muted-strong rounded-lg"
             :class="{ 'tab-active': activeTab === 'scenarios' }"
             @click="activeTab = 'scenarios'"
           >
@@ -37,19 +37,19 @@
         </div>
 
         <!-- Display Similar Publications Once Loaded -->
-        <div v-if="activeTab === 'similar'" class="relative mx-auto p-4 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
+        <div v-if="activeTab === 'similar'" class="relative mx-auto p-4 bg-surface shadow-panel rounded-lg max-h-[80vh] overflow-y-auto">
           <!-- Similar Publications Content -->
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Choose a similar Publications</h2>
+          <h2 class="text-xl font-bold text-fg mb-4">Choose a similar Publications</h2>
           <div class="max-h-64 overflow-y-auto space-y-4">
             <div
               v-for="pub in similarPublications"
               :key="pub.publicationId"
-              class="p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition"
+              class="p-4 border rounded-lg cursor-pointer hover:bg-muted transition"
               @click="selectPublication(pub)"
             >
               <div class="flex justify-between items-center">
                 <h3 class="text-lg font-semibold">{{ pub.title || "Untitled Publication" }}</h3>
-                <span class="text-gray-600">Similarity: {{ (pub.score * 100).toFixed(2) }}%</span>
+                <span class="text-fg-dim">Similarity: {{ (pub.score * 100).toFixed(2) }}%</span>
                 <UButton size="sm" color="primary" variant="solid">
                   <NuxtLink :to="`/labeling/${pub.publicationId}`">Label Publication</NuxtLink>
                 </UButton>
@@ -61,11 +61,11 @@
                   <span class="loading loading-bars loading-sm"/> Loading Keywords...
                 </div>
                 <div v-else-if="keywords[pub.publicationId]?.keywords?.length">
-                  <strong class="text-gray-700">Keywords:</strong>
+                  <strong class="text-fg">Keywords:</strong>
                   <span
                     v-for="(keyword, index) in keywords[pub.publicationId].keywords"
                     :key="index"
-                    class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2"
+                    class="bg-muted-strong text-fg px-2 py-1 rounded-lg text-sm mr-2"
                   >
                     {{ keyword }}
                   </span>
@@ -77,9 +77,9 @@
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
                   <span class="loading loading-bars loading-sm"/> Loading Fact...
                 </div>
-                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-gray-100 p-2 rounded-lg">
-                  <h3 class="text-sm font-semibold text-gray-700">Did You Know?</h3>
-                  <p class="text-gray-700 text-sm">{{ fact[pub.publicationId].content }}</p>
+                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-muted p-2 rounded-lg">
+                  <h3 class="text-sm font-semibold text-fg">Did You Know?</h3>
+                  <p class="text-fg text-sm">{{ fact[pub.publicationId].content }}</p>
                 </div>
               </div>
 
@@ -89,15 +89,15 @@
                   <span class="loading loading-bars loading-sm"/> Loading Summary...
                 </div>
                 <div v-else-if="summary[pub.publicationId]?.summary" class="mt-2">
-                  <h3 class="text-sm font-semibold text-gray-700">Summary</h3>
-                  <p class="text-gray-700 text-sm">{{ summary[pub.publicationId].summary }}</p>
+                  <h3 class="text-sm font-semibold text-fg">Summary</h3>
+                  <p class="text-fg text-sm">{{ summary[pub.publicationId].summary }}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- No Similar Publications Found -->
-          <div v-if="similarPublications.length === 0" class="text-center text-gray-500 mt-6">
+          <div v-if="similarPublications.length === 0" class="text-center text-fg-dim mt-6">
             <p>Please select a Quest Type to load publication suggestions.</p>
           </div>
 
@@ -110,9 +110,9 @@
         </div>
 
         <!-- Display Publications by Scenario Once Loaded -->
-        <div v-if="activeTab === 'scenarios'" class="relative mx-auto p-4 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
+        <div v-if="activeTab === 'scenarios'" class="relative mx-auto p-4 bg-surface shadow-panel rounded-lg max-h-[80vh] overflow-y-auto">
           <!-- Scenarios Content -->
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Choose a Quest Type</h2>
+          <h2 class="text-xl font-bold text-fg mb-4">Choose a Quest Type</h2>
           <div class="flex gap-2 mb-4">
             <button
               v-for="scenario in scenarioButtons"
@@ -129,7 +129,7 @@
             <div
               v-for="pub in scenarioPublications"
               :key="pub.publicationId"
-              class="p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition"
+              class="p-4 border rounded-lg cursor-pointer hover:bg-muted transition"
               @click="selectPublication(pub)"
             >
               <div class="flex justify-between items-center">
@@ -145,11 +145,11 @@
                   <span class="loading loading-bars loading-sm"/> Loading Keywords...
                 </div>
                 <div v-else-if="keywords[pub.publicationId]?.keywords?.length">
-                  <strong class="text-gray-700">Keywords:</strong>
+                  <strong class="text-fg">Keywords:</strong>
                   <span
                     v-for="(keyword, index) in keywords[pub.publicationId].keywords"
                     :key="index"
-                    class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2"
+                    class="bg-muted-strong text-fg px-2 py-1 rounded-lg text-sm mr-2"
                   >
                     {{ keyword }}
                   </span>
@@ -161,9 +161,9 @@
                 <div v-if="factLoading[pub.publicationId]" class="text-center">
                   <span class="loading loading-bars loading-sm"/> Loading Fact...
                 </div>
-                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-gray-100 p-2 rounded-lg">
-                  <h3 class="text-sm font-semibold text-gray-700">Did You Know?</h3>
-                  <p class="text-gray-700 text-sm">{{ fact[pub.publicationId].content }}</p>
+                <div v-else-if="fact[pub.publicationId]?.content" class="mt-2 bg-muted p-2 rounded-lg">
+                  <h3 class="text-sm font-semibold text-fg">Did You Know?</h3>
+                  <p class="text-fg text-sm">{{ fact[pub.publicationId].content }}</p>
                 </div>
               </div>
 
@@ -173,15 +173,15 @@
                   <span class="loading loading-bars loading-sm"/> Loading Summary...
                 </div>
                 <div v-else-if="summary[pub.publicationId]?.summary" class="mt-2">
-                  <h3 class="text-sm font-semibold text-gray-700">Summary</h3>
-                  <p class="text-gray-700 text-sm">{{ summary[pub.publicationId].summary }}</p>
+                  <h3 class="text-sm font-semibold text-fg">Summary</h3>
+                  <p class="text-fg text-sm">{{ summary[pub.publicationId].summary }}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- No Publications Found for Scenario -->
-          <div v-if="scenarioPublications.length === 0" class="text-center text-gray-500 mt-6">
+          <div v-if="scenarioPublications.length === 0" class="text-center text-fg-dim mt-6">
             <p>Please select a Quest Type to load publication suggestions.</p>
           </div>
         </div>

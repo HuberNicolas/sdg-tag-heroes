@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-gray-100 pt-0 pb-0 pr-4 pl-4 rounded-sm shadow-md w-full">
+  <div class="flex flex-col items-center justify-center bg-surface-2/70 border border-line pt-0 pb-0 pr-4 pl-4 rounded-xl w-full">
     <!-- D3 Bar Chart -->
-    <p class="text-sm text-gray-600">
+    <p class="text-sm text-fg-dim">
       Top SDG-Goal Distribution
     </p>
     <div ref="chartContainer" class="w-full"/>
@@ -88,7 +88,7 @@ export default {
         .append("div")
         .style("position", "absolute")
         .style("visibility", "hidden")
-        .style("background", "#fff")
+        .style("background", "rgb(var(--c-surface))")
         .style("border", "1px solid #ddd")
         .style("padding", "5px")
         .style("border-radius", "4px")

@@ -1,13 +1,13 @@
 <template>
   <div class="container mx-auto p-2">
     <!-- Display the marked text -->
-    <div v-if="firstLastWords" class="p-2 bg-gray-100 rounded-lg">
+    <div v-if="firstLastWords" class="p-2 bg-muted rounded-lg">
       <h3 class="font-semibold mb-1">Selected Abstract Section (optional)</h3>
-      <p class="text-gray-700">{{ firstLastWords }}</p>
+      <p class="text-fg">{{ firstLastWords }}</p>
     </div>
-    <div v-else class="p-2 bg-gray-100 rounded-lg">
+    <div v-else class="p-2 bg-muted rounded-lg">
       <h3 class="font-semibold mb-1">Selected Abstract Section</h3>
-      <p class="text-gray-500">No passage selected yet.</p>
+      <p class="text-fg-dim">No passage selected yet.</p>
     </div>
   </div>
 </template>

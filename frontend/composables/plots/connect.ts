@@ -113,7 +113,7 @@ export default function useConnect() {
             .join(' ')
         )
         .attr('fill', fillColor)
-        .attr('stroke', 'black')
+        .attr('stroke', 'var(--hex-stroke)')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -134,8 +134,8 @@ export default function useConnect() {
             })
             .join(' ')
         )
-        .attr('fill', 'white')
-        //.attr('stroke', 'black')
+        .attr('fill', 'var(--hex-empty)')
+        //.attr('stroke', 'var(--hex-stroke)')
         //.attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -151,7 +151,7 @@ export default function useConnect() {
         .attr('data-id', sdgShortTitles[i])
         .text(sdgShortTitles[i])
         .style('font-size', '8px')
-        .style('fill', 'black');
+        .style('fill', 'var(--hex-label)');
     });
   };
 
@@ -184,7 +184,7 @@ export default function useConnect() {
         }).join(' ')
       )
       .attr('fill', color)
-      .attr('stroke', 'black')
+      .attr('stroke', 'var(--hex-stroke)')
       .attr('stroke-width', 1)
       .attr('transform', `rotate(${rotation} 0 0)`);
 
@@ -196,7 +196,7 @@ export default function useConnect() {
       .attr('dy', '0.35em')
       .text(label)
       .style('font-size', '8px')
-      .style('fill', 'black');
+      .style('fill', 'var(--hex-label)');
   };
 
   const initArrows = () => {

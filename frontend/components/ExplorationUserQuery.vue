@@ -24,7 +24,7 @@
           <input
             v-model="inputValue"
             type="text"
-            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 placeholder:text-muted-foreground transition-colors duration-200"
+            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 placeholder:text-muted-foreground transition-colors duration-200"
             :placeholder="mode === 'skills' ? 'I work as a nurse' : 'I like to play the piano'"
           >
         </div>
