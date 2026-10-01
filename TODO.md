@@ -133,9 +133,8 @@ game logic. These points came up on the way and are left for later:
 - [ ] The help drawer opens with an inline `onclick` and `getElementById`; a Nuxt UI `USlideover` would fit better
 - [ ] The XP thresholds of the universes (0 / 6000 / 8000) are hardcoded in `WorldSelector.vue`
 - [ ] The SHAP highlights stay empty until an SDG is selected (no SDG → no colour); a hint in the abstract would help
-- [ ] Clicking a cell on the publication map calls `publicationsStore.selectedPartitionedPublications([...])` as a
-  function (it is an array), which throws; the click marker therefore never shows (`scatterPlot.ts`,
-  `scatterSDGPlot.ts`)
+- [x] Clicking a cell on the publication map called `publicationsStore.selectedPartitionedPublications([...])` as a
+  function (it is an array), which threw; fixed: a click selects that publication like a lasso around it
 - [x] `handlePublicationClick` in the publication tables used `this.isOpen` inside `<script setup>` (no `this`), so
   the details modal did not open from the table; fixed, and its LLM parts (keywords, fact, summary) show one by one
 - [x] Label submit: `includeAbstractSection` was not defined, so the form never reset after a submit; fixed, the

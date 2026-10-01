@@ -189,6 +189,19 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
     );
 
 
+    // Linked views: the top SDG filter (bar chart of the summary) also dims the other cells on the map
+    const { topSdgFilter } = useTopSdgFilter();
+    const topSdgOf = (prediction) => {
+      if (!prediction) return null;
+      const best = Object.entries(prediction)
+        .filter(([key]) => /^sdg\d+$/.test(key))
+        .reduce((max, [key, value]) => (value > max.value ? { key, value } : max), { key: null, value: -Infinity });
+      return best.key ? parseInt(best.key.replace('sdg', ''), 10) : null;
+    };
+    watch(topSdgFilter, (sdgId) => {
+      map.highlight(sdgId ? combinedData.flatMap((d, i) => (topSdgOf(d.sdgPrediction) === sdgId ? [i] : [])) : null);
+    });
+
     // Listen for user coordinate updates
     watch(
       () => gameStore.getUserCoordinates,
@@ -271,7 +284,13 @@ export function createScatterPlot(container, width, height, mode = 'top1', total
         const selectedPublication = combinedData[clickedIndex]?.publication;
         if (selectedPublication) {
           publicationsStore.setSelectedPublication(selectedPublication);
-          publicationsStore.selectedPartitionedPublications([selectedPublication]);
+          // A click selects this one publication, like a lasso around it (the store field was called as a function,
+          // which threw, so clicks had no effect)
+          const clicked = combinedData[clickedIndex];
+          sdgPredictionsStore.selectedPartitionedSDGPredictions = [clicked.sdgPrediction];
+          publicationsStore.selectedPartitionedPublications = [clicked.publication];
+          dimensionalityReductionsStore.selectedPartitionedReductions = [clicked.dimensionalityReduction];
+          map.select([clickedIndex]);
           console.log("Selected Publication:", selectedPublication);
 
           // Store the clicked point's coordinates

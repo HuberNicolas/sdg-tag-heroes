@@ -66,6 +66,11 @@ export function createHexMap(container: HTMLElement) {
   let data: Trace | null = null;
   let overlays: Trace[] = [];
   let selection = new Set<number>();
+  // Cells of the top SDG filter of the summary (null: no filter)
+  let highlighted: Set<number> | null = null;
+  // Marker size: the XP (entropy) values map to a radius between 5 and 14 px. Plotly used them as pixel
+  // diameters (often 70 px and more), so the cells covered each other; the order of sizes stays the same.
+  const radius = d3.scaleSqrt().range([5, 14]).clamp(true);
   let transform = d3.zoomIdentity;
   let width = 0;
   let height = 0;
@@ -138,6 +143,13 @@ export function createHexMap(container: HTMLElement) {
     };
     baseX.domain(xs.length ? pad(d3.extent(xs) as [number, number]) : [0, 1]);
     baseY.domain(ys.length ? pad(d3.extent(ys) as [number, number]) : [0, 1]);
+    fitSizes();
+  };
+
+  const fitSizes = () => {
+    const sizes = (data?.x ?? []).map((_, i) => Number(pick(data!.marker?.size, i, 10)) || 0);
+    const [lo, hi] = sizes.length ? (d3.extent(sizes) as [number, number]) : [0, 1];
+    radius.domain(lo === hi ? [lo - 1, hi + 1] : [lo, hi]);
   };
 
   const measure = () => {
@@ -253,7 +265,7 @@ export function createHexMap(container: HTMLElement) {
         (exit) => exit.remove(),
       )
       .attr("points", (i) => {
-        const r = pick(data!.marker?.size, i, 10) / 2 + 2;
+        const r = radius(Number(pick(data!.marker?.size, i, 10)) || 0);
         return pick(data!.marker?.symbol, i, "hexagon2") === "diamond" ? diamondPath(r) : hexPath(r);
       })
       .attr("transform", (i) => `translate(${x(data!.x[i])},${y(data!.y[i])})`)
@@ -271,7 +283,7 @@ export function createHexMap(container: HTMLElement) {
         return !!line && line !== fill && line !== "black";
       })
       .classed("is-quest", (i) => pick(data!.marker?.symbol, i, "hexagon2") === "diamond")
-      .classed("is-dim", (i) => hasSelection && !selection.has(i))
+      .classed("is-dim", (i) => (hasSelection && !selection.has(i)) || (highlighted !== null && !highlighted.has(i)))
       .classed("is-selected", (i) => hasSelection && selection.has(i));
   };
 
@@ -413,6 +425,7 @@ export function createHexMap(container: HTMLElement) {
         if (next && data && next.x.length !== data.x.length) selection = new Set();
         data = next;
         if (firstData) fitDomain();
+        else fitSizes();
       }
       overlays = list.filter((t) => t.role);
       if (!drawn) {
@@ -424,6 +437,16 @@ export function createHexMap(container: HTMLElement) {
       draw();
     },
     resetZoom,
+    // Show these cells as selected (e.g. after a click), the others dimmed
+    select(indices: number[]) {
+      selection = new Set(indices);
+      draw();
+    },
+    // Linked views: dim every cell that is not in `indices`; null removes the highlight
+    highlight(indices: number[] | null) {
+      highlighted = indices ? new Set(indices) : null;
+      draw();
+    },
     destroy() {
       ro.disconnect();
       root.selectAll("*").remove();

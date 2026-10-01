@@ -20,7 +20,10 @@
       <!-- Summary of the selection and the publication table -->
       <div class="xl:col-span-5 flex flex-col gap-3 min-h-0">
         <div class="flex-none">
-          <p class="kicker mb-2">// summarize your selection</p>
+          <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <p class="kicker">// summarize your selection</p>
+            <SelectionTrail />
+          </div>
           <div class="grid grid-cols-1 lg:grid-cols-5 gap-3">
             <div class="lg:col-span-2 flex flex-col gap-3">
               <FilterStateExploration />
@@ -39,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+import SelectionTrail from "~/components/SelectionTrail.vue";
 import BarPlot from "@/components/plots/BarPlot.vue";
 import ExplorationUserQuery from "~/components/ExplorationUserQuery.vue";
 import { onMounted, ref, watch } from "vue";

@@ -290,7 +290,9 @@ const updateChart = () => {
   const jitterHeight = 30;
   sortedData.forEach(d => {
     if (!jitterMap.has(d)) {
-      jitterMap.set(d, (Math.random() - 0.5) * jitterHeight);
+      // Stable jitter derived from the value (random jitter moved the dots on every redraw)
+      const hash = Math.abs(Math.sin(d * 12.9898) * 43758.5453) % 1;
+      jitterMap.set(d, (hash - 0.5) * jitterHeight);
     }
   });
 
@@ -330,15 +332,18 @@ const updateChart = () => {
     */
 
 
-  // X-Axis with rotated labels
-  svg.append("g")
+  // X axis: a few straight ticks and a title that says what XP stands for
+  const xAxis = svg.append("g")
     .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(xScale).tickSize(0))
-    .selectAll("text")
-    .style("text-anchor", "end")
-    .attr("dx", "-0.8em")
-    .attr("dy", "0.15em")
-    .attr("transform", "rotate(-45)");
+    .call(d3.axisBottom(xScale).ticks(5).tickSize(3).tickFormat(d3.format("d")));
+  xAxis.select(".domain").attr("stroke", "rgb(var(--c-line-strong))");
+  svg.append("text")
+    .attr("x", (width - margin.left - margin.right) / 2)
+    .attr("y", height - margin.bottom + 30)
+    .attr("text-anchor", "middle")
+    .attr("fill", "rgb(var(--c-fg-faint))")
+    .style("font", "500 10.5px var(--font-mono)")
+    .text("xp of a publication = how unsure the model is (entropy × 100)");
 };
 
 // Watch for updates in data
