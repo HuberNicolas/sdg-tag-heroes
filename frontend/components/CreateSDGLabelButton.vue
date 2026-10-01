@@ -29,23 +29,27 @@
         </div>
 
         <!-- Submit Button -->
-        <UButton
-          icon="heroicons-outline:tag"
-          size="sm"
-          color="primary"
-          variant="solid"
-          :label="isSubmitting ? 'Submitting...' : 'Submit SDG Label'"
-          :disabled="isSubmitting"
-          :trailing="false"
-          type="submit"
-        />
+        <div class="flex items-center gap-2">
+          <span v-if="!hasPick" class="font-mono text-[11px] text-fg-faint">pick an SDG in the honeycomb first</span>
+          <UButton
+            icon="i-heroicons-tag"
+            size="sm"
+            color="primary"
+            variant="solid"
+            :label="isSubmitting ? 'Submitting…' : 'Submit SDG Label'"
+            :loading="isSubmitting"
+            :disabled="isSubmitting || !hasPick"
+            :trailing="false"
+            type="submit"
+          />
+        </div>
       </div>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useSDGsStore } from "~/stores/sdgs";
 import { useLabelDecisionsStore } from "~/stores/sdgLabelDecisions";
 import { useUsersStore } from "~/stores/users";
@@ -61,6 +65,9 @@ const explanationStore = useExplanationsStore();
 // Reactive properties
 const isSubmitting = ref(false);
 const comment = ref(""); // Comment input field
+const includeAbstractSection = ref(false); // Send the marked abstract passage with the label
+const hasPick = computed(() => sdgsStore.getSelectedSDGLabel !== 0);
+const toast = useToast();
 
 // Function for submitting the SDG label
 const { createOrLinkSDGUserLabel } = useUserLabels();
@@ -79,7 +86,7 @@ const submitUserLabel = async () => {
     const userLabelRequest = {
       user_id: currentUser.userId,
       voted_label: selectedSDGLabel,
-      abstract_section: explanationStore.markedText,
+      abstract_section: includeAbstractSection.value ? explanationStore.markedText : null,
       comment: comment.value, // Include the comment if provided
       decision_id: labelDecisionsStore.selectedSDGLabelDecision?.decisionId || null,
       publication_id: labelDecisionsStore.selectedSDGLabelDecision?.publicationId || null,
@@ -89,12 +96,29 @@ const submitUserLabel = async () => {
     // Send data to the function
     await createOrLinkSDGUserLabel(userLabelRequest);
 
+    // Show the new vote in the community views (honeycomb, ring, bars)
+    if (userLabelRequest.publication_id) {
+      await labelDecisionsStore.fetchUserLabelsByPublicationId(userLabelRequest.publication_id);
+    }
+    toast.add({
+      title: "Label submitted",
+      description: selectedSDGLabel === -1 ? "You marked the publication as not relevant." : `You labeled the publication with SDG ${selectedSDGLabel}.`,
+      icon: "i-heroicons-check-circle",
+      color: "primary",
+    });
+
     // Reset fields after submission
     includeAbstractSection.value = false;
     comment.value = "";
     sdgsStore.setSelectedSDGLabel(0);
   } catch (error) {
     console.error("Error submitting SDG label:", error);
+    toast.add({
+      title: "Label not submitted",
+      description: "Something went wrong. Please try again.",
+      icon: "i-heroicons-exclamation-triangle",
+      color: "red",
+    });
   } finally {
     isSubmitting.value = false;
   }

@@ -89,7 +89,8 @@
           </div>
         </div>
 
-        <div v-if="showContent" class="flex-1 min-h-[24rem] 2xl:min-h-0 frame-container flex flex-col">
+        <!-- Below 2xl the page scrolls: the comments get a fixed height and scroll inside -->
+        <div v-if="showContent" class="flex-1 h-[32rem] 2xl:h-auto min-h-0 frame-container flex flex-col">
           <div class="flex-none flex items-center justify-end gap-2">
             <Icon
               :name="showAnnotations ? 'mdi-tag' : 'mdi-comment-outline'"

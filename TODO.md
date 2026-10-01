@@ -138,8 +138,11 @@ game logic. These points came up on the way and are left for later:
   `scatterSDGPlot.ts`)
 - [ ] `handlePublicationClick` in the publication tables uses `this.isOpen` inside `<script setup>` (no `this`), so
   the details modal does not open from the table
-- [ ] `CreateSDGLabelButton.vue` resets `includeAbstractSection`, which is not defined
+- [x] Label submit: `includeAbstractSection` was not defined, so the form never reset after a submit; fixed, the
+  checkbox now decides whether the marked passage is sent, and the community views reload after a submit
 - [ ] An expired token does not lead back to the login; the pages stay empty with 401 errors
 - [ ] `plotly.js-dist` is no longer used (the maps are drawn with d3, `composables/plots/hexMap.ts`); remove it from
   `package.json` together with a lockfile update
+- [ ] Topics: the 85-paper dummy dataset has no BERTopic topics (only the outlier cluster "Miscellaneous"), so the
+  topic list has a single entry. Generate a larger dataset (340–600 papers) or tune BERTopic for small datasets
 - [x] Topic list: starts with all topics selected and "Reset" goes back to all (the map used to start empty)
