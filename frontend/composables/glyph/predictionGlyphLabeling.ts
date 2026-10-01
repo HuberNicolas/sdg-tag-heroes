@@ -145,7 +145,8 @@ export default function createGlyph() {
         .attr('text-anchor', 'middle')
         .attr('dy', '0.35em')
         .text(sdgShortTitles[i])
-        .style('font-size', '12px')
+        .style('font-size', '13px')
+        .style('font-weight', '600')
         .style('fill', 'var(--hex-label)');
 
       hexagonGroup

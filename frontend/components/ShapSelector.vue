@@ -2,11 +2,11 @@
   <div class="mb-2">
     <!-- Display the marked text -->
     <div v-if="firstLastWords" class="px-3 py-2 rounded-xl border border-dashed border-line-strong bg-surface-2/70">
-      <h3 class="font-mono text-[10px] uppercase tracking-wider text-fg-faint mb-0.5">Selected Abstract Section (optional)</h3>
+      <h3 class="font-mono text-[11px] uppercase tracking-wider text-fg-faint mb-0.5">Selected Abstract Section (optional)</h3>
       <p class="text-sm text-fg italic">“{{ firstLastWords }}”</p>
     </div>
     <div v-else class="px-3 py-2 rounded-xl border border-dashed border-line-strong bg-surface-2/70">
-      <h3 class="font-mono text-[10px] uppercase tracking-wider text-fg-faint mb-0.5">Selected Abstract Section</h3>
+      <h3 class="font-mono text-[11px] uppercase tracking-wider text-fg-faint mb-0.5">Selected Abstract Section</h3>
       <p class="text-sm text-fg-dim">No passage selected yet. Mark text in the abstract to quote it.</p>
     </div>
   </div>

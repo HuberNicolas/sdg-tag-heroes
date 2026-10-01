@@ -13,12 +13,12 @@
 
       <!-- SDG Details (Compact) -->
       <div class="min-w-0 flex-1">
-        <p class="font-mono text-[10px] uppercase tracking-wider text-fg-faint">explaining · sdg_{{ String(currentSDG.index).padStart(2, '0') }}</p>
+        <p class="font-mono text-[11px] uppercase tracking-wider text-fg-faint">explaining · sdg_{{ String(currentSDG.index).padStart(2, '0') }}</p>
         <p class="truncate text-sm font-semibold text-fg">{{ currentSDG.name }}</p>
       </div>
 
       <div v-if="machineScore !== null" class="flex-none w-32">
-        <div class="flex items-baseline justify-between font-mono text-[10px] text-fg-faint">
+        <div class="flex items-baseline justify-between font-mono text-[11px] text-fg-faint">
           <span>machine score</span><b class="text-xs text-fg">{{ machineScore.toFixed(2) }}</b>
         </div>
         <div class="mt-1 h-1.5 rounded-full bg-muted-strong overflow-hidden">

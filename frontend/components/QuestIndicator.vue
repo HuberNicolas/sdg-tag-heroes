@@ -3,7 +3,7 @@
     <span class="quest-gem mt-0.5"><Icon :name="displayIcon" /></span>
     <div class="flex-1 min-w-0 leading-snug">
       <div class="flex items-center gap-2">
-        <span class="font-mono text-[10px] uppercase tracking-wider text-fg-faint">quest</span>
+        <span class="font-mono text-[11px] uppercase tracking-wider text-fg-faint">quest</span>
         <span class="font-semibold text-fg">{{ name }}</span>
       </div>
       <p class="mt-0.5 text-fg-dim">{{ displayText }}</p>

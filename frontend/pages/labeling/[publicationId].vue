@@ -2,7 +2,8 @@
   <!-- Three areas: machine support, your contribution, community support.
        From 2xl on they sit side by side and fill the window. On xl, community support
        moves below the other two; smaller screens stack everything. -->
-  <div class="min-h-full 2xl:h-full flex flex-col">
+  <!-- From lg on, the page fills the window and every column scrolls by itself (no page scroll). -->
+  <div class="min-h-full lg:h-full flex flex-col">
     <header class="flex-none border-b border-line px-4 py-3 flex flex-wrap items-center justify-between gap-2">
       <div>
         <p class="kicker">// labeling · publication #{{ publicationId }}</p>
@@ -15,9 +16,9 @@
       </div>
     </header>
 
-    <div class="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-[3fr_3fr_4fr] gap-3 p-3">
+    <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[3fr_3fr_4fr] gap-3 p-3">
       <!-- Machine support -->
-      <section class="flex flex-col gap-3 min-h-0 min-w-0">
+      <section class="labeling-col">
         <h2 class="section-head"><Icon name="mdi:robot-outline" />Machine Support</h2>
         <div class="flex-none grid grid-cols-1 2xl:grid-cols-[3fr_2fr] gap-3">
           <SDGSelector />
@@ -29,17 +30,20 @@
           </div>
         </div>
         <SDGExplorerLabeling class="flex-none" />
-        <ShapAbstract class="flex-1 min-h-[24rem] 2xl:min-h-0" />
+        <ShapAbstract class="flex-1 min-h-[26rem]" />
       </section>
 
+      <!-- Below 2xl, your contribution and the community share the second column (one scroll area);
+           from 2xl on the wrapper disappears (display: contents) and they become columns of their own -->
+      <div class="labeling-col 2xl:!contents">
       <!-- Your contribution -->
-      <section class="flex flex-col gap-3 min-h-0 min-w-0">
+      <section class="flex flex-col gap-3 min-w-0 2xl:min-h-0 2xl:overflow-y-auto 2xl:pr-1">
         <h2 class="section-head"><Icon name="mdi:account-edit-outline" />Your Contribution</h2>
-        <AnnotationSection class="flex-1 min-h-0" />
+        <AnnotationSection class="flex-1 2xl:min-h-0" />
       </section>
 
       <!-- Community support -->
-      <section class="flex flex-col gap-3 min-h-0 min-w-0 xl:col-span-2 2xl:col-span-1">
+      <section class="flex flex-col gap-3 min-w-0 2xl:min-h-0 2xl:overflow-y-auto 2xl:pr-1">
         <h2 class="section-head"><Icon name="mdi:account-group-outline" />Community Support</h2>
 
         <div class="flex-none frame-container">
@@ -89,8 +93,8 @@
           </div>
         </div>
 
-        <!-- Below 2xl the page scrolls: the comments get a fixed height and scroll inside -->
-        <div v-if="showContent" class="flex-1 h-[32rem] 2xl:h-auto min-h-0 frame-container flex flex-col">
+        <!-- Below 2xl the comments get a fixed height and scroll inside their column -->
+        <div v-if="showContent" class="flex-none h-[32rem] 2xl:flex-1 2xl:h-auto 2xl:min-h-[20rem] frame-container flex flex-col">
           <div class="flex-none flex items-center justify-end gap-2">
             <Icon
               :name="showAnnotations ? 'mdi-tag' : 'mdi-comment-outline'"
@@ -107,6 +111,7 @@
           </div>
         </div>
       </section>
+      </div>
     </div>
   </div>
 </template>
@@ -178,8 +183,11 @@ onMounted(async () => {
 .kpi {
   @apply relative flex min-w-0 flex-col gap-0.5 rounded-xl border border-line bg-surface-2/70 px-3 py-2;
 }
+.labeling-col {
+  @apply flex min-h-0 min-w-0 flex-col gap-3 lg:overflow-y-auto lg:pr-1;
+}
 .kpi__key {
-  @apply font-mono text-[10px] uppercase tracking-wider text-fg-faint;
+  @apply font-mono text-[11px] uppercase tracking-wider text-fg-faint;
 }
 .kpi__value {
   @apply font-mono text-lg font-semibold leading-tight text-fg;

@@ -6,17 +6,19 @@
       <ShapToggle />
     </div>
 
-    <div class="container mx-auto p-1 flex-1 flex flex-col overflow-hidden">
+    <div class="p-1 flex-1 min-h-0 flex flex-col overflow-hidden">
       <!-- Abstract Display -->
       <div
 class="bg-surface-2/70 border border-line p-4 rounded-xl flex flex-col h-full overflow-hidden"
            @mouseup="handleAbstractSelection">
         <LoadingState v-if="!publication" label="loading abstract" class="flex-1" />
-        <h1 v-else class="text-xl font-bold tracking-tight mb-2">{{ publication.title }}</h1>
-        <div class="flex-1 overflow-y-auto text-justify leading-relaxed text-fg/90">
-          <!-- eslint-disable-next-line vue/no-v-html -- the text is escaped, only the <mark> tags are HTML -->
-          <span v-html="shapHighlightedAbstract"/>
-        </div>
+        <template v-else>
+          <h1 class="text-[1.35rem] leading-snug font-bold tracking-tight mb-3">{{ publication.title }}</h1>
+          <div class="flex-1 overflow-y-auto text-[17px] leading-[1.75] text-fg/90 pr-1">
+            <!-- eslint-disable-next-line vue/no-v-html -- the text is escaped, only the <mark> tags are HTML -->
+            <span v-html="shapHighlightedAbstract"/>
+          </div>
+        </template>
       </div>
     </div>
   </div>

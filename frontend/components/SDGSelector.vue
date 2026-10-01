@@ -69,7 +69,7 @@ const selectSDG = (sdgId: number) => {
 
 <style scoped>
 .sdg-chips {
-  @apply grid grid-cols-[repeat(auto-fill,minmax(3.4rem,1fr))] gap-1.5;
+  @apply grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-1.5;
 }
 .sdg-chip {
   @apply flex flex-col items-center gap-1 rounded-lg border border-transparent px-1 pb-1.5 pt-1 transition-all duration-200;
@@ -86,11 +86,11 @@ const selectSDG = (sdgId: number) => {
   box-shadow: 0 6px 18px -10px var(--sdg);
 }
 .sdg-chip__hex {
-  @apply grid h-7 w-8 place-items-center font-mono text-[11px] font-bold text-white;
+  @apply grid h-8 w-9 place-items-center font-mono text-xs font-bold text-white;
   background: var(--sdg);
 }
 .sdg-chip__name {
-  @apply w-full truncate text-center text-[10px] leading-none text-fg-dim;
+  @apply w-full truncate text-center text-[11.5px] leading-tight text-fg-dim;
 }
 .sdg-chip.is-selected .sdg-chip__name {
   @apply font-semibold text-fg;

@@ -185,7 +185,7 @@
 
   /* Panel heading, rendered like a code comment: `// Explore Publications …` */
   .frame-title {
-    @apply mb-2 text-[13px] leading-snug text-fg-dim;
+    @apply mb-2 text-sm leading-snug text-fg-dim;
   }
   .frame-title::before {
     content: '//';
@@ -699,7 +699,7 @@
 }
 .identify__label {
   fill: rgb(var(--c-fg));
-  font: 600 8.5px var(--font-sans);
+  font: 600 10.5px var(--font-sans);
   text-anchor: middle;
   pointer-events: none;
   paint-order: stroke;
@@ -708,7 +708,7 @@
 }
 .identify__votes {
   fill: rgb(var(--c-fg-dim));
-  font: 600 8px var(--font-mono);
+  font: 600 9.5px var(--font-mono);
   text-anchor: middle;
   pointer-events: none;
 }
@@ -750,12 +750,12 @@
 }
 .identify__target-kicker {
   fill: rgb(var(--c-accent));
-  font: 500 9px var(--font-mono);
+  font: 500 11px var(--font-mono);
   text-anchor: middle;
 }
 .identify__target-label {
   fill: rgb(var(--c-fg));
-  font: 700 10px var(--font-sans);
+  font: 700 12.5px var(--font-sans);
   text-anchor: middle;
   paint-order: stroke;
   stroke: rgb(var(--c-surface) / 0.6);

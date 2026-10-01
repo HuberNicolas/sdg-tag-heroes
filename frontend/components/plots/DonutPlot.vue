@@ -5,7 +5,7 @@
 
     <div v-else class="flex h-[132px] w-[132px] flex-col items-center justify-center gap-1 rounded-full border border-dashed border-line-strong text-center">
       <Icon name="mdi-hexagon-outline" class="h-5 w-5 text-accent" />
-      <p class="font-mono text-[10px] leading-tight text-fg-dim">no labels yet<br>be the first</p>
+      <p class="font-mono text-[11px] leading-tight text-fg-dim">no labels yet<br>be the first</p>
     </div>
   </div>
 </template>
@@ -101,7 +101,7 @@ onMounted(() => {
 }
 :deep(.donut__label) {
   fill: rgb(var(--c-fg-faint));
-  font: 500 9px var(--font-mono);
+  font: 500 10.5px var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   text-anchor: middle;
