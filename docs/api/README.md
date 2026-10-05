@@ -8,7 +8,7 @@ it.
 |-----------------|-------------------------------------------------------------------------------|
 | **Swagger UI**  | <http://localhost:1002/docs>, generated from the code and always up to date  |
 | **ReDoc**       | <http://localhost:1002/redoc>                                                 |
-| **OpenAPI**     | <http://localhost:1002/openapi.json>                                          |
+| **OpenAPI**     | <http://localhost:1002/openapi.json>, or without a running API: [`openapi.json`](openapi.json) in this folder (open it in the [Swagger Editor](https://editor.swagger.io) or import it into Postman) |
 | **Postman**     | [`sdg-tag-heroes.postman_collection.json`](sdg-tag-heroes.postman_collection.json) in this folder |
 
 ## Contents
@@ -118,11 +118,11 @@ After changing the API, regenerate the collection from the OpenAPI schema of the
 root:
 
 ```bash
-curl -s http://localhost:1002/openapi.json -o openapi.json
+curl -s http://localhost:1002/openapi.json | python3 -m json.tool --indent 2 > docs/api/openapi.json
 ```
 
 ```bash
-npx openapi-to-postmanv2@4 -s openapi.json -o converted.json -p -O folderStrategy=Paths
+npx openapi-to-postmanv2@4 -s docs/api/openapi.json -o converted.json -p -O folderStrategy=Paths
 ```
 
 ```bash
@@ -131,5 +131,6 @@ python3 docs/api/finalize_postman_collection.py converted.json docs/api/sdg-tag-
 
 The second command is Postman's own converter, the same one the Postman import uses.
 [`finalize_postman_collection.py`](finalize_postman_collection.py) groups the requests into one folder per resource,
-sets the collection's Bearer auth and variables, and adds the login test script. Delete `openapi.json` and
-`converted.json` afterwards.
+sets the collection's Bearer auth and variables, and adds the login test script. Commit `openapi.json` and the
+collection together, and delete `converted.json`. The converter picks example values of enum fields (such as `roles`)
+at random, so a regenerated collection also differs in those examples, even if the API did not change.

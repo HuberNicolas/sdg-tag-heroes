@@ -77,6 +77,5 @@ venv/
 # Models
 *.joblib
 
-# Temporary files when regenerating the Postman collection (docs/api/README.md)
-/openapi.json
+# Temporary file when regenerating the Postman collection (docs/api/README.md)
 /converted.json

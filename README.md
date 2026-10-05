@@ -278,7 +278,8 @@ curl -X POST http://localhost:1002/auth/login -H 'Content-Type: application/json
 
 Send it as `Authorization: Bearer <token>` with every other request. In Swagger UI, use the **Authorize** button.
 
-A **Postman collection** with all 111 requests is in
+The OpenAPI schema is also in the repository, [`docs/api/openapi.json`](docs/api/openapi.json), so the API can be
+explored without running it. A **Postman collection** with all 111 requests is in
 [`docs/api/sdg-tag-heroes.postman_collection.json`](docs/api/sdg-tag-heroes.postman_collection.json). Import it, set
 the `password` variable, and send **auth → Login**; every other request then uses the token. The
 [API guide](docs/api/README.md) lists the endpoint groups and explains how to regenerate the collection.
