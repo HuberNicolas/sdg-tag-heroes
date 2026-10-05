@@ -373,9 +373,10 @@ The SDG predictions come from the SciBERT model `Dvdblk`, because the Aurora mod
 Log in with an account from `env/users.env`, or as one of the 40 generated players (`<lastname>@example.org`,
 password `password01`).
 
-**Limitations:** the template abstracts (the generator's default mode) share many phrases, so BERTopic finds only a
-few topics; abstracts written by a model (`--mode ollama` or `--mode llm`) give more varied topics. SciBERT rarely scores SDG 17 above 0.7, so
-that SDG may have no map.
+**Limitations:** the overview map always gets 20 topics, but with template abstracts (the generator's default mode)
+they share many phrases and are hard to tell apart; abstracts written by a model (`--mode ollama` or `--mode llm`) give
+meaningful topics such as solar microgrids or water scarcity. SciBERT rarely scores SDG 17 above 0.7, so that SDG may
+have no map.
 
 ## Building the dataset
 
