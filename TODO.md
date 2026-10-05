@@ -120,4 +120,5 @@ published.
 - [x] Check for secrets (2026-09-24): tracked files and the whole git history contain no API keys, JWTs, real
   passwords or env files, only the placeholder values of the `*.env.example` files. The commits carry the UZH
   e-mail addresses `nicolas.huber2@uzh.ch` and `nhuber@ifi.uzh.ch` as author
-- [ ] Repeat the check right before publishing, after the notebooks are cleaned
+- [ ] Repeat the secrets check now and then (the repository is public since September 2026); the notebooks stay as
+  they are (decision of 2026-09-24)
