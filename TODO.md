@@ -7,8 +7,14 @@ Open tasks before the repository is made public. See also [Known issues](README.
 The original data (UZH publications from ZORA, plus labels, clusters, and explanations from SDG-Scout) cannot be
 published.
 
-- [ ] Back up the original `data/` folder (about 24 GB) and keep it outside the repository
-- [x] Create the generator repository (`../sdg-tag-heroes-dataset-generator`, local only so far). It replaces only the
+- [x] Back up the original data (2026-10-05): the current state of MariaDB, MongoDB and Qdrant, the folders that
+  existed only inside the containers, `data/` and `env/`, on an external drive (34 GB). Made and checked with the
+  private repository `sdg-tag-heroes-db-backup` (`verify --restore-test` passed); the MongoDB dump also restores into
+  MongoDB 7.0
+- [ ] Move this machine's MongoDB to 7.0 (pinned since 2026-09-30): 7.0 cannot read the 8.0 data files in
+  `data/docker/db/mongodb/`, so start it with an empty folder and restore the backup
+  (`sdg-backup restore … --only mongodb`)
+- [x] Create the generator repository (`sdg-tag-heroes-dataset-generator`, public on GitHub). It replaces only the
   external sources; the pipeline computes the rest:
   - [x] ZORA: fictional publications as OAI-PMH files, read with `collector.py --from-dir`
   - [x] SDG-Scout: ground-truth labels and (synthetic) explanations
@@ -18,10 +24,10 @@ published.
   isolated Docker network: collector, Dvdblk predictions, Qdrant, UMAP, BERTopic, loaders, fixtures, API, frontend
 - [x] Document in the README how to load the dummy dataset
 - [x] Step-by-step guide for a fresh machine (`docs/dummy-dataset.md`) and `utils/docker/create_env_files.py`
-- [ ] Test `docs/dummy-dataset.md` on a fresh machine
-- [ ] Generate the dataset with `--mode ollama` (free, about 6 hours for 600 papers) or `--mode llm` (costs money);
-  both give better topics than the template abstracts
-- [ ] Publish the generator repository on GitHub
+- [x] Test the dummy dataset setup on a fresh machine (Linux, kernel 7.0; see `RUN.md`)
+- [x] Try `--mode ollama` (85 papers with llama3.1, about 1.5 hours on a CPU; see `RUN.md`)
+- [ ] Optional: a larger dataset with model-written abstracts (`--mode ollama` with ~600 papers, or `--mode llm`) for
+  more varied topics
 - [ ] SDG clusters (`full_dataset_clusters.json`) are not generated; they were not used in the deployed version
 - [x] UZH data in the notebooks: decided (2026-09-24) to keep the notebooks as they are. They are part of the thesis
   analysis and contain titles and abstracts (no full papers), which are also public on ZORA. The dataset itself
@@ -36,6 +42,7 @@ published.
   (`openapi-to-postmanv2`) and `docs/api/finalize_postman_collection.py`: all 111 requests, variables, Bearer auth,
   login test script, no passwords or tokens
 - [x] Document the steps in `docs/api/README.md`
+- [x] Keep the OpenAPI schema in the repository (`docs/api/openapi.json`), regenerated together with the collection
 
 ## 3. Clean up the frontend
 
