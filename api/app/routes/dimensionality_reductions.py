@@ -82,7 +82,7 @@ async def get_dimensionality_reductions(
     Retrieve all dimensionality reduction.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         dimensionality_reductions = db.query(DimensionalityReduction).limit(1000).all()
 
@@ -116,7 +116,7 @@ async def get_dimensionality_reductions_for_publications_by_ids(
     """
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Extract publication IDs from the request
         publication_ids = request.publication_ids
@@ -166,7 +166,7 @@ async def get_dimensionality_reductions(  # noqa: F811 (another route with the s
     Retrieve all dimensionality reductions for a specific publication.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its dimensionality reductions
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -191,7 +191,7 @@ async def get_dimensionality_reductions(  # noqa: F811 (another route with the s
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching dimensionality reductions for the publication",
@@ -213,7 +213,7 @@ async def get_dimensionality_reductions_for_publication(
     Retrieve all dimensionality reduction for a specific publication.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         dimensionality_reductions = (
             db.query(DimensionalityReduction)
@@ -254,7 +254,7 @@ async def get_dimensionality_reductions_partitioned(
     """
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Validate part_number and total_parts
         if part_number < 1 or part_number > total_parts:
@@ -331,7 +331,7 @@ async def get_dimensionality_reductions_by_sdg_and_level(
 ) -> List[DimensionalityReductionSchemaFull]:
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Map level input to LevelType
         level_type = {1: LevelType.LEVEL_1, 2: LevelType.LEVEL_2, 3: LevelType.LEVEL_3}.get(level)
@@ -392,7 +392,7 @@ async def get_top_k_entropy_dimensionality_reductions(
     token: str = Depends(oauth2_scheme),
 ) -> List[DimensionalityReductionSchemaFull]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         top_entropy_sdgs = (
             db.query(SDGPrediction)
@@ -434,7 +434,7 @@ async def get_least_labeled_dimensionality_reductions(
     token: str = Depends(oauth2_scheme),
 ) -> List[DimensionalityReductionSchemaFull]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         sdg_counts = db.query(
             *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
@@ -483,7 +483,7 @@ async def get_dimensionality_reductions_by_sdg_and_scenario(
 ) -> List[DimensionalityReductionSchemaFull]:
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Fetch Dimensionality Reductions with filtered join conditions
         dimensionality_reductions = (
@@ -534,7 +534,7 @@ async def get_user_coordinates(
 ) -> UserCoordinatesSchema:
     try:
         # Verify the token before proceeding
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         umap_service = UMAPCoordinateService()  # Takes long to load
 

@@ -57,7 +57,7 @@ def main():
                         "topic_name": labels[topic_index],
                     }
 
-                    x = collection.insert_one(sdg_document)
+                    collection.insert_one(sdg_document)
 
     f.close()
 

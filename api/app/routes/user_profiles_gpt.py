@@ -60,7 +60,7 @@ async def propose_sdg_based_on_skills(
     """
     Propose the most suitable SDG based on the user's skills.
     """
-    user = verify_token(token, db)  # Ensure user is authenticated
+    verify_token(token, db)  # Ensure user is authenticated
 
     try:
         # Propose the SDG based on skills
@@ -86,7 +86,7 @@ async def propose_sdg_based_on_interests(
     """
     Propose the most suitable SDG based on the user's interests.
     """
-    user = verify_token(token, db)  # Ensure user is authenticated
+    verify_token(token, db)  # Ensure user is authenticated
 
     try:
         # Propose the SDG based on interests
@@ -112,7 +112,7 @@ async def generate_skills_query(
     """
     Generate a User query based on the user's skills or existing knowledge.
     """
-    user = verify_token(token, db)  # Ensure user is authenticated
+    verify_token(token, db)  # Ensure user is authenticated
 
     try:
         # Generate the skills-based description
@@ -139,7 +139,7 @@ async def generate_interests_query(
     """
     Generate a user query based on the user's interests or aspirations.
     """
-    user = verify_token(token, db)  # Ensure user is authenticated
+    verify_token(token, db)  # Ensure user is authenticated
 
     try:
         # Generate the interests-based description

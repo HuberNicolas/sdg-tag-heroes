@@ -96,7 +96,7 @@ async def get_user_ranks_and_xp(
     """
     try:
         # Ensure the user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Query for all SDG ranks for the user (0 rank to 3 ranks for each SDG)
         ranks = db.query(SDGRank).filter(SDGRank.sdg_goal_id.between(1, 17)).all()

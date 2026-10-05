@@ -54,7 +54,7 @@ async def get_sdg(sdg_id: int, db: Session = Depends(get_db), token: str = Depen
     """
     try:
         # Authenticate user
-        user = verify_token(token, db)
+        verify_token(token, db)
         logging.info(f"Fetching SDG goal with ID: {sdg_id}")
 
         # Base query for fetching the SDG goal
@@ -91,7 +91,7 @@ async def get_sdgs(db: Session = Depends(get_db), token: str = Depends(oauth2_sc
     """
     try:
         # Authenticate user
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Base query for SDG goals
         goals = db.query(SDGGoal).all()

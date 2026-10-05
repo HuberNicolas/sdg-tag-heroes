@@ -25,7 +25,7 @@ def load_publication_clusters(file_path, batch_size=100):
             fields = [field.strip().strip("'") for field in tuple_str.split(",")]
 
             publication_id = int(fields[0])
-            cluster_id_raw = fields[1]  # e.g., 'sdg10_level10_topic3'
+            # fields[1] is the cluster name, e.g. 'sdg10_level10_topic3' (not stored)
             sdg = int(fields[2]) if fields[2] != "NULL" else None
             level = int(fields[3]) if fields[3] != "NULL" else None
             topic = int(fields[4]) if fields[4] != "NULL" else None

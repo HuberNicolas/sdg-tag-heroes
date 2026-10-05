@@ -60,7 +60,7 @@ async def get_sdg_explanation(
     Fetch SHAP explanations for a given publication ID by first querying the publications table.
     """
 
-    user = verify_token(token, db)  # Ensure user is authenticated
+    verify_token(token, db)  # Ensure user is authenticated
 
     # Query publications table
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()

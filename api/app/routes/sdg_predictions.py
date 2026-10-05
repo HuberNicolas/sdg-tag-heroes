@@ -66,7 +66,7 @@ async def get_sdg_predictions_by_ids(
     request: SDGPredictionsIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         sdg_predictions_ids = request.sdg_predictions_ids  # Access the list of IDs
 
@@ -96,7 +96,7 @@ async def get_sdg_predictions_by_publication_ids(
     request: SDGPredictionsPublicationsIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Extract the publication IDs from the request
         publications_ids = request.publications_ids  # Access the list of IDs
@@ -133,7 +133,7 @@ async def get_sdg_predictions_by_publication_id(
     publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Fetch the publication and its SDG predictions filtered by prediction_model
         publication = (
@@ -175,7 +175,7 @@ async def get_default_model_sdg_predictions_by_publication_id(
     publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Fetch the publication
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -223,7 +223,7 @@ async def get_sdg_predictions_for_dimensionality_reductions(
     token: str = Depends(oauth2_scheme),
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         level_type = {1: LevelType.LEVEL_1, 2: LevelType.LEVEL_2, 3: LevelType.LEVEL_3}.get(level)
         if not level_type:
@@ -272,7 +272,7 @@ async def get_sdg_predictions_for_dimensionality_reductions_with_scenario(
     token: str = Depends(oauth2_scheme),
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         sdg_predictions = (
             db.query(SDGPrediction)
@@ -315,7 +315,7 @@ async def get_top_k_entropy_sdg_predictions(
     token: str = Depends(oauth2_scheme),
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         top_entropy_sdgs = (
             db.query(SDGPrediction)
@@ -350,7 +350,7 @@ async def get_least_labeled_sdg_predictions(
     token: str = Depends(oauth2_scheme),
 ) -> List[SDGPredictionSchemaFull]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         sdg_counts = db.query(
             *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
@@ -401,7 +401,7 @@ async def get_sdg_predictions_for_dimensionality_reductions_partitioned(
     """
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Validate part_number and total_parts
         if part_number < 1 or part_number > total_parts:
@@ -496,7 +496,7 @@ async def get_distribution_metrics_by_publication_ids(
     Calculate distribution metrics (entropy and standard deviation) for a list of publication IDs.
     """
     # Ensure user is authenticated
-    user = verify_token(token, db)
+    verify_token(token, db)
 
     # Extract publication IDs from the request
     publication_ids = request.publications_ids
@@ -517,7 +517,7 @@ async def get_publication_metrics_by_id(
     Fetch the entropy and standard deviation for the SDG prediction values of a specific publication.
     """
     # Ensure user is authenticated
-    user = verify_token(token, db)
+    verify_token(token, db)
 
     # Use MetricsService to calculate metrics
     return metrics_service.get_publication_metrics_by_id(publication_id, db)
@@ -535,7 +535,7 @@ async def get_publications_by_metric(
     Fetch the top or bottom N publications based on entropy or standard deviation.
     """
     # Ensure user is authenticated
-    user = verify_token(token, db)
+    verify_token(token, db)
 
     # Use MetricsService to calculate metrics
     return metrics_service.get_publications_by_metric(metric_type, order, top_n, db)

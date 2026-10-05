@@ -52,7 +52,7 @@ async def get_authors(db: Session = Depends(get_db), token: str = Depends(oauth2
     Retrieve all authors. Responds with a minimal or full response based on the 'minimal' query parameter.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Base query
         query = db.query(Author)
@@ -80,7 +80,7 @@ async def get_author(author_id: int, db: Session = Depends(get_db), token: str =
     Retrieve a single author by ID. Responds with minimal or full details based on the 'minimal' query parameter.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the author
         author = db.query(Author).filter(Author.author_id == author_id).first()
@@ -115,7 +115,7 @@ async def get_publication_authors(
     Retrieve all authors for a specific publication.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its authors
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -131,7 +131,7 @@ async def get_publication_authors(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching authors for the publication",

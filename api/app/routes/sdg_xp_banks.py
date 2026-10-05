@@ -58,7 +58,7 @@ async def get_user_bank(
     Retrieve the bank (SDGXPBank) for a specific user by their ID.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query for the bank by user ID
         sdg_xp_bank = db.query(SDGXPBank).filter(SDGXPBank.user_id == user_id).first()
@@ -89,7 +89,7 @@ async def get_all_banks(
     Retrieve all banks (SDGXPBank) for all users.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query all banks
         sdg_xp_banks = db.query(SDGXPBank).all()
@@ -120,7 +120,7 @@ async def add_bank_increment(
     Add a bank increment (SDGXPBankHistory) for a specific user.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Check if the user has a bank
         bank = db.query(SDGXPBank).filter(SDGXPBank.user_id == user_id).first()
@@ -159,7 +159,7 @@ async def add_bank_increment(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

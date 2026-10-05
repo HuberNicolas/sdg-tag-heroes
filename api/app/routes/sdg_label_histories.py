@@ -57,7 +57,7 @@ async def get_sdg_label_history(
     Retrieve the SDGLabelHistory for a specific publication.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDGLabelHistory
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -80,7 +80,7 @@ async def get_sdg_label_history(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the SDGLabelHistory for the publication",
@@ -99,7 +99,7 @@ async def get_sdg_label_history(  # noqa: F811 (another route with the same func
     Retrieve the SDGLabelHistory for a specific publication.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the SDGLabelHistory
         history = db.query(SDGLabelHistory).filter(SDGLabelHistory.history_id == history_id).first()

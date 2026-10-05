@@ -487,7 +487,8 @@ def create_sdg_label_decisions_for_scenarios(
         non_relevant_sdgs = [sdg for sdg in all_sdgs if sdg != true_sdg]
         logging.debug(f"Non-relevant SDGs for publication ID {publication.publication_id}: {non_relevant_sdgs}")
 
-        expert = choice(experts)
+        # Unused, but it draws from the seeded random generator: removing it would change all following fixtures
+        choice(experts)
         # Only the scenarios this script can build a vote distribution for
         scenario = choice(
             [ScenarioType.CONFIRM, ScenarioType.TIEBREAKER, ScenarioType.INVESTIGATE, ScenarioType.EXPLORE]
@@ -798,7 +799,8 @@ def populate_db(
 
         # Load users, user_personas, publications, and experts
         users = load_users(session, max_users)
-        user_personas = assign_personas(users)  # Store the temporary mapping
+        # The personas are not used further, but assigning them draws from the seeded random generator
+        assign_personas(users)
         publications = load_publications(session, max_pubs)
         experts = load_experts(session)
 

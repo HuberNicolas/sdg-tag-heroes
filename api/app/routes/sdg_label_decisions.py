@@ -69,7 +69,7 @@ async def get_or_create_least_labeled_sdg_decisions(
     Excludes decisions with scenario_type == ScenarioType.DECIDED.
     """
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Count occurrences of SDG labels in SDGLabelSummary
         sdg_counts = db.query(
@@ -200,7 +200,7 @@ async def get_or_create_top_k_entropy_sdg_decisions(
     and if a publication has no decision, create a new one.
     """
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Find the top-k SDGs with the highest entropy
         top_entropy_sdgs = (
@@ -326,7 +326,7 @@ async def get_sdg_label_decisions_for_scenario(
     Retrieve SDG Label Decisions for a specific reduction shorthand and scenario type.
     """
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         decisions = (
             db.query(SDGLabelDecision)
@@ -371,7 +371,7 @@ async def get_sdg_label_decisions_for_scenario(  # noqa: F811 (another route wit
     Retrieve SDG Label Decisions for a specific SDG, reduction shorthand, and scenario type.
     """
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         decisions = (
             db.query(SDGLabelDecision)
@@ -415,7 +415,7 @@ async def get_newest_sdg_label_decisions_for_reduction(
     token: str = Depends(oauth2_scheme),
 ) -> List[SDGLabelDecisionSchemaExtended]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         level_type = {1: LevelType.LEVEL_1, 2: LevelType.LEVEL_2, 3: LevelType.LEVEL_3}.get(level)
         if not level_type:
@@ -476,7 +476,7 @@ async def get_sdg_label_decisions(
     If no history exists, it will be initialized.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -578,7 +578,7 @@ async def get_sdg_label_decision(
     Retrieve a specific SDGLabelDecision entry for a publication's SDGLabelHistory.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDGLabelHistory
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -631,7 +631,7 @@ async def get_sdg_label_decisions_by_scenario(
     Retrieve all SDGLabelDecision entries for a specific scenario.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for all SDGLabelDecisions with the specified scenario
         decisions = db.query(SDGLabelDecision).filter(SDGLabelDecision.scenario_type == scenario).all()
@@ -672,7 +672,7 @@ async def get_sdg_label_decisions_partitioned(
     """
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Validate part_number and total_parts
         if part_number < 1 or part_number > total_parts:
@@ -835,7 +835,7 @@ async def get_user_interacted_sdg_label_decisions(
     - All annotations directly linked to the SDGLabelDecision.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Fetch all SDGLabelDecisions where the user is the creator (direct interaction)
         user_created_decisions = (
