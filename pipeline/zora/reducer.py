@@ -2,7 +2,6 @@ import argparse
 
 import umap
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from models import (
     DimensionalityReduction,
@@ -160,10 +159,6 @@ def main(db, mariadb_batch_size):
         else:
             engine = setup_sqlite_connection()
             logging.info("Using SQLite engine.")
-
-        # Setup database session
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         # Ensure tables are created
         Base.metadata.create_all(engine)

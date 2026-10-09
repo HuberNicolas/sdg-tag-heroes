@@ -75,7 +75,7 @@ async def get_sdg_user_label(
     Retrieve a specific SDG user label by its ID.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == label_id).first()
 
@@ -106,7 +106,7 @@ async def get_all_sdg_user_labels(
     Retrieve all SDG user labels in the system.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         user_labels = db.query(SDGUserLabel).all()
         return [SDGUserLabelSchemaFull.model_validate(label) for label in user_labels]
@@ -136,7 +136,7 @@ async def evaluate_user_label(
     Returns zero scores if the label lacks an abstract section or a comment.
     """
     try:
-        user = verify_token(token, db)  # Authenticate user
+        verify_token(token, db)  # Authenticate user
 
         # Fetch the user label
         user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == user_label_id).first()
@@ -213,7 +213,7 @@ async def create_comment_summary(
     Given a list of SDG user label IDs, retrieve their comments and generate a summary.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
         user_labels_ids = request.user_labels_ids
 
         # Fetch the user labels based on the provided label IDs
@@ -331,7 +331,7 @@ async def get_vote_for_sdg_user_label(
     Retrieve a specific vote associated with a specific SDG user label.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Directly query the Vote table with both label_id and vote_id
         vote = db.query(Vote).filter(Vote.sdg_user_label_id == label_id, Vote.vote_id == vote_id).first()
@@ -368,7 +368,7 @@ async def get_votes_for_sdg_user_label(
     Retrieve all votes associated with a specific SDG user label.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         sdg_user_label = db.query(SDGUserLabel).filter(SDGUserLabel.label_id == label_id).first()
         if not sdg_user_label:
@@ -403,7 +403,7 @@ async def get_sdg_user_labels(
     Retrieve all SDGUserLabel entries for a specific SDGLabelDecision.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the SDGLabelDecision with its associated user_labels
         decision = (
@@ -447,7 +447,7 @@ async def get_sdg_user_label(  # noqa: F811 (another route with the same functio
     Retrieve a specific SDGUserLabel entry for a specific SDGLabelDecision.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the SDGLabelDecision with its associated user_labels
         decision = (
@@ -494,7 +494,7 @@ async def create_sdg_user_label(
     Create or link an SDG user label.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
         label_service = LabelService(db)
         print(request)
 
@@ -528,7 +528,7 @@ async def get_sdg_user_labels_statistics(
     All votes are included in the user voting details.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Initialize the service
         label_service = LabelService(db)
@@ -563,7 +563,7 @@ async def get_user_interacted_sdg_label_decisions(
     - All annotations directly linked to the decision
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Fetch all SDGLabelDecisions where the user has created an SDGUserLabel
         user_label_decisions = (

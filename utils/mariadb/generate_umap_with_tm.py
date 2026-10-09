@@ -325,9 +325,16 @@ def main():
         "random_state": 31011997,
     }
 
+    # HDBSCAN finds the topics of the thesis dataset (~117,000 publications). A few hundred publications (the dummy
+    # dataset) form one dense cloud, in which HDBSCAN finds only one or two topics; KMeans splits it into 20.
+    if len(docs) >= 10_000:
+        cluster_method_params = {"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True}
+    else:
+        cluster_method_params = {"method": "kmeans", "n_clusters": 20, "random_state": 31011997, "n_init": 10}
+
     topic_model = tm_pipeline.create_topic_model(
         dim_reduction_params=dim_reduction_params,
-        cluster_method_params={"min_cluster_size": 30, "metric": "euclidean", "prediction_data": True},
+        cluster_method_params=cluster_method_params,
         # c-TF-IDF counts topics as documents; small datasets (e.g. the dummy dataset) have fewer than 10 topics
         vectorizer_params={
             "stop_words": "english",

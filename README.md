@@ -314,7 +314,8 @@ curl -X POST http://localhost:1002/auth/login -H 'Content-Type: application/json
 
 Send it as `Authorization: Bearer <token>` with every other request. In Swagger UI, use the **Authorize** button.
 
-A **Postman collection** with all 111 requests is in
+The OpenAPI schema is also in the repository, [`docs/api/openapi.json`](docs/api/openapi.json), so the API can be
+explored without running it. A **Postman collection** with all 111 requests is in
 [`docs/api/sdg-tag-heroes.postman_collection.json`](docs/api/sdg-tag-heroes.postman_collection.json). Import it, set
 the `password` variable, and send **auth → Login**; every other request then uses the token. The
 [API guide](docs/api/README.md) lists the endpoint groups and explains how to regenerate the collection.
@@ -408,9 +409,10 @@ The SDG predictions come from the SciBERT model `Dvdblk`, because the Aurora mod
 Log in with an account from `env/users.env`, or as one of the 40 generated players (`<lastname>@example.org`,
 password `password01`).
 
-**Limitations:** the template abstracts (the generator's default mode) share many phrases, so BERTopic finds only a
-few topics; abstracts written by a model (`--mode ollama` or `--mode llm`) give more varied topics. SciBERT rarely scores SDG 17 above 0.7, so
-that SDG may have no map.
+**Limitations:** the overview map always gets 20 topics, but with template abstracts (the generator's default mode)
+they share many phrases and are hard to tell apart; abstracts written by a model (`--mode ollama` or `--mode llm`) give
+meaningful topics such as solar microgrids or water scarcity. SciBERT rarely scores SDG 17 above 0.7, so that SDG may
+have no map.
 
 ## Building the dataset
 

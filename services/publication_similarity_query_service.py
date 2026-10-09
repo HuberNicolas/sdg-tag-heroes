@@ -26,7 +26,7 @@ class PublicationSimilarityQueryService:
         try:
             query_vector = self.encoder.encode(user_query).tolist()
             return query_vector
-        except Exception as e:
+        except Exception:
             raise
 
     def search_publications(
@@ -53,7 +53,7 @@ class PublicationSimilarityQueryService:
                 limit=top_k,
             )
             return search_results
-        except Exception as e:
+        except Exception:
             raise
 
     def get_similar_publications(

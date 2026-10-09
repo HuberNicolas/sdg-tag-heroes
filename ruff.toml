@@ -14,7 +14,6 @@ ignore = [
     "E402",  # scripts set up paths and environment variables before some imports
     "E711",  # SQLAlchemy filters need "== None" ...
     "E712",  # ... and "== True" / "== False"
-    "F841",  # unused local variables; harmless, clean up when touching the code
 ]
 
 [lint.per-file-ignores]

@@ -49,7 +49,7 @@ def test_mongodb_connection():
     """
     global client  # Ensure you're using the already established client
     try:
-        databases = client.list_database_names()
+        client.list_database_names()
         return True
     except Exception as e:
         logging.error(f"MongoDB connection test failed: {e}")

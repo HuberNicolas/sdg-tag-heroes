@@ -7,8 +7,15 @@ Open tasks before the repository is made public. See also [Known issues](README.
 The original data (UZH publications from ZORA, plus labels, clusters, and explanations from SDG-Scout) cannot be
 published.
 
-- [ ] Back up the original `data/` folder (about 24 GB) and keep it outside the repository
-- [x] Create the generator repository (`../sdg-tag-heroes-dataset-generator`, local only so far). It replaces only the
+- [x] Back up the original data (2026-10-05): the current state of MariaDB, MongoDB and Qdrant, the folders that
+  existed only inside the containers, `data/` and `env/`, on an external drive (34 GB). Made and checked with the
+  private repository `sdg-tag-heroes-db-backup` (`verify --restore-test` passed); the MongoDB dump also restores into
+  MongoDB 7.0
+- [x] Move this machine's MongoDB to 7.0 (2026-10-05): started with an empty data folder and restored the backup
+  (`sdg-backup restore … --only mongodb`); the counts match. The 8.0 data files are kept in
+  `data/docker/db/mongodb/mongodb-data-8.0-before-migration/` until the new state has been used for a while
+- [x] Remove the old CouchDB and Redis containers and images from this machine
+- [x] Create the generator repository (`sdg-tag-heroes-dataset-generator`, public on GitHub). It replaces only the
   external sources; the pipeline computes the rest:
   - [x] ZORA: fictional publications as OAI-PMH files, read with `collector.py --from-dir`
   - [x] SDG-Scout: ground-truth labels and (synthetic) explanations
@@ -18,10 +25,10 @@ published.
   isolated Docker network: collector, Dvdblk predictions, Qdrant, UMAP, BERTopic, loaders, fixtures, API, frontend
 - [x] Document in the README how to load the dummy dataset
 - [x] Step-by-step guide for a fresh machine (`docs/dummy-dataset.md`) and `utils/docker/create_env_files.py`
-- [ ] Test `docs/dummy-dataset.md` on a fresh machine
-- [ ] Generate the dataset with `--mode ollama` (free, about 6 hours for 600 papers) or `--mode llm` (costs money);
-  both give better topics than the template abstracts
-- [ ] Publish the generator repository on GitHub
+- [x] Test the dummy dataset setup on a fresh machine (Linux, kernel 7.0; see `RUN.md`)
+- [x] Try `--mode ollama` (85 papers with llama3.1, about 1.5 hours on a CPU; see `RUN.md`)
+- [ ] Optional: a larger dataset with model-written abstracts (`--mode ollama` with ~600 papers, or `--mode llm`) for
+  more varied topics
 - [ ] SDG clusters (`full_dataset_clusters.json`) are not generated; they were not used in the deployed version
 - [x] UZH data in the notebooks: decided (2026-09-24) to keep the notebooks as they are. They are part of the thesis
   analysis and contain titles and abstracts (no full papers), which are also public on ZORA. The dataset itself
@@ -36,6 +43,7 @@ published.
   (`openapi-to-postmanv2`) and `docs/api/finalize_postman_collection.py`: all 111 requests, variables, Bearer auth,
   login test script, no passwords or tokens
 - [x] Document the steps in `docs/api/README.md`
+- [x] Keep the OpenAPI schema in the repository (`docs/api/openapi.json`), regenerated together with the collection
 
 ## 3. Clean up the frontend
 
@@ -51,7 +59,7 @@ published.
 - [x] Fix bugs found on the way: map data joined by index, quest selection looping, labeling arrows pointing at
   removed elements, `/scenarios` store imports, production build (`nuxi build`) failing
 - [x] Remove broken legacy pages (`/publications`, `/publications/[id]`), replace `/about` test page
-- [ ] Tablet and phone layouts (not planned so far; visualisations need space)
+- Won't do: tablet and phone layouts (the visualisations need a large screen; decided 2026-10-05)
 - [x] Install from the lockfile in `deploy/frontend.Dockerfile` (`npm ci`); newer packages (Nuxt 3.21, Nuxt UI 2.22)
   broke the layout. Do not upgrade the frontend packages without checking the layout.
 - [x] Fix `deploy/frontend.prod.Dockerfile`: npm lockfile, Node 20, larger build heap, API address at runtime
@@ -63,7 +71,8 @@ published.
 - [x] Remove `nuxt-app/` (empty starter)
 - [x] Lint and format the Python code with Ruff (`ruff.toml`); fixed on the way: two `Config` classes in
   `schemas/gpt_assistant_service.py` were not indented into their schema
-- [ ] Unused local variables (Ruff F841, about 110) are ignored for now; clean them up when touching the code
+- [x] Remove the 113 unused local variables (Ruff F841, now enforced). 95 were `user = verify_token(...)` in the
+  routes: the call stays, only the name is gone; every endpoint still answers 401 or 422 to an invalid token
 - [x] Fix the ESLint findings (379 → 0): auto-fixes for template style, removed unused imports, variables and dead
   helpers, real types instead of `any`. Found on the way: the highlighted abstract was rendered with `v-html` without
   escaping its text (XSS if an abstract contained HTML); it is escaped now
@@ -76,8 +85,8 @@ published.
 - [x] Restore `pipeline/zora/predictor_dvdblk.py` from the first commit (it had been overwritten with `collector.py`)
 - [x] Align the MongoDB collection names: the scaled explanations are written to `explanations_scaled_new`
 - [x] Reducer: use `is_dim_reduced` and set `sdg`/`level` (required columns)
-- [ ] Aurora predictors need TensorFlow 2.11: add it to `pipeline/pyproject.toml` (or a separate environment) and
-  test `predictor.py` / `target_predictor.py`
+- Won't do: TensorFlow 2.11 for the Aurora predictors (`predictor.py`, `target_predictor.py`). The dummy dataset uses
+  SciBERT, and the thesis predictions are in the backup (decided 2026-10-05)
 - [x] Wrap the loader scripts in `main()` functions (19 scripts ran on import, some dropped their database);
   verified with a full dummy run and by importing the MongoDB loaders without effect
 - [x] Run the whole dataset build end to end with the dummy dataset. Fixed on the way: Qdrant rejected the collector's
@@ -113,7 +122,8 @@ published.
 - [x] Check for secrets (2026-09-24): tracked files and the whole git history contain no API keys, JWTs, real
   passwords or env files, only the placeholder values of the `*.env.example` files. The commits carry the UZH
   e-mail addresses `nicolas.huber2@uzh.ch` and `nhuber@ifi.uzh.ch` as author
-- [ ] Repeat the check right before publishing, after the notebooks are cleaned
+- [ ] Repeat the secrets check now and then (the repository is public since September 2026); the notebooks stay as
+  they are (decision of 2026-09-24)
 
 ## 7. Frontend redesign: mechanics to look at later
 

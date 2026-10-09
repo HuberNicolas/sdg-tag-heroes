@@ -84,7 +84,7 @@ async def get_users_by_role(
     Retrieve users filtered by role. If no role is specified, returns all users.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Fetch all users
         users = db.query(User).all()
@@ -130,7 +130,7 @@ async def get_user_by_id(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching the user",
@@ -141,7 +141,7 @@ async def get_user_by_id(
 async def get_publications_by_ids(
     request: UserIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> List[UserSchemaFull]:
-    user = verify_token(token, db)  # Ensure user is authenticated
+    verify_token(token, db)  # Ensure user is authenticated
 
     if request.user_ids:
         user_ids = request.user_ids  # Access the list of IDs

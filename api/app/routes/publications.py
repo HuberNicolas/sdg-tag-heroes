@@ -69,7 +69,7 @@ async def get_publications_by_ids(
     Returns a list of publications by IDs
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
         publication_ids = request.publication_ids
 
         publications = db.query(Publication).filter(Publication.publication_id.in_(publication_ids)).all()
@@ -94,7 +94,7 @@ async def get_publications(
     Supports pagination.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Base query for fetching publications
         query = db.query(Publication)
@@ -124,7 +124,7 @@ async def get_publication(
     Retrieve a single publication by ID.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query to fetch the publication by ID
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
@@ -187,7 +187,7 @@ async def get_publications_for_dimensionality_reductions(
     token: str = Depends(oauth2_scheme),
 ) -> List[PublicationSchemaBase]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         level_type = {1: LevelType.LEVEL_1, 2: LevelType.LEVEL_2, 3: LevelType.LEVEL_3}.get(level)
         if not level_type:
@@ -235,7 +235,7 @@ async def get_top_k_entropy_publications(
     token: str = Depends(oauth2_scheme),
 ) -> List[PublicationSchemaBase]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         top_entropy_sdgs = (
             db.query(SDGPrediction)
@@ -277,7 +277,7 @@ async def get_least_labeled_publications(
     token: str = Depends(oauth2_scheme),
 ) -> List[PublicationSchemaBase]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         sdg_counts = db.query(
             *[func.sum(getattr(SDGLabelSummary, f"sdg{i}")).label(f"sdg{i}") for i in range(1, 18)]
@@ -319,7 +319,7 @@ async def get_publications_for_dimensionality_reductions_with_scenario(
     token: str = Depends(oauth2_scheme),
 ) -> List[PublicationSchemaBase]:
     try:
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         publications = (
             db.query(Publication)
@@ -368,7 +368,7 @@ async def get_publications_for_dimensionality_reductions_partitioned(
     """
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Validate part_number and total_parts
         if part_number < 1 or part_number > total_parts:
@@ -464,7 +464,7 @@ async def get_publications_by_scenario(
     Retrieve publications associated with a specific scenario type.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         publications = (
             db.query(Publication)
@@ -507,7 +507,7 @@ async def get_user_labeled_publications(
     """
     try:
         # Ensure user is authenticated
-        user = verify_token(token, db)
+        verify_token(token, db)
 
         # Fetch all publications the user has labeled
         publications = (

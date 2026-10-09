@@ -215,7 +215,9 @@ Collections are the topics shown on the overview map. Three scripts create them:
 1. [`generate_umap_with_tm.py`](../utils/mariadb/generate_umap_with_tm.py) fits a
    [BERTopic](https://maartengr.github.io/BERTopic/) model on all embeddings from Qdrant, using HDBSCAN, c-TF-IDF and
    the SDG descriptions as seed words. It reduces the model to 20 topics plus an outlier topic and writes
-   `uzh_topic_data.csv` and `uzh_topic_info.csv` to `data/pipeline/collections/`.
+   `uzh_topic_data.csv` and `uzh_topic_info.csv` to `data/pipeline/collections/`. Datasets with fewer than 10,000
+   publications (such as the dummy dataset) use KMeans with 20 clusters instead of HDBSCAN: in a few hundred
+   publications, HDBSCAN finds only one or two dense topics.
    [`generate_topic_model.py`](../utils/mariadb/generate_topic_model.py) is an earlier version, and
    [`notebooks/topic_model.ipynb`](../notebooks/topic_model.ipynb) is the exploration.
 2. [`simplify_topic_info.py`](../utils/mariadb/simplify_topic_info.py) adds a short readable name per topic

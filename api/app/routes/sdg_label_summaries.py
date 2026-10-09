@@ -59,7 +59,7 @@ async def get_label_summaries(
     Retrieve all SDGLabelSummary entries.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for all SDGLabelSummaries
         query = db.query(SDGLabelSummary)
@@ -98,7 +98,7 @@ async def get_label_summary(
     Retrieve a specific SDGLabelSummary by its ID.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the SDGLabelSummary
         label_summary = (
@@ -137,7 +137,7 @@ async def get_sdg_label_summary(
     Retrieve the SDGLabelSummary for a specific publication.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query the database for the publication and its SDGLabelSummary
         publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()

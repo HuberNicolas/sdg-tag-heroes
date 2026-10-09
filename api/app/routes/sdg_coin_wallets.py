@@ -61,7 +61,7 @@ async def get_user_wallet(
     Retrieve the wallet (SDGCoinWallet) for a specific user by their ID.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query for the wallet by user ID
         wallet = db.query(SDGCoinWallet).filter(SDGCoinWallet.user_id == user_id).first()
@@ -134,7 +134,7 @@ async def get_all_wallets(
     Retrieve all wallets (SDGCoinWallet) for all users.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query all wallets
         sdg_coin_wallets = db.query(SDGCoinWallet).all()
@@ -143,7 +143,7 @@ async def get_all_wallets(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching all wallets",
@@ -165,7 +165,7 @@ async def add_wallet_increment(
     Add a wallet increment (SDGCoinWalletHistory) for a specific user.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Check if the user has a wallet
         wallet = db.query(SDGCoinWallet).filter(SDGCoinWallet.user_id == user_id).first()
@@ -193,7 +193,7 @@ async def add_wallet_increment(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

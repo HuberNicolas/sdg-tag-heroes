@@ -59,7 +59,7 @@ assistant = GPTAssistantService()
 async def explain_publication_sdg_relevance(
     publication_id: int, sdg_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
-    user = verify_token(token, db)
+    verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
@@ -79,7 +79,7 @@ async def explain_publication_sdg_relevance(
 async def explain_publication_sdg_target(
     publication_id: int, target_id: str, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
-    user = verify_token(token, db)
+    verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
@@ -97,7 +97,7 @@ async def explain_publication_sdg_target(
 
 @router.get("/{publication_id}/keywords", response_model=PublicationKeywordsSchema)
 async def extract_keywords(publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    user = verify_token(token, db)
+    verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
@@ -117,7 +117,7 @@ async def extract_keywords(publication_id: int, db: Session = Depends(get_db), t
 async def create_did_you_know_fact(
     publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
-    user = verify_token(token, db)
+    verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
@@ -145,7 +145,7 @@ async def create_did_you_know_fact(
 async def create_or_get_publication_summary(
     publication_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
-    user = verify_token(token, db)
+    verify_token(token, db)
     publication = db.query(Publication).filter(Publication.publication_id == publication_id).first()
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
@@ -175,7 +175,7 @@ async def create_or_get_publication_summary(
 async def create_collective_summary(
     request: PublicationIdsRequest, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
-    user = verify_token(token, db)
+    verify_token(token, db)
     publication_ids = request.publication_ids
 
     publications = db.query(Publication).filter(Publication.publication_id.in_(publication_ids)).all()

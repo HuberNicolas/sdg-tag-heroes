@@ -1,11 +1,9 @@
 import json
-from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
 
 from db.mariadb_connector import engine as mariadb_engine
 from models import SDGRank
-from settings.settings import TimeZoneSettings
 
 # Initialize session
 Session = sessionmaker(bind=mariadb_engine)
@@ -19,8 +17,6 @@ def load_sdgs_ranks_from_json(file_path):
     """
     with open(file_path, "r") as file:
         data = json.load(file)
-
-    current_timestamp = datetime.now(TimeZoneSettings.ZURICH_TZ)
 
     # SDG ranks are expected to be in tiers (0-3) for each SDG goal
     for sdg_id in range(1, 18):  # SDG 1 through 17

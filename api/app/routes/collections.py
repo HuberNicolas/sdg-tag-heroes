@@ -52,7 +52,7 @@ async def get_collections(
     Retrieve all collections
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Base query for fetching collections
         collections = db.query(Collection).all()
@@ -78,7 +78,7 @@ async def get_collection(
     Retrieve a single collection by ID.
     """
     try:
-        user = verify_token(token, db)  # Ensure user is authenticated
+        verify_token(token, db)  # Ensure user is authenticated
 
         # Query to fetch the collection by ID
         collection = db.query(Collection).filter(Collection.collection_id == collection_id).first()

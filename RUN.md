@@ -47,7 +47,7 @@ In `sdg-tag-heroes-dataset-generator/`:
 uv sync
 ```
 
-Fast (seconds; template abstracts, BERTopic finds only one or two topics):
+Fast (seconds; template abstracts, so the 20 topics are hard to tell apart):
 
 ```bash
 uv run sdg-dummy-data --count 85 --out output

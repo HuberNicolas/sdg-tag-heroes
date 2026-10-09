@@ -1,13 +1,13 @@
 """
 Turn the Postman collection converted from the API's openapi.json into the collection in this folder.
 
-    npx openapi-to-postmanv2@4 -s openapi.json -o converted.json -p -O folderStrategy=Paths
+    npx openapi-to-postmanv2@4 -s docs/api/openapi.json -o converted.json -p -O folderStrategy=Paths
     python3 docs/api/finalize_postman_collection.py converted.json docs/api/sdg-tag-heroes.postman_collection.json
 
 The converter nests one folder per path segment. This script groups the requests by their first path segment, lets
 every request inherit the collection's Bearer auth, fills the login body from variables, and adds the test script
-that stores the token. It removes the converter's random IDs, so a regenerated collection only differs where the API
-changed. Only the standard library is used.
+that stores the token. It removes the converter's random IDs. The converter still picks example values of enum fields
+(e.g. roles) at random, so a regenerated collection also differs in those examples. Only the standard library is used.
 """
 
 import json

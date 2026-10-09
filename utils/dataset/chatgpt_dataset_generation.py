@@ -317,7 +317,6 @@ def main():
                 else:
                     sdg_relevance = [None] * 17
                     sdg_confidence = [None] * 17
-                    relevance_output_text = 0
 
                 # Evaluate the abstract for the specific SDG
                 evaluation_result = evaluate_abstract_for_specific_sdg(publication.description, sdg)
@@ -338,7 +337,6 @@ def main():
                     arguments_for_contribution = ""
                     arguments_against_contribution = ""
                     contribution_score = None
-                    specific_output_text = 0
 
                 # Total input and output word counts
                 input_word_count = abstract_word_count * 2  # Two prompts for the same abstract
