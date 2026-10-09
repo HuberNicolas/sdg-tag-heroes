@@ -29,7 +29,7 @@
         <template #option="{ option }">
           <div class="flex items-center justify-between gap-3 w-full">
             <span class="flex items-center gap-2 min-w-0">
-              <Icon :name="getIconComponent(option.shortName)" class="h-4 w-4 flex-none text-fg-dim" />
+              <Icon :name="topicIcon(option.shortName)" class="h-4 w-4 flex-none text-fg-dim" />
               <span class="truncate">{{ option.shortName }}</span>
             </span>
             <span class="font-mono text-[11px] text-fg-faint">{{ collectionsStore.collectionsCount[option.collectionId] || 0 }}</span>
@@ -63,7 +63,7 @@
         :key="index"
         class="topic-chip"
       >
-        <Icon :name="getIconComponent(collection.shortName)" class="h-3.5 w-3.5 flex-none text-accent" />
+        <Icon :name="topicIcon(collection.shortName)" class="h-3.5 w-3.5 flex-none text-accent" />
         <span class="truncate">{{ collection.shortName }}</span>
         <span class="font-mono text-[10px] text-fg-faint">{{ collectionsStore.collectionsCount[collection.collectionId] || 0 }}</span>
         <button type="button" class="topic-chip__remove" :aria-label="`Remove ${collection.shortName}`" @click.stop="removeCollection(collection)">
@@ -77,6 +77,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { useCollectionsStore } from "~/stores/collections";
+import { topicIcon } from "~/utils/topicIcon";
 
 // Access store
 const collectionsStore = useCollectionsStore();
@@ -120,36 +121,6 @@ onMounted(async () => {
   selectAllCollections();
 });
 
-
-// Map collection names to corresponding icons
-const iconMapping = {
-  "Cancer Imaging": "mdi:radiology-box",
-  "Heart Imaging": "mdi:heart-box",
-  "Swiss Research": "gg:swiss",
-  "Cell Signaling": "mdi:bio",
-  "Mental Health": "mdi:meditation",
-  "Brain Function": "mdi:head-cog",
-  "Ecosystem Changes": "material-symbols:nature",
-  "Pandemic Studies": "fa-solid:virus",
-  "Sustainability Policies": "carbon:sustainability",
-  "Particle Physics": "ion:planet",
-  "Molecular Chemistry": "material-symbols:science",
-  "Dental Implants": "mdi:tooth",
-  "Financial Models": "fa-solid:chart-line",
-  "Bacterial Resistance": "mdi:bacteria",
-  "Data Processing": "icon-park-outline:data",
-  "Mathematical Models": "mdi:math-compass",
-  "Neural Networks": "mdi:brain",
-  "Environmental Sensing": "mdi:leaf",
-  "Tech Governance": "mdi:shield-account",
-  "Genetic Mutations": "mdi:dna",
-  "Material Science": "mdi:flask"
-};
-
-// Function to get the corresponding icon component for each collection name
-const getIconComponent = (name: string) => {
-  return iconMapping[name] || "mdi:help-circle";
-};
 
 const removeCollection = (collectionToRemove) => {
   collectionsStore.setSelectedCollections(

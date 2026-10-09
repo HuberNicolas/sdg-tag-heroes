@@ -131,6 +131,7 @@ import BarPredictionPlot from "@/components/plots/BarPredictionPlot.vue";
 import {score}from "@/utils/xp_scorer";
 import type { PublicationSchemaBase } from "~/types/publication";
 import PublicationDetails from "~/components/PublicationDetails.vue";
+import { topicIcon } from "~/utils/topicIcon";
 
 // Columns of the table; `key` makes a column sortable
 const tableColumns: { label: string; key?: string; align?: "right" | "center" }[] = [
@@ -191,36 +192,6 @@ const scenarioMapping: Record<string, { icon: string; name: string; tooltip: str
   },
 };
 
-// Map collection names to corresponding icons
-const iconMapping = {
-  'Cancer Imaging': 'mdi:radiology-box',
-  'Heart Imaging': 'mdi:heart-box',
-  "Swiss Research": "gg:swiss",
-  'Cell Signaling': 'mdi:bio',
-  'Mental Health': 'mdi:meditation',
-  'Brain Function': 'mdi:head-cog',
-  'Ecosystem Changes': 'material-symbols:nature',
-  'Pandemic Studies': 'fa-solid:virus',
-  'Sustainability Policies': 'carbon:sustainability',
-  'Particle Physics': 'ion:planet',
-  'Molecular Chemistry': 'material-symbols:science',
-  'Dental Implants': 'mdi:tooth',
-  'Financial Models': 'fa-solid:chart-line',
-  'Bacterial Resistance': 'mdi:bacteria',
-  'Data Processing': 'icon-park-outline:data',
-  'Mathematical Models': 'mdi:math-compass',
-  'Neural Networks': 'mdi:brain',
-  'Environmental Sensing': 'mdi:leaf',
-  'Tech Governance': 'mdi:shield-account',
-  'Genetic Mutations': 'mdi:dna',
-  'Material Science': 'mdi:flask',
-};
-
-// Function to get the corresponding icon component for each collection name
-const getIconComponent = (name: string) => {
-  return iconMapping[name] || 'mdi:help-circle'
-};
-
 
 // Load & Watch for changes in table data
 watchEffect(async () => {
@@ -250,7 +221,7 @@ watchEffect(async () => {
 
       const collection = collectionsStore.collections.find(col => col.collectionId === pub.collectionId);
       const collectionName = pub.collectionName || collection?.shortName || 'Unknown Collection';
-      const collectionSymbol = pub.collectionSymbol || (collection ? getIconComponent(collection.shortName) : 'mdi:help-circle');
+      const collectionSymbol = pub.collectionSymbol || topicIcon(collection?.shortName);
 
       const scenarioType = decision?.scenarioType || 'No Scenario';
 
