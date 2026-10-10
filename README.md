@@ -131,7 +131,7 @@ The API, the databases and the frontend run in Docker. The dataset scripts run o
 | [`deploy/`](deploy)                   | Dockerfiles and container entrypoints                                          |
 | [`env/`](env)                         | Environment files; only the `*.example` templates are committed                |
 | [`docs/`](docs)                       | Documentation ([index](docs/README.md))                                        |
-| [`notebooks/`](notebooks)             | Exploration notebooks: topic modelling, model comparison, XP score, glyph prototypes |
+| [`notebooks/`](notebooks)             | Exploration notebooks: topic modelling, model comparison, XP score, glyph prototypes, early XAI and active learning experiments |
 | [`prompts/`](prompts)                 | An example prompt and answer of the GPT assistant                              |
 
 ## Quick start
@@ -461,7 +461,9 @@ More open tasks are in [TODO.md](TODO.md).
 The code is released under the [MIT License](LICENSE).
 
 The license covers the code of this repository only. The publication titles and abstracts in the notebook outputs come
-from [ZORA](https://www.zora.uzh.ch/) and remain with their authors; the SDG icons and texts belong to the
+from [ZORA](https://www.zora.uzh.ch/) and remain with their authors; the text excerpts in
+`notebooks/osdg_dataset_exploration.ipynb` come from the [OSDG Community Dataset](https://zenodo.org/communities/osdg)
+(CC BY 4.0); the SDG icons and texts belong to the
 [United Nations](https://www.un.org/sustainabledevelopment/news/communications-material/); third-party models and
 libraries keep their own licenses.
 
