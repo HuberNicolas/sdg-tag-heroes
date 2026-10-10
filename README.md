@@ -131,7 +131,7 @@ The API, the databases and the frontend run in Docker. The dataset scripts run o
 | [`deploy/`](deploy)                   | Dockerfiles and container entrypoints                                          |
 | [`env/`](env)                         | Environment files; only the `*.example` templates are committed                |
 | [`docs/`](docs)                       | Documentation ([index](docs/README.md))                                        |
-| [`notebooks/`](notebooks)             | Exploration notebooks: topic modelling, model comparison                       |
+| [`notebooks/`](notebooks)             | Exploration notebooks: topic modelling, model comparison, XP score, glyph prototypes |
 | [`prompts/`](prompts)                 | An example prompt and answer of the GPT assistant                              |
 
 ## Quick start
