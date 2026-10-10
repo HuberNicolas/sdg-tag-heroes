@@ -6,7 +6,7 @@
       color="primary"
     />
     <label for="sortOrder" class="text-sm font-medium">
-      Sort by Most Votes
+      Sort by number of votes
     </label>
   </div>
 </template>

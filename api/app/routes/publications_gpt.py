@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session, sessionmaker
 
 from api.app.routes.authentication import verify_token
@@ -63,8 +64,8 @@ async def explain_publication_sdg_relevance(
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
-    sdg_goal_analysis = assistant.analyze_sdg(
-        title=publication.title, abstract=publication.description, goal=str(sdg_id)
+    sdg_goal_analysis = await run_in_threadpool(
+        assistant.analyze_sdg, title=publication.title, abstract=publication.description, goal=str(sdg_id)
     )
     return {
         **sdg_goal_analysis.model_dump(),
@@ -83,8 +84,8 @@ async def explain_publication_sdg_target(
     if not publication:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
-    sdg_target_analysis = assistant.analyze_sdg(
-        title=publication.title, abstract=publication.description, target=target_id
+    sdg_target_analysis = await run_in_threadpool(
+        assistant.analyze_sdg, title=publication.title, abstract=publication.description, target=target_id
     )
     return {
         **sdg_target_analysis.model_dump(),
@@ -106,7 +107,9 @@ async def extract_keywords(publication_id: int, db: Session = Depends(get_db), t
             status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for keyword extraction"
         )
 
-    keywords = assistant.extract_keywords(title=publication.title, abstract=publication.description)
+    keywords = await run_in_threadpool(
+        assistant.extract_keywords, title=publication.title, abstract=publication.description
+    )
     return PublicationKeywordsSchema(publication_id=publication_id, keywords=keywords)
 
 
@@ -126,7 +129,9 @@ async def create_did_you_know_fact(
     if not publication.title and not publication.description:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for fact generation")
 
-    new_fact_content = assistant.create_fact(title=publication.title, abstract=publication.description)
+    new_fact_content = await run_in_threadpool(
+        assistant.create_fact, title=publication.title, abstract=publication.description
+    )
 
     new_fact = Fact(content=new_fact_content, publication_id=publication_id)
     db.add(new_fact)
@@ -154,7 +159,9 @@ async def create_or_get_publication_summary(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No content available for summary generation"
         )
 
-    new_summary_content = assistant.summarize_publication(title=publication.title, abstract=publication.description)
+    new_summary_content = await run_in_threadpool(
+        assistant.summarize_publication, title=publication.title, abstract=publication.description
+    )
 
     new_summary = Summary(content=new_summary_content, publication_id=publication_id)
     db.add(new_summary)
@@ -179,7 +186,9 @@ async def create_collective_summary(
         {"id": pub.publication_id, "title": pub.title or "", "abstract": pub.description or ""} for pub in publications
     ]
 
-    collective_summary_response = assistant.summarize_publications(publications=publication_data)
+    collective_summary_response = await run_in_threadpool(
+        assistant.summarize_publications, publications=publication_data
+    )
 
     collective_summary = PublicationsCollectiveSummarySchema(
         publication_ids=publication_ids,

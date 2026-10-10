@@ -1,29 +1,30 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+  <div class="min-h-full flex items-center justify-center p-6">
+    <div class="relative bg-surface/80 backdrop-blur-xl border border-line p-8 rounded-[18px] shadow-panel w-full max-w-md">
+      <p class="kicker text-center mb-4">// profile</p>
       <!-- User Avatar -->
       <div class="flex justify-center mb-6">
         <img
           :src="avatarUrl"
           alt="User Avatar"
-          class="w-24 h-24 rounded-full"
+          class="w-24 h-24 rounded-full ring-2 ring-accent/50 ring-offset-4 ring-offset-surface"
         >
       </div>
 
       <!-- User Email -->
-      <h2 class="text-2xl font-bold mb-6 text-center">Welcome, {{ authStore.userProfile?.email }}</h2>
+      <h2 class="text-xl font-bold tracking-tight mb-6 text-center break-all">Welcome, {{ authStore.userProfile?.email }}</h2>
 
       <!-- User Roles -->
-      <p>Your Roles:</p>
-      <ul>
-        <li v-for="role in authStore.userProfile?.roles" :key="role">
-          {{ role }}
+      <p class="font-mono text-xs text-fg-dim">Your Roles:</p>
+      <ul class="mt-2 flex flex-wrap gap-2">
+        <li v-for="role in authStore.userProfile?.roles" :key="role" class="stat-pill">
+          <Icon name="mdi-shield-account-outline" class="text-accent" />{{ role }}
         </li>
       </ul>
 
       <!-- Logout Button -->
       <button
-        class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mt-4"
+        class="w-full mt-6 rounded-[10px] border border-hero-red/40 bg-hero-red/10 py-2.5 px-4 font-mono text-sm text-hero-red transition hover:bg-hero-red/20 focus:outline-none focus:ring-4 focus:ring-hero-red/20"
         @click="logout"
       >
         Logout

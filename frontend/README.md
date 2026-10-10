@@ -7,7 +7,7 @@ The game's web interface: a single-page application built with [Nuxt 3](https://
 |---|---|
 | **Framework** | Nuxt 3 (client-side rendering, `ssr: false`), Vue 3, TypeScript |
 | **UI** | [Nuxt UI 2](https://ui.nuxt.com/) with Tailwind CSS 3, [daisyUI 4](https://daisyui.com/), [Material Design Icons](https://icones.js.org/collection/mdi) |
-| **Visualisations** | [D3](https://d3js.org/), [Plotly](https://plotly.com/javascript/), [leader-line](https://github.com/anseki/leader-line) |
+| **Visualisations** | [D3](https://d3js.org/) (charts, honeycomb glyphs and the HUD publication maps in `composables/plots/hexMap.ts`) |
 | **State** | Pinia stores, [VueUse](https://vueuse.org/) |
 | **Screens** | Laptop to ultrawide (1280–3440 px) |
 
@@ -46,6 +46,22 @@ the repository root.
 
 Both are read from `.env` in development. At runtime, [Nuxt's runtime config](https://nuxt.com/docs/guide/going-further/runtime-config)
 reads `NUXT_PUBLIC_API_URL` and `NUXT_PUBLIC_MAP_PARTITIONS`.
+
+## Design
+
+Dark and techy, with a light theme for first-time visitors; the honeycomb of the 17 SDGs is the visual signature.
+The theme follows the operating system on the first visit and can be switched in the navigation bar.
+
+- **Tokens:** `assets/css/tailwind.css` defines the colours as CSS variables for both themes (`:root` and `:root.dark`).
+  `tailwind.config.ts` maps them to semantic classes: `bg-surface`, `bg-surface-2`, `bg-muted`, `text-fg`,
+  `text-fg-dim`, `text-fg-faint`, `border-line`, `text-accent`. Use these instead of fixed grays, so a component works
+  in both themes.
+- **Components:** Nuxt UI uses the palettes `hero` (green, primary) and `ink` (neutral), see `app.config.ts`. daisyUI
+  follows the same themes through `data-theme` on `<html>`.
+- **Panels:** `frame-container` and `frame-title` (rendered like a code comment, `// …`), `kicker`, `stat-pill`.
+- **Charts:** d3 code colours text and lines with `rgb(var(--c-fg))` and the honeycomb glyphs with `var(--hex-stroke)`,
+  `var(--hex-empty)` and `var(--hex-label)`, so the charts switch theme without being redrawn.
+- **Fonts:** Space Grotesk (text), JetBrains Mono (labels, numbers, buttons), Press Start 2P (logo, universe names).
 
 ## Commands
 

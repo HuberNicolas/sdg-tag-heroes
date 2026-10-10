@@ -42,7 +42,7 @@ export function createBarVotePlot(container, width, height, votesData) {
     .append("div")
     .style("position", "absolute")
     .style("visibility", "hidden")
-    .style("background", "#fff")
+    .style("background", "rgb(var(--c-surface))")
     .style("border", "1px solid #ccc")
     .style("padding", "5px")
     .style("border-radius", "3px")
@@ -100,6 +100,6 @@ export function createBarVotePlot(container, width, height, votesData) {
     .attr("x2", x(0))
     .attr("y1", 0)
     .attr("y2", chartHeight)
-    .attr("stroke", "#000")
+    .attr("stroke", "rgb(var(--c-fg))")
     .attr("stroke-width", 1);
 }

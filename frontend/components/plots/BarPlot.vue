@@ -1,10 +1,20 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-gray-100 pt-0 pb-0 pr-4 pl-4 rounded-sm shadow-md w-full">
+  <div class="summary-tile">
+    <div class="summary-tile__head">
+      <span class="summary-tile__key">top SDG per publication</span>
+      <button
+        v-if="topSdgFilter"
+        type="button"
+        class="inline-flex items-center gap-1 rounded-full border border-accent/50 bg-accent/10 px-2 py-0.5 font-mono text-[11px] text-fg hover:bg-accent/20"
+        title="Show all SDGs in the table"
+        @click="clearTopSdgFilter"
+      >
+        table: SDG {{ topSdgFilter }} <span aria-hidden="true">✕</span>
+      </button>
+      <span v-else class="summary-tile__meta">click a bar to filter the table</span>
+    </div>
     <!-- D3 Bar Chart -->
-    <p class="text-sm text-gray-600">
-      Top SDG-Goal Distribution
-    </p>
-    <div ref="chartContainer" class="w-full"/>
+    <div ref="chartContainer" class="relative w-full"/>
   </div>
 </template>
 
@@ -23,6 +33,7 @@ export default {
     const sdgPredictionsStore = useSDGPredictionsStore();
     const sdgsStore = useSDGsStore();
     const chartContainer = ref(null);
+    const { topSdgFilter, toggleTopSdgFilter, clearTopSdgFilter } = useTopSdgFilter();
 
     // Reactive values for total publications
     const totalCount = ref(publicationsStore.sdgLevelPublications.length);
@@ -59,8 +70,8 @@ export default {
 
       const data = sdgDistribution.value;
       const width = chartContainer.value.clientWidth;
-      const height = 120;
-      const margin = { top: 5, right: 5, bottom: 60, left: 30 }; // Increased left margin for Y-axis
+      const height = 96;
+      const margin = { top: 14, right: 2, bottom: 18, left: 2 }; // counts on the bars, SDG numbers below
 
       // Remove existing SVG if present
       d3.select(chartContainer.value).select("svg").remove();
@@ -83,12 +94,17 @@ export default {
         .domain([0, d3.max(data, d => d.count) || 1])
         .range([height - margin.top - margin.bottom, 0]);
 
-      // Tooltip setup
+      // Tooltip setup (one per chart)
+      d3.select(chartContainer.value).selectAll(".glyph-tooltip").remove();
       const tooltip = d3.select(chartContainer.value)
         .append("div")
+        .attr("class", "glyph-tooltip")
         .style("position", "absolute")
+        .style("z-index", "20")
+        .style("pointer-events", "none")
+        .style("color", "#fff")
         .style("visibility", "hidden")
-        .style("background", "#fff")
+        .style("background", "rgb(var(--c-surface))")
         .style("border", "1px solid #ddd")
         .style("padding", "5px")
         .style("border-radius", "4px")
@@ -104,7 +120,11 @@ export default {
         .attr("width", xScale.bandwidth())
         .attr("height", d => height - margin.top - margin.bottom - yScale(d.count))
         .attr("fill", d => d.color)
-        .attr("rx", 4)
+        .attr("rx", 3)
+        .style("cursor", "pointer")
+        // With a filter, the other bars step back
+        .attr("opacity", d => (topSdgFilter.value && topSdgFilter.value !== d.sdgId ? 0.3 : 1))
+        .on("click", (event, d) => toggleTopSdgFilter(d.sdgId))
         .on("mouseover", (event, d) => {
           tooltip.style("visibility", "visible")
             .html(`SDG ${d.sdgId} <br><strong>${sdgTitles[d.sdgId-1]}</strong>: ${d.count} Publications`)
@@ -118,19 +138,23 @@ export default {
           tooltip.style("visibility", "hidden");
         });
 
-      // Add X axis with rotated labels
-      svg.append("g")
-        .attr("transform", `translate(0,${height - margin.top - margin.bottom})`)
-        .call(d3.axisBottom(xScale).tickSize(0))
-        .selectAll("text")
-        .style("text-anchor", "end")
-        .attr("dx", "-0.8em")
-        .attr("dy", "0.15em")
-        .attr("transform", "rotate(-30)");
+      // Count on top of each bar instead of a y axis
+      svg.selectAll("text.bar-count")
+        .data(data)
+        .join("text")
+        .attr("class", "bar-count")
+        .attr("x", d => xScale(`SDG ${d.sdgId}`) + xScale.bandwidth() / 2)
+        .attr("y", d => yScale(d.count) - 3)
+        .attr("text-anchor", "middle")
+        .style("font", "600 10.5px var(--font-mono)")
+        .style("fill", "rgb(var(--c-fg))")
+        .text(d => d.count);
 
-      // Add Y axis
-      svg.append("g")
-        .call(d3.axisLeft(yScale).ticks(4));
+      // SDG numbers below the bars (the tooltip has the names)
+      const xAxis = svg.append("g")
+        .attr("transform", `translate(0,${height - margin.top - margin.bottom})`)
+        .call(d3.axisBottom(xScale).tickSize(0).tickPadding(5).tickFormat(label => label.replace("SDG ", "")));
+      xAxis.select(".domain").remove();
     };
 
 
@@ -146,22 +170,30 @@ export default {
     watch(
       () => sdgPredictionsStore.selectedPartitionedSDGPredictions,
       () => {
+        // A new selection starts without a table filter
+        clearTopSdgFilter();
         updateChart();
       },
       { deep: true }
     );
+
+    watch(topSdgFilter, updateChart);
 
     // Initialize chart on mount
     // Redraw when the container changes size (window resize, layout changes)
     useRedrawOnResize(chartContainer, updateChart);
 
     onMounted(() => {
+      // A filter from another page does not apply here
+      clearTopSdgFilter();
       updateChart();
     });
 
     return {
       totalCount,
       chartContainer,
+      topSdgFilter,
+      clearTopSdgFilter,
     };
   },
 };

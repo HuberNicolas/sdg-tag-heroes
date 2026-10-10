@@ -14,8 +14,7 @@ logging = logger("chatGPT_dataset_generator.log")
 
 import json
 
-from openai import OpenAI
-
+from services.gpt.llm_client import create_openai_client, llm_model
 from utils.env_loader import load_env
 
 # Load the API environment variables
@@ -87,8 +86,9 @@ def fetch_publications_by_sdg(session, sdg_number):
 
 results = []
 
-# Initialize OpenAI client (ensure you've set up the API key in your environment)
-client = OpenAI()
+# OpenAI, or a local model with LLM_PROVIDER=ollama (services/gpt/llm_client.py)
+client = create_openai_client()
+MODEL = llm_model(openai_default="gpt-4o")
 
 
 def evaluate_abstract_sdg_relevance(abstract_text):
@@ -135,7 +135,7 @@ def evaluate_abstract_sdg_relevance(abstract_text):
 
     # Enforce a structured JSON response format
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model=MODEL,
         messages=messages,
         response_format={"type": "json_object"},  # Ensures the response is a valid JSON object
     )
@@ -213,7 +213,7 @@ def evaluate_abstract_for_specific_sdg(abstract_text, sdg_number):
 
     # Call OpenAI API
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model=MODEL,
         messages=messages,
         response_format={"type": "json_object"},  # Ensures the response is a valid JSON object
     )
