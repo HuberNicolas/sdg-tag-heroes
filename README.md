@@ -20,6 +20,9 @@
 
 ---
 
+> This is the further developed version with a redesigned frontend. The state of the master's thesis, cleaned up
+> so that it runs again, is on the [`thesis`](https://github.com/HuberNicolas/sdg-tag-heroes/tree/thesis) branch.
+
 SDG Tag Heroes maps scientific publications to the 17
 [Sustainable Development Goals (SDGs)](https://sdgs.un.org/goals). Machine-learning models predict which SDGs a
 publication addresses. Players ("heroes") review these predictions, vote on the correct SDG, write annotations, and
