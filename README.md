@@ -142,7 +142,8 @@ The API, the databases and the frontend run in Docker. The dataset scripts run o
 - [Node.js](https://nodejs.org/) 20 or newer, to run the frontend on your machine (optional)
 - Python **3.10.14** and [Poetry](https://python-poetry.org/), to build the dataset
   ([setup](docs/development.md#python-environment))
-- An [OpenAI API key](https://platform.openai.com/api-keys) for the GPT features; everything else works without one
+- An [OpenAI API key](https://platform.openai.com/api-keys) for the GPT features, or a local model with
+  [Ollama](#local-llm-with-ollama); everything else works without either
 
 ### 1. Clone the repository
 
@@ -178,7 +179,7 @@ Then set the empty values:
 | `mongodb.env`       | `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`, and `MONGODB_HOST=mongodb`           |
 | `mongo-express.env` | The UI login, and `ME_CONFIG_MONGODB_URL=mongodb://<user>:<password>@mongodb:27017`              |
 | `backend.env`       | `SECRET_KEY`: a long random string that signs the JWTs                                           |
-| `api.env`           | `OPENAI_API_KEY`                                                                                 |
+| `api.env`           | `OPENAI_API_KEY`, `LLM_PROVIDER`, `LLM_MODEL`, `OLLAMA_BASE_URL`                                 |
 | `users.env`         | The initial accounts (admin, labeler, expert). **Change the default passwords.**                 |
 
 `qdrantdb.env`, `phpmyadmin.env` and `portainer.env` work as they are.
@@ -260,7 +261,42 @@ How to log in to the database UIs is described in [Databases](docs/databases.md)
 | `API_URL`                     | `frontend/.env`                       | –        | Where the browser reaches the API, e.g. `http://localhost:1002`                |
 | `NUXT_PUBLIC_API_URL`         | production frontend container         | –        | The same, at runtime of the [production image](frontend/README.md#production)  |
 | `NUXT_PUBLIC_MAP_PARTITIONS`  | `frontend/.env`                       | `1000`   | Parts the overview map is split into; use `3` for the dummy dataset            |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `env/backend.env`                     | `30`     | Lifetime of a login token                                                      |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `env/backend.env`                     | `720`    | Lifetime of a login token in minutes (12 hours)                                |
+| `LLM_PROVIDER`                | `env/api.env`                         | `openai` | Chat model of the GPT assistant: `openai` or `ollama` (local, free)            |
+| `LLM_MODEL`                   | `env/api.env`                         | –        | Model name; default `gpt-4o-2024-08-06` (OpenAI) or `llama3.1` (Ollama)        |
+| `OLLAMA_BASE_URL`             | `env/api.env`                         | –        | Ollama's OpenAI-compatible endpoint; default in Docker `http://host.docker.internal:11434/v1` |
+
+### Local LLM with Ollama
+
+The GPT features (SDG suggestion, explanations, keywords, facts, summaries, comment evaluation) also run on a local
+model, free and offline. With [Ollama](https://ollama.com/) on the host:
+
+```bash
+ollama pull llama3.1
+```
+
+Set `LLM_PROVIDER=ollama` in `env/api.env` and restart the API (`docker restart api`; `env/` is mounted into the
+container, so no rebuild is needed). This covers every GPT feature: the API, the simulated comments of the fixtures
+(`--gpt`) and the evaluation scripts in `utils/dataset/` (except the OpenAI-only batch script). Ollama has to listen on all
+interfaces so the API container reaches it (`OLLAMA_HOST=0.0.0.0`). Without Ollama on the host, start the optional
+container and point the API to it:
+
+```bash
+docker compose --profile ollama up -d ollama
+```
+
+```bash
+docker exec ollama ollama pull llama3.1
+```
+
+Then set `OLLAMA_BASE_URL=http://ollama:11434/v1` in `env/api.env`. On a CPU an answer takes about a minute
+(`llama3.1`), several requests queue up; the API waits up to 15 minutes. Smaller models (`llama3.2`, `phi3`) are faster but follow the answer
+format less reliably. The client is built in [`services/gpt/llm_client.py`](services/gpt/llm_client.py).
+To check that every LLM feature answers, call each endpoint once:
+
+```bash
+python3 utils/llm/check_llm_endpoints.py
+```
 
 The tunable values of the application itself (prediction threshold, votes needed for a scenario, GPT model, UMAP
 parameters, …) are in [`settings/settings.py`](settings/settings.py).

@@ -193,7 +193,8 @@ echo "NUXT_PUBLIC_MAP_PARTITIONS=3" >> frontend/.env
 ```
 
 `env/api.env` keeps an empty `OPENAI_API_KEY`. Everything works without it except the GPT features (summaries,
-keywords, comment evaluation).
+keywords, comment evaluation). They also run on a local model: set `LLM_PROVIDER=ollama` (see
+[Local LLM with Ollama](../README.md#local-llm-with-ollama)).
 
 ### 5. Start the databases and the API
 
@@ -269,7 +270,8 @@ publications; the first run also downloads the two models.
 | `fixtures`            | `load_mariadb_fixtures.py --no-gpt --max-publications 300` | Simulated game activity: wallets, XP, votes, comments, scenarios for 300 publications | 1.5 min |
 
 In total about 8 minutes, plus the model downloads on the first run. The fixtures write comments with Faker, so no
-OpenAI key is needed. To let GPT write them instead (costs money), add `--gpt`.
+OpenAI key is needed. To let an LLM write them instead, add `--gpt` (OpenAI costs money; with `LLM_PROVIDER=ollama`
+a local model writes them for free, but slowly).
 
 > [!NOTE]
 > The script only starts on **empty databases**: it stops if MariaDB already contains publications or Qdrant already

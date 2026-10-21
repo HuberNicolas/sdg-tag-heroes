@@ -44,7 +44,7 @@ export default function createGlyph(values: number[]) {
       .attr('class', 'glyph-tooltip')
       .style('position', 'absolute')
       .style('visibility', 'hidden')
-      .style('background', '#fff')
+      .style('background', 'rgb(var(--c-surface))')
       .style('border', '1px solid #ccc')
       .style('padding', '8px')
       .style('border-radius', '4px')
@@ -79,7 +79,7 @@ export default function createGlyph(values: number[]) {
             .join(' ')
         )
         .attr('fill', color?.toString() || 'gray')
-        .attr('stroke', 'black')
+        .attr('stroke', 'var(--hex-stroke)')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -97,8 +97,8 @@ export default function createGlyph(values: number[]) {
             })
             .join(' ')
         )
-        .attr('fill', 'white')
-        .attr('stroke', 'black')
+        .attr('fill', 'var(--hex-empty)')
+        .attr('stroke', 'var(--hex-stroke)')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -111,24 +111,24 @@ export default function createGlyph(values: number[]) {
         .text(baseSdgShortTitles[i]) // Use the short title here
         .style('font-size', `${hexRadius * 0.3}px`) // 30% of the hexagon radius
         .style('font-weight', 'bold')
-        .style('fill', 'black');
+        .style('fill', 'var(--hex-label)');
 
       hexagonGroup
         .on('click', () => {
           if (selectedHexagon === hexagon) {
             // Deselect if already selected
-            selectedHexagon.attr('stroke', 'black').attr('stroke-width', 1);
+            selectedHexagon.attr('stroke', 'var(--hex-stroke)').attr('stroke-width', 1);
             selectedHexagon = null;
             gameStore.setSDG(null);
             gameStore.setLevel(null);
           } else {
             // Deselect previous selection
             if (selectedHexagon) {
-              selectedHexagon.attr('stroke', 'black').attr('stroke-width', 1);
+              selectedHexagon.attr('stroke', 'var(--hex-stroke)').attr('stroke-width', 1);
             }
             // Select the new hexagon
             selectedHexagon = hexagon;
-            hexagon.attr('stroke', 'black').attr('stroke-width', 3);
+            hexagon.attr('stroke', 'rgb(var(--c-fg))').attr('stroke-width', 3);
             gameStore.setSDG(i+1);
           }
         });

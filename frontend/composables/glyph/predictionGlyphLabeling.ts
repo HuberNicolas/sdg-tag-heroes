@@ -81,7 +81,7 @@ export default function createGlyph() {
       .attr('class', 'glyph-tooltip')
       .style('position', 'absolute')
       .style('visibility', 'hidden')
-      .style('background', '#fff')
+      .style('background', 'rgb(var(--c-surface))')
       .style('border', '1px solid #ccc')
       .style('padding', '8px')
       .style('border-radius', '4px')
@@ -114,7 +114,7 @@ export default function createGlyph() {
             .join(' ')
         )
         .attr('fill', color?.toString() || 'gray')
-        .attr('stroke', 'black')
+        .attr('stroke', selectedSDG.value === i + 1 ? 'rgb(var(--c-fg))' : 'var(--hex-stroke)')
         .attr('stroke-width', selectedSDG.value === i + 1 ? 4 : 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
 
@@ -133,8 +133,8 @@ export default function createGlyph() {
             })
             .join(' ')
         )
-        .attr('fill', 'white')
-        //.attr('stroke', 'black')
+        .attr('fill', 'var(--hex-empty)')
+        //.attr('stroke', 'var(--hex-stroke)')
         //.attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`)
 
@@ -145,8 +145,9 @@ export default function createGlyph() {
         .attr('text-anchor', 'middle')
         .attr('dy', '0.35em')
         .text(sdgShortTitles[i])
-        .style('font-size', '12px')
-        .style('fill', 'black');
+        .style('font-size', '13px')
+        .style('font-weight', '600')
+        .style('fill', 'var(--hex-label)');
 
       hexagonGroup
         .on('mouseover', () => {

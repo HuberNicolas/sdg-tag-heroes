@@ -10,8 +10,8 @@
         :class="[
           'cursor-pointer flex flex-col items-center justify-center rounded-lg p-2 w-15 h-15 transition-all duration-200',
           selectedSDG === sdg.id
-            ? 'bg-gray-300 border-2 border-black' // Selected state
-            : 'bg-white hover:bg-gray-100 border-2 border-transparent hover:border-gray-200', // Default and hover states
+            ? 'bg-muted-strong border-2 border-fg' // Selected state
+            : 'bg-surface hover:bg-muted border-2 border-transparent hover:border-line', // Default and hover states
         ]"
         @click="toggleSDG(sdg.id)"
       >
@@ -30,11 +30,11 @@
     </div>
 
     <!-- SDG Detailed Explanation -->
-    <div v-if="selectedSDGDetails" class="mt-4 p-3 border rounded-lg bg-gray-50">
-      <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+    <div v-if="selectedSDGDetails" class="mt-4 p-3 border rounded-lg bg-surface-2">
+      <h3 class="text-sm font-semibold text-fg flex items-center gap-2">
         SDG {{selectedSDGDetails.id}} - {{ selectedSDGDetails.name }}
       </h3>
-      <p class="text-xs text-gray-600">
+      <p class="text-xs text-fg-dim">
         {{ selectedSDGDetails.explanation }}
       </p>
     </div>

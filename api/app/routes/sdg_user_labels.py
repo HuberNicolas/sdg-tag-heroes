@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from pydantic import ValidationError
 from sqlalchemy.orm import Session, joinedload, sessionmaker
 
@@ -167,7 +168,8 @@ async def evaluate_user_label(
         evaluator_service = UserAnnotationEvaluatorService()
 
         # Get LLM evaluation scores
-        llm_scores = gpt_service.evaluate_annotation(
+        llm_scores = await run_in_threadpool(
+            gpt_service.evaluate_annotation,
             passage=user_label.abstract_section,
             annotation=user_label.comment,
             sdg_label=SDGType(f"sdg{user_label.voted_label}"),
@@ -226,7 +228,7 @@ async def create_comment_summary(
         user_labels_data = [{"comment": label.comment or "No comment provided"} for label in user_labels]
 
         # Call the assistant to generate the summary and keywords
-        summary_response = assistant.summarize_comments(user_labels=user_labels_data)
+        summary_response = await run_in_threadpool(assistant.summarize_comments, user_labels=user_labels_data)
 
         return SDGUserLabelsCommentSummarySchema(
             user_labels_ids=user_labels_ids,
@@ -496,7 +498,8 @@ async def create_sdg_user_label(
         label_service = LabelService(db)
         print(request)
 
-        new_user_label = label_service.create_or_link_label(request)
+        # Off the event loop: rewarding a comment asks the LLM, which can take a minute with a local model
+        new_user_label = await run_in_threadpool(label_service.create_or_link_label, request)
         return SDGUserLabelSchemaFull.model_validate(new_user_label)
 
     except HTTPException as he:

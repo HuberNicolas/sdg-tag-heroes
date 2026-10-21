@@ -1,20 +1,20 @@
 <template>
   <div class="frame-container">
-    <div class="frame-title"><b>Decide</b> to label an interesting publication</div>
-    <div v-if="selectedPublication" class="relative mx-auto p-6 bg-white shadow-lg rounded-lg max-h-[80vh] overflow-y-auto">
+    <div class="frame-title"><b>Decide</b> whether to label this publication</div>
+    <div v-if="selectedPublication" class="relative mx-auto p-5 bg-surface-2/70 border border-line rounded-xl max-h-[80vh] overflow-y-auto">
 
-      <h2 class="text-xl font-bold text-gray-800 mb-4">
+      <h2 class="text-xl font-bold tracking-tight text-fg mb-4">
         {{ selectedPublication.title || "Untitled Publication" }} ({{selectedPublication.year}})
       </h2>
 
       <!-- Keywords -->
       <div class="mt-4">
         <div v-if="keywordsLoading" class="text-center">
-          <span class="loading loading-bars loading-lg"/> Loading Keywords...
+          <LoadingState size="sm" label="llm is picking keywords" />
         </div>
         <div v-else-if="keywords && keywords.keywords.length > 0">
-          <strong class="text-gray-700">Keywords:</strong>
-          <span v-for="(keyword, index) in keywords.keywords" :key="index" class="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-sm mr-2">
+          <p class="mb-1.5 font-mono text-[10px] uppercase tracking-wider text-fg-faint">keywords</p>
+          <span v-for="(keyword, index) in keywords.keywords" :key="index" class="inline-block mb-1.5 mr-1.5 rounded-full border border-line bg-surface px-2.5 py-0.5 text-xs text-fg">
           {{ keyword }}
         </span>
         </div>
@@ -23,9 +23,9 @@
       <!-- Fact -->
       <div class="mt-4">
         <div v-if="factLoading" class="text-center">
-          <span class="loading loading-bars loading-lg"/> Loading Fact...
+          <LoadingState size="sm" label="llm is finding a fact" />
         </div>
-        <div v-else-if="fact && fact.content" class="mt-4 p-3 rounded-lg" :style="{ backgroundColor: sdgColor }">
+        <div v-else-if="fact && fact.content" class="mt-4 p-3 rounded-xl" :style="{ backgroundColor: sdgColor }">
           <h3 class="text-lg font-semibold" :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">Did You Know?</h3>
           <p :style="{ color: sdgColor !== '#A0A0A0' ? 'white' : 'gray' }">{{ fact.content }}</p>
         </div>
@@ -34,11 +34,11 @@
       <!-- Summary -->
       <div class="mt-4">
         <div v-if="summaryLoading" class="text-center">
-          <span class="loading loading-bars loading-lg"/> Loading Summary...
+          <LoadingState size="sm" label="llm is writing a summary" />
         </div>
         <div v-else-if="summary && summary.summary" class="mt-4">
-          <h3 class="text-lg font-semibold text-gray-700">Summary</h3>
-          <p class="text-gray-700">{{ summary.summary }}</p>
+          <p class="mb-1 font-mono text-[10px] uppercase tracking-wider text-fg-faint">summary</p>
+          <p class="text-sm leading-relaxed text-fg">{{ summary.summary }}</p>
         </div>
       </div>
 
@@ -99,9 +99,11 @@ export default {
           fact.value = null;
           summary.value = null;
 
-          // Fetch data
+          // Fetch data; each part shows as soon as it is there (a local LLM takes a while per part)
           keywords.value = await getPublicationKeywords(publicationId);
+          keywordsLoading.value = false;
           fact.value = await getPublicationFact(publicationId);
+          factLoading.value = false;
           summary.value = await getPublicationSummary(publicationId);
 
         } catch (error) {

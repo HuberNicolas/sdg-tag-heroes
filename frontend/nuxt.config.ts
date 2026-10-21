@@ -8,6 +8,16 @@ export default defineNuxtConfig({
     }
   },
   ssr: false,
+  app: {
+    head: {
+      title: "SDG Tag Heroes",
+      htmlAttrs: { lang: "en" },
+      meta: [
+        { name: "description", content: "A game to label research publications with the UN Sustainable Development Goals." }
+      ],
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }]
+    }
+  },
   modules: [
     "@nuxt/fonts",
     "@nuxt/ui",
@@ -59,36 +69,22 @@ export default defineNuxtConfig({
     // SVGs are imported explicitly (constants/sdgs.ts); there is no assets/icons/ folder to auto-register
     autoImportPath: false
   },
-  // clear local storage after changing this
+  // Light and dark theme: the class `light` / `dark` on <html> drives Tailwind, Nuxt UI and the tokens in
+  // assets/css/tailwind.css; data-theme drives daisyUI. The first visit follows the operating system.
   colorMode: {
-    preference: "light", // default value of $colorMode.preference // system also possible
-    fallback: "light", // fallback value if not system preference found
-    hid: "nuxt-color-mode-script",
-    globalName: "__NUXT_COLOR_MODE__",
-    componentName: "ColorScheme",
-    classPrefix: "",
-    classSuffix: "-mode",
-    storage: "localStorage", // or 'sessionStorage' or 'cookie'
-    storageKey: "nuxt-color-mode"
+    preference: "system",
+    fallback: "light",
+    classSuffix: "",
+    dataValue: "theme",
+    storageKey: "sdg-tag-heroes-color-mode"
   },
   fonts: {
     families: [
-      {
-        name: "JetBrains Mono",
-        provider: "google",
-        fallbacks: ["Times New Roman"]
-      },
-      {
-        name: "Press Start 2P",
-        provider: "google",
-        fallbacks: ["Times New Roman"]
-      }
-    ],
-    defaults: {
-      fallbacks: {
-        monospace: ["Tahoma"]
-      }
-    }
+      { name: "Space Grotesk", provider: "google", weights: [400, 500, 600, 700] },
+      { name: "JetBrains Mono", provider: "google", weights: [400, 500, 600, 700] },
+      // Pixel font for the logo and the universe names
+      { name: "Press Start 2P", provider: "google" }
+    ]
   },
   watch: ['composables/**/*.ts', 'components/**/*.vue'], // does not trigger new build
 });

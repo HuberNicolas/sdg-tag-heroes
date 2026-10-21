@@ -867,7 +867,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--no-gpt",
         action="store_true",
-        help="write comments and annotations with Faker instead of the OpenAI API (free, offline)",
+        help="write comments and annotations with Faker instead of the LLM (OpenAI or Ollama, see LLM_PROVIDER)",
     )
     parser.add_argument(
         "--max-publications",

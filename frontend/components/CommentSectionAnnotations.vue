@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div class="frame-title"><b>Browse</b> Community Annotations: Read & Engage with Shared Insights</div>
-    <div v-if="isLoading" class="text-gray-500">Loading...</div>
+    <div class="frame-title"><b>Browse</b> community annotations: notes others added to passages of this abstract</div>
+    <LoadingState v-if="isLoading" label="loading labels" />
 
-    <div v-if="error">Be the first user to make an annotation.</div>
+    <div v-if="error">No annotations yet. Mark a passage in the abstract to add the first one.</div>
 
     <!-- Sorting Controls -->
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border rounded-md shadow-sm">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border rounded-md ">
       <h2 class="text-xl font-semibold">Community Annotations</h2>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
@@ -27,7 +27,7 @@
     <div class="max-h-[600px] overflow-y-auto border rounded p-4">
       <div
 v-for="annotation in sortedAnnotations" :key="annotation.annotationId"
-           class="mb-2 border-2 border-gray-600 bg-gray-200 rounded-lg shadow-xl p-3">
+           class="mb-2 border-2 border-line-strong bg-muted-strong rounded-lg shadow-panel p-3">
       <div class="flex items-start gap-2">
           <!-- User Avatar with Rank -->
           <div class="flex flex-col items-center p-4">
@@ -37,11 +37,11 @@ v-for="annotation in sortedAnnotations" :key="annotation.annotationId"
               </NuxtLink>
             </template>
             <template v-else>
-              <div class="w-12 h-12 rounded-full bg-gray-300"/>
+              <div class="w-12 h-12 rounded-full bg-muted-strong"/>
             </template>
           </div>
 
-          <div class="flex-1 bg-white rounded-tr-lg rounded-br-lg rounded-bl-lg p-4">
+          <div class="flex-1 bg-surface rounded-tr-lg rounded-br-lg rounded-bl-lg p-4">
             <!-- User Nickname and Annotation -->
             <div class="flex items-center gap-2">
               <p class="font-semibold">
@@ -50,34 +50,34 @@ v-for="annotation in sortedAnnotations" :key="annotation.annotationId"
             </div>
 
             <!-- Annotation Comment -->
-            <p class="text-sm text-gray-700 mt-1">
+            <p class="text-sm text-fg mt-1">
               <span class="font-medium">Comment:</span> {{ annotation.comment || "No comment provided" }}
             </p>
 
             <!-- Annotation Date -->
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-fg-dim mt-1">
               <span class="font-medium">Date:</span> {{ formatDate(annotation.createdAt) }}
             </p>
 
             <!-- Votes for the Annotation -->
             <div class="flex items-center gap-2 mt-2 h-[50px]">
-              <p class="font-semibold text-gray-700">Community Votes</p>
+              <p class="font-semibold text-fg">Community Votes</p>
 
               <!-- Vote Buttons -->
               <div class="flex items-center gap-2 mt-2">
                 <!-- Negative Vote Button -->
-                <button class="flex items-center gap-1 text-gray-400 hover:text-gray-600" aria-label="Vote Negative" @click="voteAnnotation(annotation.annotationId, VoteType.NEGATIVE)">
+                <button class="flex items-center gap-1 text-fg-faint hover:text-fg-dim" aria-label="Vote Negative" @click="voteAnnotation(annotation.annotationId, VoteType.NEGATIVE)">
                   <Icon name="mdi-thumb-down-outline" class="w-5 h-5" />
-                  <span class="text-gray-400">{{ getAnnotationVotes(annotation.annotationId).negative }}</span>
+                  <span class="text-fg-faint">{{ getAnnotationVotes(annotation.annotationId).negative }}</span>
                 </button>
 
                 <!-- Vote Plot -->
                 <BarVotePlot :width="350" :height="80" :votes-data="getAnnotationVotes(annotation.annotationId)" />
 
                 <!-- Positive Vote Button -->
-                <button class="flex items-center gap-1 text-gray-700 hover:text-gray-900" aria-label="Vote Positive" @click="voteAnnotation(annotation.annotationId, VoteType.POSITIVE)">
+                <button class="flex items-center gap-1 text-fg hover:text-fg" aria-label="Vote Positive" @click="voteAnnotation(annotation.annotationId, VoteType.POSITIVE)">
                   <Icon name="mdi-thumb-up-outline" class="w-5 h-5" />
-                  <span class="text-gray-700">{{ getAnnotationVotes(annotation.annotationId).positive }}</span>
+                  <span class="text-fg">{{ getAnnotationVotes(annotation.annotationId).positive }}</span>
                 </button>
               </div>
             </div>

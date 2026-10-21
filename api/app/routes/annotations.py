@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from pydantic import ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -119,7 +120,8 @@ async def evaluate_annotation_score(
         evaluator_service = UserAnnotationEvaluatorService()
 
         # Get LLM scores from GPT
-        llm_scores = gpt_service.evaluate_annotation(
+        llm_scores = await run_in_threadpool(
+            gpt_service.evaluate_annotation,
             passage=request.passage,
             annotation=request.annotation,
             sdg_label=request.sdg_label,

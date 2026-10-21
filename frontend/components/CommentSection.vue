@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="frame-title"><b>Explore</b> Community Labels: See How Others Categorized This Publication</div>
+    <div class="frame-title"><b>Explore</b> community labels: how others classified this publication</div>
     <CommentSummary/>
-    <div v-if="isLoading" class="text-gray-500">Loading...</div>
+    <LoadingState v-if="isLoading" label="loading comments" />
 
     <div v-if="error">
       Be the first user to submit a Label.
@@ -10,7 +10,7 @@
 
 
     <!-- Sorting Controls -->
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border rounded-md shadow-sm">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border rounded-md ">
       <h2 class="text-xl font-semibold">Community Labels</h2>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
@@ -68,7 +68,7 @@
       <div
         v-for="label in filteredAndSortedUserLabels"
         :key="label.labelId"
-        class="mb-2 border-2 border-gray-600 bg-gray-200 rounded-lg shadow-xl p-3">
+        class="mb-2 border-2 border-line-strong bg-muted-strong rounded-lg shadow-panel p-3">
         <div class="flex items-start gap-2">
 
           <!-- User Avatar with Rank -->
@@ -100,13 +100,13 @@
             </template>
             <!-- Fallback if user data is missing -->
             <template v-else>
-              <div class="w-12 h-12 rounded-full bg-gray-300"/>
+              <div class="w-12 h-12 rounded-full bg-muted-strong"/>
             </template>
 
             <!-- Rank Info Card -->
             <div
 v-if="getUserRank(label.userId, label.votedLabel)"
-                 class="mt-8 bg-white rounded-lg shadow p-2 w-full text-center border">
+                 class="mt-8 bg-surface rounded-lg shadow-panel p-2 w-full text-center border">
               <p>Rank</p>
               <Icon
                 v-if="getUserRank(label.userId, label.votedLabel).tier === 1"
@@ -129,19 +129,19 @@ v-if="getUserRank(label.userId, label.votedLabel)"
               <Icon
                 v-else
                 name="line-md:minus"
-                class="text-gray-400 w-5 h-5 mx-auto"
+                class="text-fg-faint w-5 h-5 mx-auto"
               />
             </div>
 
             <!-- Rank Title Section -->
             <p
-class="text-sm border-gray-400 mt-1"
+class="text-sm border-line-strong mt-1"
                :style="{ color: sdgsStore.getColorBySDG(label.votedLabel) }">
               {{ getUserRank(label.userId, label.votedLabel)?.name || "" }}
             </p>
           </div>
 
-          <div class="flex-1 bg-white rounded-tr-lg rounded-br-lg rounded-bl-lg p-4">
+          <div class="flex-1 bg-surface rounded-tr-lg rounded-br-lg rounded-bl-lg p-4">
 
             <!-- User Nickname and Voted Label -->
             <div class="flex items-center gap-2">
@@ -164,23 +164,23 @@ class="text-sm border-gray-400 mt-1"
             </div>
 
             <!-- Abstract Section -->
-            <p class="text-sm border-gray-400 mt-1">
+            <p class="text-sm border-line-strong mt-1">
               <span class="font-medium">Abstract:</span> {{ label.abstractSection || "None" }}
             </p>
 
             <!-- User Comment -->
-            <p class="text-sm text-gray-700 mt-1">
+            <p class="text-sm text-fg mt-1">
               <span class="font-medium">Reason:</span> {{ label.comment || "-" }}
             </p>
 
             <!-- Label Date -->
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-fg-dim mt-1">
               <span class="font-medium">Date:</span> {{ formatDate(label.createdAt) }}
             </p>
 
             <!-- Votes for the Label -->
             <div class="flex items-center gap-2 mt-2 h-[50px]">
-              <p class="font-semibold text-gray-700">Community Votes</p>
+              <p class="font-semibold text-fg">Community Votes</p>
 
 
               <!-- Vote Buttons -->
@@ -188,12 +188,12 @@ class="text-sm border-gray-400 mt-1"
 
                 <!-- Negative Vote Button -->
                 <button
-                  class="flex items-center gap-1 text-gray-400 hover:text-gray-600"
+                  class="flex items-center gap-1 text-fg-faint hover:text-fg-dim"
                   aria-label="Vote Negative"
                   @click="voteAnnotation(label.labelId, VoteType.NEGATIVE)"
                 >
                   <Icon name="mdi-thumb-down-outline" class="w-5 h-5" />
-                  <span class="text-gray-400">{{ getLabelVotes(label.labelId).negative }}</span>
+                  <span class="text-fg-faint">{{ getLabelVotes(label.labelId).negative }}</span>
                 </button>
 
                 <!-- Vote Plot -->
@@ -202,19 +202,19 @@ class="text-sm border-gray-400 mt-1"
 
                 <!-- Positive Vote Button -->
                 <button
-                  class="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                  class="flex items-center gap-1 text-fg hover:text-fg"
                   aria-label="Vote Positive"
                   @click="voteAnnotation(label.labelId, VoteType.POSITIVE)"
                 >
                   <Icon name="mdi-thumb-up-outline" class="w-5 h-5" />
-                  <span class="text-gray-700">{{ getLabelVotes(label.labelId).positive }}</span>
+                  <span class="text-fg">{{ getLabelVotes(label.labelId).positive }}</span>
                 </button>
 
                 <!-- Neutral Vote Button -->
                 <!--
                <button
                  @click="voteLabel(label.labelId, VoteType.NEUTRAL)"
-                 class="flex items-center gap-1 text-gray-500 hover:text-gray-700"
+                 class="flex items-center gap-1 text-fg-dim hover:text-fg"
                  aria-label="Vote Neutral"
                >
                  <Icon name="mdi-emoticon-neutral-outline" class="w-5 h-5" />

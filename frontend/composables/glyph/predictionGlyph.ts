@@ -30,14 +30,6 @@ export default function createGlyph(values: number[]) {
     const gridWidth = maxX - minX; // Actual content width
     const gridHeight = maxY - minY; // Actual content height
 
-    // Slight manual adjustments for centering
-    const xShift = hexRadius; // Move slightly to the right
-    const yShift = -hexRadius; // Move slightly up
-
-    // Centering offsets with manual adjustments
-    const xOffset = (width - gridWidth) / 2 + xShift;
-    const yOffset = (height - gridHeight) / 2 + yShift;
-
     const container = d3.select(selector);
     container.selectAll('*').remove();
 
@@ -49,16 +41,15 @@ export default function createGlyph(values: number[]) {
       .attr('height', height)
       .style('background', 'transparent');
 
-    // Create a group to shift content
-    const contentGroup = svg.append('g')
-      .attr('transform', `translate(${xOffset - minX}, ${yOffset - minY})`); // Apply explicit horizontal adjustment
+    // The viewBox already frames and centres the honeycomb (an extra pixel offset here pushed it off centre)
+    const contentGroup = svg.append('g');
 
     const tooltip = d3.select('body')
       .append('div')
       .attr('class', 'glyph-tooltip')
       .style('position', 'absolute')
       .style('visibility', 'hidden')
-      .style('background', '#fff')
+      .style('background', 'rgb(var(--c-surface))')
       .style('border', '1px solid #ccc')
       .style('padding', '8px')
       .style('border-radius', '4px')
@@ -90,7 +81,7 @@ export default function createGlyph(values: number[]) {
             .join(' ')
         )
         .attr('fill', color?.toString() || 'gray')
-        .attr('stroke', 'black')
+        .attr('stroke', 'var(--hex-stroke)')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -108,8 +99,8 @@ export default function createGlyph(values: number[]) {
             })
             .join(' ')
         )
-        .attr('fill', 'white')
-        .attr('stroke', 'black')
+        .attr('fill', 'var(--hex-empty)')
+        .attr('stroke', 'var(--hex-stroke)')
         .attr('stroke-width', 1)
         .attr('transform', `rotate(${rotation} ${x * xSpacing} ${y * ySpacing})`);
 
@@ -121,7 +112,7 @@ export default function createGlyph(values: number[]) {
         .attr('dy', '0.35em')
         .text(labels[i])
         .style('font-size', '12px')
-        .style('fill', 'black');
+        .style('fill', 'var(--hex-label)');
 
       hexagonGroup
         .on('mouseover', () => {

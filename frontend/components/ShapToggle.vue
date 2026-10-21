@@ -4,9 +4,9 @@
       <input
         v-model="showShap"
         type="checkbox"
-        class="form-checkbox h-5 w-5 text-gray-600"
+        class="form-checkbox h-5 w-5 text-fg-dim"
       >
-      <span class="ml-2 text-gray-700">Show Machine Explanation</span>
+      <span class="ml-2 text-fg">Show Machine Explanation</span>
     </label>
   </div>
 </template>

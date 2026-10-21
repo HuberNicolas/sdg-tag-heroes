@@ -1,8 +1,6 @@
 import json
 from typing import Any, Dict, List, Optional
 
-import instructor
-from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
 from enums import SDGType
@@ -19,9 +17,8 @@ from schemas.gpt_assistant_service import (
     GPTResponseSummarySchema,
     SDGPredictionSchema,
 )
-from settings.settings import GPTAssistantServiceSettings
-from utils.env_loader import get_env_variable, load_env
 
+from .llm_client import create_llm_client, llm_model
 from .strategies.fact_generator_strategy import FactStrategy
 from .strategies.keyword_extractor_strategy import ExtractKeywordsStrategy
 from .strategies.persona_comment_generator_strategy import GenerateAnnotationStrategy, GenerateCommentStrategy
@@ -36,17 +33,14 @@ from .strategies.user_query_generator_strategy import (
     SkillsQueryStrategy,
 )
 
-# Load the API environment variables
-load_env("api.env")
-
-gpt_assistant_service_settings = GPTAssistantServiceSettings()
-client = instructor.from_openai(OpenAI(api_key=get_env_variable("OPENAI_API_KEY")))
+# OpenAI or a local model through Ollama, chosen with LLM_PROVIDER (see llm_client.py)
+client = create_llm_client()
 
 
 class GPTAssistantService:
-    """General-purpose GPT client for structured API calls with contextual prompts."""
+    """General-purpose LLM client (OpenAI or Ollama) for structured API calls with contextual prompts."""
 
-    def __init__(self, client: Any = client, model: str = gpt_assistant_service_settings.GPT_MODEL):
+    def __init__(self, client: Any = client, model: str = llm_model()):
         self.client = client
         self.model = model
 
